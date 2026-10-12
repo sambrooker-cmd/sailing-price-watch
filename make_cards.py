@@ -69,12 +69,12 @@ def main():
         read_at = datetime.datetime.fromisoformat(snap["fetched_at"]).strftime("%-d %b %Y %H:%M UTC")
     with open(out / "cards.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["Cruise code", "Sailing", "Departs", "Nights", "From price pp", "Promotions on card",
+        w.writerow(["Cruise code", "Sailing", "Departs", "Nights", "From price pp", "Promotions on card", "Nectar on card",
                     "Price read", "Files", "Booking link"])
         for c in ids:
             s = by[c]
             w.writerow([c, s.get("base_title") or s["title"], s["departure_date"], s.get("nights"),
-                        s["price_pp"], " | ".join(rc.promo_lines(s)), read_at,
+                        s["price_pp"], " | ".join(rc.promo_lines(s)), rc.nectar_line(s), read_at,
                         " ".join(f"{c}_{rc.SIZES[wh]}.png" for wh in sizes), s.get("link", "")])
 
     lines = [f"## Cards made: {len(ids)} sailing{'s' if len(ids) != 1 else ''}, {len(made)} images", "",

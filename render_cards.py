@@ -23,7 +23,8 @@ Layout (matches the carousel sailing cards):
     or plane icon + "Fly-cruise on <ship> / flights from <airport>"
   * bottom left, stacked sash-ended strips: Allium kicker line, Allium
     headline, Amber fare block (nights + date | From £X pp, Allium text,
-    never black), then up to two Aloe promotion strips (see promo_lines)
+    never black), a Pearl Nectar strip when the sailing earns points (see nectar_line),
+    then up to two Aloe promotion strips (see promo_lines)
 
 Was/now cards (--was) use the price-reduction layout instead (since 9 Oct
 2026), matching the fly-cruise price reduction carousel
@@ -144,6 +145,14 @@ def promo_lines(s):
     return out
 
 
+def nectar_line(s):
+    """Nectar line for standard cards (Sam, 12 Oct 2026): the figure the sailing page shows
+    (snapshot "nectar_pts": two sharing the cheapest cabin, Ambassador fare). That fare costs
+    more than the "from" price on the card, so the line says "up to"."""
+    n = s.get("nectar_pts")
+    return f"Collect up to {n:,} Nectar points" if n else ""
+
+
 CABIN_LABEL = {"inside": "Inside cabins", "ocean_view": "Ocean view cabins",
                "balcony": "Balcony cabins", "suite": "Suites"}
 
@@ -231,6 +240,8 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None):
         fare = f"""
         <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>"""
     offer_html = "".join(f'<div class="strip offer"><span class="fit" data-max="27">{html.escape(t)}</span></div>' for t in promo_lines(s))
+    nx = nectar_line(s)
+    nectar_html = f'<div class="strip nectar"><span class="fit" data-max="27">{html.escape(nx)}</span></div>' if nx else ""
     kicker_html = f'<div class="strip kicker"><span class="fit" data-max="42">{html.escape(kicker)}</span></div>' if kicker else ""
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONT_CSS}
@@ -266,6 +277,8 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 .was .save{{margin-left:10px}}
 .cab{{font-size:28px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}}
 .fare.tall2{{min-height:214px}}
+.nectar{{height:76px;padding:0 60px 0 64px;background:#F1ECE7;color:#6B207D;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);
+  font-size:27px;font-weight:700}}
 .offer{{height:76px;padding:0 60px 0 64px;background:#009165;color:#fff;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);
   font-size:27px;font-weight:700}}
 </style></head><body><div id="card">
@@ -282,6 +295,7 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
     <div class="rule"></div>
     {fare}
   </div>
+  {nectar_html}
   {offer_html}
 </div>
 </div>
