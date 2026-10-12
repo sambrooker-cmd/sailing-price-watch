@@ -111,5 +111,10 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 - [x] Tracker page decided and live (https://acl-price-watch.web.app); old Claude tracker artifact retired.
 - [x] Sam set a £1 budget alert on promotions-planner billing, GitHub email notifications (participating + failed workflows),
       and deleted the temporary probe-nectar branch (12 Oct 2026).
-- [ ] Open: scheduled runs had not fired by 14:50 UTC on 12 Oct 2026 (all runs so far manual). If they still don't, add a
-      backstop trigger (external cron calling workflow_dispatch with a token Sam creates).
+- [x] Backstop timer (12 Oct 2026): GitHub's own `schedule` never fired on 12 Oct (12:00–15:07 UTC all missed, workflow
+      "active"). Sam set up a cron-job.org job (his account) that POSTs to
+      `https://api.github.com/repos/sambrooker-cmd/sailing-price-watch/actions/workflows/price-watch.yml/dispatches`
+      with `{"ref":"main"}` at minute 7 of 06, 09–17 and 22 UTC, using a fine-grained token (only this repo,
+      Actions: read and write) that **expires 30 Jul 2027**: renew it before then or the checks stop. First test run
+      15:31 UTC 12 Oct 2026 worked. If GitHub's schedule starts firing too, some hours get two checks a few minutes
+      apart (harmless: the second finds nothing new; the concurrency group runs them one after the other).
