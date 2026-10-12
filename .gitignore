@@ -1,5 +1,6 @@
+__pycache__/
+_site/
 data/
-out/
 db/
 img_cache/
-__pycache__/
+out/
