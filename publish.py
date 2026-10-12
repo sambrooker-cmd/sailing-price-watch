@@ -90,6 +90,8 @@ def documents():
             sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in m.get("old") or []],
                   **({"wasnow": {k: slim(c) for k, c in m["wasnow"].items()}} if m.get("wasnow") else {})}
             for sid, m in man.get("sailings", {}).items()}}
+    if (ROOT / "state" / "adkit.json").exists():
+        docs["adkit"] = load(ROOT / "state" / "adkit.json")
     if (ROOT / "state" / "coverage.json").exists():
         docs["coverage"] = load(ROOT / "state" / "coverage.json")
     out = {}
