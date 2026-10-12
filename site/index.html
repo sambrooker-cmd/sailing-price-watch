@@ -600,7 +600,7 @@ const auth = getAuth(firebaseApp);
     const today = state.updated, rules = state.rules || {};
     const all = Object.entries(state.sailings || {}).map(([id, s]) => ({id, ...s}));
     const active = all.filter(s => !s.removed);
-    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<span class="m-sep"> · </span><br>Checks hourly 9am–5pm GMT · tracking since ${fmtDate(state.tracking_since)}`;
+    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<span class="m-sep"> · </span><br>Checks hourly 9am–5pm UK time · tracking since ${fmtDate(state.tracking_since)}`;
     $("st-count").textContent = active.length;
     const byShip = {}; active.forEach(s => byShip[s.ship] = (byShip[s.ship]||0)+1);
     $("st-ships").textContent = ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
