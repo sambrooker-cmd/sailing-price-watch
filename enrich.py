@@ -90,6 +90,50 @@ def offers(page):
     return out
 
 
+def nectar(page):
+    """Nectar points from the FareSummary component's search data (nectar_points), for two
+    guests sharing (twin) and one (solo), per cabin grade and fare:
+    {"eligible": bool, "twin": {"inside": {"standard": 30000, "ambassador": 50000}, ...}, "solo": {...}}.
+    Points come from the booking value in bands, so they follow the price.
+    None when it can't be read."""
+    m = re.search(r'<astro-island[^>]*component-url="[^"]*FareSummary[^"]*"[^>]*props="([^"]*)"', page)
+    if not m:
+        return None
+    try:
+        sd = _dv(json.loads(html.unescape(m.group(1)))).get("search-data") or {}
+    except Exception:  # noqa
+        return None
+    np_ = sd.get("nectar_points")
+    if not isinstance(np_, dict):
+        return None
+    out = {"eligible": bool(sd.get("isNectarEligible"))}
+    for occ, guests in (("twin", "2"), ("solo", "1")):
+        for typ, v in ((np_.get(occ) or {}).get("byType") or {}).items():
+            if typ not in CABIN_KEYS or not isinstance(v, dict):
+                continue
+            pts = {fare: (v.get(fare) or {}).get(guests) for fare in ("standard", "ambassador")}
+            pts = {k: int(x) for k, x in pts.items() if isinstance(x, (int, float)) and x > 0}
+            if pts:
+                out.setdefault(occ, {})[CABIN_KEYS[typ]] = pts
+    return out
+
+
+def nectar_headline(s):
+    """The figure the sailing page shows: two guests sharing the cheapest cabin grade on sale,
+    Ambassador fare (the site's useMaxNectarPoints: twin, lead-in, ambassador, 2 guests).
+    0 when the sailing isn't Nectar eligible; None when unknown."""
+    nx = s.get("nectar")
+    if not nx:
+        return None
+    if not nx.get("eligible"):
+        return 0
+    twin = (s.get("cabins") or {}).get("twin") or {}
+    if not twin:
+        return None
+    grade = min(twin, key=twin.get)
+    return ((nx.get("twin") or {}).get(grade) or {}).get("ambassador")
+
+
 def page_fields(url):
     out = {}
     try:
@@ -102,6 +146,9 @@ def page_fields(url):
     of = offers(s)
     if of is not None:
         out["offers"] = of
+    nx = nectar(s)
+    if nx is not None:
+        out["nectar"] = nx
     t = re.sub(r"<[^>]+>", "|", s)
     t = re.sub(r"\|[\s|]*", "|", t).replace("&amp;", "&")
     for key, label in [("date_text", "Date:"), ("duration_text", "Duration:"),
@@ -146,6 +193,8 @@ def main(day):
             "availability": r["availability"],
             **p,
         }
+        if s.get("nectar"):
+            s["nectar_pts"] = nectar_headline(s)
         flags = []
         if s.get("ship_page") and s["ship"] and s["ship_page"] != s["ship"]:
             flags.append(f"ship mismatch: code says {s['ship']}, page says {s['ship_page']}")

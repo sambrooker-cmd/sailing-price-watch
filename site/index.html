@@ -295,6 +295,7 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
         <option value="cabin">Cabin price changes</option>
         <option value="avail">Sold out / back on sale</option>
         <option value="promo">Promotions</option>
+        <option value="nectar">Nectar points</option>
         <option value="feed">Sailings added or removed</option>
       </select>
       <button type="button" class="btn quiet dl" id="c-csv">Download CSV</button>
@@ -330,6 +331,7 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
         <option value="price">Lowest price</option>
         <option value="change">Recently changed</option>
         <option value="status">Status</option>
+        <option value="nectar">Most Nectar points</option>
       </select>
     </div>
     <div class="filters" role="group" aria-label="Filters">
@@ -465,6 +467,9 @@ const auth = getAuth(firebaseApp);
   // names, descriptions and expiry in state.offers.
   const offerInfo = oid => (state.offers || {})[oid] || {};
   const livePromos = s => s.removed ? [] : Object.entries(s.promos || {}).filter(([, sp]) => sp.length && sp[sp.length-1][1] == null).map(([oid]) => oid);
+  // Nectar points the sailing page shows: two sharing, cheapest cabin, Ambassador fare (rec.nectar history)
+  const nectarNow = s => { const h = s.nectar || []; return h.length ? h[h.length - 1].n : null; };
+  const fmtPts = n => n == null ? "–" : n === 0 ? "Not eligible" : n.toLocaleString("en-GB");
   const fmtExpiry = x => x ? fmtDate(x.slice(0, 10)) : "";
   const promoChips = s => {
     if (!state.promos_since) return s.offer ? `<div class="promos"><span class="chip">${esc(s.offer)}</span></div>` : "";
@@ -570,6 +575,8 @@ const auth = getAuth(firebaseApp);
         const pa = (r.promo_added||[]).length, pe = (r.promo_ended||[]).length;
         if (pa) parts.push(`<span>${pa} promotion${pa===1?"":"s"} started</span>`);
         if (pe) parts.push(`<span>${pe} promotion${pe===1?"":"s"} ended</span>`);
+        const nc = (r.nectar_changes||[]).length;
+        if (nc) parts.push(`<span>${nc} Nectar points change${nc===1?"":"s"}</span>`);
         return `<div class="run"><span class="d">${fmtDate(r.date)}</span><div class="c">${parts.join("")}</div></div>`;
       }).join("");
     }
@@ -588,7 +595,8 @@ const auth = getAuth(firebaseApp);
       price: (a,b) => cur(a).p - cur(b).p,
       change: (a,b) => cur(b).from.localeCompare(cur(a).from) || (a.departure_date||"").localeCompare(b.departure_date||""),
       status: (a,b) => a._st.rank - b._st.rank || (a.departure_date||"").localeCompare(b.departure_date||""),
-    }[sort];
+      nectar: (a,b) => (nectarNow(b) || 0) - (nectarNow(a) || 0) || (a.departure_date||"").localeCompare(b.departure_date||""),
+    }[sort] || ((a,b) => (a.departure_date||"9").localeCompare(b.departure_date||"9"));
     rows.sort((a,b) => (a.removed?1:0) - (b.removed?1:0) || cmp(a,b));
     $("rows").innerHTML = rows.length ? rows.map(s => {
       const st = s._st;
@@ -600,7 +608,7 @@ const auth = getAuth(firebaseApp);
         <td>${esc(s.ship)}</td>
         <td>${fmtDate(s.departure_date)}</td>
         <td class="num">${s.nights ?? "–"}</td>
-        <td class="num"><b>${fmtGBP(cur(s).p)}</b>${cur(s).c ? `<div class="sub">${esc(CABN[cur(s).c].replace(" cabins",""))}</div>` : ""}</td>
+        <td class="num"><b>${fmtGBP(cur(s).p)}</b>${cur(s).c ? `<div class="sub">${esc(CABN[cur(s).c].replace(" cabins",""))}</div>` : ""}${nectarNow(s) ? `<div class="sub nectar">${fmtPts(nectarNow(s))} Nectar</div>` : ""}</td>
         <td>${cabCell(s.id, today)}</td>
         <td>${spark(s.segments, today)}<div class="sub">${s.segments.length > 1 ? `${s.segments.length-1} change${s.segments.length>2?"s":""}` : "No changes"}</div></td>
         <td><span class="pill ${st.cls}" ${st.title ? `title="${esc(st.title)}"` : ""}>${esc(st.label)}</span></td></tr>`;
@@ -757,6 +765,10 @@ const auth = getAuth(firebaseApp);
         if (h.out) out.push({d: h.out, k: 3, t: `${label} sold out`});
       }
     }
+    (s.nectar || []).forEach((h, i, a) => {
+      if (i === 0) out.push({d: h.from, k: 5, t: h.from === state.nectar_since ? `Nectar points when recording began: ${fmtPts(h.n)}` : `Nectar points: ${fmtPts(h.n)}`});
+      else out.push({d: h.from, k: 5, t: `Nectar points ${fmtPts(a[i-1].n)} → ${fmtPts(h.n)}`, n: "Points follow the booking value, so they usually move with the price."});
+    });
     for (const [oid, spells] of Object.entries(s.promos || {})){
       const name = offerInfo(oid).name || oid;
       for (const [from, to] of spells){
@@ -895,6 +907,21 @@ const auth = getAuth(firebaseApp);
         <td class="num">${fmtGBP(r.end)}${r.now ? `<div class="sub">${s.removed ? "left the feed" : "so far"}</div>` : ""}</td><td class="num">${r.n}</td></tr>`).join("")}</tbody></table></div>`;
   }
 
+  function nectarDetail(s, cab){
+    const n = nectarNow(s), g = (cab || {}).nectar_grades || {};
+    if (n == null && !Object.keys(g).length) return `<p class="sub">Nectar points are recorded from the next check.</p>`;
+    if (n === 0) return `<p>This sailing isn't Nectar eligible.</p>`;
+    const rows = SERIES.map(([k, name]) => {
+      const t = (g.twin || {})[k], so = (g.solo || {})[k];
+      if (!t && !so) return "";
+      const c = v => `<td class="num">${v ? v.toLocaleString("en-GB") : "–"}</td>`;
+      return `<tr><td>${name}</td>${c(t && t.standard)}${c(t && t.ambassador)}${c(so && so.standard)}${c(so && so.ambassador)}</tr>`;
+    }).join("");
+    return `<p><b>${fmtPts(n)}</b> Nectar points, as the booking page shows them: two sharing the cheapest cabin, Ambassador fare.</p>` +
+      (rows ? `<div class="tablewrap" style="border-top:0;margin-top:10px"><table class="dtable"><thead><tr><th>Cabin</th><th class="num">2 sharing, standard</th><th class="num">2 sharing, Ambassador</th><th class="num">Solo, standard</th><th class="num">Solo, Ambassador</th></tr></thead><tbody>${rows}</tbody></table></div>` : "") +
+      `<p class="note">Points come from the total booking value in bands, so they change when the price crosses a band.</p>`;
+  }
+
   function promoDetail(s){
     if (!state.promos_since) return s.offer ? `<p>${esc(s.offer)}</p><p class="note">Promotion history is recorded from the next daily run.</p>` : `<p class="sub">Promotion history is recorded from the next daily run.</p>`;
     const live = livePromos(s);
@@ -942,6 +969,7 @@ const auth = getAuth(firebaseApp);
         <section><h3>From price, month by month</h3>${monthly(s, today)}
           <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
         <section><h3>Promotions</h3>${promoDetail(s)}</section>
+        <section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
         <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
         ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
       </div>`;
@@ -984,14 +1012,14 @@ const auth = getAuth(firebaseApp);
     const grades = ["inside","ocean_view","balcony","suite"];
     const header = ["Cruise code","Sailing","Ship","Departs from","Flights from","Departure date","Nights","From price pp","Lead cabin",
       ...grades.map(g => `Twin ${GRADE[g].toLowerCase()} pp`), ...grades.map(g => `Solo ${GRADE[g].toLowerCase()}`),
-      "Price since","Price changes","Status","Was/now was","Was/now now","Was/now ends","Promotions","Flags","First seen","Booking link"];
+      "Price since","Price changes","Status","Was/now was","Was/now now","Was/now ends","Promotions","Nectar points (2 sharing, Ambassador fare)","Flags","First seen","Booking link"];
     const rows = shownRows.map(s => {
       const cur = s.segments[s.segments.length-1], c = s.claim && s.claim.eligible ? s.claim : null;
       return [s.id, s.base_title || s.title, s.ship, s.port, s.flight_from || "", s.departure_date, s.nights, cur.p, cur.c ? GRADE[cur.c] : "",
         ...grades.map(g => cp(s.id, "twin." + g)), ...grades.map(g => cp(s.id, "solo." + g)),
         cur.from, s.segments.length - 1, (s._st || {}).label || "", c ? c.was : "", c ? c.now : "", c ? c.ends : "",
         state.promos_since ? livePromos(s).map(o => offerInfo(o).name || o).join("; ") : (s.offer || ""),
-        (s.flags || []).join("; "), s.first_seen, s.link];
+        nectarNow(s) ?? "", (s.flags || []).join("; "), s.first_seen, s.link];
     });
     downloadCsv(`sailings-${today}.csv`, header, rows);
   });
@@ -1025,15 +1053,16 @@ const auth = getAuth(firebaseApp);
         const what = {name: "renamed", expires: "expiry changed"}[x.field] || x.field + " changed";
         add(d, "promo", null, `${what[0].toUpperCase() + what.slice(1)}: ${x.name || x.offer}`, `${x.from || "none"} → ${x.to || "none"}`);
       }
+      for (const x of r.nectar_changes || []) if ((curAt = x.at || null, true)) add(d, "nectar", x.id, `Nectar points ${fmtPts(x.from)} → ${fmtPts(x.to)}`);
       curAt = null;
       for (const id of r.new || []) add(d, "feed", id, "New sailing in the feed");
       for (const id of r.removed || []) add(d, "feed", id, "Left the feed");
       for (const id of r.returned || []) add(d, "feed", id, "Back in the feed");
     }
-    const K = {drop: 0, rise: 1, cabin: 2, avail: 3, promo: 4, feed: 5};
+    const K = {drop: 0, rise: 1, cabin: 2, avail: 3, promo: 4, nectar: 5, feed: 6};
     return out.sort((a, b) => b.date.localeCompare(a.date) || (b.at || "").localeCompare(a.at || "") || K[a.type] - K[b.type] || (a.id || "").localeCompare(b.id || ""));
   }
-  const KIND = {drop: ["▼ Price drop", "dn2"], rise: ["▲ Price rise", "up2"], cabin: ["Cabin price", ""], avail: ["Availability", ""], promo: ["Promotion", ""], feed: ["Feed", ""]};
+  const KIND = {drop: ["▼ Price drop", "dn2"], rise: ["▲ Price rise", "up2"], cabin: ["Cabin price", ""], avail: ["Availability", ""], promo: ["Promotion", ""], nectar: ["Nectar points", ""], feed: ["Feed", ""]};
   function changesPeriod(){
     const today = state.updated;
     if (chg.range === "custom") return [chg.from || "0000", chg.to || today];
