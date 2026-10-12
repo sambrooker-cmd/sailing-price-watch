@@ -1,11 +1,18 @@
 {
  "date": "2026-10-12",
- "count": 220,
- "new": [],
- "removed": [
-  "A32650M"
+ "count": 223,
+ "new": [
+  "A12626",
+  "A22630BR"
  ],
- "returned": [],
+ "removed": [
+  "A32650M",
+  "A22638"
+ ],
+ "returned": [
+  "A12639",
+  "A32650"
+ ],
  "drops": [
   {
    "claim": {
@@ -72,6 +79,62 @@
     "held_days": 0
    },
    "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12639",
+   "from": 519,
+   "to": 299,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 519,
+    "now": 299,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A22706PO",
+   "from": 1039,
+   "to": 989,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1039,
+    "now": 989,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A12712",
+   "from": 2239,
+   "to": 2049,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 2239,
+    "now": 2049,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A22828LV",
+   "from": 1679,
+   "to": 1529,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1679,
+    "now": 1529,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T14:19:14Z"
   }
  ],
  "rises": [
@@ -93,12 +156,48 @@
    "from": 2049,
    "to": 2239,
    "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A32650",
+   "from": 1349,
+   "to": 3599,
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A32651",
+   "from": 1599,
+   "to": 1699,
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A32652M",
+   "from": 1399,
+   "to": 1499,
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A22707PO",
+   "from": 929,
+   "to": 939,
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A12719",
+   "from": 499,
+   "to": 519,
+   "at": "2026-10-12T14:19:14Z"
   }
  ],
  "eligible": [],
  "flags": {
+  "A32651": [
+   "feed price £1,699 differs from cheapest cabin on the page £1,599"
+  ],
   "A22633": [
    "feed price £399 differs from cheapest cabin on the page £599"
+  ],
+  "A32652M": [
+   "feed price £1,499 differs from cheapest cabin on the page £1,399"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
@@ -118,15 +217,20 @@
   "A22705": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22706PO": [
-   "feed price £1,039 differs from cheapest cabin on the page £989"
+  "A22707PO": [
+   "feed price £939 differs from cheapest cabin on the page £929"
   ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
   "A12712": [
-   "feed price £2,239 differs from cheapest cabin on the page £2,049",
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12719": [
+   "feed price £519 differs from cheapest cabin on the page £499"
+  ],
+  "A22828LV": [
+   "feed price £1,529 differs from cheapest cabin on the page £1,679"
   ]
  },
  "cabin_drops": [
@@ -448,6 +552,11 @@
    "id": "A22702",
    "cabin": "twin.balcony",
    "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A32650",
+   "cabin": "twin.ocean_view",
+   "at": "2026-10-12T14:19:14Z"
   }
  ],
  "cabin_back": [
@@ -470,12 +579,33 @@
   }
  ],
  "cabin_eligible": [],
- "promo_added": [],
+ "promo_added": [
+  {
+   "id": "A12639",
+   "offer": "c8971712-3959-4cfb-8c1a-7c7a390d0288",
+   "name": "Free Bottle Of Bubbles",
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A12626",
+   "offer": "991789db-008b-4e9f-b5a9-a0cac87457fd",
+   "name": "Up to £400 Onboard Credit",
+   "at": "2026-10-12T14:19:14Z"
+  },
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-12T14:19:14Z"
+  }
+ ],
  "promo_ended": [],
  "promo_changed": [],
+ "nectar_changes": [],
  "promo_tracking_started": true,
  "reported": [],
  "checks": [
-  "2026-10-12T12:17:37Z"
+  "2026-10-12T12:17:37Z",
+  "2026-10-12T14:19:14Z"
  ]
 }
