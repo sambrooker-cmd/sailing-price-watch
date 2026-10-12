@@ -96,6 +96,13 @@ td .sub{font-size:13px;color:var(--muted)}
 .note{color:var(--muted);font-size:13px;margin-top:10px}
 .loading{color:var(--muted)}
 [hidden]{display:none!important}
+.promos{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:0 7px;border:1px solid var(--amber);color:var(--ink);white-space:nowrap}
+.ptable{width:100%;min-width:0}
+.ptable td,.ptable th{padding:9px 10px}
+.plist{display:flex;flex-direction:column;gap:12px}
+.pitem .n{font-weight:600}
+.pitem .x{font-size:13px;color:var(--muted);white-space:pre-line}
 .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:-4px 0 14px}
 .filters select{max-width:100%}
 .open{font:inherit;font-weight:600;color:var(--heading);background:none;border:0;padding:0;text-align:left;cursor:pointer}
@@ -183,6 +190,11 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
     <div id="queue"><div class="empty"><p class="loading">Checking for qualifying price drops…</p></div></div>
   </section>
 
+  <section aria-labelledby="h-promos">
+    <h2 id="h-promos"><span class="mini amber"></span>Live promotions</h2>
+    <div id="promos"><p class="loading">Checking promotions…</p></div>
+  </section>
+
   <section aria-labelledby="h-runs">
     <h2 id="h-runs"><span class="mini"></span>Daily runs</h2>
     <div id="runs" class="runs"><p class="loading" style="padding:12px 0">No runs recorded yet. Each daily check adds a line here.</p></div>
@@ -225,6 +237,12 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
         <option value="">No-fly and fly-cruise</option>
         <option value="nofly">No-fly only</option>
         <option value="fly">Fly-cruise only</option>
+      </select>
+      <label for="f-promo" hidden>Promotion</label>
+      <select id="f-promo">
+        <option value="">Any promotion status</option>
+        <option value="__any">With a promotion</option>
+        <option value="__none">No promotion</option>
       </select>
       <button type="button" class="linkbtn" id="f-clear" hidden>Clear filters</button>
     </div>
@@ -270,7 +288,7 @@ const auth = getAuth(firebaseApp);
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
-  let filt = {month: "", port: "", nights: "", kind: ""};
+  let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
   try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
   const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
 
@@ -325,6 +343,17 @@ const auth = getAuth(firebaseApp);
     return rows ? `<div class="cabs">${rows}</div>` : `<span class="sub">No twin cabins on sale</span>`;
   }
 
+  // Promotions: rec.promos = {offer_id: [[from, to], ...]} (to = first day gone, null while live);
+  // names, descriptions and expiry in state.offers.
+  const offerInfo = oid => (state.offers || {})[oid] || {};
+  const livePromos = s => s.removed ? [] : Object.entries(s.promos || {}).filter(([, sp]) => sp.length && sp[sp.length-1][1] == null).map(([oid]) => oid);
+  const fmtExpiry = x => x ? fmtDate(x.slice(0, 10)) : "";
+  const promoChips = s => {
+    if (!state.promos_since) return s.offer ? `<div class="promos"><span class="chip">${esc(s.offer)}</span></div>` : "";
+    const live = livePromos(s);
+    return live.length ? `<div class="promos">${live.map(o => `<span class="chip">${esc(offerInfo(o).name || o)}</span>`).join("")}</div>` : "";
+  };
+
   function render(){
     if (!state) return;
     const today = state.updated, rules = state.rules || {};
@@ -368,6 +397,23 @@ const auth = getAuth(firebaseApp);
           <span class="sub">${esc(CABN[cabin])} dropped ${fmtDate(c.since)} after ${c.held_days} days · claim ends ${fmtDate(c.ends)}</span></div>`).join("")}</div>`;
     }
 
+    // Live promotions
+    if (!state.promos_since){
+      $("promos").innerHTML = `<div class="empty"><p>Promotions are recorded from the next daily run.</p></div>`;
+    } else {
+      const count = {};
+      active.forEach(s => livePromos(s).forEach(o => count[o] = (count[o] || 0) + 1));
+      const ids = Object.keys(count).sort((a, b) => count[b] - count[a] || (offerInfo(a).name || "").localeCompare(offerInfo(b).name || ""));
+      const none = active.filter(s => !livePromos(s).length).length;
+      $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th><th></th></tr></thead><tbody>${ids.map(o => {
+          const i = offerInfo(o);
+          return `<tr><td><b>${esc(i.name || o)}</b>${i.desc ? `<div class="sub" style="white-space:pre-line">${esc(i.desc)}</div>` : ""}</td>
+            <td class="num">${count[o]}</td><td>${fmtExpiry(i.expires) || "–"}</td><td>${fmtDate(i.first_seen)}${i.first_seen === state.promos_since ? `<div class="sub">recording began</div>` : ""}</td>
+            <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
+        }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.</p>`
+        : `<div class="empty"><p>No promotions are live on any sailing.</p></div>`;
+    }
+
     // Runs
     if (runs.length){
       $("runs").innerHTML = runs.map(r => {
@@ -388,6 +434,9 @@ const auth = getAuth(firebaseApp);
         if (so) parts.push(`<span>${so} cabin type${so===1?"":"s"} sold out</span>`);
         const cb = (r.cabin_back||[]).filter(d => d.cabin.startsWith("twin.")).length;
         if (cb) parts.push(`<span>${cb} back on sale</span>`);
+        const pa = (r.promo_added||[]).length, pe = (r.promo_ended||[]).length;
+        if (pa) parts.push(`<span>${pa} promotion${pa===1?"":"s"} started</span>`);
+        if (pe) parts.push(`<span>${pe} promotion${pe===1?"":"s"} ended</span>`);
         return `<div class="run"><span class="d">${fmtDate(r.date)}</span><div class="c">${parts.join("")}</div></div>`;
       }).join("");
     }
@@ -414,7 +463,7 @@ const auth = getAuth(firebaseApp);
       const fly = s.flight_from ? ` · flights from ${esc(s.flight_from)}` : "";
       return `<tr data-id="${esc(s.id)}">
         <td><div class="t"><button type="button" class="open" data-id="${esc(s.id)}">${esc(s.base_title || s.title)}</button></div>
-            <div class="sub">${esc(s.id)} · from ${esc(s.port)}${fly}${s.offer ? " · " + esc(s.offer) : ""}</div>${flags}</td>
+            <div class="sub">${esc(s.id)} · from ${esc(s.port)}${fly}</div>${promoChips(s)}${flags}</td>
         <td>${esc(s.ship)}</td>
         <td>${fmtDate(s.departure_date)}</td>
         <td class="num">${s.nights ?? "–"}</td>
@@ -446,6 +495,10 @@ const auth = getAuth(firebaseApp);
     if (filt.nights){ const [lo, hi] = filt.nights.split("-").map(Number); if (!(s.nights >= lo && s.nights <= hi)) return false; }
     if (filt.kind === "fly" && !s.flight_from) return false;
     if (filt.kind === "nofly" && s.flight_from) return false;
+    if (filt.promo){
+      const live = livePromos(s);
+      if (filt.promo === "__any" ? !live.length : filt.promo === "__none" ? live.length : !live.includes(filt.promo)) return false;
+    }
     return true;
   }
   let filtersBuilt = false;
@@ -461,6 +514,9 @@ const auth = getAuth(firebaseApp);
     const ports = [...new Set(live.map(portOf).filter(Boolean))];
     ports.sort((a, b) => (a.startsWith("Flights") - b.startsWith("Flights")) || a.localeCompare(b));
     opts("f-port", ports, v => v);
+    const pc = {};
+    live.forEach(s => livePromos(s).forEach(o => pc[o] = (pc[o] || 0) + 1));
+    opts("f-promo", Object.keys(pc).sort((a, b) => pc[b] - pc[a]), o => offerInfo(o).name || o);
     for (const k of Object.keys(filt)){
       const el = $("f-" + k);
       if (filt[k] && ![...el.options].some(o => o.value === filt[k])) filt[k] = "";
@@ -475,6 +531,13 @@ const auth = getAuth(firebaseApp);
       render();
     });
   }
+  $("promos").addEventListener("click", e => {
+    const b = e.target.closest("[data-promo]");
+    if (!b) return;
+    filt.promo = b.dataset.promo; $("f-promo").value = filt.promo;
+    $("f-clear").hidden = false; savePrefs(); render();
+    $("h-all").scrollIntoView({behavior: "smooth", block: "start"});
+  });
   $("f-clear").addEventListener("click", () => {
     for (const k of Object.keys(filt)){ filt[k] = ""; $("f-" + k).value = ""; }
     $("f-clear").hidden = true; savePrefs(); render();
@@ -555,6 +618,13 @@ const auth = getAuth(firebaseApp);
           else { const dn = b.p < a.p; out.push({d: b.from, k: 2, t: `${label} <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`}); }
         }
         if (h.out) out.push({d: h.out, k: 3, t: `${label} sold out`});
+      }
+    }
+    for (const [oid, spells] of Object.entries(s.promos || {})){
+      const name = offerInfo(oid).name || oid;
+      for (const [from, to] of spells){
+        out.push({d: from, k: 4, t: from === state.promos_since ? `Promotion live when recording began: ${esc(name)}` : `Promotion started: ${esc(name)}`});
+        if (to) out.push({d: to, k: 4, t: `Promotion ended: ${esc(name)}`});
       }
     }
     return out.sort((a, b) => b.d.localeCompare(a.d) || a.k - b.k);
@@ -670,6 +740,24 @@ const auth = getAuth(firebaseApp);
                 : `<p class="sub">No cabin prices recorded for this sailing.</p>`;
   }
 
+  function promoDetail(s){
+    if (!state.promos_since) return s.offer ? `<p>${esc(s.offer)}</p><p class="note">Promotion history is recorded from the next daily run.</p>` : `<p class="sub">Promotion history is recorded from the next daily run.</p>`;
+    const live = livePromos(s);
+    const past = [];
+    for (const [oid, spells] of Object.entries(s.promos || {}))
+      for (const [from, to] of spells) if (to) past.push({oid, from, to});
+    past.sort((a, b) => b.to.localeCompare(a.to));
+    const since = from => from === state.promos_since ? `on since at least ${fmtDate(from)}` : `on since ${fmtDate(from)}`;
+    const liveHtml = live.length ? `<div class="plist">${live.map(o => {
+        const i = offerInfo(o), sp = s.promos[o], from = sp[sp.length-1][0];
+        return `<div class="pitem"><span class="chip">${esc(i.name || o)}</span>
+          <div class="x">${[since(from), i.expires ? "expires " + fmtExpiry(i.expires) : "no expiry date shown"].join(" · ")}</div>
+          ${i.desc ? `<div class="x">${esc(i.desc)}</div>` : ""}</div>`;
+      }).join("")}</div>` : `<p class="sub">No promotion on this sailing now.</p>`;
+    const pastHtml = past.length ? `<p class="note" style="margin-top:14px">Earlier: ${past.map(x => `${esc(offerInfo(x.oid).name || x.oid)} (${fmtDate(x.from)} to ${fmtDate(addDays(x.to, -1))})`).join("; ")}</p>` : "";
+    return liveHtml + pastHtml;
+  }
+
   const dlg = $("detail");
   function openDetail(id){
     const raw = state && state.sailings && state.sailings[id];
@@ -686,7 +774,6 @@ const auth = getAuth(firebaseApp);
           <div class="facts">
             <span>${esc(s.id)}</span><span>${esc(s.ship)}</span><span>${fly}</span>
             <span>Departs ${fmtDate(s.departure_date)}</span><span>${s.nights ?? "–"} nights</span>
-            ${s.offer ? `<span>${esc(s.offer)}</span>` : ""}
             ${s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">View on the booking site ↗</a>` : ""}
           </div>
         </div>
@@ -697,6 +784,7 @@ const auth = getAuth(firebaseApp);
         <section><h3>Price per person, twin</h3>${ch.html}
           <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price in the ad feed.</p></section>
         <section><h3>Cabins now</h3>${cabinTable(cab, today)}</section>
+        <section><h3>Promotions</h3>${promoDetail(s)}</section>
         <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
         ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
       </div>`;

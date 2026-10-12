@@ -108,6 +108,21 @@ def summarise(run_doc, snap, today, cards, with_cards=True):
         other.append("Cabins sold out: " + ", ".join(f"{d['id']} {d['cabin']}" for d in run_doc["cabin_sold_out"]))
     if run_doc["cabin_back"]:
         other.append("Cabins back on sale: " + ", ".join(f"{d['id']} {d['cabin']}" for d in run_doc["cabin_back"]))
+    def by_offer(evs):
+        g = {}
+        for e in evs:
+            g.setdefault(e.get("name") or e["offer"], []).append(e["id"])
+        return "; ".join(f"{n} on {len(v)} sailing{'s' if len(v) != 1 else ''} ({', '.join(v[:8])}{', …' if len(v) > 8 else ''})"
+                         for n, v in sorted(g.items()))
+    if run_doc.get("promo_tracking_started"):
+        other.append("Started recording promotions today; from tomorrow, offers starting and ending are listed here.")
+    if run_doc.get("promo_added"):
+        other.append("Promotions started: " + by_offer(run_doc["promo_added"]))
+    if run_doc.get("promo_ended"):
+        other.append("Promotions ended: " + by_offer(run_doc["promo_ended"]))
+    for c in run_doc.get("promo_changed") or []:
+        what = {"name": "renamed", "expires": "expiry changed"}.get(c["field"], c["field"] + " changed")
+        other.append(f"Promotion {what} ({c.get('name') or c['offer']}): {c['from'] or 'none'} → {c['to'] or 'none'}")
     for k, label in (("new", "New sailings"), ("removed", "Removed sailings"), ("returned", "Returned sailings")):
         if run_doc[k]:
             other.append(f"{label}: " + ", ".join(run_doc[k]))

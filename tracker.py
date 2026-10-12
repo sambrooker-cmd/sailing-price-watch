@@ -129,6 +129,38 @@ def update_cabins(rec, cabins, today, run, sid):
             h["seg"] = h["seg"][-12:]
 
 
+def update_promos(rec, live, today, run, sid, catalogue, first):
+    """Record which promotions are on the sailing's page today.
+    rec["promos"] = {offer_id: [[from, to], ...]}, one spell per run of days the
+    offer was shown; `to` is the first day it was gone (None while live).
+    Names, descriptions and expiry dates live once in the catalogue."""
+    store = rec.setdefault("promos", {})
+    seen = set()
+    for o in live:
+        oid = o["id"]
+        seen.add(oid)
+        cat = catalogue.setdefault(oid, {"first_seen": today})
+        for k, f in (("name", "name"), ("desc", "description"), ("expires", "expires_at")):
+            if k not in cat or cat[k] != o.get(f):
+                if k != "desc" and k in cat:
+                    run["promo_changed"].append({"offer": oid, "name": cat.get("name"), "field": k, "from": cat[k], "to": o.get(f)})
+                cat[k] = o.get(f)
+        cat["last_seen"] = today
+        spells = store.setdefault(oid, [])
+        if not spells or spells[-1][1] is not None:
+            spells.append([today, None])
+            if not first:
+                run["promo_added"].append({"id": sid, "offer": oid, "name": o["name"]})
+    close_promos(rec, today, run, sid, catalogue, keep=seen)
+
+
+def close_promos(rec, today, run, sid, catalogue, keep=()):
+    for oid, spells in (rec.get("promos") or {}).items():
+        if oid not in keep and spells and spells[-1][1] is None:
+            spells[-1][1] = today
+            run["promo_ended"].append({"id": sid, "offer": oid, "name": (catalogue.get(oid) or {}).get("name")})
+
+
 def cabin_claims(rec, today, rules):
     out = {}
     if rec.get("removed"):
@@ -150,7 +182,12 @@ def update(state, snap):
     run = {"date": today, "count": snap["count"], "new": [], "removed": [], "returned": [],
            "drops": [], "rises": [], "eligible": [], "flags": {},
            "cabin_drops": [], "cabin_rises": [], "cabin_sold_out": [], "cabin_back": [],
-           "cabin_eligible": []}
+           "cabin_eligible": [], "promo_added": [], "promo_ended": [], "promo_changed": []}
+    catalogue = state.get("offers", {})
+    # The first run that sees promotions records what is live without
+    # reporting every one of them as newly started.
+    first_promos = "promos_since" not in state
+    promos_seen = False
     for s in snap["sailings"]:
         sid, p = s["id"], round(s["price_pp"])
         seen.add(sid)
@@ -177,6 +214,10 @@ def update(state, snap):
         rec["last_seen"] = today
         if cab is not None and "page_error" not in s:
             update_cabins(rec, cab, today, run, sid)
+        # "offers" is missing when the page couldn't be read: leave promotions as they were.
+        if s.get("offers") is not None and "page_error" not in s:
+            update_promos(rec, s["offers"], today, run, sid, catalogue, first_promos)
+            promos_seen = True
         sailings[sid] = rec
         if s.get("flags"):
             run["flags"][sid] = s["flags"]
@@ -184,6 +225,7 @@ def update(state, snap):
         if sid not in seen and not rec.get("removed"):
             rec["removed"] = today
             run["removed"].append(sid)
+            close_promos(rec, today, run, sid, catalogue)
     for sid, rec in sailings.items():
         claim = was_now(rec, today, rules)
         if claim:
@@ -212,9 +254,17 @@ def update(state, snap):
     # the feed more than 60 days ago (they have departed or been withdrawn).
     for sid in [k for k, v in sailings.items() if v.get("removed") and days(v["removed"], today) > 60]:
         del sailings[sid]
+    # Forget promotions no sailing has shown for 120 days.
+    for oid in [k for k, v in catalogue.items() if v.get("last_seen") and days(v["last_seen"], today) > 120]:
+        del catalogue[oid]
     new_state = {"updated": today, "tracking_since": state.get("tracking_since", today),
                  "cabins_since": state.get("cabins_since", today),
                  "rules": rules, "sailings": sailings}
+    if promos_seen and first_promos:
+        run["promo_tracking_started"] = True
+    if promos_seen or "promos_since" in state:
+        new_state["promos_since"] = state.get("promos_since", today)
+        new_state["offers"] = catalogue
     return new_state, run
 
 
