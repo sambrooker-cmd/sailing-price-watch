@@ -1,21 +1,25 @@
-"""Daily runner for the Sailing Price Watch — replaces the Claude scheduled task.
+"""Runner for the Sailing Price Watch — replaces the Claude scheduled task.
 
-Does exactly what the scheduled task's prompt did, deterministically:
+Runs hourly 09:00–17:00 GMT (since 12 Oct 2026, at Sam's request; daily before).
+Each check, deterministically:
   1. enrich.py TODAY            -> data/snapshot_TODAY.json
   2. safety checks              -> abort without writing if the feed looks broken
   3. tracker.py                 -> out/state.json, out/cabins.json, out/run.json
-  4. save                       -> state/current.json, state/cabins.json, runs/TODAY.json
-  5. cards for NEW claims only  -> cards/TODAY/*.png  (was price only ever from run.json)
+  4. save                       -> state/current.json, state/cabins.json, and this check's
+                                   changes added to runs/TODAY.json (one file per day; each
+                                   event carries "at", the check's UTC time)
+  5. cards for NEW claims only  -> cards/TODAY/*.png  (was price only ever from run.json).
+                                   "New" = since today and not already reported by an earlier
+                                   check today, so each claim is reported once.
   6. summary                    -> out/summary.md, out/issue.md, GITHUB_OUTPUT new_claims=true|false
 
 Usage:
-  python daily.py [--date YYYY-MM-DD] [--snapshot PATH] [--no-cards] [--force]
+  python daily.py [--date YYYY-MM-DD] [--snapshot PATH] [--no-cards] [--at ISO-TIME]
 
   --snapshot  use an existing snapshot instead of fetching (testing)
-  --force     run even if runs/TODAY.json already exists (normally a second run
-              on the same day is skipped: it would overwrite the day's change list)
+  --at        the check's time (testing; default now, UTC)
 
-Exit codes: 0 ok / already ran today, 2 safety check failed (nothing written), 1 error.
+Exit codes: 0 ok, 2 safety check failed (nothing written), 1 error.
 """
 import argparse, datetime as dt, json, os, shutil, subprocess, sys
 from pathlib import Path
@@ -75,12 +79,44 @@ def safety_problems(state, snap):
     return probs
 
 
-def summarise(run_doc, snap, today, cards, with_cards=True):
+# Lists of things that happened in one check: added to the day's file.
+EVENTS = ("new", "removed", "returned", "drops", "rises", "cabin_drops", "cabin_rises", "cabin_sold_out",
+          "cabin_back", "promo_added", "promo_ended", "promo_changed")
+
+
+def claim_key(e):
+    return (e["id"], e.get("cabin"))
+
+
+def new_claims(run_doc, today, reported):
+    """Claims that started today and weren't reported by an earlier check today."""
+    lead = [e for e in run_doc["eligible"] if e["since"] == today and claim_key(e) not in reported]
+    cab = [e for e in run_doc["cabin_eligible"] if e["since"] == today and claim_key(e) not in reported]
+    return lead, cab
+
+
+def merge_day(day, run_doc, at):
+    """Add one check's changes to the day's change list. Claims, flags and the
+    sailing count are a snapshot, so the latest check's replace the earlier ones."""
+    out = dict(run_doc)
+    for k in EVENTS:
+        evs = [dict(e, at=at) if isinstance(e, dict) else e for e in run_doc.get(k) or []]
+        out[k] = ((day or {}).get(k) or []) + evs
+    out["promo_tracking_started"] = bool((day or {}).get("promo_tracking_started") or run_doc.get("promo_tracking_started"))
+    if not out["promo_tracking_started"]:
+        out.pop("promo_tracking_started")
+    reported = {claim_key(e) for e in ((day or {}).get("reported") or [])}
+    reported |= {claim_key(e) for e in run_doc["eligible"] + run_doc["cabin_eligible"] if e.get("since") == run_doc["date"]}
+    out["reported"] = [{"id": i, "cabin": c} if c else {"id": i} for i, c in sorted(reported, key=str)]
+    out["checks"] = ((day or {}).get("checks") or []) + [at]
+    return out
+
+
+def summarise(run_doc, snap, today, cards, with_cards=True, reported=frozenset(), at=None):
     by = {s["id"]: s for s in snap["sailings"]}
     name = lambda i: f"{(by.get(i) or {}).get('base_title') or i} ({i})"  # noqa
     L = []
-    new_lead = [e for e in run_doc["eligible"] if e["since"] == today]
-    new_cab = [e for e in run_doc["cabin_eligible"] if e["since"] == today]
+    new_lead, new_cab = new_claims(run_doc, today, reported)
     for e in new_lead:
         L.append(f"- **NEW was/now (lead price):** {name(e['id'])}: was {money(e['was'])} → now {money(e['now'])} "
                  f"(save {money(e['was'] - e['now'])}), claim must end {e['ends']}")
@@ -126,7 +162,8 @@ def summarise(run_doc, snap, today, cards, with_cards=True):
     for k, label in (("new", "New sailings"), ("removed", "Removed sailings"), ("returned", "Returned sailings")):
         if run_doc[k]:
             other.append(f"{label}: " + ", ".join(run_doc[k]))
-    head = f"# Price watch {today}: {run_doc['count']} sailings"
+    when = f", {at[11:16]} UTC" if at else ""
+    head = f"# Price watch {today}{when}: {run_doc['count']} sailings"
     if not L and not other:
         return head + "\n\nNo price changes.\n", False
     body = [head, ""]
@@ -149,16 +186,15 @@ def main():
     ap.add_argument("--date")
     ap.add_argument("--snapshot")
     ap.add_argument("--no-cards", action="store_true")
-    ap.add_argument("--force", action="store_true")
+    ap.add_argument("--at")
     a = ap.parse_args()
     today = a.date or london_today()
+    at = a.at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     out = ROOT / "out"
     out.mkdir(exist_ok=True)
     run_path = ROOT / "runs" / f"{today}.json"
-    if run_path.exists() and not a.force:
-        print(f"{today}: already recorded (runs/{today}.json exists) — skipping.")
-        gh_output(new_claims="false", skipped="true")
-        return 0
+    day = load(run_path) or None
+    reported = {claim_key(e) for e in ((day or {}).get("reported") or [])}
 
     # 1. fetch
     if a.snapshot:
@@ -186,33 +222,34 @@ def main():
     # 4. save
     (ROOT / "state").mkdir(exist_ok=True)
     (ROOT / "runs").mkdir(exist_ok=True)
-    shutil.copyfile(out / "state.json", state_p)
+    st = json.loads((out / "state.json").read_text())
+    st["updated_at"] = at
+    state_p.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
     shutil.copyfile(out / "cabins.json", cab_p)
-    run_path.write_text(json.dumps(run_doc, ensure_ascii=False, indent=1))
+    run_path.write_text(json.dumps(merge_day(day, run_doc, at), ensure_ascii=False, indent=1))
+    new_lead, new_cab = new_claims(run_doc, today, reported)
 
     # 5. cards — newly eligible claims only; was price comes only from run.json
     cards = []
     if not a.no_cards:
         cdir = ROOT / "cards" / today
-        for e in run_doc["eligible"]:
-            if e["since"] == today:
-                o = run(ROOT / "render_cards.py", snap_path, cdir, e["id"], "--was", e["was"])
-                cards += [Path(l.strip()) for l in o.splitlines() if l.strip().endswith(".png")]
-        for e in run_doc["cabin_eligible"]:
-            if e["since"] == today:
-                c = e["cabin"].split(".", 1)[1]
-                o = run(ROOT / "render_cards.py", snap_path, cdir, e["id"], "--cabin", c, "--was", e["was"])
-                cards += [Path(l.strip()) for l in o.splitlines() if l.strip().endswith(".png")]
+        for e in new_lead:
+            o = run(ROOT / "render_cards.py", snap_path, cdir, e["id"], "--was", e["was"])
+            cards += [Path(l.strip()) for l in o.splitlines() if l.strip().endswith(".png")]
+        for e in new_cab:
+            c = e["cabin"].split(".", 1)[1]
+            o = run(ROOT / "render_cards.py", snap_path, cdir, e["id"], "--cabin", c, "--was", e["was"])
+            cards += [Path(l.strip()) for l in o.splitlines() if l.strip().endswith(".png")]
         cards = [p if p.is_absolute() else (ROOT / p) for p in cards]
 
     # 6. summary
-    text, new_claims = summarise(run_doc, snap, today, cards, not a.no_cards)
+    text, has_new = summarise(run_doc, snap, today, cards, not a.no_cards, reported, at)
     if "WARNING" in report:
         text += "\n**WARNING:** a state file is close to the old 256 KB document limit (harmless in git, but worth a look).\n"
     (out / "summary.md").write_text(text)
     (out / "issue.md").write_text(text)
     print(text)
-    gh_output(new_claims="true" if new_claims else "false", date=today)
+    gh_output(new_claims="true" if has_new else "false", date=today)
     return 0
 
 
