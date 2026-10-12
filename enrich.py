@@ -134,6 +134,21 @@ def nectar_headline(s):
     return ((nx.get("twin") or {}).get(grade) or {}).get("ambassador")
 
 
+PHOTO = re.compile(r"https://assets\.ambassadorcruiseline\.com/f/\d+/(\d+)x(\d+)/[0-9a-f]+/[^\"'&?\s)]+?\.(?:jpe?g|png|webp)", re.I)
+
+
+def photos(page, most=12):
+    """Large landscape photos on a sailing's page (destinations, the ship), for the ad creator
+    to offer instead of the feed image (Sam, 12 Oct 2026). Small images (ship thumbnails,
+    entertainers' portraits) are skipped."""
+    out = []
+    for m in PHOTO.finditer(page):
+        w, h = int(m.group(1)), int(m.group(2))
+        if w >= 1200 and h >= 700 and w / h <= 2.2 and m.group(0) not in out:
+            out.append(m.group(0))
+    return out[:most]
+
+
 def page_fields(url):
     out = {}
     try:
@@ -149,6 +164,9 @@ def page_fields(url):
     nx = nectar(s)
     if nx is not None:
         out["nectar"] = nx
+    ph = photos(s)
+    if ph:
+        out["photos"] = ph
     t = re.sub(r"<[^>]+>", "|", s)
     t = re.sub(r"\|[\s|]*", "|", t).replace("&amp;", "&")
     for key, label in [("date_text", "Date:"), ("duration_text", "Duration:"),

@@ -22,7 +22,7 @@ Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
   python publish.py --dry-run     # build the documents and print their sizes only
 """
-import argparse, hashlib, json, os, sys
+import argparse, time, hashlib, json, os, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -90,6 +90,8 @@ def documents():
             sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in m.get("old") or []],
                   **({"wasnow": {k: slim(c) for k, c in m["wasnow"].items()}} if m.get("wasnow") else {})}
             for sid, m in man.get("sailings", {}).items()}}
+    if (ROOT / "state" / "adkit.json").exists():
+        docs["adkit"] = load(ROOT / "state" / "adkit.json")
     if (ROOT / "state" / "coverage.json").exists():
         docs["coverage"] = load(ROOT / "state" / "coverage.json")
     out = {}
@@ -131,7 +133,13 @@ def main():
             if not r.ok and r.status_code != 404:
                 raise SystemExit(f"reading pricewatch/{name} failed: {r.status_code} {r.text[:300]}")
         body = {"fields": {k: {"stringValue": v} for k, v in d.items()}}
-        r = session.patch(f"{base}/{name}", json=body, timeout=60)
+        for wait in (2, 4, 8, 16, 32, 0):
+            r = session.patch(f"{base}/{name}", json=body, timeout=60)
+            # Firestore asks for a pause and a retry when writes come too fast (429 on 12 Oct 2026).
+            if r.ok or wait == 0 or not (r.status_code == 429 or r.status_code >= 500):
+                break
+            print(f"pricewatch/{name}: Firestore busy ({r.status_code}), retrying in {wait}s")
+            time.sleep(wait)
         if not r.ok:
             raise SystemExit(f"writing pricewatch/{name} failed: {r.status_code} {r.text[:300]}")
         print(f"wrote pricewatch/{name}: {len(d['json'].encode()):,} bytes")

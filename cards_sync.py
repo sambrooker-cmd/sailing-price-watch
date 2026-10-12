@@ -240,6 +240,25 @@ def render_all(snap_path, by, ids, claims=()):
     return out, errs
 
 
+def write_adkit(snap, today, at):
+    """state/adkit.json: what the tracker's Ad creator needs per sailing on sale that the saved
+    state doesn't hold (Sam, 12 Oct 2026): every promotion line that may go on a card (best
+    first; never a "lower fares" one), the Nectar line, the lead price's cabin grade, whether the
+    image is campaign artwork, and the photos on the sailing's page. Prices are not in here:
+    the page takes them from the saved state, like everything else."""
+    kit = {}
+    for s in snap["sailings"]:
+        if not cardable(s, today):
+            continue
+        kit[s["id"]] = {k: v for k, v in {
+            "promos": rc.promo_lines(s, limit=0), "nectar": rc.nectar_line(s), "lead_grade": rc.lead_grade(s),
+            "campaign": rc.is_campaign(s), "image": rc.OVERRIDES.get(s["id"], s.get("image_link")),
+            "photos": s.get("photos") or []}.items() if v}
+    path = ROOT / "state" / "adkit.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps({"updated_at": at, "date": today, "sailings": kit}, ensure_ascii=False, separators=(",", ":")))
+
+
 def gh_output(**kv):
     p = os.environ.get("GITHUB_OUTPUT")
     if p:
@@ -254,6 +273,8 @@ def main():
     today = snap["date"]
     at = now_utc()
     man = load_manifest()
+    if cmd == "plan":
+        write_adkit(snap, today, at)
     render, retire, expire = plan(snap, man, today, at)
     run_p, state_p = ROOT / "out" / "run.json", ROOT / "state" / "current.json"
     run = json.loads(run_p.read_text()) if run_p.exists() and json.loads(run_p.read_text()).get("date") == today else None

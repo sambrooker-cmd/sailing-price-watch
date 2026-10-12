@@ -1,0 +1,370 @@
+// Ad creator (Sam, 12 Oct 2026): pick sailings, put them in order, change the words, image,
+// design and strips, see the ad as it would look in a Meta feed, then download one zip with
+// the cards in order, the ad text and step-by-step upload instructions.
+// Nothing is sent to Meta. Prices, dates and was/now figures always come from the tracker's
+// saved data (state/current, state/cabins) and can't be typed in. "Lower fares" offers never
+// reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
+import {cardDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+const fmtDate = iso => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"}) : "–";
+const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+const CTAS = ["Learn more", "Book now", "See more", "Get offer"];
+const LIMITS = {primary: 125, headline: 40, description: 30};   // roughly where Meta cuts text off in the feed
+const MAX_CARDS = 10;
+const KEY = "spw-ad-draft";
+
+let S, CAB, KIT, LOGO, root, today;
+let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: []};
+let sel = 0, uploads = {}, upN = 0;
+
+export async function mount(el, ctx){
+  root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
+  today = S.updated;
+  LOGO = await (await fetch("logo-white.svg")).text();
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) ad = {...ad, ...d}; } catch(e){}
+  ad.cards = ad.cards.filter(c => sailing(c.id)).map(c => ({...c, photo: c.photo && c.photo.startsWith("upload:") ? null : c.photo}));
+  sel = Math.min(sel, Math.max(0, ad.cards.length - 1));
+  draw();
+}
+
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ad)); } catch(e){} };
+const live = () => Object.entries(S.sailings || {}).filter(([, r]) => !r.removed && r.departure_date > today);
+function sailing(id){
+  const r = (S.sailings || {})[id];
+  if (!r || r.removed || !(r.departure_date > today)) return null;
+  const k = KIT[id] || {}, fly = r.flight_from;
+  return {id, r, k, fly, title: fly ? r.base_title : r.title, price: r.segments[r.segments.length - 1].p,
+          image: k.image || r.image_link, photos: [k.image || r.image_link, ...(k.photos || [])].filter((u, i, a) => u && a.indexOf(u) === i)};
+}
+
+// Was/now claims valid today, straight from the tracker's state (tracker.py claim_for).
+function claims(id){
+  const s = sailing(id); if (!s) return [];
+  const out = [], c = s.r.claim;
+  if (c && c.eligible && c.ends >= today && c.now === s.price)
+    out.push({key: "lead", label: `Lead price${s.k.lead_grade ? " (" + GRADE[s.k.lead_grade].toLowerCase() + ")" : ""}`, was: c.was, now: c.now, ends: c.ends, grade: s.k.lead_grade || null});
+  for (const [k, cc] of Object.entries((CAB[id] || {}).cabin_claims || {}))
+    if (k.startsWith("twin.") && cc.eligible && cc.ends >= today)
+      out.push({key: k, label: GRADE[k.slice(5)] + " cabins", was: cc.was, now: cc.now, ends: cc.ends, grade: k.slice(5)});
+  return out;
+}
+
+function newCard(id){
+  const s = sailing(id);
+  return {id, design: "standard", photo: s.image, words: null, promos: (s.k.promos || []).slice(0, s.k.nectar ? 1 : 2),
+          nectar: !!s.k.nectar, headline: s.title.slice(0, LIMITS.headline), description: `From ${money(s.price)}pp`, link: s.r.link || ""};
+}
+
+// Everything the card design needs, from the saved data plus this card's choices.
+function cardData(c){
+  const s = sailing(c.id), r = s.r, cl = c.design.startsWith("wasnow:") ? claims(c.id).find(x => x.key === c.design.slice(7)) : null;
+  const photo = c.photo && c.photo.startsWith("upload:") ? uploads[c.photo] : (c.photo || s.image);
+  const campaign = !!s.k.campaign && photo === s.image && !(c.photo || "").startsWith("upload:");
+  return {id: c.id, title: s.title, ship: r.ship, port: r.port, fly: s.fly, nights: r.nights, departure_date: r.departure_date,
+          price: s.price, promos: c.promos || [], nectar: c.nectar ? s.k.nectar : "", photo, campaign, words: c.words || null,
+          wasnow: cl ? {was: cl.was, now: cl.now, grade: cl.grade} : null};
+}
+
+// ---------- drawing ----------
+function draw(){
+  const c = ad.cards[sel];
+  root.innerHTML = `
+  <div class="ac">
+    <div class="ac-side">
+      <div class="ac-block">
+        <div class="ac-row" role="group" aria-label="Ad format">
+          <button type="button" class="ac-seg" data-format="carousel" aria-pressed="${ad.format === "carousel"}">Carousel</button>
+          <button type="button" class="ac-seg" data-format="single" aria-pressed="${ad.format === "single"}">Single image</button>
+          ${ad.format === "carousel" ? `<label class="ac-inline">Card size <select id="ac-size"><option value="1x1"${ad.size === "1x1" ? " selected" : ""}>1:1</option><option value="4x5"${ad.size === "4x5" ? " selected" : ""}>4:5</option></select></label>` : `<span class="sub">Made in all three sizes: 1:1, 4:5 and 9:16</span>`}
+        </div>
+        <label class="ac-lab" for="ac-find">Add a sailing</label>
+        <input id="ac-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
+        <div id="ac-results" class="ac-results"></div>
+      </div>
+      <div class="ac-block">
+        <h3>${ad.format === "carousel" ? `Cards in order (${ad.cards.length} of ${MAX_CARDS})` : "Sailing"}</h3>
+        ${ad.cards.length ? `<ol class="ac-list">${ad.cards.map((x, i) => { const s = sailing(x.id); return `
+          <li class="${i === sel ? "on" : ""}" draggable="true" data-i="${i}">
+            <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
+            <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
+          </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}
+      </div>
+      ${c ? editor(c) : ""}
+      <div class="ac-block">
+        <h3>Ad text</h3>
+        <label class="ac-lab" for="ac-primary">Primary text <span class="sub" id="cnt-primary"></span></label>
+        <textarea id="ac-primary" rows="4" placeholder="The words above the ${ad.format === "carousel" ? "carousel" : "image"}">${esc(ad.primary)}</textarea>
+        <label class="ac-lab" for="ac-cta">Button</label>
+        <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
+        <p class="sub">Claude-drafted ad text is coming next.</p>
+      </div>
+    </div>
+    <div class="ac-main">
+      <div class="ac-actions">
+        <button type="button" class="btn" id="ac-zip"${ready() ? "" : " disabled"}>Download zip</button>
+        <button type="button" class="btn quiet" id="ac-clear"${ad.cards.length ? "" : " disabled"}>Start again</button>
+        <span class="sub" id="ac-status" aria-live="polite">${readyMsg()}</span>
+      </div>
+      ${preview()}
+    </div>
+  </div>`;
+  wire();
+  paintCards();
+  counts();
+}
+
+function ready(){ return ad.format === "carousel" ? ad.cards.length >= 2 : ad.cards.length === 1; }
+function readyMsg(){
+  if (ad.format === "carousel" && ad.cards.length < 2) return "A carousel needs at least 2 cards.";
+  if (ad.format === "single" && ad.cards.length > 1) return "A single image ad uses one sailing: remove the others or switch to Carousel.";
+  return `Prices as checked ${fmtDate(today)}.`;
+}
+
+function editor(c){
+  const s = sailing(c.id), cl = claims(c.id), w = c.words || {};
+  const dw = defaultWords(s.title), wasnow = c.design.startsWith("wasnow:");
+  return `<div class="ac-block">
+    <h3>Card ${sel + 1}: ${esc(s.title)}</h3>
+    <label class="ac-lab" for="ac-design">Design</label>
+    <select id="ac-design"><option value="standard">Standard</option>${cl.map(x => `<option value="wasnow:${x.key}"${c.design === "wasnow:" + x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (until ${fmtDate(x.ends)})</option>`).join("")}</select>
+    ${cl.length ? `<p class="sub">Was/now figures come from the tracker's claim and can only be used until the date shown.</p>` : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
+    <span class="ac-lab">Image</span>
+    <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(c.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy" crossorigin="anonymous"></button>`).join("")}
+      ${Object.keys(uploads).map(k => `<button type="button" class="ac-ph${c.photo === k ? " on" : ""}" data-photo="${k}" aria-label="Use uploaded image"><img src="${uploads[k]}" alt=""></button>`).join("")}
+      <label class="ac-up">Upload<input type="file" id="ac-upload" accept="image/jpeg,image/png,image/webp" hidden></label></div>
+    <p class="sub">First is the feed image${s.k.campaign ? " (campaign artwork: shown whole)" : ""}; the others are photos from the sailing's page.</p>
+    <span class="ac-lab">Words on the card</span>
+    ${wasnow ? `<input id="w-title" value="${esc(w.title ?? s.title)}" aria-label="Sailing name">` : `
+      <input id="w-kicker" value="${esc(w.kicker ?? dw.kicker)}" placeholder="Small heading (optional)" aria-label="Small heading">
+      <input id="w-headline" value="${esc(w.headline ?? dw.headline)}" placeholder="Headline" aria-label="Headline">
+      <input id="w-sub" value="${esc(w.sub ?? dw.sub)}" placeholder="Second line (optional)" aria-label="Second line">`}
+    <button type="button" class="linkbtn" id="w-reset">Back to the sailing's own name</button>
+    ${wasnow ? "" : `<span class="ac-lab">Strips</span>
+      ${s.k.nectar ? `<label class="ac-check"><input type="checkbox" id="ac-nectar"${c.nectar ? " checked" : ""}> ${esc(s.k.nectar)}</label>` : ""}
+      ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-promo="${i}"${(c.promos || []).includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No promotions on this sailing right now.</p>`}
+      <p class="sub">Up to ${c.nectar ? "1 promotion with the Nectar line" : "2 promotions"}, so the card doesn't get too busy.</p>`}
+    <span class="ac-lab">Under the ${ad.format === "carousel" ? "card" : "image"} on Meta</span>
+    <label class="ac-lab sm" for="m-headline">Headline <span class="sub" id="cnt-headline"></span></label>
+    <input id="m-headline" value="${esc(c.headline)}">
+    <label class="ac-lab sm" for="m-desc">Description <span class="sub" id="cnt-description"></span></label>
+    <input id="m-desc" value="${esc(c.description)}">
+    <label class="ac-lab sm" for="m-link">Link</label>
+    <input id="m-link" value="${esc(c.link)}" inputmode="url">
+  </div>`;
+}
+
+function preview(){
+  const more = ad.primary.length > LIMITS.primary;
+  const text = esc(more ? ad.primary.slice(0, LIMITS.primary).trimEnd() : ad.primary);
+  const head = `<div class="mp-head"><span class="mp-av">A</span><div><b>Ambassador Cruise Line</b><span class="sub">Sponsored · <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" fill="none" stroke="currentColor"/></svg></span></div></div>
+    <p class="mp-text">${text || `<span class="sub">Primary text appears here.</span>`}${more ? `… <span class="sub">See more</span>` : ""}</p>`;
+  const foot = c => `<div class="mp-foot"><div><b>${esc(c.headline || "")}</b><span>${esc(c.description || "")}</span></div><span class="mp-cta">${esc(ad.cta)}</span></div>`;
+  if (!ad.cards.length) return `<div class="mp"><div class="mp-post">${head}<div class="mp-empty">Add sailings to see the ad.</div></div></div>`;
+  if (ad.format === "carousel"){
+    const [w, h] = SIZES[ad.size];
+    return `<div class="mp"><p class="sub">How it looks in a Facebook or Instagram feed. Swipe or scroll the cards.</p><div class="mp-post">${head}
+      <div class="mp-car">${ad.cards.map((c, i) => `<div class="mp-card${i === sel ? " on" : ""}" data-sel="${i}"><div class="mp-frame" style="aspect-ratio:${w}/${h}"><iframe data-card="${i}" data-size="${ad.size}" title="Card ${i + 1}" tabindex="-1"></iframe></div>${foot(c)}</div>`).join("")}</div></div></div>`;
+  }
+  const c = ad.cards[0];
+  return `<div class="mp mp-single"><div><p class="sub">Feed (4:5)</p><div class="mp-post">${head}
+      <div class="mp-frame" style="aspect-ratio:1080/1350"><iframe data-card="0" data-size="4x5" title="Feed image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
+    <div><p class="sub">Feed (1:1)</p><div class="mp-post">${head}<div class="mp-frame" style="aspect-ratio:1"><iframe data-card="0" data-size="1x1" title="Square image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
+    <div><p class="sub">Stories and Reels (9:16)</p><div class="mp-story"><div class="mp-frame" style="aspect-ratio:1080/1920"><iframe data-card="0" data-size="9x16" title="Story image" tabindex="-1"></iframe></div>
+      <div class="mp-story-top"><span class="mp-av">A</span> Ambassador Cruise Line <span class="sub">Sponsored</span></div><div class="mp-story-cta">${esc(ad.cta)}</div></div></div></div>`;
+}
+
+// Live card previews: each iframe renders the full-size card and is scaled to fit its box.
+let paintT = 0;
+function paintCards(){
+  clearTimeout(paintT);
+  paintT = setTimeout(() => root.querySelectorAll("iframe[data-card]").forEach(async f => {
+    const c = ad.cards[+f.dataset.card]; if (!c) return;
+    const [w, h] = SIZES[f.dataset.size], box = f.parentElement;
+    f.style.cssText = `width:${w}px;height:${h}px;border:0;transform-origin:0 0;transform:scale(${box.clientWidth / w});pointer-events:none`;
+    f.srcdoc = cardDoc(cardData(c), f.dataset.size, LOGO);
+    f.onload = () => f.contentWindow.ready && f.contentWindow.ready();
+  }), 150);
+}
+new ResizeObserver(() => root && root.querySelectorAll("iframe[data-card]").forEach(f => {
+  const [w] = SIZES[f.dataset.size]; if (f.parentElement) f.style.transform = `scale(${f.parentElement.clientWidth / w})`;
+})).observe(document.body);
+
+function counts(){
+  const set = (id, n, max) => { const e = root.querySelector("#cnt-" + id); if (e) { e.textContent = `${n}/${max}`; e.classList.toggle("over", n > max); } };
+  set("primary", ad.primary.length, LIMITS.primary);
+  const c = ad.cards[sel];
+  if (c) { set("headline", (c.headline || "").length, LIMITS.headline); set("description", (c.description || "").length, LIMITS.description); }
+}
+
+// ---------- events ----------
+function wire(){
+  const $ = s => root.querySelector(s), c = ad.cards[sel];
+  const change = (repaint = true, redraw = false) => { save(); if (redraw) draw(); else { if (repaint) paintCards(); refreshText(); counts(); } };
+  root.querySelectorAll("[data-format]").forEach(b => b.addEventListener("click", () => { ad.format = b.dataset.format; change(true, true); }));
+  $("#ac-size") && $("#ac-size").addEventListener("change", e => { ad.size = e.target.value; change(true, true); });
+  const find = $("#ac-find"), res = $("#ac-results");
+  find.addEventListener("input", () => {
+    const q = find.value.trim().toLowerCase();
+    if (q.length < 2) { res.innerHTML = ""; return; }
+    const hits = live().filter(([id, r]) => [id, r.title, r.base_title, r.port, r.flight_from, r.ship].join(" ").toLowerCase().includes(q))
+      .sort((a, b) => a[1].departure_date.localeCompare(b[1].departure_date)).slice(0, 8);
+    res.innerHTML = hits.length ? hits.map(([id, r]) => `<button type="button" data-add="${esc(id)}"${ad.cards.some(x => x.id === id) ? " disabled" : ""}><b>${esc(r.flight_from ? r.base_title : r.title)}</b><span class="sub">${esc(id)} · ${fmtDate(r.departure_date)} · ${r.flight_from ? "Fly from " + esc(r.flight_from) : esc(r.port)} · ${money(r.segments[r.segments.length - 1].p)}</span></button>`).join("")
+      : `<p class="sub">No sailings on sale match.</p>`;
+  });
+  res.addEventListener("click", e => {
+    const b = e.target.closest("[data-add]"); if (!b) return;
+    if (ad.format === "single") ad.cards = [];
+    if (ad.cards.length >= MAX_CARDS) return;
+    ad.cards.push(newCard(b.dataset.add)); sel = ad.cards.length - 1; change(true, true);
+    root.querySelector("#ac-find").focus();
+  });
+  root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
+  root.querySelectorAll("[data-sel]").forEach(b => b.addEventListener("click", () => { if (sel !== +b.dataset.sel) { sel = +b.dataset.sel; draw(); } }));
+  const move = (i, j) => { const [x] = ad.cards.splice(i, 1); ad.cards.splice(j, 0, x); sel = j; change(true, true); };
+  root.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", () => move(+b.dataset.up, +b.dataset.up - 1)));
+  root.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", () => move(+b.dataset.down, +b.dataset.down + 1)));
+  root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { ad.cards.splice(+b.dataset.del, 1); sel = Math.max(0, Math.min(sel, ad.cards.length - 1)); change(true, true); }));
+  let dragFrom = null;
+  root.querySelectorAll(".ac-list li").forEach(li => {
+    li.addEventListener("dragstart", () => { dragFrom = +li.dataset.i; li.classList.add("drag"); });
+    li.addEventListener("dragover", e => e.preventDefault());
+    li.addEventListener("drop", e => { e.preventDefault(); if (dragFrom !== null && dragFrom !== +li.dataset.i) move(dragFrom, +li.dataset.i); dragFrom = null; });
+  });
+  $("#ac-primary").addEventListener("input", e => { ad.primary = e.target.value; change(false); });
+  $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
+  $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
+  $("#ac-zip").addEventListener("click", download);
+  if (!c) return;
+  $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; change(true, true); });
+  root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; change(true, true); }));
+  $("#ac-upload").addEventListener("change", e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { const k = "upload:" + (++upN); uploads[k] = rd.result; c.photo = k; change(true, true); };
+    rd.readAsDataURL(f);
+  });
+  const words = () => {
+    c.words = c.design.startsWith("wasnow:") ? {title: $("#w-title").value} : {kicker: $("#w-kicker").value, headline: $("#w-headline").value || " ", sub: $("#w-sub").value};
+    change();
+  };
+  root.querySelectorAll("#w-title,#w-kicker,#w-headline,#w-sub").forEach(i => i.addEventListener("input", words));
+  $("#w-reset").addEventListener("click", () => { c.words = null; change(true, true); });
+  const s = sailing(c.id);
+  $("#ac-nectar") && $("#ac-nectar").addEventListener("change", e => { c.nectar = e.target.checked; c.promos = (c.promos || []).slice(0, c.nectar ? 1 : 2); change(true, true); });
+  root.querySelectorAll("[data-promo]").forEach(b => b.addEventListener("change", () => {
+    const p = s.k.promos[+b.dataset.promo], max = c.nectar ? 1 : 2;
+    c.promos = (c.promos || []).filter(x => x !== p);
+    if (b.checked) { c.promos.push(p); while (c.promos.length > max) c.promos.shift(); }   // the newest pick wins
+    c.promos = s.k.promos.filter(x => c.promos.includes(x));                               // shown best first
+    change(true, true);
+  }));
+  $("#m-headline").addEventListener("input", e => { c.headline = e.target.value; change(false); });
+  $("#m-desc").addEventListener("input", e => { c.description = e.target.value; change(false); });
+  $("#m-link").addEventListener("input", e => { c.link = e.target.value.trim(); change(false); });
+}
+
+// Text-only changes update the preview without re-rendering the cards.
+function refreshText(){
+  const pv = root.querySelector(".ac-main"); if (!pv) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = preview();
+  pv.querySelectorAll(".mp-text").forEach((e, i) => e.innerHTML = tmp.querySelectorAll(".mp-text")[i].innerHTML);
+  pv.querySelectorAll(".mp-foot").forEach((e, i) => { const t = tmp.querySelectorAll(".mp-foot")[i]; if (t) e.innerHTML = t.innerHTML; });
+  const cta = pv.querySelector(".mp-story-cta"); if (cta) cta.textContent = ad.cta;
+}
+
+// ---------- download ----------
+const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise((ok, bad) => {
+  const sc = document.createElement("script");
+  sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+  sc.onload = () => ok(window.JSZip); sc.onerror = () => bad(new Error("couldn't load the zip tool"));
+  document.head.appendChild(sc);
+});
+
+async function renderJpeg(c, size){
+  const [w, h] = SIZES[size], f = document.createElement("iframe");
+  f.style.cssText = `position:fixed;left:-${w + 50}px;top:0;width:${w}px;height:${h}px;border:0`;
+  document.body.appendChild(f);
+  try {
+    await new Promise(r => { f.onload = r; f.srcdoc = cardDoc(cardData(c), size, LOGO); });
+    await f.contentWindow.ready();
+    const url = await f.contentWindow.toJpeg();
+    return await (await fetch(url)).blob();
+  } finally { f.remove(); }
+}
+
+async function download(){
+  const st = root.querySelector("#ac-status"), btn = root.querySelector("#ac-zip");
+  btn.disabled = true;
+  try {
+    const JSZip = await loadZip(), zip = new JSZip();
+    const sizes = ad.format === "carousel" ? [ad.size] : ["1x1", "4x5", "9x16"];
+    const files = [];
+    let n = 0;
+    for (const [i, c] of ad.cards.entries()) for (const size of sizes) {
+      st.textContent = `Making card ${++n} of ${ad.cards.length * sizes.length}…`;
+      const name = `${String(i + 1).padStart(2, "0")}_${c.id}${c.design.startsWith("wasnow:") ? "_wasnow" : ""}_${size}.jpg`;
+      zip.file(name, await renderJpeg(c, size)); files.push([i, name]);
+    }
+    zip.file("ad_text.txt", adText(files));
+    zip.file("cards.csv", csv(files));
+    zip.file("HOW_TO_UPLOAD.md", howTo(files));
+    st.textContent = "Zipping…";
+    const blob = await zip.generateAsync({type: "blob"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `ad_${ad.format}_${ad.cards.map(c => c.id).slice(0, 3).join("-")}${ad.cards.length > 3 ? "-etc" : ""}_${today}.zip`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    st.textContent = `Downloaded. Prices as checked ${fmtDate(today)}.`;
+  } catch (e) {
+    st.textContent = `Couldn't make the zip: ${e.message}`;
+  } finally { btn.disabled = false; }
+}
+
+const validUntil = () => {
+  const ends = ad.cards.map(c => c.design.startsWith("wasnow:") && (claims(c.id).find(x => x.key === c.design.slice(7)) || {}).ends).filter(Boolean).sort();
+  return ends[0] || null;
+};
+
+function adText(files){
+  const L = [`Ambassador Cruise Line ${ad.format === "carousel" ? "carousel" : "single image"} ad`, `Prices as checked ${fmtDate(today)}.`, "",
+             "PRIMARY TEXT", ad.primary || "(none yet)", "", "CALL TO ACTION BUTTON", ad.cta, ""];
+  ad.cards.forEach((c, i) => {
+    const s = sailing(c.id);
+    L.push(`CARD ${i + 1}: ${s.title} (${c.id})`, `Image: ${files.filter(f => f[0] === i).map(f => f[1]).join(", ")}`,
+           `Headline: ${c.headline}`, `Description: ${c.description}`, `Website URL: ${c.link}`, "");
+  });
+  return L.join("\n");
+}
+
+function csv(files){
+  const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+  const rows = [["Order", "Cruise code", "Sailing", "Departs", "Design", "Price on card", "Was", "Use until", "Headline", "Description", "Link", "Files"]];
+  ad.cards.forEach((c, i) => {
+    const d = cardData(c), s = sailing(c.id), cl = c.design.startsWith("wasnow:") ? claims(c.id).find(x => x.key === c.design.slice(7)) : null;
+    rows.push([i + 1, c.id, s.title, s.r.departure_date, cl ? "Was/now" : "Standard", d.wasnow ? d.wasnow.now : d.price, cl ? cl.was : "", cl ? cl.ends : "",
+               c.headline, c.description, c.link, files.filter(f => f[0] === i).map(f => f[1]).join(" ")]);
+  });
+  return "﻿" + rows.map(r => r.map(cell).join(",")).join("\r\n");
+}
+
+function howTo(files){
+  const carousel = ad.format === "carousel", until = validUntil();
+  return [`# How to upload this ${carousel ? "carousel" : "single image"} ad`, "",
+    `Made in the Sailing price watch ad creator. Prices are as checked on ${fmtDate(today)}: check the tracker before`,
+    `the ad goes live, and pause it if a price on a card changes.${until ? ` **Was/now cards in this ad must stop running by ${fmtDate(until)}.**` : ""}`, "",
+    "Nothing has been sent to Meta. Follow these steps in Meta Ads Manager:", "",
+    "1. Open your campaign and ad set, then click **+ Create** (or edit an existing ad).",
+    `2. Under **Ad setup**, choose **Create ad** and format **${carousel ? "Carousel" : "Single image or video"}**.`,
+    carousel
+      ? `3. Under **Carousel cards**, add ${ad.cards.length} cards and fill them in **in this order**:\n` +
+        ad.cards.map((c, i) => `   - Card ${i + 1}: image \`${files.find(f => f[0] === i)[1]}\`, headline "${c.headline}", description "${c.description}", website URL ${c.link}`).join("\n")
+      : `3. Under **Media**, click **Add media → Add image** and upload \`${files.find(f => f[1].endsWith("_4x5.jpg"))[1]}\` for Feeds and \`${files.find(f => f[1].endsWith("_9x16.jpg"))[1]}\` for Stories and Reels (use **Select images for placements**). The 1:1 version is for Right column and Marketplace if you use them.`,
+    `4. **Primary text**: paste it from \`ad_text.txt\`.`,
+    carousel ? "5. Leave **Show the best performing cards first** off if the order matters (it usually does)." : `5. **Headline** "${ad.cards[0].headline}", **Description** "${ad.cards[0].description}", **Website URL** ${ad.cards[0].link}.`,
+    `6. **Call to action**: ${ad.cta}.`,
+    "7. Check the preview on Facebook and Instagram placements, then publish (or send for approval as usual).", "",
+    "Files:", ...files.map(f => `- ${f[1]}`), "- ad_text.txt: every piece of text, ready to paste", "- cards.csv: what is on each card", ""].join("\n");
+}

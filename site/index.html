@@ -207,6 +207,69 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .lookbox{margin:10px 0;padding:10px 14px;background:var(--warn-bg);color:var(--warn)}
 .lookbox ul{margin:6px 0 0 18px}
 .stale{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;background:var(--warn-bg);color:var(--warn)}
+/* Ad creator (site/adcreator.js) */
+.ac{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:20px;align-items:start}
+.ac-side{display:flex;flex-direction:column;gap:14px}
+.ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.ac-block h3{margin:0 0 4px;font-size:15px}
+.ac-block input,.ac-block select,.ac-block textarea{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);width:100%}
+.ac-block textarea{resize:vertical}
+.ac-block input[type=search]{flex:none;max-width:none}
+.ac-lab{font-size:13px;font-weight:700;margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+.ac-lab.sm{font-weight:600;margin-top:4px}
+.ac-lab .over,.sub.over{color:var(--bad);font-weight:700}
+.ac-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.ac-seg{font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.ac-seg[aria-pressed="true"]{background:var(--allium);border-color:var(--allium);color:#fff}
+.ac-inline{font-size:13px;display:flex;gap:6px;align-items:center}
+.ac-inline select{width:auto}
+.ac-results{display:flex;flex-direction:column}
+.ac-results button,.ac-pick{font:inherit;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:7px 2px;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:1px}
+.ac-results button:disabled{opacity:.45;cursor:default}
+.ac-results button:hover:not(:disabled),.ac-pick:hover{color:var(--heading)}
+.ac-list{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column}
+.ac-list li{display:flex;justify-content:space-between;align-items:center;gap:6px;border-bottom:1px solid var(--rule)}
+.ac-list li.on .ac-pick b{color:var(--heading);text-decoration:underline}
+.ac-list li .ac-pick{border:0;flex:1;min-width:0}
+.ac-ord{display:flex;gap:2px;flex:none}
+.ac-ord button{font:inherit;font-size:13px;width:28px;height:28px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.ac-ord button:disabled{opacity:.35;cursor:default}
+.ac-photos{display:flex;flex-wrap:wrap;gap:6px}
+.ac-ph{padding:0;border:2px solid transparent;background:none;cursor:pointer;width:62px;height:62px}
+.ac-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ac-ph.on{border-color:var(--allium)}
+.ac-up{display:flex;align-items:center;justify-content:center;width:62px;height:62px;border:1px dashed var(--rule);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted)}
+.ac-check{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.ac-check input{width:auto;margin-top:3px}
+.ac-main{position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ac-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.mp{min-width:0}
+.mp-post{background:#fff;color:#1c1e21;border:1px solid #dadde1;border-radius:8px;max-width:500px;overflow:hidden;font-family:Helvetica,Arial,sans-serif}
+.mp-head{display:flex;gap:8px;align-items:center;padding:12px 12px 6px}
+.mp-head b{display:block;font-size:14px}
+.mp-head .sub{font-size:12px;color:#65676b;display:flex;gap:4px;align-items:center}
+.mp-av{width:36px;height:36px;border-radius:50%;background:#380843;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.mp-text{margin:0;padding:0 12px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}
+.mp-text .sub{color:#65676b}
+.mp-car{display:flex;gap:8px;overflow-x:auto;padding:0 12px 12px;scroll-snap-type:x mandatory}
+.mp-card{flex:none;width:min(300px,78%);border:1px solid #dadde1;border-radius:6px;overflow:hidden;scroll-snap-align:start;cursor:pointer}
+.mp-card.on{outline:3px solid var(--amber);outline-offset:-3px}
+.mp-frame{position:relative;width:100%;overflow:hidden;background:#380843}
+.mp-frame iframe{position:absolute;left:0;top:0}
+.mp-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:#f0f2f5;font-size:13px;min-height:56px}
+.mp-foot div{display:flex;flex-direction:column;min-width:0}
+.mp-foot b,.mp-foot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-foot span{color:#65676b}
+.mp-cta{flex:none;background:#e4e6eb;color:#1c1e21!important;font-weight:700;padding:7px 12px;border-radius:6px}
+.mp-single{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;align-items:start}
+.mp-single .mp-post{max-width:none}
+.mp-story{position:relative;max-width:300px;border-radius:12px;overflow:hidden}
+.mp-story-top{position:absolute;left:10px;top:12px;display:flex;gap:6px;align-items:center;color:#fff;font:600 13px Helvetica,Arial,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.mp-story-top .mp-av{width:26px;height:26px;font-size:12px}
+.mp-story-top .sub{color:#eee;font-weight:400}
+.mp-story-cta{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#fff;color:#1c1e21;font:700 13px Helvetica,Arial,sans-serif;padding:8px 16px;border-radius:18px}
+.mp-empty{padding:40px 12px;text-align:center;color:#65676b;font-size:14px}
+@media (max-width:860px){.ac{grid-template-columns:1fr}.ac-main{position:static;order:-1}}
 dialog.pv{width:min(760px,calc(100% - 32px));max-height:calc(100% - 32px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink)}
 dialog.pv::backdrop{background:rgba(20,5,25,.7)}
 .pvhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
@@ -309,6 +372,12 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
       <span class="sub" id="k-status" aria-live="polite"></span>
     </div>
     <div id="cards"><p class="loading">Loading cards…</p></div>
+  </section>
+
+  <section aria-labelledby="h-ads">
+    <h2 id="h-ads"><span class="mini amber"></span>Ad creator</h2>
+    <p class="note" style="margin:0 0 12px">Pick sailings, put them in order, change the words, image and strips, and see the ad as it would look on Facebook and Instagram. Then download one zip with the cards in order, the ad text and upload instructions. Nothing is sent to Meta.</p>
+    <div id="ads"><p class="loading">Loading the ad creator…</p></div>
   </section>
 
   <section aria-labelledby="h-promos">
@@ -1519,6 +1588,7 @@ const auth = getAuth(firebaseApp);
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     cards: '<rect x="3" y="5" width="13" height="15" rx="1"/><path d="M8 2h13v15"/>',
+    ads: '<rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/><path d="M5 3h14"/>',
     runs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     rules: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8"/>',
   };
@@ -1526,6 +1596,7 @@ const auth = getAuth(firebaseApp);
     ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"]],
     ["trends", "Trends", ["h-trends"]],
     ["cards", "Cards", ["h-cards"]],
+    ["ads", "Ad creator", ["h-ads"]],
     ["promos", "Live promotions", ["h-promos"]],
     ["coverage", "Not in ad feed", ["h-coverage"]],
     ["changes", "What changed", ["h-changes"]],
@@ -1542,6 +1613,7 @@ const auth = getAuth(firebaseApp);
     for (const [id, , secs] of VIEWS) secs.forEach(s => s.hidden = id !== v);
     document.querySelectorAll("#sidenav button").forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     try { localStorage.setItem("spw-view", v); } catch(e){}
+    if (v === "ads") mountAds();
     if (scroll) window.scrollTo({top: 0});
     renderTrends();
     const b = document.querySelector(`#sidenav button[data-view="${v}"]`);
@@ -1596,6 +1668,17 @@ const auth = getAuth(firebaseApp);
   });
   $("gate-signout").addEventListener("click", () => signOut(auth).catch(() => {}));
 
+  // Ad creator: its own module, loaded the first time the page is opened (site/adcreator.js)
+  let adsMounted = false;
+  async function mountAds(){
+    if (!state || adsMounted) return;   // (state first: showView runs before adsMounted is declared)
+    adsMounted = true;
+    try {
+      const [m, kit] = await Promise.all([import("./adcreator.js"), readJson("adkit").catch(() => null)]);
+      await m.mount($("ads"), {state, cabins, adkit: kit});
+    } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
+  }
+
   const readJson = async name => {
     const snap = await getDoc(doc(fdb, "pricewatch", name));
     if (!snap.exists()) throw Object.assign(new Error("missing " + name), {code: "missing"});
@@ -1629,6 +1712,7 @@ const auth = getAuth(firebaseApp);
     $("gate").hidden = true; $("app").hidden = false;
     render();
     fromHash();
+    if (view === "ads") mountAds();
     $("who").innerHTML = (`${esc(user.email)} · <button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
   });

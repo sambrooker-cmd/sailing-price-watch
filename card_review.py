@@ -126,6 +126,10 @@ def todo(man):
     return wasnow + camp + rest
 
 
+class SignInFailed(RuntimeError):
+    pass
+
+
 def run_claude(prompt, cwd):
     """One Claude Code run that may only read files; returns its structured answer."""
     cmd = ["claude", "-p", prompt, "--model", MODEL, "--tools", "Read", "--allowedTools", "Read",
@@ -137,6 +141,9 @@ def run_claude(prompt, cwd):
     except ValueError:
         raise RuntimeError(f"Claude Code failed: {(p.stderr or p.stdout).strip()[:200]}")
     if out.get("is_error") or not isinstance(out.get("structured_output"), dict):
+        msg = str(out.get("result") or out.get("subtype"))
+        if "401" in msg or "authenticat" in msg.lower():
+            raise SignInFailed(msg[:200])
         raise RuntimeError(f"Claude Code didn't answer: {str(out.get('result') or out.get('subtype'))[:200]}")
     return out["structured_output"]
 
@@ -189,10 +196,14 @@ def main():
     http = requests.Session()
     st = ROOT / "state" / "current.json"
     sailings = json.loads(st.read_text()).get("sailings", {}) if st.exists() else {}
-    flagged, errors = [], []
+    flagged, errors, signin = [], [], None
     for sid, c in batch:
         try:
             res = review(sid, c, http, sailings.get(sid))
+        except SignInFailed as e:   # every other sailing would fail the same way: stop and say so
+            signin = str(e)
+            errors.append(f"{sid}: {signin}")
+            break
         except Exception as e:  # noqa: one failure mustn't stop the rest; it's retried next check
             errors.append(f"{sid}: {str(e)[:200]}")
             continue
@@ -201,9 +212,23 @@ def main():
             flagged.append((sid, c))
         MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))  # after each, so a crash loses little
 
-    if batch and len(errors) == len(batch) and man.get("review_batch_at") == at:
+    if (signin or (batch and len(errors) == len(batch))) and man.get("review_batch_at") == at:
         man.pop("review_batch_at")  # nothing got checked, so don't hold the next batch back
     MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))
+    if signin:
+        (ROOT / "out").mkdir(exist_ok=True)
+        (ROOT / "out" / "review_signin.md").write_text(
+            "The card check couldn't sign in to Claude, so no cards were checked. Prices and cards are fine.\n\n"
+            f"Claude said: `{signin}`\n\n"
+            "To fix it: on your computer run `claude setup-token` again, copy the whole token (it starts `sk-ant-`), "
+            "and paste it over the old one in GitHub → Settings → Secrets and variables → Actions → "
+            "`CLAUDE_CODE_OAUTH_TOKEN`. The next check tries again by itself.\n")
+        p = os.environ.get("GITHUB_OUTPUT")
+        if p:
+            with open(p, "a") as f:
+                f.write("signin_failed=true\n")
+        print(f"Card check stopped: Claude Code couldn't sign in ({signin}).")
+        return 1
     left = len(queue) - len(batch) + len(errors)
     lines = []
     if flagged:

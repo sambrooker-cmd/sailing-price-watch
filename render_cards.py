@@ -174,16 +174,18 @@ def promo_rank(o):
     return (9, 0)
 
 
-def promo_lines(s):
+def promo_lines(s, limit=None):
     """Text for the promotion strips: name, plus the code and closing date when
-    the page gives them (a time-limited offer has to show when it ends)."""
+    the page gives them (a time-limited offer has to show when it ends).
+    limit=0 gives every promotion that may go on a card, best first (the ad creator's choices)."""
     offers = s.get("offers")
     if offers is None:  # page's offer list couldn't be read: fall back to the old onboard credit line
         return [s["offer"]] if s.get("offer") else []
     out = []
     # One promotion when the card also has a Nectar strip (Sam, 12 Oct 2026), so it doesn't get too busy.
-    limit = 1 if nectar_line(s) else MAX_PROMOS
-    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:limit]:
+    if limit is None:
+        limit = 1 if nectar_line(s) else MAX_PROMOS
+    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:limit or None]:
         name = o["name"].strip()
         if name.isupper():
             name = name.capitalize()
