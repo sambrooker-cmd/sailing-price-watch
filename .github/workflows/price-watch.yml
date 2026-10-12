@@ -7,6 +7,8 @@ on:
     # Runs at 7 minutes past: GitHub drops scheduled runs at busy times, worst on the hour
     # (the :00 runs at 12:00 and 13:00 on 12 Oct never started).
     - cron: "7 9-17 * * *"
+    # Plus 22:07 and 06:07 GMT, so evening price changes reach the cards before the morning (Sam, 12 Oct 2026).
+    - cron: "7 22,6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +22,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45   # the first card run makes every sailing's cards
     steps:
       - uses: actions/checkout@v7
         with:
@@ -35,6 +37,29 @@ jobs:
         # Card rendering is paused (Sam, 12 Oct 2026): prices only. To turn it back on,
         # drop --no-cards and restore the Playwright install step (see git history).
         run: python daily.py --no-cards
+
+      # Standard cards for every sailing on sale (Sam, 12 Oct 2026; was/now cards stay paused):
+      # only sailings whose card content changed are remade. See cards_sync.py.
+      - name: Which cards need making
+        id: cards
+        if: steps.watch.outcome == 'success'
+        run: python cards_sync.py plan
+
+      - name: Install the card renderer
+        if: steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0'
+        run: |
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+
+      - name: Make and upload cards
+        id: cardrun
+        if: steps.cards.outputs.work != '' && steps.cards.outputs.work != '0'
+        continue-on-error: true   # a card problem must never stop prices being saved
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          pip install google-auth==2.40.3 requests==2.32.3
+          python cards_sync.py run
 
       - name: Commit results
         if: steps.watch.outcome == 'success'
@@ -68,6 +93,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         # One issue per day; later checks that day with new claims add a comment.
         run: .github/issue.sh "New was/now claims — ${{ steps.watch.outputs.date }}" out/issue.md
+
+      - name: Open issue if cards failed
+        if: steps.cardrun.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Prices were saved, but some cards couldn't be made or uploaded at $(date -u '+%H:%M') UTC. The next check tries again."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            [ -f out/summary.md ] && sed -n '/^## Cards/,$p' out/summary.md
+          } > /tmp/cards.md
+          .github/issue.sh "Cards FAILED — $(TZ=Europe/London date +%F)" /tmp/cards.md
 
       - name: Open issue on failure
         if: failure()

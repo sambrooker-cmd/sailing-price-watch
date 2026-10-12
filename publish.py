@@ -9,6 +9,8 @@ has to understand the shape of the data:
   pricewatch/runs     recent runs/*.json, newest first: up to MAX_RUNS, as many
                       as fit in RUNS_BYTES (the page's "What changed" view uses them)
   pricewatch/coverage state/coverage.json, if the weekly feed coverage check has run
+  pricewatch/cards    state/cards.json (cards_sync.py): each sailing's current cards and the
+                      out-of-date ones still kept, with their download links
   pricewatch/trends   change counts per day for every run ever recorded (the Trends page),
                       plus the list of archive documents
   pricewatch/runs-YYYY-MM-1 / -2
@@ -79,6 +81,13 @@ def documents():
         },
         **archives,
     }
+    if (ROOT / "state" / "cards.json").exists():
+        man = load(ROOT / "state" / "cards.json")
+        slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since")
+                          if c.get(k) is not None} | {"files": {t: f["url"] for t, f in c["files"].items()}}
+        docs["cards"] = {"updated_at": man.get("updated_at"), "sailings": {
+            sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in m.get("old") or []]}
+            for sid, m in man.get("sailings", {}).items()}}
     if (ROOT / "state" / "coverage.json").exists():
         docs["coverage"] = load(ROOT / "state" / "coverage.json")
     out = {}

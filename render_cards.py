@@ -42,7 +42,6 @@ Cards without --was are unchanged.
 """
 import base64, datetime, html, json, re, sys, urllib.request
 from pathlib import Path
-from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).parent
 # Works from the project layout (fonts/, assets/) or a flat kit folder.
@@ -432,6 +431,7 @@ def render(snapshot, outdir, ids, was=None, sizes=tuple(SIZES), cabin=None):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
     paths = []
+    from playwright.sync_api import sync_playwright  # only needed to render, not for promo_lines etc.
     with sync_playwright() as p:
         b = p.chromium.launch()
         for w, h in sizes:
