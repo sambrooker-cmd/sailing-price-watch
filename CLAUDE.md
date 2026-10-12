@@ -80,8 +80,9 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
   in Sam's account, its time zone left on UK time at Sam's choice; the GitHub `schedule` crons are UTC and only a backstop).
   Sam was told the trade-off: intraday flip-flops (see below) are now recorded, so sold-out-then-back cabins restart
   their reference period more often and some was/now claims qualify later than with one daily check.
-- **Claude review of cards.** Built 12 Oct 2026 as `card_review.py` (see above), on Sam's Claude plan. Needs Sam to add the
-  `CLAUDE_CODE_OAUTH_TOKEN` secret. Don't move it to a paid API key, change the model or the batching without asking Sam.
+- **Claude review of cards.** Built 12 Oct 2026 as `card_review.py` (see above), on Sam's Claude plan. **Paused by Sam,
+  12 Oct 2026** after the plan token kept getting 401 "Invalid bearer token" (cause not found: plan type or the value
+  pasted; setup-token is documented for Pro/Max). The workflow step only runs when the repo variable `CARD_CHECK` = `on`. Don't move it to a paid API key, change the model or the batching without asking Sam.
 - **Intraday flip-flops.** On 12 Oct the site's prices/availability changed between 07:00 and 10:30 (cabins sold out and
   came back, lead prices moved both ways). Running once a day at a fixed time keeps this consistent. Worth Sam knowing,
   because "sold out then back" resets a cabin's reference period.
