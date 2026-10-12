@@ -104,12 +104,12 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 5. **Site variable.** Same page, Variables tab → New repository variable `FIREBASE_HOSTING_SITE` = the site ID.
 6. Run **Actions → Publish tracker page → Run workflow** (once this is on `main`), then open the page and sign in.
 
-## Cutover checklist
-- [ ] Workflow has run successfully at least once from a manual trigger (no `--force` needed on a fresh day).
-- [ ] **Re-sync state just before go-live.** The Claude scheduled task keeps writing to the tracker database until it
-      is turned off, so `state/` here goes stale each day. Either pause the scheduled task now (then `state/` is current),
-      or have Claude (Cowork) export the latest `state/current`, `state/cabins` and `runs/*` from the tracker into this
-      repo on cutover day.
-- [ ] Turn off both Claude scheduled tasks: **"Sailing price watch"** (07:57) and **"Sailing price watch – daily check"**
-      (09:07). Otherwise two systems write separate histories, and the 09:07 check will alert on the stale tracker.
-- [ ] Decide the tracker page question above.
+## Cutover checklist (done 12 Oct 2026)
+- [x] Workflow has run successfully from a manual trigger (12 Oct 2026, several times: prices, Nectar, cards, publish).
+- [x] State: GitHub is the only writer from 12 Oct 2026; the old tracker's export was taken that afternoon.
+- [x] Both Claude scheduled tasks ("Sailing price watch" 07:57, "Sailing price watch – daily check" 09:07) turned off by Sam, 12 Oct 2026.
+- [x] Tracker page decided and live (https://acl-price-watch.web.app); old Claude tracker artifact retired.
+- [x] Sam set a £1 budget alert on promotions-planner billing, GitHub email notifications (participating + failed workflows),
+      and deleted the temporary probe-nectar branch (12 Oct 2026).
+- [ ] Open: scheduled runs had not fired by 14:50 UTC on 12 Oct 2026 (all runs so far manual). If they still don't, add a
+      backstop trigger (external cron calling workflow_dispatch with a token Sam creates).
