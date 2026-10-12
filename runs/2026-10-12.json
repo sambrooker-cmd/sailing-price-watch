@@ -1,11 +1,134 @@
 {
- "cabin_back": [
+ "date": "2026-10-12",
+ "count": 220,
+ "new": [],
+ "removed": [
+  "A32650M"
+ ],
+ "returned": [],
+ "drops": [
   {
-   "cabin": "twin.inside",
-   "id": "A12704",
-   "p": 699
+   "claim": {
+    "eligible": false,
+    "held_days": 0,
+    "now": 299,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-12",
+    "was": 399
+   },
+   "from": 399,
+   "id": "A12630",
+   "to": 299
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 4,
+    "now": 2699,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-12",
+    "was": 3199
+   },
+   "from": 3199,
+   "id": "A12701",
+   "to": 2699
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 4,
+    "now": 2519,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-12",
+    "was": 2999
+   },
+   "from": 2999,
+   "id": "A22701",
+   "to": 2519
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 4,
+    "now": 449,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-12",
+    "was": 499
+   },
+   "from": 499,
+   "id": "A12709",
+   "to": 449
+  },
+  {
+   "id": "A22633",
+   "from": 599,
+   "to": 399,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 599,
+    "now": 399,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T12:17:37Z"
   }
  ],
+ "rises": [
+  {
+   "id": "A12704",
+   "from": 699,
+   "to": 899,
+   "mix": "inside → ocean_view",
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22706PO",
+   "from": 989,
+   "to": 1039,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12712",
+   "from": 2049,
+   "to": 2239,
+   "at": "2026-10-12T12:17:37Z"
+  }
+ ],
+ "eligible": [],
+ "flags": {
+  "A22633": [
+   "feed price £399 differs from cheapest cabin on the page £599"
+  ],
+  "A12630": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12634": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22702": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12704": [
+   "feed price £899 differs from cheapest cabin on the page £699"
+  ],
+  "A12706": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22705": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22706PO": [
+   "feed price £1,039 differs from cheapest cabin on the page £989"
+  ],
+  "A12709": [
+   "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A12712": [
+   "feed price £2,239 differs from cheapest cabin on the page £2,049",
+   "feed image looks like campaign art (may contain text)"
+  ]
+ },
  "cabin_drops": [
   {
    "cabin": "twin.suite",
@@ -55,9 +178,114 @@
    "from": 3299,
    "id": "A3280305",
    "to": 3099
+  },
+  {
+   "id": "A12701",
+   "cabin": "twin.inside",
+   "from": 3199,
+   "to": 2699,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 3199,
+    "now": 2699,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "twin.ocean_view",
+   "from": 3999,
+   "to": 3499,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 3999,
+    "now": 3499,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "solo.inside",
+   "from": 4499,
+   "to": 3499,
+   "claim": null,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "twin.inside",
+   "from": 2999,
+   "to": 2519,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 2999,
+    "now": 2519,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "twin.ocean_view",
+   "from": 3599,
+   "to": 3299,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 3599,
+    "now": 3299,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "twin.suite",
+   "from": 6669,
+   "to": 6399,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 6669,
+    "now": 6399,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.ocean_view",
+   "from": 4499,
+   "to": 4289,
+   "claim": null,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12706",
+   "cabin": "twin.balcony",
+   "from": 2259,
+   "to": 2019,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 4 days, needs 28",
+    "was": 2259,
+    "now": 2019,
+    "since": "2026-10-12",
+    "held_days": 4
+   },
+   "at": "2026-10-12T12:17:37Z"
   }
  ],
- "cabin_eligible": [],
  "cabin_rises": [
   {
    "cabin": "twin.ocean_view",
@@ -112,6 +340,34 @@
    "from": 679,
    "id": "A12806",
    "to": 719
+  },
+  {
+   "id": "A22639",
+   "cabin": "solo.inside",
+   "from": 2329,
+   "to": 2479,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "twin.balcony",
+   "from": 5909,
+   "to": 5999,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.inside",
+   "from": 3599,
+   "to": 3639,
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22730",
+   "cabin": "twin.suite",
+   "from": 689,
+   "to": 789,
+   "at": "2026-10-12T12:17:37Z"
   }
  ],
  "cabin_sold_out": [
@@ -182,99 +438,44 @@
   {
    "cabin": "solo.inside",
    "id": "A12806"
+  },
+  {
+   "id": "A22632",
+   "cabin": "twin.suite",
+   "at": "2026-10-12T12:17:37Z"
+  },
+  {
+   "id": "A22702",
+   "cabin": "twin.balcony",
+   "at": "2026-10-12T12:17:37Z"
   }
  ],
- "count": 220,
- "date": "2026-10-12",
- "drops": [
+ "cabin_back": [
   {
-   "claim": {
-    "eligible": false,
-    "held_days": 0,
-    "now": 299,
-    "reason": "cabin type behind the lead price is unknown",
-    "since": "2026-10-12",
-    "was": 399
-   },
-   "from": 399,
+   "cabin": "twin.inside",
+   "id": "A12704",
+   "p": 699
+  },
+  {
    "id": "A12630",
-   "to": 299
+   "cabin": "twin.inside",
+   "p": 299,
+   "at": "2026-10-12T12:17:37Z"
   },
   {
-   "claim": {
-    "eligible": false,
-    "held_days": 4,
-    "now": 2699,
-    "reason": "cabin type behind the lead price is unknown",
-    "since": "2026-10-12",
-    "was": 3199
-   },
-   "from": 3199,
    "id": "A12701",
-   "to": 2699
-  },
-  {
-   "claim": {
-    "eligible": false,
-    "held_days": 4,
-    "now": 2519,
-    "reason": "cabin type behind the lead price is unknown",
-    "since": "2026-10-12",
-    "was": 2999
-   },
-   "from": 2999,
-   "id": "A22701",
-   "to": 2519
-  },
-  {
-   "claim": {
-    "eligible": false,
-    "held_days": 4,
-    "now": 449,
-    "reason": "cabin type behind the lead price is unknown",
-    "since": "2026-10-12",
-    "was": 499
-   },
-   "from": 499,
-   "id": "A12709",
-   "to": 449
+   "cabin": "solo.ocean_view",
+   "p": 4549,
+   "at": "2026-10-12T12:17:37Z"
   }
  ],
- "eligible": [],
- "flags": {
-  "A12630": [
-   "feed price £299 differs from cheapest cabin on the page £399",
-   "feed image looks like campaign art (may contain text)"
-  ],
-  "A12634": [
-   "feed image looks like campaign art (may contain text)"
-  ],
-  "A12701": [
-   "feed price £2,699 differs from cheapest cabin on the page £3,199"
-  ],
-  "A12706": [
-   "feed image looks like campaign art (may contain text)"
-  ],
-  "A12709": [
-   "no twin cabins on sale; the feed price is a solo price"
-  ],
-  "A12712": [
-   "feed image looks like campaign art (may contain text)"
-  ],
-  "A22701": [
-   "feed price £2,519 differs from cheapest cabin on the page £2,999"
-  ],
-  "A22702": [
-   "feed image looks like campaign art (may contain text)"
-  ],
-  "A22705": [
-   "feed image looks like campaign art (may contain text)"
-  ]
- },
- "new": [],
- "removed": [
-  "A32650M"
- ],
- "returned": [],
- "rises": []
+ "cabin_eligible": [],
+ "promo_added": [],
+ "promo_ended": [],
+ "promo_changed": [],
+ "promo_tracking_started": true,
+ "reported": [],
+ "checks": [
+  "2026-10-12T12:17:37Z"
+ ]
 }
