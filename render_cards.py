@@ -117,7 +117,9 @@ def promo_lines(s):
     if offers is None:  # page's offer list couldn't be read: fall back to the old onboard credit line
         return [s["offer"]] if s.get("offer") else []
     out = []
-    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:MAX_PROMOS]:
+    # One promotion when the card also has a Nectar strip (Sam, 12 Oct 2026), so it doesn't get too busy.
+    limit = 1 if nectar_line(s) else MAX_PROMOS
+    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:limit]:
         name = o["name"].strip()
         if name.isupper():
             name = name.capitalize()
