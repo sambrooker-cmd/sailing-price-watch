@@ -198,6 +198,12 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .btn{font:inherit;font-size:14px;font-weight:600;padding:10px 18px;background:var(--allium);color:#fff;border:0;cursor:pointer}
 .btn.quiet{background:none;color:var(--muted);border:1px solid var(--rule)}
 .linkbtn{font:inherit;font-size:13px;background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:28px 32px}
+.tcard{min-width:0}
+.tcard h3{margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--heading)}
+.tcard .note{margin:6px 0 0}
+.tcard .lead{margin:0 0 10px;color:var(--muted);font-size:14px}
+.months{min-width:0}
 @media (max-width:560px){h1{font-size:22px}.meta{text-align:left}.run{grid-template-columns:1fr;gap:4px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -240,6 +246,20 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
   <section aria-labelledby="h-queue">
     <h2 id="h-queue"><span class="mini amber"></span>Ready for was/now creative</h2>
     <div id="queue"><div class="empty"><p class="loading">Checking for qualifying price drops…</p></div></div>
+  </section>
+
+  <section aria-labelledby="h-trends">
+    <h2 id="h-trends"><span class="mini"></span>Trends</h2>
+    <div class="controls" role="group" aria-label="Trend period">
+      <label for="t-range" hidden>Period</label>
+      <select id="t-range">
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="365">Last 12 months</option>
+        <option value="all">Everything recorded</option>
+      </select>
+    </div>
+    <div id="trends"><p class="loading">Working out trends…</p></div>
   </section>
 
   <section aria-labelledby="h-promos">
@@ -382,7 +402,8 @@ const auth = getAuth(firebaseApp);
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}) : "";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-  let coverage = null;
+  let coverage = null, trends = null;
+  const loadedHalves = new Set();  // archive documents (runs-YYYY-MM-1/-2) already merged into runs
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
   let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false, lastChangeCount = 0;
@@ -587,6 +608,7 @@ const auth = getAuth(firebaseApp);
     $("shown").textContent = `Showing ${rows.length} of ${all.length} sailings.`;
     shownRows = rows;
     renderChanges();
+    renderTrends();
 
     // Rules
     const R = [
@@ -650,7 +672,8 @@ const auth = getAuth(firebaseApp);
     if (!b) return;
     filt.promo = b.dataset.promo; $("f-promo").value = filt.promo;
     $("f-clear").hidden = false; savePrefs(); render();
-    showView("sailings");
+    showView("overview", false);
+    $("h-all").scrollIntoView({block: "start"});
   });
   $("f-clear").addEventListener("click", () => {
     for (const k of Object.keys(filt)){ filt[k] = ""; $("f-" + k).value = ""; }
@@ -854,6 +877,24 @@ const auth = getAuth(firebaseApp);
                 : `<p class="sub">No cabin prices recorded for this sailing.</p>`;
   }
 
+  // Month by month: the from price keeps its full history in state, so this reaches back to the start
+  function monthly(s, today){
+    const segs = s.segments, end = s.removed || today;
+    const next = m => { const [y, mo] = m.split("-").map(Number); return mo === 12 ? `${y + 1}-01` : `${y}-${String(mo + 1).padStart(2, "0")}`; };
+    const lastDay = m => addDays(next(m) + "-01", -1);
+    const rows = [];
+    for (let m = segs[0].from.slice(0, 7); m <= end.slice(0, 7); m = next(m)){
+      const a = segs[0].from > m + "-01" ? segs[0].from : m + "-01", b = lastDay(m) < end ? lastDay(m) : end;
+      const atStart = segs.filter(g => g.from <= a).pop();
+      const inMonth = segs.filter(g => g.from >= a && g.from <= b);
+      const ps = [...new Set([atStart, ...inMonth])].filter(Boolean).map(g => g.p);
+      rows.push({m, lo: Math.min(...ps), hi: Math.max(...ps), end: priceOn(segs, null, b), n: inMonth.filter(g => g !== segs[0]).length, now: b === today});
+    }
+    return `<div class="tablewrap months" style="border-top:0"><table class="dtable"><thead><tr><th>Month</th><th class="num">Lowest</th><th class="num">Highest</th><th class="num">At month end</th><th class="num">Changes</th></tr></thead><tbody>${rows.reverse().map(r => `
+      <tr><td>${monthName(r.m)}</td><td class="num">${fmtGBP(r.lo)}</td><td class="num">${fmtGBP(r.hi)}</td>
+        <td class="num">${fmtGBP(r.end)}${r.now ? `<div class="sub">${s.removed ? "left the feed" : "so far"}</div>` : ""}</td><td class="num">${r.n}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
   function promoDetail(s){
     if (!state.promos_since) return s.offer ? `<p>${esc(s.offer)}</p><p class="note">Promotion history is recorded from the next daily run.</p>` : `<p class="sub">Promotion history is recorded from the next daily run.</p>`;
     const live = livePromos(s);
@@ -898,6 +939,8 @@ const auth = getAuth(firebaseApp);
         <section><h3>Price per person, twin</h3>${ch.html}
           <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price in the ad feed.</p></section>
         <section><h3>Cabins now</h3>${cabinTable(cab, today)}</section>
+        <section><h3>From price, month by month</h3>${monthly(s, today)}
+          <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
         <section><h3>Promotions</h3>${promoDetail(s)}</section>
         <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
         ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
@@ -991,18 +1034,37 @@ const auth = getAuth(firebaseApp);
     return out.sort((a, b) => b.date.localeCompare(a.date) || (b.at || "").localeCompare(a.at || "") || K[a.type] - K[b.type] || (a.id || "").localeCompare(b.id || ""));
   }
   const KIND = {drop: ["▼ Price drop", "dn2"], rise: ["▲ Price rise", "up2"], cabin: ["Cabin price", ""], avail: ["Availability", ""], promo: ["Promotion", ""], feed: ["Feed", ""]};
-  function changesInView(){
+  function changesPeriod(){
     const today = state.updated;
-    let from, to = today;
-    if (chg.range === "custom"){ from = chg.from || "0000"; to = chg.to || today; }
-    else if (chg.range === "all") from = "0000";
-    else from = addDays(today, -(Number(chg.range) - 1));
+    if (chg.range === "custom") return [chg.from || "0000", chg.to || today];
+    if (chg.range === "all") return ["0000", today];
+    return [addDays(today, -(Number(chg.range) - 1)), today];
+  }
+  function changesInView(){
+    const [from, to] = changesPeriod();
     return changeRows().filter(c => c.date >= from && c.date <= to && (!chg.type || c.type === chg.type));
   }
+  // The runs document holds the recent runs only; older ones live in half-month archive
+  // documents (pricewatch/runs-YYYY-MM-1 and -2), fetched the first time a period needs them.
+  const oldestLoaded = () => runs.length ? runs[runs.length - 1].date : state.updated;
+  const firstRecorded = () => trends && (trends.days || []).length ? trends.days[0].d : oldestLoaded();
+  async function loadOlderRuns(from){
+    const want = Object.entries((trends || {}).archives || {})
+      .filter(([k, [a, b]]) => !loadedHalves.has(k) && b >= from && a < oldestLoaded()).map(([k]) => k);
+    const got = await Promise.all(want.map(k => readJson(k).then(rs => { loadedHalves.add(k); return rs; })));
+    const have = new Set(runs.map(r => r.date));
+    for (const r of got.flat()) if (!have.has(r.date)){ runs.push(r); have.add(r.date); }
+    runs.sort((a, b) => b.date.localeCompare(a.date));
+  }
+  let olderTried = "9999", olderBusy = false, olderErr = "";
   function renderChanges(){
     if (!state) return;
-    const dates = runs.map(r => r.date).sort();
-    for (const el of [$("c-from"), $("c-to")]){ el.min = dates[0] || ""; el.max = state.updated; }
+    for (const el of [$("c-from"), $("c-to")]){ el.min = firstRecorded(); el.max = state.updated; }
+    const [from] = changesPeriod();
+    if (from < oldestLoaded() && from < olderTried && !olderBusy && trends){
+      olderTried = from; olderBusy = true; olderErr = "";
+      loadOlderRuns(from).catch(e => { olderErr = e.message; }).finally(() => { olderBusy = false; renderChanges(); });
+    }
     const list = changesInView();
     lastChangeCount = list.length;
     const LIMIT = 200, show = chgAll ? list : list.slice(0, LIMIT);
@@ -1014,7 +1076,8 @@ const auth = getAuth(firebaseApp);
       : `<tr><td colspan="4" class="sub">No changes of this kind in this period.</td></tr>`;
     const ids = new Set(list.map(c => c.id).filter(Boolean));
     $("c-shown").textContent = `${list.length} change${list.length === 1 ? "" : "s"} across ${ids.size} sailing${ids.size === 1 ? "" : "s"}` +
-      (show.length < list.length ? `, showing the newest ${show.length}.` : ".") + ` Recorded since ${fmtDate(dates[0])}.`;
+      (show.length < list.length ? `, showing the newest ${show.length}.` : ".") + ` Recorded since ${fmtDate(firstRecorded())}.` +
+      (olderBusy ? " Loading older changes…" : olderErr ? ` Older changes couldn't load: ${olderErr}` : "");
     $("c-more").hidden = show.length >= list.length;
     updateCounts();
   }
@@ -1035,22 +1098,182 @@ const auth = getAuth(firebaseApp);
       list.map(c => [c.date, fmtTime(c.at), c.id || "", c.id ? nameOf(c.id) : "", KIND[c.type][0].replace(/^[▲▼] /, ""), c.what, c.note]));
   });
 
+  // Trends: change counts per day for every run ever (pricewatch/trends) and prices from state
+  let tRange = "30";
+  try { tRange = localStorage.getItem("spw-trange") || "30"; } catch(e){}
+  const niceStep = v => { if (v <= 1) return 1; const e = 10 ** Math.floor(Math.log10(v)), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * e; };
+  const weekStart = d => addDays(d, -((new Date(d + "T12:00:00Z").getUTCDay() + 6) % 7));
+  // Bar or line chart over buckets (days or weeks). Values of null are gaps: no check was recorded.
+  function tchart(xs, series, {fmt = v => v.toLocaleString("en-GB"), xlab, tiplab, money = false, W}){
+    const narrow = W < 440, H = 210, L = money ? (narrow ? 50 : 58) : 34, R = 8, T = 10, B = 26;
+    const vals = series.flatMap(sr => sr.vals).filter(v => v != null);
+    let lo = 0, hi, step;
+    if (money){
+      // At least a 5% span, so a move of a pound or two doesn't fill the chart
+      let mn = Math.min(...vals), mx = Math.max(...vals);
+      const pad = Math.max(0, mx * 0.05 - (mx - mn)) / 2; mn -= pad; mx += pad;
+      step = niceStep(((mx - mn) || 10) / 4);
+      lo = Math.floor(mn / step) * step; hi = Math.ceil(mx / step) * step; if (hi === lo) hi += step;
+    } else { step = niceStep(Math.max(...vals, 0) / 4); hi = step * Math.max(1, Math.ceil(Math.max(...vals, 0) / step)); }
+    const n = xs.length, band = (W - L - R) / n;
+    const y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+    const cx = i => L + band * (i + .5);
+    const svg = [];
+    for (let v = lo; v <= hi + 1e-9; v += step){
+      svg.push(`<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)" stroke-width="1"/>`);
+      svg.push(`<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="12" fill="var(--muted)">${money ? fmtGBP(v) : v}</text>`);
+    }
+    const ticks = n === 1 ? [0] : n === 2 ? [0, 1] : [0, Math.floor((n - 1) / 2), n - 1];
+    ticks.forEach((i, j) => svg.push(`<text x="${n > 2 && j === 0 ? L : n > 2 && j === ticks.length - 1 ? W - R : cx(i)}" y="${H - 7}" text-anchor="${n > 2 && j === 0 ? "start" : n > 2 && j === ticks.length - 1 ? "end" : "middle"}" font-size="12" fill="var(--muted)">${esc(xlab(xs[i]))}</text>`));
+    svg.push(`<rect id="hl" x="0" y="${T}" width="${band}" height="${H - T - B}" fill="var(--bg-alt)" visibility="hidden"/>`);
+    const bars = series.filter(sr => sr.type === "bar"), gw = Math.min(band * .72, 44), bw = gw / Math.max(bars.length, 1);
+    bars.forEach((sr, k) => sr.vals.forEach((v, i) => {
+      if (!v) return;
+      const x0 = cx(i) - gw / 2 + k * bw, y0 = y(v);
+      svg.push(`<rect x="${x0 + .5}" y="${y0}" width="${Math.max(bw - 1, 1)}" height="${y(0) - y0}" fill="${sr.color}"/>`);
+    }));
+    series.filter(sr => sr.type === "line").forEach(sr => {
+      let d = "", pen = false;
+      sr.vals.forEach((v, i) => { if (v == null){ pen = false; return; } d += `${pen ? "L" : "M"}${cx(i)},${y(v)}`; pen = true; });
+      svg.push(`<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round"/>`);
+      sr.vals.forEach((v, i) => { const lone = v != null && sr.vals[i - 1] == null && sr.vals[i + 1] == null; if (lone || (v != null && i === sr.vals.length - 1)) svg.push(`<circle cx="${cx(i)}" cy="${y(v)}" r="3.5" fill="${sr.color}"/>`); });
+    });
+    const legend = series.length > 1 ? `<div class="legend">${series.map(sr => `<span><i class="key" style="border-color:${sr.color}${sr.type === "bar" ? ";border-top-width:10px;width:10px" : ""}"></i>${esc(sr.name)}</span>`).join("")}</div>` : "";
+    const html = `${legend}<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" role="img" tabindex="0" aria-label="${esc(series.map(x => x.name).join(", "))}. Use the arrow keys to step through.">${svg.join("")}</svg><div class="ctip" hidden></div></div>`;
+    const wire = box => {
+      const el = box.querySelector("svg"), tip = box.querySelector(".ctip"), hl = el.querySelector("#hl");
+      let i = n - 1;
+      const show = () => {
+        hl.setAttribute("x", L + band * i); hl.setAttribute("visibility", "visible");
+        tip.replaceChildren();
+        const head = document.createElement("div"); head.className = "d"; head.textContent = tiplab(xs[i]); tip.appendChild(head);
+        series.forEach(sr => {
+          const row = document.createElement("div"); row.className = "r";
+          const lab = document.createElement("span"), k = document.createElement("i");
+          k.className = "key"; k.style.borderColor = sr.color; lab.append(k, document.createTextNode(sr.name));
+          const val = document.createElement("b"); val.textContent = sr.vals[i] == null ? "not recorded" : fmt(sr.vals[i]);
+          row.append(lab, val); tip.appendChild(row);
+        });
+        tip.hidden = false;
+        const r = el.getBoundingClientRect(), px = cx(i) * r.width / W;
+        tip.style.top = "8px";
+        tip.style.left = (px + 14 + tip.offsetWidth > r.width ? Math.max(0, px - 14 - tip.offsetWidth) : px + 14) + "px";
+      };
+      const hide = () => { tip.hidden = true; hl.setAttribute("visibility", "hidden"); };
+      el.addEventListener("pointermove", ev => {
+        const r = el.getBoundingClientRect(), vx = (ev.clientX - r.left) * W / r.width;
+        if (vx < L || vx > W - R){ hide(); return; }
+        i = Math.min(n - 1, Math.max(0, Math.floor((vx - L) / band))); show();
+      });
+      el.addEventListener("pointerleave", hide);
+      el.addEventListener("focus", show);
+      el.addEventListener("blur", hide);
+      el.addEventListener("keydown", ev => {
+        if (ev.key === "ArrowLeft"){ i = Math.max(0, i - 1); show(); ev.preventDefault(); }
+        if (ev.key === "ArrowRight"){ i = Math.min(n - 1, i + 1); show(); ev.preventDefault(); }
+      });
+    };
+    const line = series.length === 1 && series[0].type === "line" ? series[0].vals : null;
+    return {html, wire, line};
+  }
+
+  function renderTrends(){
+    if (!state || view !== "trends") return;
+    const box = $("trends");
+    if (!trends || !(trends.days || []).length){
+      box.innerHTML = `<div class="empty"><p>Trends appear after the next hourly check is published.</p></div>`;
+      return;
+    }
+    const today = state.updated, first = trends.days[0].d;
+    const back = tRange === "all" ? first : addDays(today, -(Number(tRange) - 1));
+    const start = back > first ? back : first;
+    const weekly = daysBetween(start, today) + 1 > 45;
+    const keys = [];
+    for (let d = weekly ? weekStart(start) : start; d <= today; d = addDays(d, weekly ? 7 : 1)) keys.push(d);
+    const days = k => { const out = []; for (let j = 0; j < (weekly ? 7 : 1); j++){ const d = addDays(k, j); if (d >= start && d <= today) out.push(d); } return out; };
+    const recorded = k => days(k).filter(d => byDay[d]).pop() || null;  // last day in the bucket with a check
+    const byDay = Object.fromEntries(trends.days.map(x => [x.d, x]));
+    const sum = f => keys.map(k => { const xs = days(k).map(d => byDay[d]).filter(Boolean); return xs.length ? xs.reduce((t, x) => t + (x[f] || 0), 0) : null; });
+    const total = f => sum(f).reduce((t, v) => t + (v || 0), 0);
+    const xlab = k => weekly ? fmtDate(k).replace(/ \d{4}$/, "") : fmtDate(k).replace(/ \d{4}$/, "");
+    const tiplab = k => weekly ? `Week of ${fmtDate(k)}` : fmtDate(k);
+    const cw = box.clientWidth || 900, W = Math.floor(cw >= 952 ? (cw - 32) / 2 : cw);
+    const missing = keys.flatMap(days).filter(d => !byDay[d]).length;
+
+    const cards = [];
+    const changes = tchart(keys, [
+      {name: "From price drops", color: "var(--c1)", type: "bar", vals: sum("drops")},
+      {name: "From price rises", color: "var(--c2)", type: "bar", vals: sum("rises")},
+      {name: "Cabin price drops", color: "var(--c3)", type: "bar", vals: sum("cabin_drops")},
+      {name: "Cabin price rises", color: "var(--c4)", type: "bar", vals: sum("cabin_rises")},
+    ], {xlab, tiplab, W});
+    const mix = total("mix");
+    cards.push([`Price changes ${weekly ? "per week" : "per day"}`,
+      `${total("drops")} from-price drops and ${total("rises")} rises; ${total("cabin_drops")} cabin price drops and ${total("cabin_rises")} rises (twin cabins).`,
+      changes, mix ? `${mix} more from-price falls were a cheaper cabin grade coming on sale. Those aren't price cuts, so they're left out.` : ""]);
+
+    const avail = tchart(keys, [
+      {name: "Cabin grades sold out", color: "var(--c2)", type: "bar", vals: sum("sold_out")},
+      {name: "Back on sale", color: "var(--c1)", type: "bar", vals: sum("back")},
+    ], {xlab, tiplab, W});
+    cards.push(["Availability", `${total("sold_out")} cabin grades sold out and ${total("back")} came back on sale (twin cabins).`, avail,
+      "A grade coming back on sale starts a fresh 28-day reference period."]);
+
+    // Like-for-like basket: the same sailings throughout, so sailings joining or leaving the feed don't move the line
+    const basket = Object.values(state.sailings || {}).filter(s => !s.removed && s.segments[0].from <= start && (s.departure_date || "9") > today);
+    if (basket.length >= 5){
+      const avg = keys.map(k => { const d = recorded(k); return d && Math.round(basket.reduce((t, s) => t + priceOn(s.segments, null, d), 0) / basket.length); });
+      const pts = avg.filter(v => v != null), a0 = pts[0], a1 = pts[pts.length - 1], diff = a1 - a0;
+      cards.push(["Average from price", `${fmtGBP(a1)} now, ${diff === 0 ? "the same as" : `${fmtGBP(Math.abs(diff))} ${diff < 0 ? "lower than" : "higher than"}`} at the start of the period.`,
+        tchart(keys, [{name: "Average from price pp", color: "var(--c1)", type: "line", vals: avg}], {xlab, tiplab, W, money: true, fmt: fmtGBP}),
+        `Across the same ${basket.length} sailings throughout: the ones on sale since ${fmtDate(start)} that haven't sailed yet. Includes cheaper grades coming on sale.`]);
+    } else {
+      cards.push(["Average from price", "", null, "Not enough sailings have been on sale for the whole period yet. Try a shorter period."]);
+    }
+
+    if (state.promos_since){
+      const live = keys.map(k => { const d = recorded(k); if (!d || d < state.promos_since) return null;
+        return Object.values(state.sailings || {}).filter(s => s.first_seen <= d && !(s.removed && s.removed <= d) &&
+          Object.values(s.promos || {}).some(sp => sp.some(([a, b]) => a <= d && (b == null || d < b)))).length; });
+      cards.push(["Sailings with a promotion", `${live[live.length - 1] ?? 0} now. Recording began ${fmtDate(state.promos_since)}.`,
+        tchart(keys, [{name: "Sailings with a promotion", color: "var(--c3)", type: "line", vals: live}], {xlab, tiplab, W}), ""]);
+    }
+
+    const feed = keys.map(k => { const xs = days(k).map(d => byDay[d]).filter(Boolean); return xs.length ? xs[xs.length - 1].count : null; });
+    const added = total("new") - (start <= first ? (byDay[first].new || 0) : 0);  // on the first day every sailing was new
+    cards.push(["Sailings in the ad feed", `${added} added and ${total("removed")} removed in this period${start <= first ? `, not counting the ${byDay[first].count} there when records began` : ""}.`,
+      tchart(keys, [{name: "Sailings in the feed", color: "var(--c1)", type: "line", vals: feed}], {xlab, tiplab, W}), ""]);
+
+    cards.forEach(c => { if (c[2] && c[2].line && c[2].line.filter(v => v != null).length < 2){ c[2] = null; c[3] = [c[3], "The chart fills in as more days are recorded."].filter(Boolean).join(" "); } });
+    box.innerHTML = `<div class="tgrid">${cards.map(([h, lead, ch, note], i) => `<div class="tcard" data-i="${i}"><h3>${h}</h3>${lead ? `<p class="lead">${esc(lead)}</p>` : ""}${ch ? ch.html : ""}${note ? `<p class="note">${esc(note)}</p>` : ""}</div>`).join("")}</div>
+      <p class="note">${fmtDate(start)} to ${fmtDate(today)}${weekly ? ", by week (Monday to Sunday)" : ", by day"}. Records began ${fmtDate(first)}.${missing ? ` ${missing} day${missing === 1 ? " has" : "s have"} no recorded check (shown as gaps).` : ""}</p>`;
+    cards.forEach(([, , ch], i) => ch && ch.wire(box.querySelector(`.tcard[data-i="${i}"]`)));
+  }
+  $("t-range").value = tRange;
+  $("t-range").addEventListener("change", e => { tRange = e.target.value; try { localStorage.setItem("spw-trange", tRange); } catch(err){} renderTrends(); });
+  // Redraw on width changes only: phone browsers fire resize when the address bar hides on scroll
+  let resizeT, lastW = window.innerWidth;
+  window.addEventListener("resize", () => {
+    if (window.innerWidth === lastW) return;
+    lastW = window.innerWidth; clearTimeout(resizeT); resizeT = setTimeout(renderTrends, 200);
+  });
+
   // Sidebar pages: each shows its own sections; the last page is remembered per browser.
   const ICON = {
     overview: '<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
     promos: '<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
     coverage: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
-    sailings: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+    trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     runs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     rules: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8"/>',
   };
   const VIEWS = [
-    ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue"]],
+    ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"]],
+    ["trends", "Trends", ["h-trends"]],
     ["promos", "Live promotions", ["h-promos"]],
     ["coverage", "Not in ad feed", ["h-coverage"]],
     ["changes", "What changed", ["h-changes"]],
-    ["sailings", "All sailings", ["h-all"]],
     ["runs", "Daily runs", ["h-runs"]],
     ["rules", "Was/now rules", ["h-rules"]],
   ].map(([id, label, secs]) => [id, label, secs.map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean)])
@@ -1065,6 +1288,7 @@ const auth = getAuth(firebaseApp);
     document.querySelectorAll("#sidenav button").forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     try { localStorage.setItem("spw-view", v); } catch(e){}
     if (scroll) window.scrollTo({top: 0});
+    renderTrends();
     const b = document.querySelector(`#sidenav button[data-view="${v}"]`);
     if (b && b.scrollIntoView && matchMedia("(max-width:900px)").matches) b.scrollIntoView({block: "nearest", inline: "center"});
   }
@@ -1072,11 +1296,10 @@ const auth = getAuth(firebaseApp);
   showView(view, false);
   function updateCounts(){
     const n = {
-      overview: document.querySelectorAll("#queue .qcard").length || "",
+      overview: shownRows.length,
       promos: document.querySelectorAll("#promos tbody tr").length,
       coverage: coverage ? (coverage.on_sale_missing || []).length : "",
       changes: lastChangeCount,
-      sailings: shownRows.length,
       runs: "",
     };
     for (const [id] of VIEWS){ const el = $("nav-" + id); if (el) el.textContent = n[id] == null ? "" : String(n[id]); }
@@ -1134,9 +1357,10 @@ const auth = getAuth(firebaseApp);
       return;
     }
     try {
-      const [st, cab, rs, cov] = await Promise.all([readJson("current"), readJson("cabins"), readJson("runs"),
-        readJson("coverage").catch(() => null)]);  // the weekly coverage check may not have run yet
-      coverage = cov;
+      const [st, cab, rs, cov, tr] = await Promise.all([readJson("current"), readJson("cabins"), readJson("runs"),
+        readJson("coverage").catch(() => null),   // the weekly coverage check may not have run yet
+        readJson("trends").catch(() => null)]);   // published since 12 Oct 2026
+      coverage = cov; trends = tr;
       cabins = cab.sailings || {};
       runs = rs;
       state = st;
