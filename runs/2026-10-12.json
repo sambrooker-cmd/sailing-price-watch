@@ -1,6 +1,6 @@
 {
  "date": "2026-10-12",
- "count": 222,
+ "count": 220,
  "new": [
   "A12626",
   "A22630BR"
@@ -8,7 +8,9 @@
  "removed": [
   "A32650M",
   "A22638",
-  "A12626"
+  "A12626",
+  "A32650",
+  "A22630BR"
  ],
  "returned": [
   "A12639",
@@ -193,6 +195,90 @@
     "held_days": 0
    },
    "at": "2026-10-12T14:48:44Z"
+  },
+  {
+   "id": "A32651",
+   "from": 1699,
+   "to": 1599,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1699,
+    "now": 1599,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A32652M",
+   "from": 1499,
+   "to": 1399,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1499,
+    "now": 1399,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A12634",
+   "from": 739,
+   "to": 679,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 739,
+    "now": 679,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A22721NC",
+   "from": 1349,
+   "to": 1199,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1349,
+    "now": 1199,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A12801",
+   "from": 4049,
+   "to": 3799,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 4049,
+    "now": 3799,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A22804",
+   "from": 1219,
+   "to": 1109,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1219,
+    "now": 1109,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T15:32:03Z"
   }
  ],
  "rises": [
@@ -281,24 +367,29 @@
    "from": 1109,
    "to": 1219,
    "at": "2026-10-12T14:48:44Z"
+  },
+  {
+   "id": "A12639",
+   "from": 299,
+   "to": 399,
+   "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A22726BR",
+   "from": 1369,
+   "to": 1429,
+   "at": "2026-10-12T15:32:03Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A32651": [
-   "feed price £1,699 differs from cheapest cabin on the page £1,599"
-  ],
   "A22633": [
    "feed price £399 differs from cheapest cabin on the page £599"
-  ],
-  "A32652M": [
-   "feed price £1,499 differs from cheapest cabin on the page £1,399"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
-   "feed price £739 differs from cheapest cabin on the page £679",
    "feed image looks like campaign art (may contain text)"
   ],
   "A12701": [
@@ -322,14 +413,8 @@
   "A22714BL": [
    "feed price £2,029 differs from cheapest cabin on the page £1,969"
   ],
-  "A22721NC": [
-   "feed price £1,349 differs from cheapest cabin on the page £1,199"
-  ],
-  "A12801": [
-   "feed price £4,049 differs from cheapest cabin on the page £3,799"
-  ],
-  "A22804": [
-   "feed price £1,219 differs from cheapest cabin on the page £1,109"
+  "A22726BR": [
+   "feed price £1,429 differs from cheapest cabin on the page £1,369"
   ],
   "A22828LV": [
    "feed price £1,529 differs from cheapest cabin on the page £1,679"
@@ -707,6 +792,12 @@
    "offer": "991789db-008b-4e9f-b5a9-a0cac87457fd",
    "name": "Up to £400 Onboard Credit",
    "at": "2026-10-12T14:48:44Z"
+  },
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-12T15:32:03Z"
   }
  ],
  "promo_changed": [],
@@ -716,6 +807,7 @@
  "checks": [
   "2026-10-12T12:17:37Z",
   "2026-10-12T14:19:14Z",
-  "2026-10-12T14:48:44Z"
+  "2026-10-12T14:48:44Z",
+  "2026-10-12T15:32:03Z"
  ]
 }
