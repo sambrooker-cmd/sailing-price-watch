@@ -9,8 +9,9 @@ Usage:
     cabins: inside, ocean_view, balcony, suite (the --was price must then be
     that cabin's earlier price, from run.json "cabin_eligible")
   Every call renders all three placements by default:
-    1080x1080 (1:1 feed), 1080x1440 (3:4 feed) and 1080x1920 (9:16 Stories/Reels),
-    saved as <ID>[...]_1x1.png, _3x4.png and _9x16.png.
+    1080x1080 (1:1 feed and carousel), 1080x1350 (4:5 feed, Meta's recommended
+    feed size since 12 Oct 2026; it replaced 3:4) and 1080x1920 (9:16 Stories/Reels),
+    saved as <ID>[...]_1x1.png, _4x5.png and _9x16.png.
   add --size 1080x1080 (or a comma list) to render only some of them.
   The 9:16 card keeps the logo, badge and price clear of Meta's Stories
   overlays (top 14% and bottom 20% of the frame).
@@ -22,7 +23,7 @@ Layout (matches the carousel sailing cards):
     or plane icon + "Fly-cruise on <ship> / flights from <airport>"
   * bottom left, stacked sash-ended strips: Allium kicker line, Allium
     headline, Amber fare block (nights + date | From £X pp, Allium text,
-    never black), and an Aloe onboard credit strip when the sailing has one
+    never black), then up to two Aloe promotion strips (see promo_lines)
 
 Was/now cards (--was) use the price-reduction layout instead (since 9 Oct
 2026), matching the fly-cruise price reduction carousel
@@ -83,6 +84,64 @@ def photo(url, sid, w, h):
 # the photography guidelines.
 _OV = ROOT / "image_overrides.json"
 OVERRIDES = json.loads(_OV.read_text()) if _OV.exists() else {}
+
+
+# Promotions on standard cards (Sam, 12 Oct 2026): the main live promotion, plus a
+# second one when there is one, from the page's offers (snapshot "offers").
+# Order: a percentage saving or code first, then onboard credit (biggest first),
+# flight upgrades, coach travel, solo supplements, anything else.
+# "Lower fares" / "reduced fares" offers are left off: they claim a price came down,
+# which is a was/now (reference pricing) claim, and those only ever come from run.json.
+PRICE_CLAIM = re.compile(r"\b(lower|reduced|reduction)\b.*\bfares?\b", re.I)
+MAX_PROMOS = 2
+
+
+def promo_rank(o):
+    n = o["name"].lower()
+    if "%" in n or "code" in (o.get("description") or "").lower():
+        return (0, 0)
+    m = re.search(r"£([\d,]+)\s+onboard credit", n)
+    if m:
+        return (1, -int(m.group(1).replace(",", "")))
+    for i, k in enumerate(("flight", "upper class", "coach", "solo")):
+        if k in n:
+            return (2 + i, 0)
+    return (9, 0)
+
+
+def promo_lines(s):
+    """Text for the promotion strips: name, plus the code and closing date when
+    the page gives them (a time-limited offer has to show when it ends)."""
+    offers = s.get("offers")
+    if offers is None:  # page's offer list couldn't be read: fall back to the old onboard credit line
+        return [s["offer"]] if s.get("offer") else []
+    out = []
+    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:MAX_PROMOS]:
+        name = o["name"].strip()
+        if name.isupper():
+            name = name.capitalize()
+        bits = [name]
+        desc = o.get("description") or ""
+        code = re.search(r"\bcode\s+([A-Z0-9]{3,})\b", desc, re.I)
+        if code and code.group(1).upper() not in name.upper():
+            bits.append(f"code {code.group(1).upper()}")
+        end = None
+        if o.get("expires_at"):
+            try:
+                end = datetime.date.fromisoformat(o["expires_at"][:10])
+            except ValueError:
+                pass
+        if not end:
+            m = re.search(r"book by[^.]*?(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})", desc, re.I)
+            if m:
+                try:
+                    end = datetime.datetime.strptime(" ".join(m.groups()), "%d %B %Y").date()
+                except ValueError:
+                    pass
+        if end:
+            bits.append(f"ends {end.strftime('%-d %b')}")
+        out.append(" · ".join(bits))
+    return out
 
 
 CABIN_LABEL = {"inside": "Inside cabins", "ocean_view": "Ocean view cabins",
@@ -171,8 +230,7 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None):
     else:
         fare = f"""
         <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>"""
-    offer = s.get("offer")
-    offer_html = f'<div class="strip offer">{html.escape(offer[0] + offer[1:].lower())}</div>' if offer else ""
+    offer_html = "".join(f'<div class="strip offer"><span class="fit" data-max="27">{html.escape(t)}</span></div>' for t in promo_lines(s))
     kicker_html = f'<div class="strip kicker"><span class="fit" data-max="42">{html.escape(kicker)}</span></div>' if kicker else ""
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONT_CSS}
@@ -349,7 +407,7 @@ function fit(){{
 </body></html>"""
 
 
-SIZES = {(1080, 1080): "1x1", (1080, 1440): "3x4", (1080, 1920): "9x16"}
+SIZES = {(1080, 1080): "1x1", (1080, 1350): "4x5", (1080, 1920): "9x16"}
 
 
 def render(snapshot, outdir, ids, was=None, sizes=tuple(SIZES), cabin=None):
