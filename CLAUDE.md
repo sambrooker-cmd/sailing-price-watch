@@ -38,6 +38,7 @@ cards back on, or add any Meta/ads step, until Sam asks.
 | `daily.py` | **New.** Runs the whole daily job deterministically (see its docstring). Tested on 12 Oct against real data: normal run, same-day skip, and the broken-feed safety stop all behave. Card rendering through `daily.py` tested 12 Oct in Claude Code on a scratch copy (lead + cabin claim, test prices only, nothing committed). |
 | `.github/workflows/price-watch.yml` | Workflow: daily cron + manual run, commits results, opens a GitHub issue for new claims or failures. Reviewed 12 Oct: actions bumped to v7, fixed the commit step (it staged nothing on days without cards). Not yet run on GitHub. |
 | `site/index.html`, `publish.py`, `.github/workflows/publish.yml` | Tracker page (ported from the old Claude tracker page, 12 Oct 2026). `publish.py` copies `state/` and the last 21 `runs/` into Firestore (`pricewatch/current`, `/cabins`, `/runs`) in the Digital Team Planner's Firebase project; `publish.yml` runs it and deploys `site/` to Firebase Hosting after each daily run and on pushes to `main`. The page signs people in with Google and only shows data to the planner's allowlist |
+| `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
 | `archive/2026-10-12-morning-run.json` | The 12 Oct morning change list, which the accidental second run overwrote in `runs/2026-10-12.json` |
@@ -51,7 +52,7 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 2. Test card rendering locally: pick any sailing from a snapshot and run
    `python render_cards.py data/snapshot_DATE.json /tmp/cards <ID> --was <any higher price>`. Look at the PNGs against the checks above.
    This is a visual test only; never use a made-up was price in anything that gets committed or sent.
-3. Push, then run the workflow manually (Actions → Sailing price watch → Run workflow). **First thing to confirm: the
+3. (Done 12 Oct 2026: the feed check passed from GitHub's runners.) Push, then run the workflow manually (Actions → Sailing price watch → Run workflow). **First thing to confirm: the
    booking site doesn't block GitHub's runners.** If `enrich.py` gets 403s or timeouts, stop and tell Sam (options: a
    self-hosted runner, or a different host).
 4. Confirm Sam gets notified: GitHub issues assigned to him (new claims / failures), plus GitHub's own email on failed

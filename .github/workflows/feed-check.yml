@@ -4,9 +4,6 @@ name: Feed check
 # daily safety checks, without saving anything: nothing is committed and the
 # Firebase page is not touched. Use it to confirm the booking site lets GitHub in.
 on:
-  push:
-    branches: [claude/new-session-i0hsfd]
-    paths: [.github/workflows/feed-check.yml]
   workflow_dispatch:
 
 permissions:
