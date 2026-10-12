@@ -1,0 +1,154 @@
+"""Fetch the Ambassador ad feed, enrich each sailing from its landing page,
+and write a dated snapshot (JSON) plus a combined history file.
+
+Usage: python3 enrich.py [YYYY-MM-DD]
+"""
+import csv, html, io, json, re, sys, datetime, urllib.request, concurrent.futures as cf
+from pathlib import Path
+
+FEED = "https://booking.ambassadorcruiseline.com/api/cruises/ad-feeds/google"
+ROOT = Path(__file__).parent
+DATA = ROOT / "data"
+DATA.mkdir(exist_ok=True)
+SHIPS = {"A1": "Ambience", "A2": "Ambition", "A3": "Renaissance"}
+UA = {"User-Agent": "Mozilla/5.0 (feed-ads monitor)"}
+
+
+def get(url, timeout=40):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "replace")
+
+
+def money(v):
+    return f"£{v:,.0f}"
+
+
+def parse_desc(d):
+    # "London Tilbury - 14 nights - Embark on ..."
+    m = re.match(r"\s*(.+?)\s+-\s+(\d+)\s+nights?\s+-\s+(.*)$", d, re.S)
+    if not m:
+        return None, None, d.strip()
+    return m.group(1).strip(), int(m.group(2)), m.group(3).strip()
+
+
+CABIN_KEYS = {"inner": "inside", "outer": "ocean_view", "balcony": "balcony", "suite": "suite"}
+
+
+def _dv(x):
+    # Astro island props encode values as [0, value] and arrays as [1, [...]].
+    if isinstance(x, list) and len(x) == 2 and x[0] in (0, 1):
+        return [_dv(i) for i in x[1]] if x[0] == 1 else _dv(x[1])
+    if isinstance(x, dict):
+        return {k: _dv(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_dv(i) for i in x]
+    return x
+
+
+def cabin_fares(page):
+    """Per-person prices by cabin type from the page's CabinTypes component.
+    Returns {"twin": {"inside": 719, "suite": 1579, ...}, "solo": {...}}.
+    A cabin type missing from the page is not on sale (usually sold out).
+    Returns None when the component isn't on the page at all."""
+    m = re.search(r'<astro-island[^>]*component-url="[^"]*CabinTypes[^"]*"[^>]*props="([^"]*)"', page)
+    if not m:
+        return None
+    try:
+        props = {k: _dv(v) for k, v in json.loads(html.unescape(m.group(1))).items()}
+    except Exception:  # noqa
+        return None
+    fd = props.get("fare-data") or {}
+    out = {}
+    for occ in ("twin", "solo"):
+        for typ, v in ((fd.get(occ) or {}).get("byType") or {}).items():
+            p = ((v or {}).get("standard") or {}).get("price")
+            if typ in CABIN_KEYS and isinstance(p, (int, float)) and p > 0:
+                out.setdefault(occ, {})[CABIN_KEYS[typ]] = p
+    return out
+
+
+def page_fields(url):
+    out = {}
+    try:
+        s = get(url)
+    except Exception as e:  # noqa
+        return {"page_error": str(e)[:120]}
+    cf_ = cabin_fares(s)
+    if cf_ is not None:
+        out["cabins"] = cf_
+    t = re.sub(r"<[^>]+>", "|", s)
+    t = re.sub(r"\|[\s|]*", "|", t).replace("&amp;", "&")
+    for key, label in [("date_text", "Date:"), ("duration_text", "Duration:"),
+                       ("departure_page", "Departure:"), ("ship_page", "Ship:")]:
+        m = re.search(re.escape(label) + r"\s*\|([^|]{1,60})\|", t)
+        if m:
+            out[key] = m.group(1).strip()
+    # Sailing-specific offer block (skip the nav-menu deal links)
+    body = t.split("Cruise Code:", 1)[-1]
+    m = re.search(r"\|(Up to £[\d,]+ Onboard Credit)\|", body)
+    if m:
+        out["offer"] = m.group(1)
+    if "date_text" in out:
+        try:
+            out["departure_date"] = datetime.datetime.strptime(out["date_text"], "%d %B %Y").date().isoformat()
+        except ValueError:
+            pass
+    return out
+
+
+def main(day):
+    raw = get(FEED)
+    (DATA / f"feed_{day}.csv").write_text(raw, encoding="utf-8")
+    rows = list(csv.DictReader(io.StringIO(raw)))
+    with cf.ThreadPoolExecutor(8) as ex:
+        pages = list(ex.map(lambda r: page_fields(r["link"]), rows))
+    sailings = []
+    for r, p in zip(rows, pages):
+        port, nights, blurb = parse_desc(r["description"])
+        amt, cur = (r["price"].split() + ["GBP"])[:2]
+        sid = r["id"]
+        fly = "(Heathrow Airport)" in r["title"] or "(Manchester Airport)" in r["title"]
+        s = {
+            "id": sid,
+            "title": r["title"],
+            "base_title": re.sub(r"\s*\((Heathrow|Manchester) Airport\)", "", r["title"]).strip(),
+            "flight_from": ("Heathrow" if "Heathrow" in r["title"] else "Manchester") if fly else None,
+            "ship": SHIPS.get(sid[:2].upper()),
+            "port": port, "nights": nights, "blurb": blurb,
+            "price_pp": float(amt), "currency": cur,
+            "link": r["link"], "image_link": r["image_link"],
+            "availability": r["availability"],
+            **p,
+        }
+        flags = []
+        if s.get("ship_page") and s["ship"] and s["ship_page"] != s["ship"]:
+            flags.append(f"ship mismatch: code says {s['ship']}, page says {s['ship_page']}")
+        if s.get("departure_page") and port and s["departure_page"] != port and not fly:
+            flags.append(f"port mismatch: feed '{port}', page '{s['departure_page']}'")
+        # Transatlantic fly-cruises sail out of Tilbury and fly home, so a UK
+        # port on a fly-cruise is legitimate — no flag.
+        if not s.get("departure_date"):
+            flags.append("no departure date found")
+        tw = (s.get("cabins") or {}).get("twin") or {}
+        if "cabins" not in s and "page_error" not in s:
+            flags.append("no cabin prices found on the landing page")
+        elif not tw and (s.get("cabins") or {}).get("solo"):
+            flags.append("no twin cabins on sale; the feed price is a solo price")
+        elif tw and min(tw.values()) != s["price_pp"]:
+            flags.append(f"feed price {money(s['price_pp'])} differs from cheapest cabin on the page {money(min(tw.values()))}")
+        if re.search(r"(cotw|dig-\d|carousel|boom-radio|back_to_90s)", r["image_link"], re.I):
+            flags.append("feed image looks like campaign art (may contain text)")
+        s["flags"] = flags
+        sailings.append(s)
+    snap = {"date": day, "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "count": len(sailings), "sailings": sailings}
+    (DATA / f"snapshot_{day}.json").write_text(json.dumps(snap, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"{day}: {len(sailings)} sailings, "
+          f"{sum(1 for s in sailings if s.get('departure_date'))} with dates, "
+          f"{sum(1 for s in sailings if s['flags'])} flagged")
+    return snap
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().isoformat())

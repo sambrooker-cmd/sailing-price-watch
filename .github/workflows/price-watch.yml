@@ -1,0 +1,87 @@
+name: Sailing price watch
+
+on:
+  schedule:
+    # GitHub cron is UTC only. 06:57 UTC = 07:57 UK in summer (BST), 06:57 UK in winter (GMT).
+    # daily.py skips if runs/<London date>.json already exists, so an extra trigger is harmless.
+    - cron: "57 6 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run even if today is already recorded (overwrites today's change list)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # commit state/, runs/
+  issues: write     # open new-claim / failure issues
+
+concurrency:
+  group: price-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Run price watch
+        id: watch
+        # Card rendering is paused (Sam, 12 Oct 2026): prices only. To turn it back on,
+        # drop --no-cards and restore the Playwright install step (see git history).
+        run: python daily.py --no-cards ${{ inputs.force && '--force' || '' }}
+
+      - name: Commit results
+        if: steps.watch.outcome == 'success'
+        run: |
+          git config user.name "price-watch-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # cards/ only exists on days with new claims; naming a missing path makes
+          # `git add` stage nothing at all, so add it separately.
+          git add state runs
+          if [ -d cards ]; then git add cards; fi
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "Price watch $(TZ=Europe/London date +%F)"
+          git push
+
+      - name: Keep raw feed + snapshot for 30 days
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: price-watch-${{ github.run_id }}
+          path: |
+            data/
+            out/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Open issue for new was/now claims
+        if: steps.watch.outputs.new_claims == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "New was/now claims — ${{ steps.watch.outputs.date }}" --body-file out/issue.md --assignee "${{ github.repository_owner }}"
+
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The price watch run failed or its safety check stopped it. Nothing was saved unless the log says otherwise."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            [ -f out/summary.md ] && cat out/summary.md
+          } > /tmp/fail.md
+          gh issue create --title "Price watch FAILED — $(TZ=Europe/London date +%F)" --body-file /tmp/fail.md --assignee "${{ github.repository_owner }}"
+
+  publish:
+    needs: watch
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
