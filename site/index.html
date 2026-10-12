@@ -96,6 +96,26 @@ td .sub{font-size:13px;color:var(--muted)}
 .note{color:var(--muted);font-size:13px;margin-top:10px}
 .loading{color:var(--muted)}
 [hidden]{display:none!important}
+/* Collapsible sections + section nav (side menu on wide screens, button row on narrow ones) */
+.sec-toggle{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;background:none;border:0;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:10px;text-align:left}
+.sec-toggle .chev{display:inline-block;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 3px 2px;transition:transform .15s}
+.sec-toggle[aria-expanded="false"] .chev{transform:rotate(-45deg);margin-bottom:0}
+.sec-toggle .cnt{font-size:12px;letter-spacing:.04em;color:var(--muted);font-weight:600}
+section.collapsed h2{margin-bottom:0}
+.sidenav{display:flex;gap:6px;overflow-x:auto;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;margin:-8px 0;border-bottom:1px solid var(--rule)}
+.sidenav a{flex:none;display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;padding:7px 10px;border:1px solid var(--rule);white-space:nowrap}
+.sidenav a:hover{background:var(--bg-alt)}
+.sidenav a.off{color:var(--muted)}
+.sidenav a .n{color:var(--muted);font-variant-numeric:tabular-nums}
+.sidenav .all{display:none}
+@media (min-width:1100px){
+  .wrap.has-nav{max-width:1440px;display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:36px;row-gap:36px;align-items:start}
+  .wrap.has-nav > *:not(.sidenav){grid-column:2}
+  .wrap.has-nav > .sidenav{grid-column:1;grid-row:1 / span 20;flex-direction:column;gap:2px;top:16px;margin:0;padding:0;border:0;overflow:visible}
+  .sidenav a{border:0;border-left:3px solid transparent;padding:8px 10px}
+  .sidenav a:hover{border-left-color:var(--amber)}
+  .sidenav .all{display:flex;gap:12px;margin-top:12px;padding-left:13px}
+}
 input[type=date]{font:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:0}
 .dl{margin-left:auto}
 .ctable{min-width:720px}
@@ -338,7 +358,7 @@ const auth = getAuth(firebaseApp);
   let coverage = null;
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
-  let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false;
+  let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false, lastChangeCount = 0;
   try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
   const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
 
@@ -957,6 +977,7 @@ const auth = getAuth(firebaseApp);
     const dates = runs.map(r => r.date).sort();
     for (const el of [$("c-from"), $("c-to")]){ el.min = dates[0] || ""; el.max = state.updated; }
     const list = changesInView();
+    lastChangeCount = list.length;
     const LIMIT = 200, show = chgAll ? list : list.slice(0, LIMIT);
     $("changes").innerHTML = show.length ? show.map(c => `<tr${c.id ? ` data-id="${esc(c.id)}"` : ""}>
         <td>${fmtDate(c.date)}${c.at ? `<div class="sub">${fmtTime(c.at)}</div>` : ""}</td>
@@ -968,6 +989,7 @@ const auth = getAuth(firebaseApp);
     $("c-shown").textContent = `${list.length} change${list.length === 1 ? "" : "s"} across ${ids.size} sailing${ids.size === 1 ? "" : "s"}` +
       (show.length < list.length ? `, showing the newest ${show.length}.` : ".") + ` Recorded since ${fmtDate(dates[0])}.`;
     $("c-more").hidden = show.length >= list.length;
+    updateCounts();
   }
   $("c-range").addEventListener("change", e => {
     chg.range = e.target.value; chgAll = false;
@@ -985,6 +1007,69 @@ const auth = getAuth(firebaseApp);
       ["Date","Time (UK)","Cruise code","Sailing","Type","Change","Notes"],
       list.map(c => [c.date, fmtTime(c.at), c.id || "", c.id ? nameOf(c.id) : "", KIND[c.type][0].replace(/^[▲▼] /, ""), c.what, c.note]));
   });
+
+  // Collapsible sections and the section nav. Which sections are folded is
+  // remembered per browser; the nav shows a live count for each section.
+  const SECTIONS = [["h-queue","Was/now ready"],["h-promos","Live promotions"],["h-coverage","Not in ad feed"],
+    ["h-changes","What changed"],["h-runs","Daily runs"],["h-all","All sailings"],["h-rules","Was/now rules"]].filter(([id]) => $(id));
+  let folded;
+  try { folded = new Set(JSON.parse(localStorage.getItem("spw-folded") || '["h-rules"]')); } catch(e){ folded = new Set(["h-rules"]); }
+  const saveFolded = () => { try { localStorage.setItem("spw-folded", JSON.stringify([...folded])); } catch(e){} };
+  function setFolded(id, fold){
+    const h = $(id), sec = h.closest("section"), btn = h.querySelector(".sec-toggle");
+    fold ? folded.add(id) : folded.delete(id);
+    sec.classList.toggle("collapsed", fold);
+    btn.setAttribute("aria-expanded", String(!fold));
+    sec.querySelector(".sec-body").hidden = fold;
+    const link = document.querySelector(`.sidenav a[data-sec="${id}"]`);
+    if (link) link.classList.toggle("off", fold);
+    saveFolded();
+    if (state) updateCounts();
+  }
+  for (const [id] of SECTIONS){
+    const h = $(id), sec = h.closest("section");
+    const body = document.createElement("div"); body.className = "sec-body"; body.id = id + "-body";
+    while (h.nextSibling) body.appendChild(h.nextSibling);
+    sec.appendChild(body);
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "sec-toggle"; btn.setAttribute("aria-controls", body.id);
+    btn.innerHTML = `<span class="chev" aria-hidden="true"></span>`;
+    while (h.firstChild) btn.appendChild(h.firstChild);
+    const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.id = id + "-cnt"; btn.appendChild(cnt);
+    h.appendChild(btn);
+    btn.addEventListener("click", () => setFolded(id, !folded.has(id)));
+  }
+  const nav = document.createElement("nav");
+  nav.className = "sidenav"; nav.setAttribute("aria-label", "Sections");
+  nav.innerHTML = SECTIONS.map(([id, label]) => `<a href="#" data-sec="${id}"><span>${label}</span><span class="n" id="${id}-nav"></span></a>`).join("") +
+    `<div class="all"><button type="button" class="linkbtn" id="fold-all">Collapse all</button><button type="button" class="linkbtn" id="open-all">Expand all</button></div>`;
+  $("app").insertBefore(nav, $("app").children[1]);
+  $("app").classList.add("has-nav");
+  nav.addEventListener("click", e => {
+    const a = e.target.closest("a[data-sec]");
+    if (!a) return;
+    e.preventDefault();
+    if (folded.has(a.dataset.sec)) setFolded(a.dataset.sec, false);
+    $(a.dataset.sec).scrollIntoView({behavior: "smooth", block: "start"});
+  });
+  $("fold-all").addEventListener("click", () => SECTIONS.forEach(([id]) => setFolded(id, true)));
+  $("open-all").addEventListener("click", () => SECTIONS.forEach(([id]) => setFolded(id, false)));
+  for (const [id] of SECTIONS) setFolded(id, folded.has(id));
+  function updateCounts(){
+    const n = {
+      "h-queue": document.querySelectorAll("#queue .qcard").length,
+      "h-promos": document.querySelectorAll("#promos tbody tr").length,
+      "h-coverage": document.querySelectorAll("#coverage tbody tr").length,
+      "h-changes": lastChangeCount,
+      "h-runs": Math.min(runs.length, 21),
+      "h-all": shownRows.length,
+    };
+    for (const [id] of SECTIONS){
+      const v = n[id] == null ? "" : String(n[id]);
+      const nv = $(id + "-nav"); if (nv) nv.textContent = v;
+      const c = $(id + "-cnt"); if (c) c.textContent = v && folded.has(id) ? `(${v})` : "";
+    }
+  }
 
   // Controls
   $("q").addEventListener("input", e => { query = e.target.value.trim(); render(); });
