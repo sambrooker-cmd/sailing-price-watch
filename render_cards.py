@@ -421,6 +421,14 @@ def price_reduction_html(s, was, w=1080, h=1080, cabin=None):
     else:
         icon, line = PR_SHIP, f"No-fly from {s['port']} on {s['ship']}"
     date = datetime.date.fromisoformat(s["departure_date"]).strftime("%-d %B %Y") if s.get("departure_date") else ""
+    # Campaign artwork is shown whole between the logo/sticker and the panel, on a blurred copy
+    # of itself, as on standard cards (Sam, 12 Oct 2026); other photos stay full-bleed.
+    if is_campaign(s):
+        art = photo_whole(s["image_link"], s["id"], w)
+        photo_html = (f'<div class="artbg" style="background-image:url({art})"></div>'
+                      f'<img class="art" id="art" src="{art}" alt="">')
+    else:
+        photo_html = f'<img class="photo" src="{photo(OVERRIDES.get(s["id"], s["image_link"]), s["id"] + ("_ov" if s["id"] in OVERRIDES else ""), w, h)}" alt="">'
     when = " &nbsp;|&nbsp; ".join(x for x in (html.escape(date), f"{s['nights']} nights") if x)
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONT_CSS}
@@ -451,8 +459,11 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 .fl svg{{flex:none}}
 .ft{{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:30px;font-weight:500;font-size:18px;color:#6e6573}}
 .ft b{{font-weight:700;color:#3b3340;white-space:nowrap}}
+.artbg{{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}}
+.art{{position:absolute;z-index:1;left:0;width:{w}px;height:auto;box-shadow:0 10px 30px rgba(0,0,0,.35)}}
+.scrim,.logo,.sticker,.panel{{z-index:2}}
 </style></head><body><div id="card">
-<img class="photo" src="{photo(OVERRIDES.get(s['id'], s['image_link']), s['id'] + ('_ov' if s['id'] in OVERRIDES else ''), w, h)}" alt="">
+{photo_html}
 <div class="scrim"></div>
 <div class="logo">{LOGO}</div>
 <div class="sticker"><div class="st1">Price reduction</div>{grade_html}
@@ -472,6 +483,18 @@ function fit(){{
   const p = document.querySelector('.fitp'), row = p.parentElement;
   let ps = 74;
   while (row.scrollWidth > row.clientWidth + 1 && ps > 48) {{ ps -= 1; p.style.fontSize = ps + 'px'; }}
+  // Campaign artwork: below the sticker if it still fills most of the width there, otherwise
+  // below the logo (the sticker then sits on its top right corner, as it does on photos).
+  const art = document.getElementById('art');
+  if (art) {{
+    const W = {w}, ratio = art.naturalHeight / art.naturalWidth, r = e => document.querySelector(e).getBoundingClientRect();
+    const bot = r('.panel').top - 20;
+    const place = top => {{ const room = bot - top; let aw = W, ah = W * ratio; if (ah > room) {{ ah = room; aw = ah / ratio; }} return {{top, room, aw, ah}}; }};
+    let a = place(r('.sticker').bottom + 16);
+    if (a.aw < W * 0.8) a = place(r('.logo').bottom + 24);
+    art.style.width = a.aw + 'px'; art.style.height = a.ah + 'px';
+    art.style.left = (W - a.aw) / 2 + 'px'; art.style.top = (a.top + (a.room - a.ah) / 2) + 'px';
+  }}
 }}
 </script>
 </body></html>"""
