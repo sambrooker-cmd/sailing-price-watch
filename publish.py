@@ -8,6 +8,7 @@ has to understand the shape of the data:
   pricewatch/cabins   state/cabins.json
   pricewatch/runs     recent runs/*.json, newest first: up to MAX_RUNS, as many
                       as fit in RUNS_BYTES (the page's "What changed" view uses them)
+  pricewatch/coverage state/coverage.json, if the weekly feed coverage check has run
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -42,6 +43,8 @@ def documents():
         "cabins": load(ROOT / "state" / "cabins.json"),
         "runs": runs,
     }
+    if (ROOT / "state" / "coverage.json").exists():
+        docs["coverage"] = load(ROOT / "state" / "coverage.json")
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))

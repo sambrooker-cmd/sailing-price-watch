@@ -201,6 +201,11 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
     <div id="promos"><p class="loading">Checking promotions…</p></div>
   </section>
 
+  <section aria-labelledby="h-coverage">
+    <h2 id="h-coverage"><span class="mini amber"></span>On sale but not in the ad feed</h2>
+    <div id="coverage"><p class="loading">Checking…</p></div>
+  </section>
+
   <section aria-labelledby="h-changes">
     <h2 id="h-changes"><span class="mini"></span>What changed</h2>
     <div class="controls" role="group" aria-label="What changed filters">
@@ -330,6 +335,7 @@ const auth = getAuth(firebaseApp);
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}) : "";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+  let coverage = null;
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
   let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false;
@@ -456,6 +462,20 @@ const auth = getAuth(firebaseApp);
             <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
         }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.</p>`
         : `<div class="empty"><p>No promotions are live on any sailing.</p></div>`;
+    }
+
+    // Website vs ad feed (weekly check)
+    if (!coverage){
+      $("coverage").innerHTML = `<div class="empty"><p>The weekly check of the website against the ad feed runs on Mondays at 09:30 GMT. Results appear here after its first run.</p></div>`;
+    } else {
+      const c = coverage, list = c.on_sale_missing || [];
+      const head = `<p class="note" style="margin:0 0 12px">Checked ${fmtDate(c.checked)} (weekly, Mondays). The website lists ${c.site_pages} sailing pages and the ad feed has ${c.feed}. Of the rest, ${(c.counts||{}).sold_out||0} are sold out and ${((c.counts||{}).no_prices||0) + ((c.counts||{}).departed||0)} show no prices or have departed.</p>`;
+      $("coverage").innerHTML = head + (list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">From pp</th><th>Promotions</th><th>First spotted</th></tr></thead><tbody>${list.map(s => `
+          <tr><td><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(s.title || s.id)}</b></a><div class="sub">${esc(s.id)}</div></td>
+            <td>${fmtDate(s.departure_date)}</td><td class="num">${s.from_pp ? fmtGBP(s.from_pp) : "solo only"}</td>
+            <td>${(s.offers||[]).map(o => `<span class="chip">${esc(o)}</span>`).join(" ") || "–"}</td><td>${fmtDate(s.first_seen)}</td></tr>`).join("")}</tbody></table></div>`
+        : `<div class="empty"><p>Every sailing on sale on the website is in the ad feed.</p></div>`)
+        + ((c.feed_not_on_site||[]).length ? `<p class="flag">In the feed but missing from the website's sitemap: ${esc(c.feed_not_on_site.join(", "))}</p>` : "");
     }
 
     // Runs
@@ -1018,7 +1038,9 @@ const auth = getAuth(firebaseApp);
       return;
     }
     try {
-      const [st, cab, rs] = await Promise.all([readJson("current"), readJson("cabins"), readJson("runs")]);
+      const [st, cab, rs, cov] = await Promise.all([readJson("current"), readJson("cabins"), readJson("runs"),
+        readJson("coverage").catch(() => null)]);  // the weekly coverage check may not have run yet
+      coverage = cov;
       cabins = cab.sailings || {};
       runs = rs;
       state = st;
