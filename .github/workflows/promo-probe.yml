@@ -1,0 +1,61 @@
+name: Promotion probe (temporary)
+
+# One-off investigation: prints what promotion information the landing pages
+# carry, so the tracker can record it. Saves nothing. Delete once done.
+on:
+  push:
+    branches: [claude/new-session-i0hsfd]
+    paths: [.github/workflows/promo-probe.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Probe landing pages
+        run: |
+          python - <<'PY'
+          import csv, html, io, json, re, collections
+          import enrich
+          rows = list(csv.DictReader(io.StringIO(enrich.get(enrich.FEED))))
+          print("FEED COLUMNS:", list(rows[0].keys()))
+          for k in rows[0]:
+              vals = collections.Counter(r[k] for r in rows)
+              if len(vals) < 15: print(f"  {k}: {dict(vals)}")
+          # a spread of sailings: no-fly, fly, each ship, different months
+          pick, seen = [], set()
+          for r in rows:
+              key = (r["id"][:2], "Airport" in r["title"])
+              if key not in seen: seen.add(key); pick.append(r)
+          pick += rows[::40]
+          comp = collections.Counter(); words = collections.Counter()
+          PROMO = re.compile(r"(offer|deal|save|saving|discount|free|credit|deposit|promo|bonus|exclusive|reduced|sale|upgrade|package|drinks|gratuit|tips|kids|child|solo|single|% off|£\s?\d)", re.I)
+          for r in pick[:10]:
+              page = enrich.get(r["link"])
+              print("\n" + "=" * 100)
+              print(r["id"], r["title"], r["link"])
+              for m in re.finditer(r'<astro-island[^>]*component-url="([^"]*)"[^>]*props="([^"]*)"', page):
+                  name = m.group(1).rsplit("/", 1)[-1]
+                  comp[name] += 1
+                  props = html.unescape(m.group(2))
+                  if PROMO.search(props):
+                      print(f"--- island {name} (props mention promo words, first 1500 chars):")
+                      print(props[:1500])
+              t = re.sub(r"<script.*?</script>|<style.*?</style>", " ", page, flags=re.S)
+              t = re.sub(r"<[^>]+>", "|", t)
+              t = re.sub(r"\|[\s|]*", "|", html.unescape(t))
+              body = t.split("Cruise Code:", 1)[-1]
+              hits = [x.strip() for x in body.split("|") if PROMO.search(x) and 3 < len(x.strip()) < 200]
+              print("--- promo-like text after 'Cruise Code:':")
+              for h in dict.fromkeys(hits): print("   ", h); words[h] += 1
+          print("\nISLAND COMPONENTS:", dict(comp))
+          print("\nMOST COMMON PROMO-LIKE LINES:")
+          for h, n in words.most_common(40): print(f"  {n:2}  {h}")
+          PY
