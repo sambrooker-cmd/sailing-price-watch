@@ -1,0 +1,5 @@
+data/
+out/
+db/
+img_cache/
+__pycache__/

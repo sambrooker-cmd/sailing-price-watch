@@ -1,0 +1,112 @@
+{
+ "cabin_back": [],
+ "cabin_drops": [],
+ "cabin_eligible": [],
+ "cabin_rises": [],
+ "cabin_sold_out": [],
+ "count": 221,
+ "date": "2026-10-09",
+ "drops": [
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 1,
+    "now": 299,
+    "reason": "cheaper cabin grade came on sale (ocean_view → inside), not a price cut",
+    "since": "2026-10-09",
+    "was": 399
+   },
+   "from": 399,
+   "id": "A22633",
+   "mix": "ocean_view → inside",
+   "to": 299
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 1,
+    "now": 1399,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-09",
+    "was": 1499
+   },
+   "from": 1499,
+   "id": "A32652M",
+   "to": 1399
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 1,
+    "now": 939,
+    "reason": "cheaper cabin grade came on sale (ocean_view → inside), not a price cut",
+    "since": "2026-10-09",
+    "was": 1239
+   },
+   "from": 1239,
+   "id": "A12706",
+   "mix": "ocean_view → inside",
+   "to": 939
+  },
+  {
+   "claim": {
+    "eligible": false,
+    "held_days": 1,
+    "now": 2049,
+    "reason": "cabin type behind the lead price is unknown",
+    "since": "2026-10-09",
+    "was": 2239
+   },
+   "from": 2239,
+   "id": "A12712",
+   "to": 2049
+  }
+ ],
+ "eligible": [],
+ "flags": {
+  "A12630": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12634": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12704": [
+   "feed price £899 differs from cheapest cabin on the page £699"
+  ],
+  "A12706": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12707": [
+   "feed price £1,709 differs from cheapest cabin on the page £1,739"
+  ],
+  "A12709": [
+   "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A12712": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22702": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22705": [
+   "feed image looks like campaign art (may contain text)"
+  ]
+ },
+ "new": [
+  "A22631BR"
+ ],
+ "removed": [
+  "A12639",
+  "A22635",
+  "A32650"
+ ],
+ "returned": [],
+ "rises": [
+  {
+   "from": 699,
+   "id": "A12704",
+   "mix": "inside → ocean_view",
+   "to": 899
+  }
+ ]
+}
