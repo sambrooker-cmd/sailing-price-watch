@@ -57,8 +57,9 @@ jobs:
         continue-on-error: true   # a card problem must never stop prices being saved
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: |
-          pip install google-auth==2.40.3 requests==2.32.3
+          pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
           python cards_sync.py run
 
       # Claude Code looks over new or remade cards and lists any that need a person's eye (Sam, 12 Oct 2026).
@@ -110,6 +111,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         # One issue per day; later checks that day with new claims add a comment.
         run: .github/issue.sh "New was/now claims — ${{ steps.watch.outputs.date }}" out/issue.md
+
+      - name: Open issue for ended was/now claims
+        if: steps.cardrun.outputs.wasnow_ended != '' && steps.cardrun.outputs.wasnow_ended != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/issue.sh "Was/now cards withdrawn — $(TZ=Europe/London date +%F)" out/wasnow_ended.md
 
       - name: Open issue if cards failed
         if: steps.cardrun.outcome == 'failure'

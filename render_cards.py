@@ -79,6 +79,36 @@ def photo(url, sid, w, h):
     return "data:image/jpeg;base64," + b64(dst)
 
 
+def edge_colours(path):
+    """(top, bottom) CSS colours: the most common colour along an image's top and bottom edges."""
+    from collections import Counter
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+
+    def mode(rows):
+        px = [im.getpixel((x, y)) for y in rows for x in range(0, W, 2)]
+        key = lambda c: tuple(v // 24 for v in c)
+        top = Counter(map(key, px)).most_common(1)[0][0]
+        sel = [c for c in px if key(c) == top]
+        return "rgb(%d,%d,%d)" % tuple(sum(c[i] for c in sel) // len(sel) for i in range(3))
+    return mode(range(0, min(6, H))), mode(range(max(0, H - 6), H))
+
+
+def is_light(css):
+    r, g, b = map(int, css[4:-1].split(","))
+    return 0.299 * r + 0.587 * g + 0.114 * b > 160
+
+
+def campaign_css(top_c, top):
+    """Was/now cards with campaign artwork: plain matched colours, smaller corner sticker."""
+    css = (".artbg{position:absolute;inset:0;filter:none}.art{box-shadow:none}.scrim{display:none}"
+           f".sticker{{right:30px;top:{top + 30}px;transform:rotate(7deg) scale(.68);transform-origin:top right}}")
+    if is_light(top_c):
+        css += ".logo{filter:none!important}.logo svg path{fill:#6B207D!important}"
+    return css
+
+
 def photo_whole(url, sid, w):
     # Storyblok image service: the whole image at the card width, uncropped.
     dst = CACHE / f"{sid}_{w}x0.jpg"
@@ -421,6 +451,17 @@ def price_reduction_html(s, was, w=1080, h=1080, cabin=None):
     else:
         icon, line = PR_SHIP, f"No-fly from {s['port']} on {s['ship']}"
     date = datetime.date.fromisoformat(s["departure_date"]).strftime("%-d %B %Y") if s.get("departure_date") else ""
+    # Campaign artwork (Sam, 12 Oct 2026): shown whole below a smaller corner sticker, on plain
+    # colours matched to the artwork's own top and bottom edges (no blur); the logo turns
+    # purple on a light top. Other photos stay full-bleed in the usual style.
+    campaign = is_campaign(s)
+    top_c = bot_c = None
+    if campaign:
+        art = photo_whole(s["image_link"], s["id"], w)
+        top_c, bot_c = edge_colours(CACHE / f"{s['id']}_{w}x0.jpg")
+        photo_html = f'<div class="artbg" id="artbg"></div><img class="art" id="art" src="{art}" alt="">'
+    else:
+        photo_html = f'<img class="photo" src="{photo(OVERRIDES.get(s["id"], s["image_link"]), s["id"] + ("_ov" if s["id"] in OVERRIDES else ""), w, h)}" alt="">'
     when = " &nbsp;|&nbsp; ".join(x for x in (html.escape(date), f"{s['nights']} nights") if x)
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONT_CSS}
@@ -451,8 +492,12 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 .fl svg{{flex:none}}
 .ft{{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:30px;font-weight:500;font-size:18px;color:#6e6573}}
 .ft b{{font-weight:700;color:#3b3340;white-space:nowrap}}
+.artbg{{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}}
+.art{{position:absolute;z-index:1;left:0;width:{w}px;height:auto;box-shadow:0 10px 30px rgba(0,0,0,.35)}}
+.scrim,.logo,.sticker,.panel{{z-index:2}}
+{campaign_css(top_c, top) if campaign else ""}
 </style></head><body><div id="card">
-<img class="photo" src="{photo(OVERRIDES.get(s['id'], s['image_link']), s['id'] + ('_ov' if s['id'] in OVERRIDES else ''), w, h)}" alt="">
+{photo_html}
 <div class="scrim"></div>
 <div class="logo">{LOGO}</div>
 <div class="sticker"><div class="st1">Price reduction</div>{grade_html}
@@ -472,6 +517,20 @@ function fit(){{
   const p = document.querySelector('.fitp'), row = p.parentElement;
   let ps = 74;
   while (row.scrollWidth > row.clientWidth + 1 && ps > 48) {{ ps -= 1; p.style.fontSize = ps + 'px'; }}
+  // Campaign artwork: whole, below the logo and the sticker and above the panel, so nothing
+  // covers its own text or faces. The artwork's top-edge colour fills the card down to the
+  // artwork's bottom edge, its bottom-edge colour below that: two plain colours, no fade.
+  const art = document.getElementById('art');
+  if (art) {{
+    const W = {w}, ratio = art.naturalHeight / art.naturalWidth, r = e => document.querySelector(e).getBoundingClientRect();
+    const top = Math.max(r('.logo').bottom, r('.sticker').bottom) + 20, room = r('.panel').top - 20 - top;
+    let aw = W, ah = W * ratio;
+    if (ah > room) {{ ah = room; aw = ah / ratio; }}
+    const y = top + (room - ah) / 2;
+    art.style.width = aw + 'px'; art.style.height = ah + 'px'; art.style.left = (W - aw) / 2 + 'px'; art.style.top = y + 'px';
+    document.getElementById('artbg').style.background =
+      `linear-gradient(to bottom, {top_c} 0, {top_c} ${{y + ah}}px, {bot_c} ${{y + ah}}px, {bot_c} 100%)`;
+  }}
 }}
 </script>
 </body></html>"""

@@ -36,7 +36,7 @@ jobs:
 
       - name: Install the card renderer
         run: |
-          pip install playwright==1.56.0
+          pip install playwright==1.56.0 pillow==11.3.0
           python -m playwright install --with-deps chromium
 
       - name: Read the feed and booking pages
