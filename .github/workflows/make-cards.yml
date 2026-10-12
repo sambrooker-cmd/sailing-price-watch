@@ -1,0 +1,64 @@
+name: Make cards
+
+# Standard sailing cards (no was/now) on request: type cruise codes, get a zip of PNGs.
+# Reads a fresh copy of the feed and booking pages first, so prices and promotions are
+# current. Saves nothing to the repo and never touches Meta or any ad account.
+on:
+  workflow_dispatch:
+    inputs:
+      codes:
+        description: 'Cruise codes, separated by spaces or commas (or "all" for every sailing)'
+        required: true
+      sizes:
+        description: "Sizes"
+        type: choice
+        default: "1x1,4x5,9x16"
+        options:
+          - "1x1,4x5,9x16"
+          - "1x1"
+          - "4x5"
+          - "9x16"
+          - "1x1,4x5"
+
+permissions:
+  contents: read
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the card renderer
+        run: |
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+
+      - name: Read the feed and booking pages
+        run: python enrich.py "$(TZ=Europe/London date +%F)"
+
+      - name: Make the cards
+        env:
+          CODES: ${{ inputs.codes }}
+          SIZES: ${{ inputs.sizes }}
+        run: |
+          snap=$(ls data/snapshot_*.json | tail -1)
+          set +e
+          python make_cards.py "$snap" cards "$CODES" --sizes "$SIZES"
+          status=$?
+          set -e
+          cat cards/summary.md >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cards-${{ github.run_number }}
+          path: cards/
+          retention-days: 30
+          if-no-files-found: ignore
