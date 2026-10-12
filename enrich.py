@@ -68,6 +68,28 @@ def cabin_fares(page):
     return out
 
 
+def offers(page):
+    """Promotions shown on the sailing page, from its FareSummary component:
+    [{"id", "name", "description", "expires_at"}]. [] when the component is
+    there with no offers; None when it can't be read (so nothing is recorded
+    as having ended just because a page didn't parse)."""
+    m = re.search(r'<astro-island[^>]*component-url="[^"]*FareSummary[^"]*"[^>]*props="([^"]*)"', page)
+    if not m:
+        return None
+    try:
+        props = {k: _dv(v) for k, v in json.loads(html.unescape(m.group(1))).items()}
+    except Exception:  # noqa
+        return None
+    out = []
+    for o in props.get("offers") or []:
+        if not isinstance(o, dict) or not (o.get("id") and o.get("name")):
+            continue
+        out.append({"id": o["id"], "name": o["name"].strip(),
+                    "description": (o.get("description") or "").strip(),
+                    "expires_at": o.get("expires_at") or None})
+    return out
+
+
 def page_fields(url):
     out = {}
     try:
@@ -77,6 +99,9 @@ def page_fields(url):
     cf_ = cabin_fares(s)
     if cf_ is not None:
         out["cabins"] = cf_
+    of = offers(s)
+    if of is not None:
+        out["offers"] = of
     t = re.sub(r"<[^>]+>", "|", s)
     t = re.sub(r"\|[\s|]*", "|", t).replace("&amp;", "&")
     for key, label in [("date_text", "Date:"), ("duration_text", "Duration:"),
