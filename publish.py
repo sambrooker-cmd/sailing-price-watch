@@ -6,7 +6,8 @@ allowlist read them. Each document holds one JSON string, so Firestore never
 has to understand the shape of the data:
   pricewatch/current  state/current.json
   pricewatch/cabins   state/cabins.json
-  pricewatch/runs     the last RUNS_SHOWN runs/*.json, newest first
+  pricewatch/runs     recent runs/*.json, newest first: up to MAX_RUNS, as many
+                      as fit in RUNS_BYTES (the page's "What changed" view uses them)
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -17,7 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 PROJECT = "promotions-planner"
-RUNS_SHOWN = 21
+MAX_RUNS = 90
+RUNS_BYTES = 600_000
 MAX_BYTES = 900_000  # Firestore's limit is 1 MiB per document; stop well short of it
 
 
@@ -28,7 +30,13 @@ def load(p):
 
 def documents():
     cur = load(ROOT / "state" / "current.json")
-    runs = [load(p) for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)[:RUNS_SHOWN]]
+    runs, size = [], 0
+    for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)[:MAX_RUNS]:
+        r = load(p)
+        size += len(json.dumps(r, ensure_ascii=False, separators=(",", ":")).encode())
+        if runs and size > RUNS_BYTES:
+            break
+        runs.append(r)
     docs = {
         "current": cur,
         "cabins": load(ROOT / "state" / "cabins.json"),

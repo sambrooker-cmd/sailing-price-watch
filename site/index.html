@@ -96,6 +96,12 @@ td .sub{font-size:13px;color:var(--muted)}
 .note{color:var(--muted);font-size:13px;margin-top:10px}
 .loading{color:var(--muted)}
 [hidden]{display:none!important}
+input[type=date]{font:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:0}
+.dl{margin-left:auto}
+.ctable{min-width:720px}
+#changes tr{cursor:pointer}
+#changes tr:hover td{background:var(--bg-alt)}
+.kind{font-size:12px;font-weight:600;white-space:nowrap}
 .promos{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .chip{display:inline-block;font-size:12px;font-weight:600;padding:0 7px;border:1px solid var(--amber);color:var(--ink);white-space:nowrap}
 .ptable{width:100%;min-width:0}
@@ -195,6 +201,42 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
     <div id="promos"><p class="loading">Checking promotions…</p></div>
   </section>
 
+  <section aria-labelledby="h-changes">
+    <h2 id="h-changes"><span class="mini"></span>What changed</h2>
+    <div class="controls" role="group" aria-label="What changed filters">
+      <label for="c-range" hidden>Period</label>
+      <select id="c-range">
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="all">Everything recorded</option>
+        <option value="custom">Choose dates…</option>
+      </select>
+      <span id="c-custom" hidden>
+        <label for="c-from" hidden>From</label><input type="date" id="c-from"> to
+        <label for="c-to" hidden>To</label><input type="date" id="c-to">
+      </span>
+      <label for="c-type" hidden>Type of change</label>
+      <select id="c-type">
+        <option value="">All changes</option>
+        <option value="drop">Price drops</option>
+        <option value="rise">Price rises</option>
+        <option value="cabin">Cabin price changes</option>
+        <option value="avail">Sold out / back on sale</option>
+        <option value="promo">Promotions</option>
+        <option value="feed">Sailings added or removed</option>
+      </select>
+      <button type="button" class="btn quiet dl" id="c-csv">Download CSV</button>
+    </div>
+    <div class="tablewrap">
+      <table class="ctable">
+        <thead><tr><th>Date</th><th>Sailing</th><th>Change</th><th>Notes</th></tr></thead>
+        <tbody id="changes"></tbody>
+      </table>
+    </div>
+    <p class="note"><span id="c-shown"></span> <button type="button" class="linkbtn" id="c-more" hidden>Show all</button></p>
+  </section>
+
   <section aria-labelledby="h-runs">
     <h2 id="h-runs"><span class="mini"></span>Daily runs</h2>
     <div id="runs" class="runs"><p class="loading" style="padding:12px 0">No runs recorded yet. Each daily check adds a line here.</p></div>
@@ -252,7 +294,7 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
         <tbody id="rows"><tr><td colspan="8" class="loading">The sailing list appears here after the first run is saved.</td></tr></tbody>
       </table>
     </div>
-    <p class="note" id="shown"></p>
+    <p class="note"><span id="shown"></span> <button type="button" class="linkbtn" id="t-csv">Download these as CSV</button></p>
   </section>
 
   <section aria-labelledby="h-rules">
@@ -289,6 +331,7 @@ const auth = getAuth(firebaseApp);
 
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
+  let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false;
   try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
   const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
 
@@ -416,7 +459,7 @@ const auth = getAuth(firebaseApp);
 
     // Runs
     if (runs.length){
-      $("runs").innerHTML = runs.map(r => {
+      $("runs").innerHTML = runs.slice(0, 21).map(r => {
         const parts = [`<span>${r.count} sailings</span>`];
         if ((r.new||[]).length) parts.push(`<span>${r.new.length} new</span>`);
         if ((r.removed||[]).length) parts.push(`<span>${r.removed.length} left the feed</span>`);
@@ -473,6 +516,8 @@ const auth = getAuth(firebaseApp);
         <td><span class="pill ${st.cls}" ${st.title ? `title="${esc(st.title)}"` : ""}>${esc(st.label)}</span></td></tr>`;
     }).join("") : `<tr><td colspan="8" class="sub">No sailings match. Clear the search or filters, or pick another ship.</td></tr>`;
     $("shown").textContent = `Showing ${rows.length} of ${all.length} sailings.`;
+    shownRows = rows;
+    renderChanges();
 
     // Rules
     const R = [
@@ -802,9 +847,119 @@ const auth = getAuth(firebaseApp);
   document.addEventListener("click", e => {
     if (e.target.closest("a")) return;
     const t = e.target.closest("[data-id]");
-    if (!t || !t.closest("#rows, #queue")) return;
+    if (!t || !t.closest("#rows, #queue, #changes")) return;
     const id = t.dataset.id;
     if (location.hash === "#" + id) openDetail(id); else location.hash = id;
+  });
+
+  // CSV downloads: what's on screen, as Excel-friendly UTF-8 (BOM, so £ survives)
+  function downloadCsv(name, header, rows){
+    const cell = v => {
+      let s = v == null ? "" : String(v);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;  // stop spreadsheets reading text as a formula
+      return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const text = "﻿" + [header, ...rows].map(r => r.map(cell).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], {type: "text/csv;charset=utf-8"}));
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  $("t-csv").addEventListener("click", () => {
+    const today = state.updated, cab = id => ((cabins[id] || {}).cabins) || {};
+    const cp = (id, key) => { const h = cab(id)[key]; return !h ? "" : h.out ? "sold out" : h.seg[h.seg.length-1].p; };
+    const grades = ["inside","ocean_view","balcony","suite"];
+    const header = ["Cruise code","Sailing","Ship","Departs from","Flights from","Departure date","Nights","From price pp","Lead cabin",
+      ...grades.map(g => `Twin ${GRADE[g].toLowerCase()} pp`), ...grades.map(g => `Solo ${GRADE[g].toLowerCase()}`),
+      "Price since","Price changes","Status","Was/now was","Was/now now","Was/now ends","Promotions","Flags","First seen","Booking link"];
+    const rows = shownRows.map(s => {
+      const cur = s.segments[s.segments.length-1], c = s.claim && s.claim.eligible ? s.claim : null;
+      return [s.id, s.base_title || s.title, s.ship, s.port, s.flight_from || "", s.departure_date, s.nights, cur.p, cur.c ? GRADE[cur.c] : "",
+        ...grades.map(g => cp(s.id, "twin." + g)), ...grades.map(g => cp(s.id, "solo." + g)),
+        cur.from, s.segments.length - 1, (s._st || {}).label || "", c ? c.was : "", c ? c.now : "", c ? c.ends : "",
+        state.promos_since ? livePromos(s).map(o => offerInfo(o).name || o).join("; ") : (s.offer || ""),
+        (s.flags || []).join("; "), s.first_seen, s.link];
+    });
+    downloadCsv(`sailings-${today}.csv`, header, rows);
+  });
+
+  // What changed: every recorded change in the chosen period, newest first
+  const nameOf = id => { const s = (state.sailings || {})[id]; return s ? (s.base_title || s.title) : id; };
+  const cabLabel = k => { const [occ, g] = k.split("."); return (GRADE[g] || g) + (occ === "solo" ? " (solo)" : ""); };
+  function changeRows(){
+    const out = [];
+    const add = (date, type, id, what, note) => out.push({date, type, id, what, note: note || ""});
+    for (const r of runs){
+      const d = r.date;
+      for (const x of r.drops || []){
+        const c = x.claim || {};
+        add(d, x.mix ? "cabin" : "drop", x.id, `From price ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`,
+          x.mix ? `A cheaper cabin grade came on sale (${x.mix.replace(/\w+/g, w => GRADE[w] || w)}). Not a price cut.`
+                : c.eligible ? `Was/now ready until ${fmtDate(c.ends)}` : c.reason ? `Not eligible for was/now: ${c.reason}` : "");
+      }
+      for (const x of r.rises || []) add(d, "rise", x.id, `From price ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`, x.mix ? `Cheapest grade on sale changed (${x.mix.replace(/\w+/g, w => GRADE[w] || w)})` : "");
+      for (const x of r.cabin_drops || []){
+        const c = x.claim || {};
+        add(d, "cabin", x.id, `${cabLabel(x.cabin)} ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`, c.eligible ? `Was/now ready until ${fmtDate(c.ends)}` : "");
+      }
+      for (const x of r.cabin_rises || []) add(d, "cabin", x.id, `${cabLabel(x.cabin)} ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`);
+      for (const x of r.cabin_sold_out || []) add(d, "avail", x.id, `${cabLabel(x.cabin)} sold out`);
+      for (const x of r.cabin_back || []) add(d, "avail", x.id, `${cabLabel(x.cabin)} back on sale at ${fmtGBP(x.p)}`, "Starts a fresh reference period.");
+      for (const x of r.promo_added || []) add(d, "promo", x.id, `Started: ${x.name || offerInfo(x.offer).name || x.offer}`);
+      for (const x of r.promo_ended || []) add(d, "promo", x.id, `Ended: ${x.name || offerInfo(x.offer).name || x.offer}`);
+      for (const x of r.promo_changed || []){
+        const what = {name: "renamed", expires: "expiry changed"}[x.field] || x.field + " changed";
+        add(d, "promo", null, `${what[0].toUpperCase() + what.slice(1)}: ${x.name || x.offer}`, `${x.from || "none"} → ${x.to || "none"}`);
+      }
+      for (const id of r.new || []) add(d, "feed", id, "New sailing in the feed");
+      for (const id of r.removed || []) add(d, "feed", id, "Left the feed");
+      for (const id of r.returned || []) add(d, "feed", id, "Back in the feed");
+    }
+    const K = {drop: 0, rise: 1, cabin: 2, avail: 3, promo: 4, feed: 5};
+    return out.sort((a, b) => b.date.localeCompare(a.date) || K[a.type] - K[b.type] || (a.id || "").localeCompare(b.id || ""));
+  }
+  const KIND = {drop: ["▼ Price drop", "dn2"], rise: ["▲ Price rise", "up2"], cabin: ["Cabin price", ""], avail: ["Availability", ""], promo: ["Promotion", ""], feed: ["Feed", ""]};
+  function changesInView(){
+    const today = state.updated;
+    let from, to = today;
+    if (chg.range === "custom"){ from = chg.from || "0000"; to = chg.to || today; }
+    else if (chg.range === "all") from = "0000";
+    else from = addDays(today, -(Number(chg.range) - 1));
+    return changeRows().filter(c => c.date >= from && c.date <= to && (!chg.type || c.type === chg.type));
+  }
+  function renderChanges(){
+    if (!state) return;
+    const dates = runs.map(r => r.date).sort();
+    for (const el of [$("c-from"), $("c-to")]){ el.min = dates[0] || ""; el.max = state.updated; }
+    const list = changesInView();
+    const LIMIT = 200, show = chgAll ? list : list.slice(0, LIMIT);
+    $("changes").innerHTML = show.length ? show.map(c => `<tr${c.id ? ` data-id="${esc(c.id)}"` : ""}>
+        <td>${fmtDate(c.date)}</td>
+        <td>${c.id ? `<button type="button" class="open" data-id="${esc(c.id)}">${esc(nameOf(c.id))}</button><div class="sub">${esc(c.id)}</div>` : `<span class="sub">All sailings with it</span>`}</td>
+        <td><span class="kind ${KIND[c.type][1]}">${KIND[c.type][0]}</span><div>${esc(c.what)}</div></td>
+        <td class="sub">${esc(c.note)}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="sub">No changes of this kind in this period.</td></tr>`;
+    const ids = new Set(list.map(c => c.id).filter(Boolean));
+    $("c-shown").textContent = `${list.length} change${list.length === 1 ? "" : "s"} across ${ids.size} sailing${ids.size === 1 ? "" : "s"}` +
+      (show.length < list.length ? `, showing the newest ${show.length}.` : ".") + ` Recorded since ${fmtDate(dates[0])}.`;
+    $("c-more").hidden = show.length >= list.length;
+  }
+  $("c-range").addEventListener("change", e => {
+    chg.range = e.target.value; chgAll = false;
+    $("c-custom").hidden = chg.range !== "custom";
+    if (chg.range === "custom" && !chg.from){ chg.from = addDays(state.updated, -6); chg.to = state.updated; $("c-from").value = chg.from; $("c-to").value = chg.to; }
+    renderChanges();
+  });
+  $("c-from").addEventListener("change", e => { chg.from = e.target.value; chgAll = false; renderChanges(); });
+  $("c-to").addEventListener("change", e => { chg.to = e.target.value; chgAll = false; renderChanges(); });
+  $("c-type").addEventListener("change", e => { chg.type = e.target.value; chgAll = false; renderChanges(); });
+  $("c-more").addEventListener("click", () => { chgAll = true; renderChanges(); });
+  $("c-csv").addEventListener("click", () => {
+    const list = changesInView();
+    downloadCsv(`changes-${list.length ? list[list.length-1].date : state.updated}-to-${list.length ? list[0].date : state.updated}.csv`,
+      ["Date","Cruise code","Sailing","Type","Change","Notes"],
+      list.map(c => [c.date, c.id || "", c.id ? nameOf(c.id) : "", KIND[c.type][0].replace(/^[▲▼] /, ""), c.what, c.note]));
   });
 
   // Controls
