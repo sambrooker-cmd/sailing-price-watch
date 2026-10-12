@@ -1,6 +1,6 @@
 {
  "date": "2026-10-12",
- "count": 221,
+ "count": 222,
  "new": [
   "A12626",
   "A22630BR"
@@ -19,7 +19,8 @@
   "A32650",
   "A12626",
   "A32650",
-  "A22630BR"
+  "A22630BR",
+  "A32650"
  ],
  "drops": [
   {
@@ -355,6 +356,34 @@
     "held_days": 0
    },
    "at": "2026-10-12T21:07:15Z"
+  },
+  {
+   "id": "A12639",
+   "from": 689,
+   "to": 299,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 689,
+    "now": 299,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T22:06:59Z"
+  },
+  {
+   "id": "A22631BR",
+   "from": 259,
+   "to": 199,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 259,
+    "now": 199,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T22:06:59Z"
   }
  ],
  "rises": [
@@ -497,13 +526,17 @@
    "from": 1399,
    "to": 1499,
    "at": "2026-10-12T21:07:15Z"
+  },
+  {
+   "id": "A12701",
+   "from": 2699,
+   "to": 3499,
+   "mix": "inside → ocean_view",
+   "at": "2026-10-12T22:06:59Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A22631BR": [
-   "feed price £259 differs from cheapest cabin on the page £199"
-  ],
   "A22633": [
    "feed price £399 differs from cheapest cabin on the page £599"
   ],
@@ -515,6 +548,9 @@
   ],
   "A12634": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12701": [
+   "feed price £3,499 differs from cheapest cabin on the page £2,699"
   ],
   "A22702": [
    "feed image looks like campaign art (may contain text)"
@@ -950,6 +986,7 @@
   "2026-10-12T15:32:03Z",
   "2026-10-12T16:07:15Z",
   "2026-10-12T17:55:23Z",
-  "2026-10-12T21:07:15Z"
+  "2026-10-12T21:07:15Z",
+  "2026-10-12T22:06:59Z"
  ]
 }
