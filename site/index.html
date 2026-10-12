@@ -14,16 +14,19 @@
   --bg:#FFFFFF;--bg-alt:#F1ECE7;--ink:#1B1220;--muted:#5E5465;--heading:#6B207D;--rule:#D9CFD9;--rule-strong:#6B207D;
   --chip:#F1ECE7;--chip-ink:#6B207D;--good:#00764F;--good-bg:#E3F3EC;--warn:#8A4A12;--warn-bg:#FDEBDD;--bad:#9B1C31;--bad-bg:#F8E3E7;
   --price-bg:#F68C4E;--price-ink:#6B207D;--lp:#6B207D;--lc:#009165;--focus:#6B207D;
+  --c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--c4:#eda100;--tip-bg:#1B1220;--tip-ink:#FFFFFF;
   --font:"Quicksand",Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#2A0632;--bg-alt:#380843;--ink:#F5F0F6;--muted:#C9B9CE;--heading:#FFFFFF;--rule:#55275F;--rule-strong:#FFFFFF;
   --chip:#4A1556;--chip-ink:#FFFFFF;--good:#7FE0B9;--good-bg:#0F3B2E;--warn:#FFC49E;--warn-bg:#4A2A16;--bad:#FFAFC0;--bad-bg:#4A1726;
-  --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;color-scheme:dark}}
+  --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;
+  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#2A0632;--bg-alt:#380843;--ink:#F5F0F6;--muted:#C9B9CE;--heading:#FFFFFF;--rule:#55275F;--rule-strong:#FFFFFF;
   --chip:#4A1556;--chip-ink:#FFFFFF;--good:#7FE0B9;--good-bg:#0F3B2E;--warn:#FFC49E;--warn-bg:#4A2A16;--bad:#FFAFC0;--bad-bg:#4A1726;
-  --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;color-scheme:dark}
+  --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;
+  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;margin:0}
 .wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:36px}
@@ -93,6 +96,44 @@ td .sub{font-size:13px;color:var(--muted)}
 .note{color:var(--muted);font-size:13px;margin-top:10px}
 .loading{color:var(--muted)}
 [hidden]{display:none!important}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:-4px 0 14px}
+.filters select{max-width:100%}
+.open{font:inherit;font-weight:600;color:var(--heading);background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.open:hover{text-decoration:underline}
+#rows tr{cursor:pointer}
+#rows tr:hover td{background:var(--bg-alt)}
+dialog.detail{width:min(980px,calc(100% - 32px));max-height:calc(100% - 32px);border:1px solid var(--rule);padding:0;background:var(--bg);color:var(--ink)}
+dialog.detail::backdrop{background:rgba(20,5,25,.55)}
+.dhead{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;gap:16px;justify-content:space-between;align-items:flex-start;padding:20px 24px 16px;border-bottom:1px solid var(--rule)}
+.dhead h2{margin:0 0 6px;font-size:22px;letter-spacing:.02em;text-transform:none;color:var(--heading);display:block}
+.dbody{padding:20px 24px 28px;display:flex;flex-direction:column;gap:28px}
+.dbody h3{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--heading)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:14px}
+.facts a{color:var(--heading)}
+.verdict{border-left:3px solid var(--aloe);padding:4px 0 4px 14px}
+.verdict.good{border-color:var(--good)}.verdict.warn{border-color:var(--amber)}.verdict.bad{border-color:var(--bad)}
+.verdict p{margin:0;max-width:72ch}.verdict p+p{margin-top:6px;color:var(--muted);font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.key{display:inline-block;width:16px;height:0;border-top:2px solid}
+.key.dash{border-top-style:dashed;border-color:var(--ink)}
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+.chartbox svg:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+.ctip{position:absolute;pointer-events:none;background:var(--tip-bg);color:var(--tip-ink);font-size:12px;padding:8px 10px;min-width:150px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.ctip .d{font-weight:600;margin-bottom:4px}
+.ctip .key.dash{border-color:var(--tip-ink)!important}
+.ctip .r{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ctip .r span:first-child{display:inline-flex;align-items:center;gap:6px;opacity:.85}
+.ctip b{font-variant-numeric:tabular-nums}
+.dtable{width:100%;min-width:0;border-collapse:collapse;font-size:14px}
+.dtable th,.dtable td{padding:8px 10px}
+.log{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.log li{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.log .d{font-weight:600;font-variant-numeric:tabular-nums}
+.log .n{color:var(--muted);font-size:13px}
+.dn2{color:var(--good);font-weight:700}.up2{color:var(--warn);font-weight:700}
+@media (max-width:560px){dialog.detail{width:100%;max-width:100%;height:100%;max-height:100%;margin:0}.dhead,.dbody{padding-inline:16px}.log li{grid-template-columns:1fr;gap:2px}}
 .gate{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px 16px;text-align:center}
 .gate svg{width:190px;height:auto}
 .gate p{margin:0;max-width:30rem;color:var(--muted)}
@@ -116,6 +157,8 @@ td .sub{font-size:13px;color:var(--muted)}
   <button type="button" class="btn quiet" id="gate-signout" hidden>Sign out</button>
   <p id="gate-err" class="err" hidden></p>
 </div>
+
+<dialog class="detail" id="detail" aria-labelledby="d-title"></dialog>
 
 <div class="wrap" id="app" hidden>
   <header>
@@ -164,6 +207,27 @@ td .sub{font-size:13px;color:var(--muted)}
         <option value="status">Status</option>
       </select>
     </div>
+    <div class="filters" role="group" aria-label="Filters">
+      <label for="f-month" hidden>Departure month</label>
+      <select id="f-month"><option value="">Any departure month</option></select>
+      <label for="f-port" hidden>Port</label>
+      <select id="f-port"><option value="">Any port or airport</option></select>
+      <label for="f-nights" hidden>Nights</label>
+      <select id="f-nights">
+        <option value="">Any length</option>
+        <option value="1-5">Up to 5 nights</option>
+        <option value="6-9">6 to 9 nights</option>
+        <option value="10-14">10 to 14 nights</option>
+        <option value="15-999">15 nights or more</option>
+      </select>
+      <label for="f-kind" hidden>Cruise type</label>
+      <select id="f-kind">
+        <option value="">No-fly and fly-cruise</option>
+        <option value="nofly">No-fly only</option>
+        <option value="fly">Fly-cruise only</option>
+      </select>
+      <button type="button" class="linkbtn" id="f-clear" hidden>Clear filters</button>
+    </div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Sailing</th><th>Ship</th><th>Departs</th><th class="num">Nights</th><th class="num">Price pp</th><th>Cabins pp, twin</th><th>History</th><th>Status</th></tr></thead>
@@ -206,8 +270,9 @@ const auth = getAuth(firebaseApp);
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
-  try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; } catch(e){}
-  const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort})); } catch(e){} };
+  let filt = {month: "", port: "", nights: "", kind: ""};
+  try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
+  const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
 
   function status(s, today, rules){
     if (s.removed) return {cls:"bad", label:"Left the feed " + fmtDate(s.removed), rank:4};
@@ -294,11 +359,11 @@ const auth = getAuth(firebaseApp);
     } else {
       $("queue").innerHTML = `<div class="queue">${elig.map(s => `
         <div class="qcard"><span class="code">${esc(s.id)} · ${esc(s.ship)}</span>
-          <span class="t">${esc(s.title)}</span>
+          <button type="button" class="open t" data-id="${esc(s.id)}">${esc(s.title)}</button>
           <span class="pr"><s>${fmtGBP(s.claim.was)}</s> <span class="fare">${fmtGBP(s.claim.now)}pp</span> save ${fmtGBP(s.claim.was - s.claim.now)}</span>
           <span class="sub">Dropped ${fmtDate(s.claim.since)} after ${s.claim.held_days} days · claim ends ${fmtDate(s.claim.ends)}</span></div>`).join("")}${celig.map(({s, cabin, c}) => `
         <div class="qcard"><span class="code">${esc(s.id)} · ${esc(s.ship)} · ${esc(CABN[cabin])}</span>
-          <span class="t">${esc(s.title)}</span>
+          <button type="button" class="open t" data-id="${esc(s.id)}">${esc(s.title)}</button>
           <span class="pr"><s>${fmtGBP(c.was)}</s> <span class="fare">${fmtGBP(c.now)}pp</span> save ${fmtGBP(c.was - c.now)}</span>
           <span class="sub">${esc(CABN[cabin])} dropped ${fmtDate(c.since)} after ${c.held_days} days · claim ends ${fmtDate(c.ends)}</span></div>`).join("")}</div>`;
     }
@@ -328,7 +393,8 @@ const auth = getAuth(firebaseApp);
     }
 
     // Table
-    let rows = all.filter(s => (!ship || s.ship === ship));
+    fillFilters(all);
+    let rows = all.filter(s => (!ship || s.ship === ship) && matchesFilters(s));
     if (query){
       const q = query.toLowerCase();
       rows = rows.filter(s => [s.id, s.title, s.port, s.ship].join(" ").toLowerCase().includes(q));
@@ -346,8 +412,8 @@ const auth = getAuth(firebaseApp);
       const st = s._st;
       const flags = (s.flags||[]).map(f => `<div class="flag">${esc(f)}</div>`).join("");
       const fly = s.flight_from ? ` · flights from ${esc(s.flight_from)}` : "";
-      return `<tr>
-        <td><div class="t"><a href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.base_title || s.title)}</a></div>
+      return `<tr data-id="${esc(s.id)}">
+        <td><div class="t"><button type="button" class="open" data-id="${esc(s.id)}">${esc(s.base_title || s.title)}</button></div>
             <div class="sub">${esc(s.id)} · from ${esc(s.port)}${fly}${s.offer ? " · " + esc(s.offer) : ""}</div>${flags}</td>
         <td>${esc(s.ship)}</td>
         <td>${fmtDate(s.departure_date)}</td>
@@ -356,7 +422,7 @@ const auth = getAuth(firebaseApp);
         <td>${cabCell(s.id, today)}</td>
         <td>${spark(s.segments, today)}<div class="sub">${s.segments.length > 1 ? `${s.segments.length-1} change${s.segments.length>2?"s":""}` : "No changes"}</div></td>
         <td><span class="pill ${st.cls}" ${st.title ? `title="${esc(st.title)}"` : ""}>${esc(st.label)}</span></td></tr>`;
-    }).join("") : `<tr><td colspan="8" class="sub">No sailings match. Clear the search or pick another ship.</td></tr>`;
+    }).join("") : `<tr><td colspan="8" class="sub">No sailings match. Clear the search or filters, or pick another ship.</td></tr>`;
     $("shown").textContent = `Showing ${rows.length} of ${all.length} sailings.`;
 
     // Rules
@@ -369,6 +435,289 @@ const auth = getAuth(firebaseApp);
     ];
     $("rules").innerHTML = R.map(([k,f,t]) => `<div class="rule"><div class="v">${f(rules[k])}</div><p>${t}</p></div>`).join("");
   }
+
+  // Filters
+  const monthKey = s => (s.departure_date || "").slice(0, 7);
+  const monthName = k => new Date(k + "-01T12:00:00Z").toLocaleDateString("en-GB", {month: "long", year: "numeric", timeZone: "UTC"});
+  const portOf = s => s.flight_from ? `Flights from ${s.flight_from}` : s.port;
+  function matchesFilters(s){
+    if (filt.month && monthKey(s) !== filt.month) return false;
+    if (filt.port && portOf(s) !== filt.port) return false;
+    if (filt.nights){ const [lo, hi] = filt.nights.split("-").map(Number); if (!(s.nights >= lo && s.nights <= hi)) return false; }
+    if (filt.kind === "fly" && !s.flight_from) return false;
+    if (filt.kind === "nofly" && s.flight_from) return false;
+    return true;
+  }
+  let filtersBuilt = false;
+  function fillFilters(all){
+    if (filtersBuilt) return;
+    filtersBuilt = true;
+    const live = all.filter(s => !s.removed);
+    const opts = (sel, values, label) => {
+      const el = $(sel);
+      values.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = label(v); el.appendChild(o); });
+    };
+    opts("f-month", [...new Set(live.map(monthKey).filter(Boolean))].sort(), monthName);
+    const ports = [...new Set(live.map(portOf).filter(Boolean))];
+    ports.sort((a, b) => (a.startsWith("Flights") - b.startsWith("Flights")) || a.localeCompare(b));
+    opts("f-port", ports, v => v);
+    for (const k of Object.keys(filt)){
+      const el = $("f-" + k);
+      if (filt[k] && ![...el.options].some(o => o.value === filt[k])) filt[k] = "";
+      el.value = filt[k];
+    }
+    $("f-clear").hidden = !Object.values(filt).some(Boolean);
+  }
+  for (const k of Object.keys(filt)){
+    $("f-" + k).addEventListener("change", e => {
+      filt[k] = e.target.value; savePrefs();
+      $("f-clear").hidden = !Object.values(filt).some(Boolean);
+      render();
+    });
+  }
+  $("f-clear").addEventListener("click", () => {
+    for (const k of Object.keys(filt)){ filt[k] = ""; $("f-" + k).value = ""; }
+    $("f-clear").hidden = true; savePrefs(); render();
+  });
+
+  // Sailing detail view: opened from the table or queue, and by link (#<cruise code>)
+  const SERIES = [["inside","Inside","var(--c1)"],["ocean_view","Ocean view","var(--c2)"],["balcony","Balcony","var(--c3)"],["suite","Suite","var(--c4)"]];
+  const GRADE = {inside:"Inside", ocean_view:"Ocean view", balcony:"Balcony", suite:"Suite"};
+  const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const priceOn = (segs, out, d) => {
+    if (out && d >= out) return null;
+    let p = null;
+    for (const s of segs){ if (s.from <= d) p = s.p; else break; }
+    return p;
+  };
+
+  function verdict(s, cab, today, rules){
+    const segs = s.segments, cur = segs[segs.length-1], prev = segs[segs.length-2];
+    const need = rules.min_reference_days, held = daysBetween(cur.from, today);
+    const lines = [];
+    let cls = "";
+    if (s.removed){
+      cls = "bad";
+      lines.push(`This sailing left the feed on ${fmtDate(s.removed)}. Its last price was ${fmtGBP(cur.p)}.`);
+      return {cls, lines};
+    }
+    const c = s.claim;
+    if (c && c.eligible){
+      cls = "good";
+      lines.push(`Ready for was/now: was ${fmtGBP(c.was)}, now ${fmtGBP(c.now)} (save ${fmtGBP(c.was - c.now)}).`);
+      lines.push(`The price dropped on ${fmtDate(c.since)} after the earlier price had been on sale for ${c.held_days} days. The claim can run until ${fmtDate(c.ends)}.`);
+    } else if (c){
+      cls = "warn";
+      lines.push(`The price dropped from ${fmtGBP(c.was)} to ${fmtGBP(c.now)} on ${fmtDate(c.since)}, but it doesn't qualify for was/now: ${c.reason}.`);
+    } else if (prev && cur.p > prev.p){
+      cls = "warn";
+      lines.push(`The price rose from ${fmtGBP(prev.p)} to ${fmtGBP(cur.p)} on ${fmtDate(cur.from)}.`);
+    } else {
+      lines.push(`The current price of ${fmtGBP(cur.p)} has been on sale for ${held} day${held === 1 ? "" : "s"}, since ${fmtDate(cur.from)}.`);
+    }
+    if (!(c && c.eligible)){
+      const from = addDays(cur.from, need);
+      const departing = s.departure_date && daysBetween(today, s.departure_date) < rules.skip_departing_within_days;
+      if (departing) lines.push(`It departs within ${rules.skip_departing_within_days} days, so no new was/now claims.`);
+      else if (held < need) lines.push(`A future drop would only qualify once this price has been held for ${need} days, so from ${fmtDate(from)} (same cabin grade, a saving of at least ${fmtGBP(rules.min_saving_gbp)}).`);
+      else lines.push(`It has been held long enough, so a drop from now on could qualify (same cabin grade, a saving of at least ${fmtGBP(rules.min_saving_gbp)}).`);
+    }
+    const leadC = cur.c;
+    Object.entries((cab || {}).cabin_claims || {}).forEach(([k, cc]) => {
+      const same = c && c.eligible && k === "twin." + leadC && cc.now === c.now;
+      if (cc.eligible && !same){
+        cls = "good";
+        lines.push(`${GRADE[k.split(".")[1]]} cabins are ready for was/now: was ${fmtGBP(cc.was)}, now ${fmtGBP(cc.now)}, until ${fmtDate(cc.ends)}.`);
+      }
+    });
+    return {cls, lines};
+  }
+
+  function changeLog(s, cab){
+    const out = [];
+    const segs = s.segments;
+    out.push({d: segs[0].from, k: 0, t: `Tracking started: from price ${fmtGBP(segs[0].p)}${segs[0].c ? " (" + GRADE[segs[0].c].toLowerCase() + ")" : ""}`});
+    for (let i = 1; i < segs.length; i++){
+      const a = segs[i-1], b = segs[i], dn = b.p < a.p;
+      let note = "";
+      if (a.c && b.c && a.c !== b.c) note = dn ? `A cheaper cabin grade came on sale (${GRADE[a.c]} → ${GRADE[b.c]}). Not a price cut.` : `The cheapest grade on sale changed (${GRADE[a.c]} → ${GRADE[b.c]}).`;
+      out.push({d: b.from, k: 1, t: `From price <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`, n: note});
+    }
+    const c = (cab || {}).cabins || {};
+    for (const occ of ["twin", "solo"]){
+      for (const [k, name] of SERIES.map(x => [x[0], x[1]])){
+        const h = c[`${occ}.${k}`];
+        if (!h) continue;
+        const label = `${name}${occ === "solo" ? " (solo)" : ""}`;
+        for (let i = 1; i < h.seg.length; i++){
+          const a = h.seg[i-1], b = h.seg[i];
+          if (b.back) out.push({d: b.from, k: 2, t: `${label} back on sale at ${fmtGBP(b.p)}`, n: "Starts a fresh reference period."});
+          else { const dn = b.p < a.p; out.push({d: b.from, k: 2, t: `${label} <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`}); }
+        }
+        if (h.out) out.push({d: h.out, k: 3, t: `${label} sold out`});
+      }
+    }
+    return out.sort((a, b) => b.d.localeCompare(a.d) || a.k - b.k);
+  }
+
+  function chart(s, cab, today){
+    const c = (cab || {}).cabins || {};
+    const series = SERIES.filter(([k]) => c["twin." + k]).map(([k, name, color]) => {
+      const h = c["twin." + k];
+      return {name, color, segs: h.seg, out: h.out, dash: false};
+    });
+    series.push({name: "From price", color: "var(--ink)", segs: s.segments, out: s.removed || null, dash: true});
+    const starts = series.map(x => x.segs[0].from);
+    const start = starts.reduce((a, b) => a < b ? a : b);
+    const end = today > start ? today : addDays(start, 1);
+    const span = daysBetween(start, end);
+    const ps = series.flatMap(x => x.segs.map(g => g.p));
+    let lo = Math.min(...ps), hi = Math.max(...ps);
+    if (hi === lo){ lo -= 50; hi += 50; }
+    const padv = (hi - lo) * 0.08; lo -= padv; hi += padv;
+    // Drawn at the width it will be shown, so the 12px labels stay 12px on a phone.
+    const W = Math.max(320, Math.min(880, window.innerWidth - 80)), narrow = W < 600;
+    const H = narrow ? 220 : 260, L = narrow ? 52 : 64, R = narrow ? 84 : 110, T = 12, B = 30;
+    const x = d => L + daysBetween(start, d) / span * (W - L - R);
+    const y = p => T + (hi - p) / (hi - lo) * (H - T - B);
+    const svg = [];
+    const step = (hi - lo) / 4;
+    for (let i = 0; i <= 4; i++){
+      const v = lo + step * i, yy = y(v);
+      svg.push(`<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="var(--rule)" stroke-width="1"/>`);
+      svg.push(`<text x="${L - 8}" y="${yy + 4}" text-anchor="end" font-size="12" fill="var(--muted)">${fmtGBP(v)}</text>`);
+    }
+    const ticks = span <= 1 ? [start, end] : [start, addDays(start, Math.round(span / 2)), end];
+    ticks.forEach((d, i) => svg.push(`<text x="${x(d)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}" font-size="12" fill="var(--muted)">${fmtDate(d).replace(/ \d{4}$/, "")}</text>`));
+    const ends = [];
+    series.forEach(sr => {
+      let d = "", lastY = null;
+      sr.segs.forEach((g, i) => {
+        const x0 = x(g.from), y0 = y(g.p);
+        const stop = i < sr.segs.length - 1 ? sr.segs[i+1].from : (sr.out || end);
+        d += (i === 0 ? `M${x0},${y0}` : `V${y0}`) + `H${x(stop)}`;
+        lastY = y0;
+      });
+      svg.push(`<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" ${sr.dash ? 'stroke-dasharray="5 4"' : ""} stroke-linejoin="round"/>`);
+      sr.segs.slice(1).forEach(g => svg.push(`<circle cx="${x(g.from)}" cy="${y(g.p)}" r="4" fill="${sr.color}" stroke="var(--bg)" stroke-width="2"/>`));
+      if (!sr.out) ends.push({y: lastY, sr});
+    });
+    // Direct labels at the right-hand end, nudged apart so they never overlap
+    ends.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i-1].y < 15) ends[i].y = ends[i-1].y + 15;
+    ends.forEach(e => {
+      svg.push(`<line x1="${W - R + 8}" x2="${W - R + 20}" y1="${e.y}" y2="${e.y}" stroke="${e.sr.color}" stroke-width="2" ${e.sr.dash ? 'stroke-dasharray="4 3"' : ""}/>`);
+      svg.push(`<text x="${W - R + 24}" y="${e.y + 4}" font-size="12" fill="var(--muted)">${esc(e.sr.name)}</text>`);
+    });
+    svg.push(`<line id="xh" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`);
+    svg.push(`<rect id="hit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>`);
+    const legend = series.map(sr => `<span><i class="key${sr.dash ? " dash" : ""}" style="border-color:${sr.color}"></i>${esc(sr.name)}</span>`).join("");
+    const html = `<div class="legend">${legend}</div>
+      <div class="chartbox"><svg viewBox="0 0 ${W} ${H}" role="img" tabindex="0" aria-label="Price per person over time. Use the arrow keys to step through the days.">${svg.join("")}</svg><div class="ctip" hidden></div></div>`;
+    const wire = root => {
+      const el = root.querySelector(".chartbox svg"), tip = root.querySelector(".ctip"), xh = el.querySelector("#xh");
+      let day = span;
+      const show = () => {
+        const d = addDays(start, day), xx = x(d);
+        xh.setAttribute("x1", xx); xh.setAttribute("x2", xx); xh.setAttribute("visibility", "visible");
+        tip.replaceChildren();
+        const head = document.createElement("div"); head.className = "d"; head.textContent = fmtDate(d); tip.appendChild(head);
+        series.forEach(sr => {
+          const p = priceOn(sr.segs, sr.out, d);
+          const row = document.createElement("div"); row.className = "r";
+          const lab = document.createElement("span");
+          const k = document.createElement("i"); k.className = "key" + (sr.dash ? " dash" : ""); k.style.borderColor = sr.color;
+          lab.append(k, document.createTextNode(sr.name));
+          const val = document.createElement("b"); val.textContent = p == null ? (sr.segs[0].from > d ? "–" : "sold out") : fmtGBP(p);
+          row.append(lab, val); tip.appendChild(row);
+        });
+        tip.hidden = false;
+        const box = el.getBoundingClientRect(), sc = box.width / W, px = xx * sc;
+        tip.style.top = "8px";
+        tip.style.left = (px + 12 + tip.offsetWidth > box.width ? px - 12 - tip.offsetWidth : px + 12) + "px";
+      };
+      const hide = () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); };
+      el.addEventListener("pointermove", ev => {
+        const box = el.getBoundingClientRect(), vx = (ev.clientX - box.left) * W / box.width;
+        if (vx < L || vx > W - R){ hide(); return; }
+        day = Math.round((vx - L) / (W - L - R) * span); show();
+      });
+      el.addEventListener("pointerleave", hide);
+      el.addEventListener("focus", show);
+      el.addEventListener("blur", hide);
+      el.addEventListener("keydown", ev => {
+        if (ev.key === "ArrowLeft"){ day = Math.max(0, day - 1); show(); ev.preventDefault(); }
+        if (ev.key === "ArrowRight"){ day = Math.min(span, day + 1); show(); ev.preventDefault(); }
+      });
+    };
+    return {html, wire};
+  }
+
+  function cabinTable(cab, today){
+    const c = (cab || {}).cabins || {};
+    const rows = SERIES.map(([k, name, color]) => {
+      const cell = occ => {
+        const h = c[`${occ}.${k}`];
+        if (!h) return `<td class="num sub">–</td>`;
+        if (h.out) return `<td class="num sub">Sold out since ${fmtDate(h.out)}</td>`;
+        const cur = h.seg[h.seg.length - 1];
+        return `<td class="num"><b>${fmtGBP(cur.p)}</b><div class="sub">since ${fmtDate(cur.from)}</div></td>`;
+      };
+      if (!c["twin." + k] && !c["solo." + k]) return "";
+      return `<tr><td><span style="display:inline-flex;align-items:center;gap:8px"><i class="key" style="border-color:${color}"></i>${name}</span></td>${cell("twin")}${cell("solo")}</tr>`;
+    }).join("");
+    return rows ? `<div class="tablewrap" style="border-top:0"><table class="dtable"><thead><tr><th>Cabin</th><th class="num">Twin, pp</th><th class="num">Solo</th></tr></thead><tbody>${rows}</tbody></table></div>`
+                : `<p class="sub">No cabin prices recorded for this sailing.</p>`;
+  }
+
+  const dlg = $("detail");
+  function openDetail(id){
+    const raw = state && state.sailings && state.sailings[id];
+    if (!raw){ if (dlg.open) dlg.close(); return; }
+    const s = {id, ...raw}, cab = cabins[id], today = state.updated, rules = state.rules || {};
+    const v = verdict(s, cab, today, rules);
+    const ch = chart(s, cab, today);
+    const log = changeLog(s, cab);
+    const fly = s.flight_from ? `Flights from ${esc(s.flight_from)}` : `No-fly from ${esc(s.port)}`;
+    dlg.innerHTML = `
+      <div class="dhead">
+        <div>
+          <h2 id="d-title">${esc(s.base_title || s.title)}</h2>
+          <div class="facts">
+            <span>${esc(s.id)}</span><span>${esc(s.ship)}</span><span>${fly}</span>
+            <span>Departs ${fmtDate(s.departure_date)}</span><span>${s.nights ?? "–"} nights</span>
+            ${s.offer ? `<span>${esc(s.offer)}</span>` : ""}
+            ${s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">View on the booking site ↗</a>` : ""}
+          </div>
+        </div>
+        <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
+      </div>
+      <div class="dbody">
+        <section><h3>Was/now status</h3><div class="verdict ${v.cls}">${v.lines.map(l => `<p>${esc(l)}</p>`).join("")}</div></section>
+        <section><h3>Price per person, twin</h3>${ch.html}
+          <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price in the ad feed.</p></section>
+        <section><h3>Cabins now</h3>${cabinTable(cab, today)}</section>
+        <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
+        ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
+      </div>`;
+    ch.wire(dlg);
+    $("d-close").addEventListener("click", () => dlg.close());
+    if (!dlg.open) dlg.showModal();
+    dlg.querySelector(".dbody").scrollTop = 0; dlg.scrollTop = 0;
+  }
+  dlg.addEventListener("close", () => {
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  });
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  const fromHash = () => { const id = decodeURIComponent(location.hash.slice(1)); if (id) openDetail(id); else if (dlg.open) dlg.close(); };
+  window.addEventListener("hashchange", fromHash);
+  document.addEventListener("click", e => {
+    if (e.target.closest("a")) return;
+    const t = e.target.closest("[data-id]");
+    if (!t || !t.closest("#rows, #queue")) return;
+    const id = t.dataset.id;
+    if (location.hash === "#" + id) openDetail(id); else location.hash = id;
+  });
 
   // Controls
   $("q").addEventListener("input", e => { query = e.target.value.trim(); render(); });
@@ -433,6 +782,7 @@ const auth = getAuth(firebaseApp);
     }
     $("gate").hidden = true; $("app").hidden = false;
     render();
+    fromHash();
     $("who").innerHTML = (`${esc(user.email)} · <button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
   });
