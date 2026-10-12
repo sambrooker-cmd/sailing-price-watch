@@ -272,6 +272,24 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 
   <section aria-labelledby="h-cards">
     <h2 id="h-cards"><span class="mini amber"></span>Cards</h2>
+    <div class="controls" role="group" aria-label="Card filters">
+      <label for="k-q" hidden>Search cards</label>
+      <input id="k-q" type="search" placeholder="Search title, port or code">
+      <label for="k-month" hidden>Departure month</label>
+      <select id="k-month"><option value="">Any departure month</option></select>
+      <label for="k-port" hidden>Port</label>
+      <select id="k-port"><option value="">Any port or airport</option></select>
+      <label for="k-kind" hidden>Cruise type</label>
+      <select id="k-kind"><option value="">No-fly and fly-cruise</option><option value="nofly">No-fly only</option><option value="fly">Fly-cruise only</option></select>
+      <label for="k-when" hidden>Made</label>
+      <select id="k-when"><option value="">Made any time</option><option value="today">Made or remade today</option><option value="7">In the last 7 days</option></select>
+    </div>
+    <div class="controls" role="group" aria-label="Download cards">
+      <label for="k-size">Size</label>
+      <select id="k-size"><option value="1x1">1:1 feed &amp; carousel</option><option value="4x5">4:5 feed</option><option value="9x16">9:16 Stories &amp; Reels</option><option value="all">All three sizes</option></select>
+      <button type="button" class="btn" id="k-zip">Download these</button>
+      <span class="sub" id="k-status" aria-live="polite"></span>
+    </div>
     <div id="cards"><p class="loading">Loading cards…</p></div>
   </section>
 
@@ -954,20 +972,106 @@ const auth = getAuth(firebaseApp);
         <p class="note">Old versions are deleted 30 days after they go out of date.</p></div>` : "";
     return now + old;
   }
+  // Cards page filters (their own, so they don't disturb the Overview table's) and "Download these"
+  let kf = {q: "", month: "", port: "", kind: "", when: "", size: "1x1"};
+  try { kf = {...kf, ...JSON.parse(localStorage.getItem("spw-cardfilt") || "{}"), q: ""}; } catch(e){}
+  let cardRows = [], cardFiltersBuilt = false;
   function renderCards(){
     const box = $("cards");
     if (!cardsDoc){ box.innerHTML = `<div class="empty"><p>Cards appear here after the next hourly check makes them.</p></div>`; return; }
     const all = Object.entries(cardsDoc.sailings || {}).map(([id, c]) => ({id, c, s: (state.sailings || {})[id] || {}}));
-    const cur = all.filter(x => x.c.current).sort((a, b) => b.c.current.made_at.localeCompare(a.c.current.made_at) || a.id.localeCompare(b.id));
-    const oldN = all.reduce((n, x) => n + (x.c.old || []).length, 0);
+    const withCards = all.filter(x => x.c.current);
+    if (!cardFiltersBuilt){
+      cardFiltersBuilt = true;
+      const fill = (sel, vals, label) => vals.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = label(v); $(sel).appendChild(o); });
+      fill("k-month", [...new Set(withCards.map(x => monthKey(x.s)).filter(Boolean))].sort(), monthName);
+      const ports = [...new Set(withCards.map(x => portOf(x.s)).filter(Boolean))];
+      ports.sort((a, b) => (a.startsWith("Flights") - b.startsWith("Flights")) || a.localeCompare(b));
+      fill("k-port", ports, v => v);
+      for (const k of ["month", "port", "kind", "when", "size"]){
+        if (kf[k] && ![...$("k-" + k).options].some(o => o.value === kf[k])) kf[k] = k === "size" ? "1x1" : "";
+        $("k-" + k).value = kf[k];
+      }
+    }
     const today = state.updated;
-    box.innerHTML = `<p class="note" style="margin:0 0 12px">Cards for ${cur.length} sailing${cur.length === 1 ? "" : "s"}, kept up to date by the hourly check: when a price, promotion, Nectar points or anything else on a card changes, its cards are remade. ${oldN} out-of-date version${oldN === 1 ? " is" : "s are"} kept for 30 days. Last updated ${fmtWhen(cardsDoc.updated_at)}.</p>
+    const q = kf.q.toLowerCase();
+    const cur = withCards.filter(({id, c, s}) =>
+      (!kf.month || monthKey(s) === kf.month) && (!kf.port || portOf(s) === kf.port) &&
+      (!kf.kind || (kf.kind === "fly") === !!s.flight_from) &&
+      (!kf.when || (kf.when === "today" ? c.current.made_at.slice(0, 10) === today : c.current.made_at.slice(0, 10) >= addDays(today, -6))) &&
+      (!q || [id, s.title, s.port, s.flight_from, s.ship].join(" ").toLowerCase().includes(q)))
+      .sort((a, b) => b.c.current.made_at.localeCompare(a.c.current.made_at) || a.id.localeCompare(b.id));
+    cardRows = cur;
+    const oldN = all.reduce((n, x) => n + (x.c.old || []).length, 0);
+    const filtered = cur.length !== withCards.length;
+    $("k-zip").textContent = `Download these (${cur.length})`;
+    $("k-zip").disabled = !cur.length;
+    box.innerHTML = `<p class="note" style="margin:0 0 12px">${filtered ? `Showing ${cur.length} of ${withCards.length} sailings with cards. ` : `Cards for ${withCards.length} sailings. `}Kept up to date by the hourly check: when a price, promotion, Nectar points or anything else on a card changes, its cards are remade. ${oldN} out-of-date version${oldN === 1 ? " is" : "s are"} kept for 30 days. Last updated ${fmtWhen(cardsDoc.updated_at)}.</p>
       <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Made</th><th class="num">Price on cards</th><th>Download</th></tr></thead><tbody>${cur.map(({id, c, s}) => `
         <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div></td>
           <td>${fmtWhen(c.current.made_at)}${c.current.made_at.slice(0, 10) === today && c.current.reason !== "new" ? `<div class="sub">${esc(c.current.reason)}</div>` : ""}</td>
           <td class="num">${fmtGBP(c.current.price)}</td>
-          <td>${Object.entries(c.current.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</td></tr>`).join("")}</tbody></table></div>`;
+          <td>${Object.entries(c.current.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</td></tr>`).join("")}</tbody></table></div>` +
+      (cur.length ? "" : `<div class="empty" style="margin-top:12px"><p>No cards match these filters.</p></div>`);
   }
+  const saveKf = () => { try { localStorage.setItem("spw-cardfilt", JSON.stringify({...kf, q: ""})); } catch(e){} };
+  $("k-q").addEventListener("input", e => { kf.q = e.target.value.trim(); renderCards(); });
+  for (const k of ["month", "port", "kind", "when"]) $("k-" + k).addEventListener("change", e => { kf[k] = e.target.value; saveKf(); renderCards(); });
+  $("k-size").addEventListener("change", e => { kf.size = e.target.value; saveKf(); });
+
+  // One zip of the filtered cards, built in the browser: <code>_<size>.jpg (in a folder per size when
+  // all sizes are picked) plus cards.csv saying what is on each. Falls back to one download per card
+  // if the browser isn't allowed to read the images (the bucket's download rule isn't in place yet).
+  const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise((ok, bad) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    sc.onload = () => ok(window.JSZip); sc.onerror = () => bad(new Error("couldn't load the zip tool"));
+    document.head.appendChild(sc);
+  });
+  let zipping = false;
+  $("k-zip").addEventListener("click", async () => {
+    if (zipping || !cardRows.length) return;
+    const sizes = kf.size === "all" ? ["1x1", "4x5", "9x16"] : [kf.size];
+    const jobs = cardRows.flatMap(({id, c}) => sizes.filter(t => c.current.files[t]).map(t => ({id, t, url: c.current.files[t]})));
+    zipping = true; $("k-zip").disabled = true;
+    const status = $("k-status");
+    try {
+      const JSZip = await loadZip();
+      const zip = new JSZip();
+      let done = 0;
+      const one = async j => {
+        const r = await fetch(j.url);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        zip.file((sizes.length > 1 ? j.t.replace("x", "-") + "/" : "") + `${j.id}_${j.t}.jpg`, await r.blob());
+        status.textContent = `Fetching cards… ${++done} of ${jobs.length}`;
+      };
+      for (let i = 0; i < jobs.length; i += 6) await Promise.all(jobs.slice(i, i + 6).map(one));
+      const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+      const csv = [["Cruise code", "Sailing", "Departs", "Price on cards", "Promotions on cards", "Nectar on cards", "Made", "Booking link"],
+        ...cardRows.map(({id, c, s}) => [id, s.base_title || s.title, s.departure_date, c.current.price, (c.current.promos || []).join(" | "), c.current.nectar || "", c.current.made_at, s.link])]
+        .map(r => r.map(cell).join(",")).join("\r\n");
+      zip.file("cards.csv", "\ufeff" + csv);
+      status.textContent = "Making the zip…";
+      const blob = await zip.generateAsync({type: "blob"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `cards-${sizes.length > 1 ? "all-sizes" : sizes[0]}-${state.updated}-${cardRows.length}-sailings.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      status.textContent = `Downloaded ${jobs.length} card${jobs.length === 1 ? "" : "s"} for ${cardRows.length} sailing${cardRows.length === 1 ? "" : "s"}.`;
+    } catch (e) {
+      // Fallback: let the browser download each card itself (the links send "save as" headers)
+      status.textContent = `The zip couldn't be made (${e.message}), so the cards will download one by one. Your browser may ask to allow multiple downloads.`;
+      for (const j of jobs.slice(0, 120)){
+        const a = document.createElement("a"); a.href = j.url; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+        await new Promise(r => setTimeout(r, 350));
+      }
+      if (jobs.length > 120) status.textContent += ` Only the first 120 were downloaded; narrow the filters for the rest.`;
+    } finally {
+      zipping = false; $("k-zip").disabled = !cardRows.length;
+    }
+  });
 
   function promoDetail(s){
     if (!state.promos_since) return s.offer ? `<p>${esc(s.offer)}</p><p class="note">Promotion history is recorded from the next daily run.</p>` : `<p class="sub">Promotion history is recorded from the next daily run.</p>`;

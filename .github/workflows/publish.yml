@@ -44,6 +44,12 @@ jobs:
           pip install google-auth==2.40.3 requests==2.32.3
           python publish.py
 
+      # Lets the page's "Download these" zip card images in the browser (adds one CORS rule
+      # for this site to the Storage bucket, keeping any others). No-op once it's in place.
+      - name: Allow card downloads from the page
+        continue-on-error: true
+        run: python storage_cors.py
+
       - name: Deploy page to Firebase Hosting
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
