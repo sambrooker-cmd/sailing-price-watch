@@ -79,6 +79,41 @@ def photo(url, sid, w, h):
     return "data:image/jpeg;base64," + b64(dst)
 
 
+def photo_whole(url, sid, w):
+    # Storyblok image service: the whole image at the card width, uncropped.
+    dst = CACHE / f"{sid}_{w}x0.jpg"
+    if not dst.exists():
+        src = url + f"/m/{w}x0/filters:quality(88):format(jpeg)"
+        req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0"})
+        dst.write_bytes(urllib.request.urlopen(req, timeout=60).read())
+    return "data:image/jpeg;base64," + b64(dst)
+
+
+# Campaign artwork (themed / chartered sailings, Cruise of the Week): wide images with text
+# baked in, which the normal crop cuts through (Sam, 12 Oct 2026, A12639). These cards keep
+# the same design but show the artwork whole, between the badge and the strips, on a blurred
+# copy of itself. Spotted from the file name or the 2:1 shape; campaign_images.json can add
+# or remove cruise codes by hand: {"add": [...], "remove": [...]}.
+CAMPAIGN_NAME = re.compile(r"(cotw|dig-\d|carousel|boom-radio|weekender|back_to_|no-logo)", re.I)
+CAMPAIGN_SIZE = re.compile(r"/f/\d+/(\d+)x(\d+)/")
+_CA = ROOT / "campaign_images.json"
+CAMPAIGN_LIST = json.loads(_CA.read_text()) if _CA.exists() else {}
+
+
+def is_campaign(s):
+    sid = s["id"]
+    if sid in (CAMPAIGN_LIST.get("remove") or []):
+        return False
+    if sid in (CAMPAIGN_LIST.get("add") or []):
+        return True
+    url = OVERRIDES.get(sid) or s.get("image_link") or ""
+    if sid in OVERRIDES:
+        return False   # a hand-picked swap is a photo
+    m = CAMPAIGN_SIZE.search(url)
+    wide = bool(m) and int(m.group(1)) >= 1.9 * int(m.group(2))
+    return bool(CAMPAIGN_NAME.search(url.rsplit("/", 1)[-1])) or wide
+
+
 # Per-sailing photo swaps (cruise code -> image URL on Ambassador's asset
 # server), for feed images that are duplicated, have text in them, or break
 # the photography guidelines.
@@ -198,7 +233,9 @@ def split_title(t, max_head=20):
     return " ".join(words), " ".join(head)
 
 
-def card_html(s, was=None, w=1080, h=1080, cabin=None):
+def card_html(s, was=None, w=1080, h=1080, cabin=None, campaign=None):
+    if campaign is None:
+        campaign = not was and is_campaign(s)
     # Stories/Reels: Meta overlays the profile bar on the top ~14% and the
     # reply bar / CTA on the bottom ~20%, so 9:16 cards push everything in.
     story = h / w >= 1.7
@@ -240,6 +277,12 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None):
     else:
         fare = f"""
         <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>"""
+    if campaign:
+        art = photo_whole(s["image_link"], s["id"], w)
+        art_html = (f'<div class="artbg" style="background-image:url({art})"></div>'
+                    f'<img class="art" id="art" src="{art}" alt="">')
+    else:
+        art_html = (f'<img class="photo" src="{photo(OVERRIDES.get(s["id"], s["image_link"]), s["id"] + ("_ov" if s["id"] in OVERRIDES else ""), w, h)}" alt="">')
     offer_html = "".join(f'<div class="strip offer"><span class="fit" data-max="27">{html.escape(t)}</span></div>' for t in promo_lines(s))
     nx = nectar_line(s)
     nectar_html = f'<div class="strip nectar"><span class="fit" data-max="27">{html.escape(nx)}</span></div>' if nx else ""
@@ -280,10 +323,12 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 .fare.tall2{{min-height:214px}}
 .nectar{{height:76px;padding:0 60px 0 64px;background:#F1ECE7;color:#6B207D;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);
   font-size:27px;font-weight:700}}
+.artbg{{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}}
+.art{{position:absolute;z-index:1;left:0;width:{w}px;height:auto;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,.35)}}
 .offer{{height:76px;padding:0 60px 0 64px;background:#009165;color:#fff;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);
   font-size:27px;font-weight:700}}
 </style></head><body><div id="card">
-<img class="photo" src="{photo(OVERRIDES.get(s['id'], s['image_link']), s['id'] + ('_ov' if s['id'] in OVERRIDES else ''), w, h)}" alt="">
+{art_html}
 <div class="scrim"></div>
 <div class="logo">{LOGO}</div>
 <div class="badge" id="badge">{badge_icon}<div class="lines"><span>{html.escape(b1)}</span><span>{html.escape(b2)}</span></div></div>
@@ -321,6 +366,16 @@ function fit(){{
   const logoRight = document.querySelector('.logo').getBoundingClientRect().right;
   let bs = 30;
   while (badge.getBoundingClientRect().left < logoRight + 32 && bs > 18) {{ bs -= 1; lines.style.fontSize = bs + 'px'; }}
+  // Campaign artwork: shown whole in the space between the badge and the strips.
+  const art = document.getElementById('art');
+  if (art) {{
+    const top = badge.getBoundingClientRect().bottom + 20, bot = document.querySelector('.stack').getBoundingClientRect().top - 20;
+    const ratio = art.naturalHeight / art.naturalWidth, room = bot - top;
+    let aw = W, ah = W * ratio;
+    if (ah > room) {{ ah = room; aw = ah / ratio; }}
+    art.style.width = aw + 'px'; art.style.height = ah + 'px';
+    art.style.left = (W - aw) / 2 + 'px'; art.style.top = (top + (room - ah) / 2) + 'px';
+  }}
 }}
 </script>
 </body></html>"""
