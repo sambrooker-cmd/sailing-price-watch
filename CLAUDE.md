@@ -37,6 +37,7 @@ cards back on, or add any Meta/ads step, until Sam asks.
 | `render_cards.py` | Renders 1x1 / 3x4 / 9x16 PNG cards with Playwright (unchanged) |
 | `daily.py` | **New.** Runs the whole daily job deterministically (see its docstring). Tested on 12 Oct against real data: normal run, same-day skip, and the broken-feed safety stop all behave. Card rendering through `daily.py` tested 12 Oct in Claude Code on a scratch copy (lead + cabin claim, test prices only, nothing committed). |
 | `.github/workflows/price-watch.yml` | Workflow: daily cron + manual run, commits results, opens a GitHub issue for new claims or failures. Reviewed 12 Oct: actions bumped to v7, fixed the commit step (it staged nothing on days without cards). Not yet run on GitHub. |
+| `site/index.html`, `build_site.py`, `.github/workflows/pages.yml` | Tracker dashboard (ported from the old Claude tracker page, 12 Oct 2026). `build_site.py` copies the page plus `state/` and the last 21 `runs/` into `_site/`; `pages.yml` deploys it to GitHub Pages after each daily run and on pushes to `main` |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
 | `archive/2026-10-12-morning-run.json` | The 12 Oct morning change list, which the accidental second run overwrote in `runs/2026-10-12.json` |
@@ -58,11 +59,9 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 5. Cutover (see checklist below).
 
 ## Open decisions (ask Sam)
-- **Tracker page.** The old tracker page reads from the Claude artifact database, which GitHub Actions can't write to.
-  Once this goes live the tracker page goes stale. Options: (a) a small static dashboard in this repo published with
-  GitHub Pages (needs a paid GitHub plan for a private repo); (b) keep a tiny Claude scheduled task that only copies
-  `state/` + `runs/` into the tracker database (no scripts to run, so much less likely to be blocked, but it needs
-  read access to this repo); (c) retire the page and use the repo + issues.
+- **Tracker page.** Decided by Sam 12 Oct 2026: GitHub Pages dashboard (`site/`), accepting that a Pages site from a
+  private repo is reachable by anyone with the URL (marked noindex). Needs GitHub Pro and Settings → Pages → Source
+  set to "GitHub Actions". URL: https://sambrooker-cmd.github.io/sailing-price-watch/
 - **Schedule.** GitHub cron is UTC: the draft runs at 06:57 UTC (07:57 UK in summer, 06:57 in winter). Fine, or adjust.
 - **Phase 2 (optional): Claude review of cards.** Only on days with new claims, a step could ask Claude to look at the
   PNGs and draft the approval message (e.g. Anthropic's Claude Code GitHub Action; needs an API key secret). Look up the

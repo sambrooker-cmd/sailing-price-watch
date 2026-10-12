@@ -80,3 +80,11 @@ jobs:
             [ -f out/summary.md ] && cat out/summary.md
           } > /tmp/fail.md
           gh issue create --title "Price watch FAILED — $(TZ=Europe/London date +%F)" --body-file /tmp/fail.md --assignee "${{ github.repository_owner }}"
+
+  publish:
+    needs: watch
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
