@@ -59,7 +59,7 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: |
-          pip install google-auth==2.40.3 requests==2.32.3
+          pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
           python cards_sync.py run
 
       # Claude Code looks over new or remade cards and lists any that need a person's eye (Sam, 12 Oct 2026).
