@@ -483,17 +483,16 @@ function fit(){{
   const p = document.querySelector('.fitp'), row = p.parentElement;
   let ps = 74;
   while (row.scrollWidth > row.clientWidth + 1 && ps > 48) {{ ps -= 1; p.style.fontSize = ps + 'px'; }}
-  // Campaign artwork: below the sticker if it still fills most of the width there, otherwise
-  // below the logo (the sticker then sits on its top right corner, as it does on photos).
+  // Campaign artwork: whole, between the sticker and the panel, so the sticker never covers
+  // the artwork's own text or faces (smaller on 1:1, where there's least room).
   const art = document.getElementById('art');
   if (art) {{
     const W = {w}, ratio = art.naturalHeight / art.naturalWidth, r = e => document.querySelector(e).getBoundingClientRect();
-    const bot = r('.panel').top - 20;
-    const place = top => {{ const room = bot - top; let aw = W, ah = W * ratio; if (ah > room) {{ ah = room; aw = ah / ratio; }} return {{top, room, aw, ah}}; }};
-    let a = place(r('.sticker').bottom + 16);
-    if (a.aw < W * 0.8) a = place(r('.logo').bottom + 24);
-    art.style.width = a.aw + 'px'; art.style.height = a.ah + 'px';
-    art.style.left = (W - a.aw) / 2 + 'px'; art.style.top = (a.top + (a.room - a.ah) / 2) + 'px';
+    const top = r('.sticker').bottom + 16, room = r('.panel').top - 16 - top;
+    let aw = W, ah = W * ratio;
+    if (ah > room) {{ ah = room; aw = ah / ratio; }}
+    art.style.width = aw + 'px'; art.style.height = ah + 'px';
+    art.style.left = (W - aw) / 2 + 'px'; art.style.top = (top + (room - ah) / 2) + 'px';
   }}
 }}
 </script>
