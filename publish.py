@@ -49,6 +49,7 @@ def day_counts(r):
         "sold_out": twin("cabin_sold_out"), "back": twin("cabin_back"),
         "new": len(r.get("new") or []), "removed": len(r.get("removed") or []),
         "promo_added": len(r.get("promo_added") or []), "promo_ended": len(r.get("promo_ended") or []),
+        "nectar": len(r.get("nectar_changes") or []),
     }
 
 

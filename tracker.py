@@ -161,6 +161,24 @@ def close_promos(rec, today, run, sid, catalogue, keep=()):
             run["promo_ended"].append({"id": sid, "offer": oid, "name": (catalogue.get(oid) or {}).get("name")})
 
 
+def update_nectar(rec, s, today, run, sid, first):
+    """Nectar points the sailing page shows (snapshot "nectar_pts": two sharing, cheapest cabin,
+    Ambassador fare) as a history rec["nectar"] = [{"n": points, "from": date}], plus the current
+    points per cabin grade in rec["nectar_grades"]. Recorded only: never part of was/now claims.
+    Points follow the booking value in bands, so most changes come with a price change."""
+    rec["nectar_grades"] = {k: v for k, v in s["nectar"].items() if k in ("twin", "solo")}
+    n = s.get("nectar_pts")
+    if n is None:
+        return
+    h = rec.setdefault("nectar", [])
+    if h and h[-1]["n"] == n:
+        return
+    if h and not first:
+        run["nectar_changes"].append({"id": sid, "from": h[-1]["n"], "to": n})
+    h.append({"n": n, "from": today})
+    del h[:-24]
+
+
 def cabin_claims(rec, today, rules):
     out = {}
     if rec.get("removed"):
@@ -182,12 +200,15 @@ def update(state, snap):
     run = {"date": today, "count": snap["count"], "new": [], "removed": [], "returned": [],
            "drops": [], "rises": [], "eligible": [], "flags": {},
            "cabin_drops": [], "cabin_rises": [], "cabin_sold_out": [], "cabin_back": [],
-           "cabin_eligible": [], "promo_added": [], "promo_ended": [], "promo_changed": []}
+           "cabin_eligible": [], "promo_added": [], "promo_ended": [], "promo_changed": [],
+           "nectar_changes": []}
     catalogue = state.get("offers", {})
     # The first run that sees promotions records what is live without
     # reporting every one of them as newly started.
     first_promos = "promos_since" not in state
     promos_seen = False
+    first_nectar = "nectar_since" not in state
+    nectar_seen = False
     for s in snap["sailings"]:
         sid, p = s["id"], round(s["price_pp"])
         seen.add(sid)
@@ -218,6 +239,9 @@ def update(state, snap):
         if s.get("offers") is not None and "page_error" not in s:
             update_promos(rec, s["offers"], today, run, sid, catalogue, first_promos)
             promos_seen = True
+        if s.get("nectar") is not None and "page_error" not in s:
+            update_nectar(rec, s, today, run, sid, first_nectar)
+            nectar_seen = True
         sailings[sid] = rec
         if s.get("flags"):
             run["flags"][sid] = s["flags"]
@@ -262,6 +286,8 @@ def update(state, snap):
                  "rules": rules, "sailings": sailings}
     if promos_seen and first_promos:
         run["promo_tracking_started"] = True
+    if nectar_seen or "nectar_since" in state:
+        new_state["nectar_since"] = state.get("nectar_since", today)
     if promos_seen or "promos_since" in state:
         new_state["promos_since"] = state.get("promos_since", today)
         new_state["offers"] = catalogue
@@ -290,7 +316,7 @@ def split(state):
     stays well under the 256 KB document limit."""
     cab = {}
     for sid, rec in state.get("sailings", {}).items():
-        part = {k: rec.pop(k) for k in ("cabins", "cabin_claims") if k in rec}
+        part = {k: rec.pop(k) for k in ("cabins", "cabin_claims", "nectar_grades") if k in rec}
         if part:
             cab[sid] = part
     return state, {"updated": state.get("updated"), "cabins_since": state.get("cabins_since"), "sailings": cab}

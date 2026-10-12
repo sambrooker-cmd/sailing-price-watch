@@ -81,7 +81,7 @@ def safety_problems(state, snap):
 
 # Lists of things that happened in one check: added to the day's file.
 EVENTS = ("new", "removed", "returned", "drops", "rises", "cabin_drops", "cabin_rises", "cabin_sold_out",
-          "cabin_back", "promo_added", "promo_ended", "promo_changed")
+          "cabin_back", "promo_added", "promo_ended", "promo_changed", "nectar_changes")
 
 
 def claim_key(e):
@@ -159,6 +159,9 @@ def summarise(run_doc, snap, today, cards, with_cards=True, reported=frozenset()
     for c in run_doc.get("promo_changed") or []:
         what = {"name": "renamed", "expires": "expiry changed"}.get(c["field"], c["field"] + " changed")
         other.append(f"Promotion {what} ({c.get('name') or c['offer']}): {c['from'] or 'none'} → {c['to'] or 'none'}")
+    if run_doc.get("nectar_changes"):
+        other.append("Nectar points changed: " + ", ".join(
+            f"{d['id']} {d['from']:,}→{d['to']:,}" for d in run_doc["nectar_changes"]))
     for k, label in (("new", "New sailings"), ("removed", "Removed sailings"), ("returned", "Returned sailings")):
         if run_doc[k]:
             other.append(f"{label}: " + ", ".join(run_doc[k]))
