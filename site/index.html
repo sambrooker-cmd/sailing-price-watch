@@ -203,6 +203,9 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .cardset img{display:block;width:150px;height:auto;border:1px solid var(--rule);background:var(--bg-alt)}
 .cardset figcaption{font-size:13px;color:var(--muted)}
 .cardset a{color:var(--heading);font-weight:600;font-size:14px}
+.look{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;padding:1px 8px;background:var(--warn-bg);color:var(--warn)}
+.lookbox{margin:10px 0;padding:10px 14px;background:var(--warn-bg);color:var(--warn)}
+.lookbox ul{margin:6px 0 0 18px}
 .stale{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;background:var(--warn-bg);color:var(--warn)}
 .oldcards{margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .oldcards a{color:var(--heading)}
@@ -283,6 +286,8 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
       <select id="k-kind"><option value="">No-fly and fly-cruise</option><option value="nofly">No-fly only</option><option value="fly">Fly-cruise only</option></select>
       <label for="k-when" hidden>Made</label>
       <select id="k-when"><option value="">Made any time</option><option value="today">Made or remade today</option><option value="7">In the last 7 days</option></select>
+      <label for="k-check" hidden>Claude's check</label>
+      <select id="k-check"><option value="">Any check result</option><option value="look">Needs a look</option><option value="fine">Checked, fine</option><option value="none">Not checked yet</option></select>
     </div>
     <div class="controls" role="group" aria-label="Download cards">
       <label for="k-size">Size</label>
@@ -958,6 +963,16 @@ const auth = getAuth(firebaseApp);
   const SIZE_LABEL = {"1x1": "1:1 feed & carousel", "4x5": "4:5 feed", "9x16": "9:16 Stories & Reels"};
   const cardsOf = id => ((cardsDoc || {}).sailings || {})[id] || null;
   const fmtWhen = iso => iso ? `${fmtDate(iso.slice(0, 10))}, ${fmtTime(iso)}` : "–";
+  // Claude's check of the current cards (card_review.py): "look", "fine" or "none" (not checked yet)
+  const checkOf = cur => !cur || !cur.review ? "none" : cur.review.ok ? "fine" : "look";
+  const issueText = i => `${i.size === "all" ? "All sizes" : esc(SIZE_LABEL[i.size] || i.size)}${i.severity === "fix" ? " (fix)" : ""}: ${esc(i.problem)}`;
+  function checkDetail(cur){
+    const r = cur && cur.review;
+    if (!r) return `<p class="sub">Not checked by Claude yet.</p>`;
+    if (r.ok) return `<p class="sub">Checked by Claude ${fmtWhen(r.at)}: nothing spotted.</p>`;
+    return `<div class="lookbox"><b>Needs a look</b> (Claude's check, ${fmtWhen(r.at)}; Claude can be wrong, you decide)
+      <ul>${r.issues.map(i => `<li>${issueText(i)}</li>`).join("")}</ul></div>`;
+  }
   function cardsDetail(s){
     const c = cardsOf(s.id);
     if (!cardsDoc) return `<p class="sub">Cards appear here after the next hourly check.</p>`;
@@ -967,13 +982,14 @@ const auth = getAuth(firebaseApp);
       <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure><a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy"></a>
         <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>`
       : `<p class="sub">No current cards: ${esc((c.old[0] || {}).reason || "withdrawn")}.</p>`;
+    const chk = cur ? checkDetail(cur) : "";
     const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => `<div><span class="stale">Out of date since ${fmtWhen(o.out_of_date_since)}</span> ${esc(o.reason)} · was ${fmtGBP(o.price)} ·
         ${Object.entries(o.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</div>`).join("")}
         <p class="note">Old versions are deleted 30 days after they go out of date.</p></div>` : "";
-    return now + old;
+    return now + chk + old;
   }
   // Cards page filters (their own, so they don't disturb the Overview table's) and "Download these"
-  let kf = {q: "", month: "", port: "", kind: "", when: "", size: "1x1"};
+  let kf = {q: "", month: "", port: "", kind: "", when: "", check: "", size: "1x1"};
   try { kf = {...kf, ...JSON.parse(localStorage.getItem("spw-cardfilt") || "{}"), q: ""}; } catch(e){}
   let cardRows = [], cardFiltersBuilt = false;
   function renderCards(){
@@ -988,7 +1004,7 @@ const auth = getAuth(firebaseApp);
       const ports = [...new Set(withCards.map(x => portOf(x.s)).filter(Boolean))];
       ports.sort((a, b) => (a.startsWith("Flights") - b.startsWith("Flights")) || a.localeCompare(b));
       fill("k-port", ports, v => v);
-      for (const k of ["month", "port", "kind", "when", "size"]){
+      for (const k of ["month", "port", "kind", "when", "check", "size"]){
         if (kf[k] && ![...$("k-" + k).options].some(o => o.value === kf[k])) kf[k] = k === "size" ? "1x1" : "";
         $("k-" + k).value = kf[k];
       }
@@ -999,16 +1015,19 @@ const auth = getAuth(firebaseApp);
       (!kf.month || monthKey(s) === kf.month) && (!kf.port || portOf(s) === kf.port) &&
       (!kf.kind || (kf.kind === "fly") === !!s.flight_from) &&
       (!kf.when || (kf.when === "today" ? c.current.made_at.slice(0, 10) === today : c.current.made_at.slice(0, 10) >= addDays(today, -6))) &&
+      (!kf.check || checkOf(c.current) === kf.check) &&
       (!q || [id, s.title, s.port, s.flight_from, s.ship].join(" ").toLowerCase().includes(q)))
       .sort((a, b) => b.c.current.made_at.localeCompare(a.c.current.made_at) || a.id.localeCompare(b.id));
     cardRows = cur;
     const oldN = all.reduce((n, x) => n + (x.c.old || []).length, 0);
     const filtered = cur.length !== withCards.length;
+    const lookN = withCards.filter(x => checkOf(x.c.current) === "look").length;
     $("k-zip").textContent = `Download these (${cur.length})`;
     $("k-zip").disabled = !cur.length;
     box.innerHTML = `<p class="note" style="margin:0 0 12px">${filtered ? `Showing ${cur.length} of ${withCards.length} sailings with cards. ` : `Cards for ${withCards.length} sailings. `}Kept up to date by the hourly check: when a price, promotion, Nectar points or anything else on a card changes, its cards are remade. ${oldN} out-of-date version${oldN === 1 ? " is" : "s are"} kept for 30 days. Last updated ${fmtWhen(cardsDoc.updated_at)}.</p>
+      ${lookN ? `<p class="note" style="margin:0 0 12px"><span class="stale">${lookN} need${lookN === 1 ? "s" : ""} a look</span> Claude checks new and remade cards and flags anything a person should eyeball first. Pick "Needs a look" above to see them.</p>` : ""}
       <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Made</th><th class="num">Price on cards</th><th>Download</th></tr></thead><tbody>${cur.map(({id, c, s}) => `
-        <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div></td>
+        <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div>${checkOf(c.current) === "look" ? `<div class="look" title="${esc(c.current.review.issues.map(i => i.problem).join(" "))}">Needs a look</div>` : ""}</td>
           <td>${fmtWhen(c.current.made_at)}${c.current.made_at.slice(0, 10) === today && c.current.reason !== "new" ? `<div class="sub">${esc(c.current.reason)}</div>` : ""}</td>
           <td class="num">${fmtGBP(c.current.price)}</td>
           <td>${Object.entries(c.current.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</td></tr>`).join("")}</tbody></table></div>` +
@@ -1016,7 +1035,7 @@ const auth = getAuth(firebaseApp);
   }
   const saveKf = () => { try { localStorage.setItem("spw-cardfilt", JSON.stringify({...kf, q: ""})); } catch(e){} };
   $("k-q").addEventListener("input", e => { kf.q = e.target.value.trim(); renderCards(); });
-  for (const k of ["month", "port", "kind", "when"]) $("k-" + k).addEventListener("change", e => { kf[k] = e.target.value; saveKf(); renderCards(); });
+  for (const k of ["month", "port", "kind", "when", "check"]) $("k-" + k).addEventListener("change", e => { kf[k] = e.target.value; saveKf(); renderCards(); });
   $("k-size").addEventListener("change", e => { kf.size = e.target.value; saveKf(); });
 
   // One zip of the filtered cards, built in the browser: <code>_<size>.jpg (in a folder per size when
@@ -1047,8 +1066,9 @@ const auth = getAuth(firebaseApp);
       };
       for (let i = 0; i < jobs.length; i += 6) await Promise.all(jobs.slice(i, i + 6).map(one));
       const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
-      const csv = [["Cruise code", "Sailing", "Departs", "Price on cards", "Promotions on cards", "Nectar on cards", "Made", "Booking link"],
-        ...cardRows.map(({id, c, s}) => [id, s.base_title || s.title, s.departure_date, c.current.price, (c.current.promos || []).join(" | "), c.current.nectar || "", c.current.made_at, s.link])]
+      const csv = [["Cruise code", "Sailing", "Departs", "Price on cards", "Promotions on cards", "Nectar on cards", "Made", "Claude's check", "Booking link"],
+        ...cardRows.map(({id, c, s}) => [id, s.base_title || s.title, s.departure_date, c.current.price, (c.current.promos || []).join(" | "), c.current.nectar || "", c.current.made_at,
+          {none: "Not checked yet", fine: "Fine", look: "Needs a look: " + ((c.current.review || {}).issues || []).map(i => `${i.size} ${i.problem}`).join(" ")}[checkOf(c.current)], s.link])]
         .map(r => r.map(cell).join(",")).join("\r\n");
       zip.file("cards.csv", "\ufeff" + csv);
       status.textContent = "Making the zip…";

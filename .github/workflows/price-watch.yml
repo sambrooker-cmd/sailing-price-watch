@@ -61,6 +61,23 @@ jobs:
           pip install google-auth==2.40.3 requests==2.32.3
           python cards_sync.py run
 
+      # Claude Code looks over new or remade cards and lists any that need a person's eye (Sam, 12 Oct 2026).
+      # Runs on Sam's Claude plan (CLAUDE_CODE_OAUTH_TOKEN, from `claude setup-token`), not a paid API key;
+      # skipped until that secret is added. The first check of every card is split over 4 of the plan's
+      # 5-hour usage windows. See card_review.py.
+      - name: Check new cards
+        id: review
+        if: always() && steps.cards.outcome == 'success'
+        continue-on-error: true   # a check problem must never stop prices or cards being saved
+        timeout-minutes: 30
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then echo "No CLAUDE_CODE_OAUTH_TOKEN secret: card check skipped."; exit 0; fi
+          npm install -g @anthropic-ai/claude-code@2.1.296
+          pip install requests==2.32.3
+          python card_review.py
+
       - name: Commit results
         if: steps.watch.outcome == 'success'
         run: |
@@ -107,6 +124,13 @@ jobs:
             [ -f out/summary.md ] && sed -n '/^## Cards/,$p' out/summary.md
           } > /tmp/cards.md
           .github/issue.sh "Cards FAILED — $(TZ=Europe/London date +%F)" /tmp/cards.md
+
+      - name: Open issue for cards to check
+        if: steps.review.outputs.flagged != '' && steps.review.outputs.flagged != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # One issue per day; later checks that flag more cards add a comment.
+        run: .github/issue.sh "Cards to check — $(TZ=Europe/London date +%F)" out/review.md
 
       - name: Open issue on failure
         if: failure()

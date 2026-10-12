@@ -83,7 +83,7 @@ def documents():
     }
     if (ROOT / "state" / "cards.json").exists():
         man = load(ROOT / "state" / "cards.json")
-        slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since")
+        slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since", "review")
                           if c.get(k) is not None} | {"files": {t: f["url"] for t, f in c["files"].items()}}
         docs["cards"] = {"updated_at": man.get("updated_at"), "sailings": {
             sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in m.get("old") or []]}
