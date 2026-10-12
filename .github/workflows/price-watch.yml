@@ -71,7 +71,9 @@ jobs:
       # 5-hour usage windows. See card_review.py.
       - name: Check new cards
         id: review
-        if: always() && steps.cards.outcome == 'success'
+        # Paused by Sam, 12 Oct 2026 (the plan token was rejected). To turn it back on, add the repo
+        # variable CARD_CHECK = on (Settings → Secrets and variables → Actions → Variables).
+        if: always() && steps.cards.outcome == 'success' && vars.CARD_CHECK == 'on'
         continue-on-error: true   # a check problem must never stop prices or cards being saved
         timeout-minutes: 30
         env:
