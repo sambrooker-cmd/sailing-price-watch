@@ -13,8 +13,8 @@ on:
         default: false
 
 permissions:
-  contents: write   # commit state/, runs/, cards/
-  issues: write     # open approval / failure issues
+  contents: write   # commit state/, runs/
+  issues: write     # open new-claim / failure issues
 
 concurrency:
   group: price-watch
@@ -31,14 +31,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Playwright + Chromium (card rendering)
-        run: |
-          pip install playwright
-          python -m playwright install --with-deps chromium
-
       - name: Run price watch
         id: watch
-        run: python daily.py ${{ inputs.force && '--force' || '' }}
+        # Card rendering is paused (Sam, 12 Oct 2026): prices only. To turn it back on,
+        # drop --no-cards and restore the Playwright install step (see git history).
+        run: python daily.py --no-cards ${{ inputs.force && '--force' || '' }}
 
       - name: Commit results
         if: steps.watch.outcome == 'success'
@@ -64,11 +61,11 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
-      - name: Open approval issue for new was/now claims
+      - name: Open issue for new was/now claims
         if: steps.watch.outputs.new_claims == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue create --title "Was/now approval needed — ${{ steps.watch.outputs.date }}" --body-file out/issue.md --assignee "${{ github.repository_owner }}"
+        run: gh issue create --title "New was/now claims — ${{ steps.watch.outputs.date }}" --body-file out/issue.md --assignee "${{ github.repository_owner }}"
 
       - name: Open issue on failure
         if: failure()

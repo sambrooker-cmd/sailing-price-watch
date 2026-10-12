@@ -75,7 +75,7 @@ def safety_problems(state, snap):
     return probs
 
 
-def summarise(run_doc, snap, today, cards):
+def summarise(run_doc, snap, today, cards, with_cards=True):
     by = {s["id"]: s for s in snap["sailings"]}
     name = lambda i: f"{(by.get(i) or {}).get('base_title') or i} ({i})"  # noqa
     L = []
@@ -116,8 +116,9 @@ def summarise(run_doc, snap, today, cards):
         return head + "\n\nNo price changes.\n", False
     body = [head, ""]
     if L:
-        body += ["## Newly eligible was/now claims", *L, "",
-                 "Nothing has been uploaded to Meta or Google. Approve before swapping cards.", ""]
+        body += ["## Newly eligible was/now claims", *L, ""]
+        if with_cards:
+            body += ["Nothing has been uploaded to Meta or Google. Approve before swapping cards.", ""]
     if other:
         body += ["## Other changes (no action needed)", *[f"- {o}" for o in other], ""]
     if cards:
@@ -190,7 +191,7 @@ def main():
         cards = [p if p.is_absolute() else (ROOT / p) for p in cards]
 
     # 6. summary
-    text, new_claims = summarise(run_doc, snap, today, cards)
+    text, new_claims = summarise(run_doc, snap, today, cards, not a.no_cards)
     if "WARNING" in report:
         text += "\n**WARNING:** a state file is close to the old 256 KB document limit (harmless in git, but worth a look).\n"
     (out / "summary.md").write_text(text)

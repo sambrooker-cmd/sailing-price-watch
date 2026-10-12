@@ -11,6 +11,11 @@ Why: the scheduled task kept failing. Its safety check blocked running scripts d
 and runs sometimes reported "succeeded" while saving nothing (10 and 11 Oct were lost). On 12 Oct a test run also ignored
 a "don't write anything" instruction and saved a second run for the day. Deterministic code removes all of that.
 
+## Current scope (12 Oct 2026)
+Sam asked to start with **price tracking only**. Card rendering is paused: the workflow runs `daily.py --no-cards`
+and no longer installs Playwright. New was/now claims still open a GitHub issue, as information only. Don't turn
+cards back on, or add any Meta/ads step, until Sam asks.
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
