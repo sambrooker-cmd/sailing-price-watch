@@ -37,7 +37,7 @@ cards back on, or add any Meta/ads step, until Sam asks.
 | `render_cards.py` | Renders 1x1 / 3x4 / 9x16 PNG cards with Playwright (unchanged) |
 | `daily.py` | **New.** Runs the whole daily job deterministically (see its docstring). Tested on 12 Oct against real data: normal run, same-day skip, and the broken-feed safety stop all behave. Card rendering through `daily.py` tested 12 Oct in Claude Code on a scratch copy (lead + cabin claim, test prices only, nothing committed). |
 | `.github/workflows/price-watch.yml` | Workflow: daily cron + manual run, commits results, opens a GitHub issue for new claims or failures. Reviewed 12 Oct: actions bumped to v7, fixed the commit step (it staged nothing on days without cards). Not yet run on GitHub. |
-| `site/index.html`, `build_site.py`, `.github/workflows/pages.yml` | Tracker dashboard (ported from the old Claude tracker page, 12 Oct 2026). `build_site.py` copies the page plus `state/` and the last 21 `runs/` into `_site/`; `pages.yml` deploys it to GitHub Pages after each daily run and on pushes to `main` |
+| `site/index.html`, `publish.py`, `.github/workflows/publish.yml` | Tracker page (ported from the old Claude tracker page, 12 Oct 2026). `publish.py` copies `state/` and the last 21 `runs/` into Firestore (`pricewatch/current`, `/cabins`, `/runs`) in the Digital Team Planner's Firebase project; `publish.yml` runs it and deploys `site/` to Firebase Hosting after each daily run and on pushes to `main`. The page signs people in with Google and only shows data to the planner's allowlist |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
 | `archive/2026-10-12-morning-run.json` | The 12 Oct morning change list, which the accidental second run overwrote in `runs/2026-10-12.json` |
@@ -59,9 +59,10 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 5. Cutover (see checklist below).
 
 ## Open decisions (ask Sam)
-- **Tracker page.** Decided by Sam 12 Oct 2026: GitHub Pages dashboard (`site/`), accepting that a Pages site from a
-  private repo is reachable by anyone with the URL (marked noindex). Needs GitHub Pro and Settings → Pages → Source
-  set to "GitHub Actions". URL: https://sambrooker-cmd.github.io/sailing-price-watch/
+- **Tracker page.** Decided by Sam 12 Oct 2026: same set-up as the Digital Team Planner
+  (`sambrooker-cmd/DigitalTeamPlanner`). Data lives in its Firebase project (`promotions-planner`), not on a public
+  page; viewers sign in with Google and must be on the planner's Firestore `allowlist` (any role). The repo stays
+  private and no GitHub Pro is needed. One-off setup, done by Sam (see "Tracker page setup" below).
 - **Schedule.** GitHub cron is UTC: the draft runs at 06:57 UTC (07:57 UK in summer, 06:57 in winter). Fine, or adjust.
 - **Phase 2 (optional): Claude review of cards.** Only on days with new claims, a step could ask Claude to look at the
   PNGs and draft the approval message (e.g. Anthropic's Claude Code GitHub Action; needs an API key secret). Look up the
@@ -69,6 +70,28 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 - **Intraday flip-flops.** On 12 Oct the site's prices/availability changed between 07:00 and 10:30 (cabins sold out and
   came back, lead prices moved both ways). Running once a day at a fixed time keeps this consistent. Worth Sam knowing,
   because "sold out then back" resets a cabin's reference period.
+
+## Tracker page setup (one-off)
+1. **Firestore rules.** Firebase console → `promotions-planner` → Firestore Database → Rules. Inside the existing
+   `match /databases/{database}/documents { ... }` block (next to the other `match` blocks, so it can use the planner's
+   `isAllowed()` function), add:
+   ```
+   match /pricewatch/{docId} {
+     allow read: if isAllowed();
+     allow write: if false;   // only the GitHub workflow writes, with the service account (rules don't apply to it)
+   }
+   ```
+   Publish the rules.
+2. **Hosting site.** Hosting → (Get started, if Hosting has never been used) → **Add another site** → pick a site ID,
+   e.g. `acl-price-watch`. The page will be at `https://<site-id>.web.app`. A separate site keeps it clear of the
+   planner if the planner ever moves to Firebase Hosting.
+3. **Sign-in domain.** Authentication → Settings → Authorized domains → add `<site-id>.web.app`.
+4. **Service account key.** Project settings → Service accounts → **Generate new private key**. In this repo:
+   Settings → Secrets and variables → Actions → New repository secret `FIREBASE_SERVICE_ACCOUNT`, paste the whole
+   JSON file, then delete the downloaded file. The key has admin rights over the whole Firebase project: keep it
+   only in that secret.
+5. **Site variable.** Same page, Variables tab → New repository variable `FIREBASE_HOSTING_SITE` = the site ID.
+6. Run **Actions → Publish tracker page → Run workflow** (once this is on `main`), then open the page and sign in.
 
 ## Cutover checklist
 - [ ] Workflow has run successfully at least once from a manual trigger (no `--force` needed on a fresh day).

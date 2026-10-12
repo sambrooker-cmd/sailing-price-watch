@@ -83,8 +83,5 @@ jobs:
 
   publish:
     needs: watch
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/pages.yml
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
