@@ -61,6 +61,12 @@ strip, and green promotion strips. When the photo is campaign artwork (it has it
 graphics), it is shown whole in a band between the badge and the strips, over a blurred copy of
 itself.
 
+Was/now (price reduction) cards use a different design: a full-bleed photo, the logo top left, a
+tilted orange "Price reduction" sticker top right with the cabin grade, "Was £X" struck through and
+"Now £Y pp", and a pale panel at the bottom with date | nights, the sailing name, the port or
+airport and ship, and a small-print line with the cruise code. On these, the was and now prices
+must be exactly the expected ones, and the price must fit inside the sticker.
+
 You get the same card in three sizes: 1x1 (1080x1080), 4x5 (1080x1350) and 9x16 (1080x1920).
 
 Report only real problems a careful person would want to fix or glance at:
@@ -90,7 +96,16 @@ def now_utc():
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def expected(sid, c):
+def expected(sid, c, s=None):
+    if c.get("kind") == "wasnow":
+        s = s or {}
+        grade = (c.get("cabin") or "").replace("twin.", "").replace("_", " ")
+        return "\n".join([
+            "Card type: was/now (price reduction)", f"Cruise code: {sid}", f"Sailing name: {c.get('title')}",
+            f"Ship: {s.get('ship')}", f"Flights from: {s['flight_from']}" if s.get("flight_from") else f"Sails from: {s.get('port')}",
+            f"Departs: {s.get('departure_date')}", f"Nights: {s.get('nights')}",
+            f"Cabin grade on the sticker: {grade or 'the grade of the lead price'}",
+            f"Was price: £{c['was']:,.0f}", f"Now price: £{c['now']:,.0f} pp"])
     lines = [f"Cruise code: {sid}", f"Sailing name: {c.get('title')}", f"Ship: {c.get('ship')}"]
     lines.append(f"Flights from: {c['flight_from']}" if c.get("flight_from") else f"Sails from: {c.get('port')}")
     lines += [f"Departs: {c.get('departure_date')}", f"Nights: {c.get('nights')}", f"From price: £{c.get('price'):,} pp",
@@ -101,12 +116,14 @@ def expected(sid, c):
 
 
 def todo(man):
-    """Sailings whose current cards haven't been checked; campaign artwork first, then newest."""
+    """Cards not checked yet: was/now cards first, then campaign artwork, then newest."""
+    unchecked = lambda c: (c.get("review") or {}).get("fp") != c.get("fp")
+    wasnow = [(sid, c) for sid, m in man.get("sailings", {}).items() for c in (m.get("wasnow") or {}).values() if unchecked(c)]
     out = [(sid, m["current"]) for sid, m in man.get("sailings", {}).items()
-           if m.get("current") and (m["current"].get("review") or {}).get("fp") != m["current"].get("fp")]
+           if m.get("current") and unchecked(m["current"])]
     camp = [x for x in out if x[1].get("layout") == "campaign"]
     rest = sorted([x for x in out if x[1].get("layout") != "campaign"], key=lambda x: x[1].get("made_at") or "", reverse=True)
-    return camp + rest
+    return wasnow + camp + rest
 
 
 def run_claude(prompt, cwd):
@@ -124,7 +141,7 @@ def run_claude(prompt, cwd):
     return out["structured_output"]
 
 
-def review(sid, c, http):
+def review(sid, c, http, s=None):
     with tempfile.TemporaryDirectory() as d:
         names = []
         for tag in SIZES:
@@ -136,7 +153,7 @@ def review(sid, c, http):
             Path(d, f"card_{tag}.jpg").write_bytes(r.content)
             names.append(f"card_{tag}.jpg ({tag})")
         prompt = (GUIDE + "\n\nLook at each of these images with the Read tool: " + ", ".join(names) +
-                  ".\n\nExpected details:\n" + expected(sid, c) +
+                  ".\n\nExpected details:\n" + expected(sid, c, s) +
                   "\n\nAnswer only with the structured result.")
         out = run_claude(prompt, d)
     out["ok"] = bool(out.get("ok")) and not out.get("issues")
@@ -170,10 +187,12 @@ def main():
     if not batch:
         return 0
     http = requests.Session()
+    st = ROOT / "state" / "current.json"
+    sailings = json.loads(st.read_text()).get("sailings", {}) if st.exists() else {}
     flagged, errors = [], []
     for sid, c in batch:
         try:
-            res = review(sid, c, http)
+            res = review(sid, c, http, sailings.get(sid))
         except Exception as e:  # noqa: one failure mustn't stop the rest; it's retried next check
             errors.append(f"{sid}: {str(e)[:200]}")
             continue
@@ -191,7 +210,7 @@ def main():
         lines += [f"Claude checked {len(batch) - len(errors)} sailing(s) with new or remade cards; "
                   f"{len(flagged)} need a look before they're used:", ""]
         for sid, c in flagged:
-            lines.append(f"- **{sid}** {c.get('title')} ({c.get('reason')})")
+            lines.append(f"- **{sid}** {c.get('title')} ({'WAS/NOW cards' if c.get('kind') == 'wasnow' else c.get('reason')})")
             lines += [f"  - {i['size'].replace('x', ':') if i['size'] != 'all' else 'All sizes'}"
                       f"{' (fix)' if i['severity'] == 'fix' else ''}: {i['problem']}" for i in c["review"]["issues"]]
         lines += ["", "Open the sailing on the tracker page's Cards page to see them. Claude can be wrong: "

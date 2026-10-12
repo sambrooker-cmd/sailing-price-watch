@@ -207,6 +207,18 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .lookbox{margin:10px 0;padding:10px 14px;background:var(--warn-bg);color:var(--warn)}
 .lookbox ul{margin:6px 0 0 18px}
 .stale{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;background:var(--warn-bg);color:var(--warn)}
+dialog.pv{width:min(760px,calc(100% - 32px));max-height:calc(100% - 32px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink)}
+dialog.pv::backdrop{background:rgba(20,5,25,.7)}
+.pvhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
+.pvnote{margin:0 0 8px;font-size:14px}
+.pvtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pvtabs button{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.pvtabs button.on{background:var(--allium);border-color:var(--allium);color:#fff}
+dialog.pv img{display:block;max-width:100%;max-height:calc(100vh - 230px);width:auto;height:auto;margin:0 auto 12px;border:1px solid var(--rule)}
+dialog.pv .btn{display:inline-block;text-decoration:none}
+.dnu{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;background:var(--bad-bg);color:var(--bad)}
+.wasnow{margin:0 0 14px;padding:10px 14px;border:1px solid var(--rule)}
+.wasnow h4{margin:0 0 8px;font-size:15px}
 .oldcards{margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .oldcards a{color:var(--heading)}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:28px 32px}
@@ -233,6 +245,7 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 </div>
 
 <dialog class="detail" id="detail" aria-labelledby="d-title"></dialog>
+<dialog class="pv" id="pv" aria-label="Card preview"></dialog>
 
 <div class="shell" id="app" hidden>
 <aside class="side">
@@ -963,6 +976,27 @@ const auth = getAuth(firebaseApp);
   const SIZE_LABEL = {"1x1": "1:1 feed & carousel", "4x5": "4:5 feed", "9x16": "9:16 Stories & Reels"};
   const cardsOf = id => ((cardsDoc || {}).sailings || {})[id] || null;
   const fmtWhen = iso => iso ? `${fmtDate(iso.slice(0, 10))}, ${fmtTime(iso)}` : "–";
+  // Card preview: clicking a card or a size opens it large here; the Download button saves it
+  const pvSets = {}; let pvN = 0;
+  const pvReg = (title, files, note) => { const k = "p" + (++pvN); pvSets[k] = {title, files, note}; return k; };
+  const pvLink = (k, tag, inner) => `<a href="${esc(pvSets[k].files[tag])}" data-pv="${k}" data-size="${esc(tag)}" title="Preview">${inner}</a>`;
+  function openPv(k, tag){
+    const set = pvSets[k], d = $("pv"), u = set.files[tag], lab = SIZE_LABEL[tag] || tag;
+    d.innerHTML = `<div class="pvhead"><b>${esc(set.title)}</b><button type="button" class="linkbtn" data-pvclose>Close</button></div>
+      ${set.note ? `<p class="pvnote">${set.note}</p>` : ""}
+      <div class="pvtabs">${Object.keys(set.files).map(t => `<button type="button" class="${t === tag ? "on" : ""}" data-pv="${k}" data-size="${esc(t)}" aria-pressed="${t === tag}">${esc(SIZE_LABEL[t] || t)}</button>`).join("")}</div>
+      <img src="${esc(u)}" alt="${esc(lab)} card">
+      <a class="btn" href="${esc(u)}">Download ${esc(lab)}</a>`;
+    if (!d.open) d.showModal();
+  }
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-pv]");
+    if (a){ e.preventDefault(); e.stopPropagation(); openPv(a.dataset.pv, a.dataset.size); return; }
+    if (e.target.closest("[data-pvclose]")) $("pv").close();
+  }, true);
+  $("pv").addEventListener("click", e => { if (e.target === $("pv")) $("pv").close(); });
+  const WN_GRADE = {lead: "Lead price", "twin.inside": "Inside cabins", "twin.ocean_view": "Ocean view cabins", "twin.balcony": "Balcony cabins", "twin.suite": "Suites"};
+  const wnTitle = w => `${WN_GRADE[w.cabin || "lead"] || w.cabin}: was ${fmtGBP(w.was)}, now ${fmtGBP(w.now)}`;
   // Claude's check of the current cards (card_review.py): "look", "fine" or "none" (not checked yet)
   const checkOf = cur => !cur || !cur.review ? "none" : cur.review.ok ? "fine" : "look";
   const issueText = i => `${i.size === "all" ? "All sizes" : esc(SIZE_LABEL[i.size] || i.size)}${i.severity === "fix" ? " (fix)" : ""}: ${esc(i.problem)}`;
@@ -978,15 +1012,27 @@ const auth = getAuth(firebaseApp);
     if (!cardsDoc) return `<p class="sub">Cards appear here after the next hourly check.</p>`;
     if (!c) return `<p class="sub">${s.removed ? "This sailing has left the feed, so it has no cards." : "No cards yet. They're made at the next hourly check."}</p>`;
     const cur = c.current;
+    const pk = cur ? pvReg(`${s.base_title || s.title || s.id} (${s.id})`, cur.files, "") : null;
+    const wn = Object.values(c.wasnow || {}).map(w => {
+      const k = pvReg(`${s.id} was/now: ${wnTitle(w)}`, w.files, `Use until <b>${fmtDate(w.ends)}</b> at the latest; withdrawn sooner if the claim stops.`);
+      return `<div class="wasnow"><h4>Was/now cards · ${esc(wnTitle(w))}</h4>
+        <p class="sub" style="margin:0 0 8px">Claim from ${fmtDate(w.since)}. Use until <b>${fmtDate(w.ends)}</b> at the latest: the cards are withdrawn sooner if the price changes. ${checkOf(w) === "look" ? `<span class="look">Needs a look</span>` : ""}</p>
+        <div class="cardset">${Object.entries(w.files).map(([t, u]) => `<figure>${pvLink(k, t, `<img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} was/now card" loading="lazy">`)}
+          <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>
+        ${w.review ? checkDetail(w) : ""}</div>`; }).join("");
     const now = cur ? `<p>Made ${fmtWhen(cur.made_at)}${cur.reason && cur.reason !== "new" ? ` (${esc(cur.reason)})` : ""}. Price on the cards: <b>${fmtGBP(cur.price)}</b>${cur.price !== (s.segments[s.segments.length-1] || {}).p ? ` <span class="stale">Price has changed since: new cards at the next check</span>` : ""}.</p>
-      <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure><a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy"></a>
+      <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure>${pvLink(pk, t, `<img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy">`)}
         <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>`
       : `<p class="sub">No current cards: ${esc((c.old[0] || {}).reason || "withdrawn")}.</p>`;
     const chk = cur ? checkDetail(cur) : "";
-    const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => `<div><span class="stale">Out of date since ${fmtWhen(o.out_of_date_since)}</span> ${esc(o.reason)} · was ${fmtGBP(o.price)} ·
-        ${Object.entries(o.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</div>`).join("")}
+    const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => {
+        const k = pvReg(o.kind === "wasnow" ? `${s.id} was/now (DO NOT USE): ${wnTitle(o)}` : `${s.id} (out of date)`, o.files,
+          o.kind === "wasnow" ? `<span class="dnu">Do not use</span> ${esc(o.reason)}` : `<span class="stale">Out of date</span> ${esc(o.reason)}`);
+        return `<div>${o.kind === "wasnow" ? `<span class="dnu">Do not use</span> Was/now cards (${esc(wnTitle(o))}), withdrawn ${fmtWhen(o.out_of_date_since)}: ${esc(o.reason)} ·`
+          : `<span class="stale">Out of date since ${fmtWhen(o.out_of_date_since)}</span> ${esc(o.reason)} · was ${fmtGBP(o.price)} ·`}
+        ${Object.keys(o.files).map(t => pvLink(k, t, esc(t.replace("x", ":")))).join(" · ")}</div>`; }).join("")}
         <p class="note">Old versions are deleted 30 days after they go out of date.</p></div>` : "";
-    return now + chk + old;
+    return wn + now + chk + old;
   }
   // Cards page filters (their own, so they don't disturb the Overview table's) and "Download these"
   let kf = {q: "", month: "", port: "", kind: "", when: "", check: "", size: "1x1"};
@@ -1022,15 +1068,21 @@ const auth = getAuth(firebaseApp);
     const oldN = all.reduce((n, x) => n + (x.c.old || []).length, 0);
     const filtered = cur.length !== withCards.length;
     const lookN = withCards.filter(x => checkOf(x.c.current) === "look").length;
+    const wnLive = all.flatMap(({id, c, s}) => Object.values(c.wasnow || {}).map(w => ({id, s, w}))).sort((a, b) => a.w.ends.localeCompare(b.w.ends));
     $("k-zip").textContent = `Download these (${cur.length})`;
     $("k-zip").disabled = !cur.length;
     box.innerHTML = `<p class="note" style="margin:0 0 12px">${filtered ? `Showing ${cur.length} of ${withCards.length} sailings with cards. ` : `Cards for ${withCards.length} sailings. `}Kept up to date by the hourly check: when a price, promotion, Nectar points or anything else on a card changes, its cards are remade. ${oldN} out-of-date version${oldN === 1 ? " is" : "s are"} kept for 30 days. Last updated ${fmtWhen(cardsDoc.updated_at)}.</p>
+      ${wnLive.length ? `<div class="wasnow"><h4>Was/now cards live now (${wnLive.length})</h4>${wnLive.map(({id, s, w}) => {
+          const k = pvReg(`${id} was/now: ${wnTitle(w)}`, w.files, `Use until <b>${fmtDate(w.ends)}</b> at the latest.`);
+          return `<div style="margin:4px 0"><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button> <span class="sub">${esc(id)} · ${esc(wnTitle(w))} · use until ${fmtDate(w.ends)}</span>
+            ${checkOf(w) === "look" ? `<span class="look">Needs a look</span>` : ""} · ${Object.keys(w.files).map(t => pvLink(k, t, esc(t.replace("x", ":")))).join(" · ")}</div>`; }).join("")}
+          <p class="note" style="margin:8px 0 0">Made by the hourly check on the day a claim starts; withdrawn and marked "Do not use" as soon as it stops.</p></div>` : ""}
       ${lookN ? `<p class="note" style="margin:0 0 12px"><span class="stale">${lookN} need${lookN === 1 ? "s" : ""} a look</span> Claude checks new and remade cards and flags anything a person should eyeball first. Pick "Needs a look" above to see them.</p>` : ""}
-      <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Made</th><th class="num">Price on cards</th><th>Download</th></tr></thead><tbody>${cur.map(({id, c, s}) => `
+      <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Made</th><th class="num">Price on cards</th><th>Preview</th></tr></thead><tbody>${cur.map(({id, c, s}) => `
         <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div>${checkOf(c.current) === "look" ? `<div class="look" title="${esc(c.current.review.issues.map(i => i.problem).join(" "))}">Needs a look</div>` : ""}</td>
           <td>${fmtWhen(c.current.made_at)}${c.current.made_at.slice(0, 10) === today && c.current.reason !== "new" ? `<div class="sub">${esc(c.current.reason)}</div>` : ""}</td>
           <td class="num">${fmtGBP(c.current.price)}</td>
-          <td>${Object.entries(c.current.files).map(([t, u]) => `<a href="${esc(u)}">${esc(t.replace("x", ":"))}</a>`).join(" · ")}</td></tr>`).join("")}</tbody></table></div>` +
+          <td>${(k => Object.keys(c.current.files).map(t => pvLink(k, t, esc(t.replace("x", ":")))).join(" · "))(pvReg(`${s.base_title || s.title || id} (${id})`, c.current.files, ""))}</td></tr>`).join("")}</tbody></table></div>` +
       (cur.length ? "" : `<div class="empty" style="margin-top:12px"><p>No cards match these filters.</p></div>`);
   }
   const saveKf = () => { try { localStorage.setItem("spw-cardfilt", JSON.stringify({...kf, q: ""})); } catch(e){} };
