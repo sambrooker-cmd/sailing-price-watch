@@ -1,6 +1,6 @@
 {
  "date": "2026-10-12",
- "count": 223,
+ "count": 222,
  "new": [
   "A12626",
   "A22630BR"
@@ -10,7 +10,8 @@
   "A22638",
   "A12626",
   "A32650",
-  "A22630BR"
+  "A22630BR",
+  "A12626"
  ],
  "returned": [
   "A12639",
@@ -296,6 +297,34 @@
     "held_days": 0
    },
    "at": "2026-10-12T16:07:15Z"
+  },
+  {
+   "id": "A22630BR",
+   "from": 879,
+   "to": 649,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 879,
+    "now": 649,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T17:55:23Z"
+  },
+  {
+   "id": "A32651",
+   "from": 1699,
+   "to": 1599,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1699,
+    "now": 1599,
+    "since": "2026-10-12",
+    "held_days": 0
+   },
+   "at": "2026-10-12T17:55:23Z"
   }
  ],
  "rises": [
@@ -402,13 +431,28 @@
    "from": 1599,
    "to": 1699,
    "at": "2026-10-12T16:07:15Z"
+  },
+  {
+   "id": "A12639",
+   "from": 299,
+   "to": 399,
+   "at": "2026-10-12T17:55:23Z"
+  },
+  {
+   "id": "A22726BR",
+   "from": 1429,
+   "to": 1489,
+   "at": "2026-10-12T17:55:23Z"
+  },
+  {
+   "id": "A12801",
+   "from": 3799,
+   "to": 4049,
+   "at": "2026-10-12T17:55:23Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A32651": [
-   "feed price £1,699 differs from cheapest cabin on the page £1,599"
-  ],
   "A22633": [
    "feed price £399 differs from cheapest cabin on the page £599"
   ],
@@ -440,7 +484,10 @@
    "feed price £2,029 differs from cheapest cabin on the page £1,969"
   ],
   "A22726BR": [
-   "feed price £1,429 differs from cheapest cabin on the page £1,369"
+   "feed price £1,489 differs from cheapest cabin on the page £1,369"
+  ],
+  "A12801": [
+   "feed price £4,049 differs from cheapest cabin on the page £3,799"
   ],
   "A22828LV": [
    "feed price £1,529 differs from cheapest cabin on the page £1,679"
@@ -836,6 +883,12 @@
    "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
    "name": "Up to £200 Onboard Credit",
    "at": "2026-10-12T15:32:03Z"
+  },
+  {
+   "id": "A12626",
+   "offer": "991789db-008b-4e9f-b5a9-a0cac87457fd",
+   "name": "Up to £400 Onboard Credit",
+   "at": "2026-10-12T17:55:23Z"
   }
  ],
  "promo_changed": [],
@@ -847,6 +900,7 @@
   "2026-10-12T14:19:14Z",
   "2026-10-12T14:48:44Z",
   "2026-10-12T15:32:03Z",
-  "2026-10-12T16:07:15Z"
+  "2026-10-12T16:07:15Z",
+  "2026-10-12T17:55:23Z"
  ]
 }
