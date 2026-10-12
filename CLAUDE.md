@@ -76,7 +76,8 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
   (`sambrooker-cmd/DigitalTeamPlanner`). Data lives in its Firebase project (`promotions-planner`), not on a public
   page; viewers sign in with Google and must be on the planner's Firestore `allowlist` (any role). The repo stays
   private and no GitHub Pro is needed. One-off setup, done by Sam (see "Tracker page setup" below).
-- **Schedule.** Decided by Sam 12 Oct 2026: hourly 09:00–17:00 GMT, nothing overnight (10:00–18:00 UK time while BST applies).
+- **Schedule.** Sam, 12 Oct 2026: hourly 09:07–17:07 **UK time** all year, plus 06:07 and 22:07 UK time (cron-job.org job
+  in Sam's account, its time zone left on UK time at Sam's choice; the GitHub `schedule` crons are UTC and only a backstop).
   Sam was told the trade-off: intraday flip-flops (see below) are now recorded, so sold-out-then-back cabins restart
   their reference period more often and some was/now claims qualify later than with one daily check.
 - **Claude review of cards.** Built 12 Oct 2026 as `card_review.py` (see above), on Sam's Claude plan. Needs Sam to add the
@@ -117,7 +118,7 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
 - [x] Backstop timer (12 Oct 2026): GitHub's own `schedule` never fired on 12 Oct (12:00–15:07 UTC all missed, workflow
       "active"). Sam set up a cron-job.org job (his account) that POSTs to
       `https://api.github.com/repos/sambrooker-cmd/sailing-price-watch/actions/workflows/price-watch.yml/dispatches`
-      with `{"ref":"main"}` at minute 7 of 06, 09–17 and 22 UTC, using a fine-grained token (only this repo,
+      with `{"ref":"main"}` at minute 7 of 06, 09–17 and 22 **UK time** (Sam's cron-job.org time zone; kept on UK time by Sam, 12 Oct 2026), using a fine-grained token (only this repo,
       Actions: read and write) that **expires 30 Jul 2027**: renew it before then or the checks stop. First test run
       15:31 UTC 12 Oct 2026 worked. If GitHub's schedule starts firing too, some hours get two checks a few minutes
       apart (harmless: the second finds nothing new; the concurrency group runs them one after the other).
