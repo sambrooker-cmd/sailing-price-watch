@@ -2,15 +2,11 @@ name: Sailing price watch
 
 on:
   schedule:
-    # GitHub cron is UTC only. 06:57 UTC = 07:57 UK in summer (BST), 06:57 UK in winter (GMT).
-    # daily.py skips if runs/<London date>.json already exists, so an extra trigger is harmless.
-    - cron: "57 6 * * *"
+    # Hourly 09:00–17:00 GMT (cron is UTC = GMT), nothing overnight (Sam, 12 Oct 2026).
+    # In summer (BST) that is 10:00–18:00 UK time. GitHub can start scheduled runs a few
+    # minutes late. Each check adds its changes to runs/<date>.json.
+    - cron: "0 9-17 * * *"
   workflow_dispatch:
-    inputs:
-      force:
-        description: "Run even if today is already recorded (overwrites today's change list)"
-        type: boolean
-        default: false
 
 permissions:
   contents: write   # commit state/, runs/
@@ -26,6 +22,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # full history, so the pull before pushing can always rebase
 
       - uses: actions/setup-python@v7
         with:
@@ -35,7 +33,7 @@ jobs:
         id: watch
         # Card rendering is paused (Sam, 12 Oct 2026): prices only. To turn it back on,
         # drop --no-cards and restore the Playwright install step (see git history).
-        run: python daily.py --no-cards ${{ inputs.force && '--force' || '' }}
+        run: python daily.py --no-cards
 
       - name: Commit results
         if: steps.watch.outcome == 'success'
@@ -47,7 +45,9 @@ jobs:
           git add state runs
           if [ -d cards ]; then git add cards; fi
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "Price watch $(TZ=Europe/London date +%F)"
+          git commit -m "Price watch $(date -u '+%F %H:%M') UTC"
+          # Pick up anything pushed since checkout (e.g. a merged PR) before pushing.
+          git pull --rebase origin "$GITHUB_REF_NAME"
           git push
 
       - name: Keep raw feed + snapshot for 30 days
@@ -65,7 +65,8 @@ jobs:
         if: steps.watch.outputs.new_claims == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue create --title "New was/now claims — ${{ steps.watch.outputs.date }}" --body-file out/issue.md --assignee "${{ github.repository_owner }}"
+        # One issue per day; later checks that day with new claims add a comment.
+        run: .github/issue.sh "New was/now claims — ${{ steps.watch.outputs.date }}" out/issue.md
 
       - name: Open issue on failure
         if: failure()
@@ -73,13 +74,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo "The price watch run failed or its safety check stopped it. Nothing was saved unless the log says otherwise."
+            echo "The price watch check at $(date -u '+%H:%M') UTC failed or its safety check stopped it. Nothing was saved unless the log says otherwise."
             echo
             echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo
             [ -f out/summary.md ] && cat out/summary.md
           } > /tmp/fail.md
-          gh issue create --title "Price watch FAILED — $(TZ=Europe/London date +%F)" --body-file /tmp/fail.md --assignee "${{ github.repository_owner }}"
+          # One issue per day; later failures that day add a comment.
+          .github/issue.sh "Price watch FAILED — $(TZ=Europe/London date +%F)" /tmp/fail.md
 
   publish:
     needs: watch

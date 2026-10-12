@@ -327,6 +327,7 @@ const auth = getAuth(firebaseApp);
   const fmtGBP = v => "£" + Math.round(v).toLocaleString("en-GB");
   const fmtDate = iso => { if(!iso) return "–"; const d = new Date(iso+"T12:00:00Z"); return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}); };
   const daysBetween = (a,b) => Math.round((new Date(b+"T12:00:00Z") - new Date(a+"T12:00:00Z"))/864e5);
+  const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}) : "";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
@@ -402,7 +403,7 @@ const auth = getAuth(firebaseApp);
     const today = state.updated, rules = state.rules || {};
     const all = Object.entries(state.sailings || {}).map(([id, s]) => ({id, ...s}));
     const active = all.filter(s => !s.removed);
-    $("meta").innerHTML = `Last run <b>${fmtDate(today)}</b><br>Tracking since ${fmtDate(state.tracking_since)}`;
+    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<br>Checks hourly 9am–5pm GMT · tracking since ${fmtDate(state.tracking_since)}`;
     $("st-count").textContent = active.length;
     const byShip = {}; active.forEach(s => byShip[s.ship] = (byShip[s.ship]||0)+1);
     $("st-ships").textContent = ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
@@ -461,6 +462,7 @@ const auth = getAuth(firebaseApp);
     if (runs.length){
       $("runs").innerHTML = runs.slice(0, 21).map(r => {
         const parts = [`<span>${r.count} sailings</span>`];
+        if ((r.checks || []).length > 1) parts.push(`<span>${r.checks.length} checks</span>`);
         if ((r.new||[]).length) parts.push(`<span>${r.new.length} new</span>`);
         if ((r.removed||[]).length) parts.push(`<span>${r.removed.length} left the feed</span>`);
         (r.drops||[]).slice(0,6).forEach(d => parts.push(`<span>▼ ${esc(d.id)} ${fmtGBP(d.from)} → ${fmtGBP(d.to)}</span>`));
@@ -889,35 +891,37 @@ const auth = getAuth(firebaseApp);
   const cabLabel = k => { const [occ, g] = k.split("."); return (GRADE[g] || g) + (occ === "solo" ? " (solo)" : ""); };
   function changeRows(){
     const out = [];
-    const add = (date, type, id, what, note) => out.push({date, type, id, what, note: note || ""});
+    let curAt = null;  // time of the hourly check that recorded the event (none on older runs)
+    const add = (date, type, id, what, note) => out.push({date, type, id, what, note: note || "", at: curAt});
     for (const r of runs){
       const d = r.date;
-      for (const x of r.drops || []){
+      for (const x of r.drops || []) if ((curAt = x.at || null, true)){
         const c = x.claim || {};
         add(d, x.mix ? "cabin" : "drop", x.id, `From price ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`,
           x.mix ? `A cheaper cabin grade came on sale (${x.mix.replace(/\w+/g, w => GRADE[w] || w)}). Not a price cut.`
                 : c.eligible ? `Was/now ready until ${fmtDate(c.ends)}` : c.reason ? `Not eligible for was/now: ${c.reason}` : "");
       }
-      for (const x of r.rises || []) add(d, "rise", x.id, `From price ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`, x.mix ? `Cheapest grade on sale changed (${x.mix.replace(/\w+/g, w => GRADE[w] || w)})` : "");
-      for (const x of r.cabin_drops || []){
+      for (const x of r.rises || []) if ((curAt = x.at || null, true)) add(d, "rise", x.id, `From price ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`, x.mix ? `Cheapest grade on sale changed (${x.mix.replace(/\w+/g, w => GRADE[w] || w)})` : "");
+      for (const x of r.cabin_drops || []) if ((curAt = x.at || null, true)){
         const c = x.claim || {};
         add(d, "cabin", x.id, `${cabLabel(x.cabin)} ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`, c.eligible ? `Was/now ready until ${fmtDate(c.ends)}` : "");
       }
-      for (const x of r.cabin_rises || []) add(d, "cabin", x.id, `${cabLabel(x.cabin)} ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`);
-      for (const x of r.cabin_sold_out || []) add(d, "avail", x.id, `${cabLabel(x.cabin)} sold out`);
-      for (const x of r.cabin_back || []) add(d, "avail", x.id, `${cabLabel(x.cabin)} back on sale at ${fmtGBP(x.p)}`, "Starts a fresh reference period.");
-      for (const x of r.promo_added || []) add(d, "promo", x.id, `Started: ${x.name || offerInfo(x.offer).name || x.offer}`);
-      for (const x of r.promo_ended || []) add(d, "promo", x.id, `Ended: ${x.name || offerInfo(x.offer).name || x.offer}`);
-      for (const x of r.promo_changed || []){
+      for (const x of r.cabin_rises || []) if ((curAt = x.at || null, true)) add(d, "cabin", x.id, `${cabLabel(x.cabin)} ${fmtGBP(x.from)} → ${fmtGBP(x.to)}`);
+      for (const x of r.cabin_sold_out || []) if ((curAt = x.at || null, true)) add(d, "avail", x.id, `${cabLabel(x.cabin)} sold out`);
+      for (const x of r.cabin_back || []) if ((curAt = x.at || null, true)) add(d, "avail", x.id, `${cabLabel(x.cabin)} back on sale at ${fmtGBP(x.p)}`, "Starts a fresh reference period.");
+      for (const x of r.promo_added || []) if ((curAt = x.at || null, true)) add(d, "promo", x.id, `Started: ${x.name || offerInfo(x.offer).name || x.offer}`);
+      for (const x of r.promo_ended || []) if ((curAt = x.at || null, true)) add(d, "promo", x.id, `Ended: ${x.name || offerInfo(x.offer).name || x.offer}`);
+      for (const x of r.promo_changed || []) if ((curAt = x.at || null, true)){
         const what = {name: "renamed", expires: "expiry changed"}[x.field] || x.field + " changed";
         add(d, "promo", null, `${what[0].toUpperCase() + what.slice(1)}: ${x.name || x.offer}`, `${x.from || "none"} → ${x.to || "none"}`);
       }
+      curAt = null;
       for (const id of r.new || []) add(d, "feed", id, "New sailing in the feed");
       for (const id of r.removed || []) add(d, "feed", id, "Left the feed");
       for (const id of r.returned || []) add(d, "feed", id, "Back in the feed");
     }
     const K = {drop: 0, rise: 1, cabin: 2, avail: 3, promo: 4, feed: 5};
-    return out.sort((a, b) => b.date.localeCompare(a.date) || K[a.type] - K[b.type] || (a.id || "").localeCompare(b.id || ""));
+    return out.sort((a, b) => b.date.localeCompare(a.date) || (b.at || "").localeCompare(a.at || "") || K[a.type] - K[b.type] || (a.id || "").localeCompare(b.id || ""));
   }
   const KIND = {drop: ["▼ Price drop", "dn2"], rise: ["▲ Price rise", "up2"], cabin: ["Cabin price", ""], avail: ["Availability", ""], promo: ["Promotion", ""], feed: ["Feed", ""]};
   function changesInView(){
@@ -935,7 +939,7 @@ const auth = getAuth(firebaseApp);
     const list = changesInView();
     const LIMIT = 200, show = chgAll ? list : list.slice(0, LIMIT);
     $("changes").innerHTML = show.length ? show.map(c => `<tr${c.id ? ` data-id="${esc(c.id)}"` : ""}>
-        <td>${fmtDate(c.date)}</td>
+        <td>${fmtDate(c.date)}${c.at ? `<div class="sub">${fmtTime(c.at)}</div>` : ""}</td>
         <td>${c.id ? `<button type="button" class="open" data-id="${esc(c.id)}">${esc(nameOf(c.id))}</button><div class="sub">${esc(c.id)}</div>` : `<span class="sub">All sailings with it</span>`}</td>
         <td><span class="kind ${KIND[c.type][1]}">${KIND[c.type][0]}</span><div>${esc(c.what)}</div></td>
         <td class="sub">${esc(c.note)}</td></tr>`).join("")
@@ -958,8 +962,8 @@ const auth = getAuth(firebaseApp);
   $("c-csv").addEventListener("click", () => {
     const list = changesInView();
     downloadCsv(`changes-${list.length ? list[list.length-1].date : state.updated}-to-${list.length ? list[0].date : state.updated}.csv`,
-      ["Date","Cruise code","Sailing","Type","Change","Notes"],
-      list.map(c => [c.date, c.id || "", c.id ? nameOf(c.id) : "", KIND[c.type][0].replace(/^[▲▼] /, ""), c.what, c.note]));
+      ["Date","Time (UK)","Cruise code","Sailing","Type","Change","Notes"],
+      list.map(c => [c.date, fmtTime(c.at), c.id || "", c.id ? nameOf(c.id) : "", KIND[c.type][0].replace(/^[▲▼] /, ""), c.what, c.note]));
   });
 
   // Controls
