@@ -1,0 +1,51 @@
+name: Feed check
+
+# Fetches the ad feed and every landing page from GitHub's runners and runs the
+# daily safety checks, without saving anything: nothing is committed and the
+# Firebase page is not touched. Use it to confirm the booking site lets GitHub in.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Fetch feed and landing pages
+        run: python enrich.py "$(TZ=Europe/London date +%F)"
+
+      - name: Safety checks and summary
+        run: |
+          python - <<'PY'
+          import collections, glob, json, sys
+          import daily
+          snap = json.load(open(sorted(glob.glob("data/snapshot_*.json"))[-1]))
+          s = snap["sailings"]
+          errs = [x for x in s if "page_error" in x]
+          print(f"Sailings in feed: {len(s)}")
+          print(f"Landing pages that failed to load: {len(errs)}")
+          for x in errs[:10]:
+              print(f"  {x['id']}: {x['page_error']}")
+          print(f"With departure date: {sum(1 for x in s if x.get('departure_date'))}")
+          print(f"With cabin prices: {sum(1 for x in s if 'cabins' in x)}")
+          probs = daily.safety_problems(daily.load("state/current.json"), snap)
+          print("Safety check:", "PASS" if not probs else "FAIL: " + "; ".join(probs))
+          sys.exit(1 if probs else 0)
+          PY
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: feed-check-${{ github.run_id }}
+          path: data/
+          retention-days: 7
+          if-no-files-found: ignore
