@@ -9,12 +9,18 @@ has to understand the shape of the data:
   pricewatch/runs     recent runs/*.json, newest first: up to MAX_RUNS, as many
                       as fit in RUNS_BYTES (the page's "What changed" view uses them)
   pricewatch/coverage state/coverage.json, if the weekly feed coverage check has run
+  pricewatch/trends   change counts per day for every run ever recorded (the Trends page),
+                      plus the list of archive documents
+  pricewatch/runs-YYYY-MM-1 / -2
+                      every run, half a month per document (days 1-15 / 16-end), so the
+                      "What changed" view can reach back past the recent runs; the page
+                      loads them only when asked for older dates. Unchanged ones aren't rewritten.
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
   python publish.py --dry-run     # build the documents and print their sizes only
 """
-import argparse, json, os, sys
+import argparse, hashlib, json, os, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -29,19 +35,48 @@ def load(p):
     return d.get("data", d)
 
 
+def day_counts(r):
+    """How many changes of each kind one day's run recorded (twin cabins only, so a
+    solo price moving with the twin one isn't counted twice). Lead drops marked "mix"
+    are a cheaper cabin grade coming on sale, not a price cut, so they're counted apart."""
+    twin = lambda k: sum(1 for x in r.get(k) or [] if x.get("cabin", "").startswith("twin."))
+    drops = r.get("drops") or []
+    return {
+        "d": r["date"], "count": r.get("count"), "checks": len(r.get("checks") or []) or 1,
+        "drops": sum(1 for x in drops if not x.get("mix")), "mix": sum(1 for x in drops if x.get("mix")),
+        "rises": len(r.get("rises") or []),
+        "cabin_drops": twin("cabin_drops"), "cabin_rises": twin("cabin_rises"),
+        "sold_out": twin("cabin_sold_out"), "back": twin("cabin_back"),
+        "new": len(r.get("new") or []), "removed": len(r.get("removed") or []),
+        "promo_added": len(r.get("promo_added") or []), "promo_ended": len(r.get("promo_ended") or []),
+    }
+
+
+def half(date):
+    return f"runs-{date[:7]}-{1 if int(date[8:10]) <= 15 else 2}"
+
+
 def documents():
     cur = load(ROOT / "state" / "current.json")
+    every = [load(p) for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)]
     runs, size = [], 0
-    for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)[:MAX_RUNS]:
-        r = load(p)
+    for r in every[:MAX_RUNS]:
         size += len(json.dumps(r, ensure_ascii=False, separators=(",", ":")).encode())
         if runs and size > RUNS_BYTES:
             break
         runs.append(r)
+    archives = {}
+    for r in every:
+        archives.setdefault(half(r["date"]), []).append(r)
     docs = {
         "current": cur,
         "cabins": load(ROOT / "state" / "cabins.json"),
         "runs": runs,
+        "trends": {
+            "days": [day_counts(r) for r in reversed(every)],
+            "archives": {k: [v[-1]["date"], v[0]["date"]] for k, v in archives.items()},
+        },
+        **archives,
     }
     if (ROOT / "state" / "coverage.json").exists():
         docs["coverage"] = load(ROOT / "state" / "coverage.json")
@@ -51,6 +86,8 @@ def documents():
         if len(s.encode()) > MAX_BYTES:
             raise SystemExit(f"pricewatch/{name} is {len(s.encode()):,} bytes, too close to Firestore's 1 MiB limit")
         out[name] = {"json": s, "updated": cur.get("updated", "")}
+        if name.startswith("runs-"):
+            out[name]["sha"] = hashlib.sha256(s.encode()).hexdigest()
     return out
 
 
@@ -75,6 +112,12 @@ def main():
     session = AuthorizedSession(creds)
     base = f"https://firestore.googleapis.com/v1/projects/{PROJECT}/databases/(default)/documents/pricewatch"
     for name, d in docs.items():
+        if "sha" in d:  # archive halves: skip the ones Firestore already holds unchanged
+            r = session.get(f"{base}/{name}", params={"mask.fieldPaths": "sha"}, timeout=60)
+            if r.ok and r.json().get("fields", {}).get("sha", {}).get("stringValue") == d["sha"]:
+                continue
+            if not r.ok and r.status_code != 404:
+                raise SystemExit(f"reading pricewatch/{name} failed: {r.status_code} {r.text[:300]}")
         body = {"fields": {k: {"stringValue": v} for k, v in d.items()}}
         r = session.patch(f"{base}/{name}", json=body, timeout=60)
         if not r.ok:
