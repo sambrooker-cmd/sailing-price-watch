@@ -13,7 +13,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
 const KEY = "spw-email-cards";
-const MAX = 1;   // one sailing at a time (Sam, 13 Oct 2026)
+const MAX = 24;   // several cards at once again (Sam, 13 Oct 2026, after a day of one at a time)
 // Sizes and type measured from the team's HubSpot pictures (13 Oct 2026)
 const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across tiles", w: 1200, h: 924, badge: 44, cap: 46},
                wide: {label: "Wide", note: "2400 × 924, for full-width sailings", w: 2400, h: 924, badge: 44, cap: 46}};
@@ -31,7 +31,6 @@ export async function mount(el, ctx){
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
   T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
-  st.allBadges = false;   // one sailing at a time: offers are picked on the sailing itself
   st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
   draw();
 }
@@ -59,6 +58,20 @@ function badgeTerms(it){
     const docs = oid && T && T.offers ? (T.offers[oid] || []).map(i => T.docs[i]).filter(Boolean) : [];
     return {badge: badgeText(b), docs, byName: !!(oid && T && T.how && T.how[oid] === "name")};
   });
+}
+// Everything about the cards, one row each (Sam, 13 Oct 2026): also cards.csv in the zip.
+function csvText(){
+  const sizes = outputs();
+  const rows = [["#", "Cruise code", "Name", "Departure date", "Nights", "Departs from", "Ship", "Fare", "Cabin", "Price £",
+    "Button", "Link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
+  st.items.forEach((it, i) => {
+    const s = sailing(it.id), f = fareOf(it), w = words(it), tc = badgeTerms(it);
+    rows.push([i + 1, it.id, s.title, s.r.departure_date, s.r.nights, s.fly ? s.fly + " Airport" : s.r.port, s.r.ship,
+      f.fare === "solo" ? "Solo" : "Twin", f.grade ? GRADES[f.grade] : "Cheapest available", f.price ?? "", w.button, w.link,
+      it.caption, badgesOf(it).join("; "), tc.map(x => `${x.badge}: ${x.docs.length ? x.docs.map(d => d.title).join(", ") : "none found"}`).join("; "),
+      it.photo || s.image, ...sizes.map(o => fileName(it, o)), today]);
+  });
+  return "\ufeff" + rows.map(r => r.map(v => { let t = String(v ?? ""); if (/^[=+\-@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; }).join(",")).join("\r\n");
 }
 function termsText(it){
   const w = words(it), list = badgeTerms(it);
@@ -117,8 +130,11 @@ function words(it){
           button: f.label || `From ${money(s.price)}pp`, link: s.link + (f.fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""), basis: f.basis};
 }
 // File name in the team's style: "<Caption> - Standard (<offers>).png", or the cruise code when there's no caption
+// A file name typed on the card (Sam, 13 Oct 2026) replaces all of that, keeping only the size and kind.
+const cleanName = t => t.replace(/[\\/:*?"<>|]+/g, "").replace(/\.png$/i, "").trim().slice(0, 100);
 function fileName(it, out){
   const size = out.split("-")[0], card = out.endsWith("-card");
+  if (cleanName(it.name || "")) return `${cleanName(it.name)} - ${SIZES[size].label}${card ? " card" : ""}.png`;
   const base = (it.caption.trim() || `${it.id} ${sailing(it.id).title}`).replace(/[\\/:*?"<>|]+/g, "").slice(0, 60);
   const f = fareOf(it), fare = f.fare === "solo" || f.grade ? [`${f.grade ? GRADES[f.grade] + " " : ""}${f.fare}`.trim()] : [];
   const tags = [...fare, ...badgesOf(it).map(badgeText)];
@@ -260,11 +276,12 @@ function draw(){
         <div id="ec-results" class="ac-results"></div>
       </div>
       <div class="ac-block">
-        <h3>Sailing</h3>
+        <h3>Sailings (${it.length})</h3>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
-          <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}</span></button>
+          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}</span></button>
           <span class="ac-strips"></span>
-          <span class="ac-ord"><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and pick the sailing to make a card for. Picking another one replaces it.</p>`}
+          <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and add the sailings you need cards for. Click one to edit it.</p>`}
+        <label class="ac-check"><input type="checkbox" id="ec-all"${st.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
         <span class="ac-lab">Sizes</span>
         ${Object.entries(SIZES).map(([k, z]) => `<label class="ac-check"><input type="checkbox" data-size="${k}"${st.sizes[k] ? " checked" : ""}> ${z.label} <span class="sub">(${z.note})</span></label>`).join("")}
         <span class="ac-lab">Download</span>
@@ -276,6 +293,7 @@ function draw(){
       <div class="ac-actions">
         <button type="button" class="btn" id="ec-zip"${it.length && outputs().length ? "" : " disabled"}>Download zip</button>
         <button type="button" class="btn quiet" id="ec-html"${it.length && htmlSizes().length ? "" : " disabled"} title="One HTML file with every card, pictures saved online">Download HTML</button>
+        <button type="button" class="btn quiet" id="ec-csv"${it.length ? "" : " disabled"} title="Every card's details in a spreadsheet">Download CSV</button>
         <button type="button" class="btn quiet" id="ec-terms"${it.length && it.some(x => badgesOf(x).length) ? "" : " disabled title=\"Only for cards with offer badges\""}>Download offer T&amp;Cs</button>
         <button type="button" class="btn quiet" id="ec-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
@@ -313,6 +331,9 @@ function editor(it){
     ${fareBlock(it)}
     <span class="ac-lab">Photo</span>
     <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>
+    <label class="ac-lab" for="ec-name">File name <span class="sub">(optional: blank uses the caption and offers)</span></label>
+    <input id="ec-name" value="${esc(it.name || "")}" placeholder="${esc(fileName({...it, name: ""}, outputs()[0] || "standard").replace(/ - (Standard|Wide).*$/, ""))}" maxlength="100">
+    <p class="sub" id="ec-names">${outputs().map(o => esc(fileName(it, o))).join("<br>") || "Tick a size and a download above."}</p>
     <label class="ac-lab" for="ec-caption">Location caption <span class="sub">(check it matches the photo)</span></label>
     <input id="ec-caption" value="${esc(it.caption)}" placeholder="e.g. Kirkwall, Scotland" maxlength="40">
     ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="ec-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
@@ -346,7 +367,8 @@ function wire(){
   res.addEventListener("click", e => {
     const b = e.target.closest("[data-add]"); if (!b) return;
     const s = sailing(b.dataset.add), photo = pickPhoto(s);
-    st.items = [{id: s.id, photo, caption: "", badges: [], fare: "twin", grade: ""}]; sel = 0;
+    if (st.items.length >= MAX) { note = `Up to ${MAX} sailings at once.`; return draw(); }
+    st.items.push({id: s.id, photo, caption: "", name: "", badges: [], fare: "twin", grade: ""}); sel = st.items.length - 1;
     change(true); root.querySelector("#ec-find").focus();
   });
   root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
@@ -365,6 +387,7 @@ function wire(){
     root.querySelectorAll("[data-fare]").forEach(b => b.addEventListener("click", () => { cur.fare = b.dataset.fare; cur.grade = ""; change(true); }));
     $("#ec-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
     $("#ec-caption").addEventListener("input", e => { cur.caption = e.target.value; change(false); });
+    $("#ec-name").addEventListener("input", e => { cur.name = e.target.value; save(); $("#ec-names").innerHTML = outputs().map(o => esc(fileName(cur, o))).join("<br>"); });
     $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });
     root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {
       const p = sailing(cur.id).k.promos[+b.dataset.badge];
@@ -382,6 +405,7 @@ function wire(){
   }));
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
   $("#ec-zip").addEventListener("click", zip);
+  $("#ec-csv").addEventListener("click", () => download(URL.createObjectURL(new Blob([csvText()], {type: "text/csv;charset=utf-8"})), `email-cards_${today}.csv`));
   $("#ec-terms").addEventListener("click", () => {
     const withBadges = st.items.filter(x => badgesOf(x).length);
     download(URL.createObjectURL(new Blob([withBadges.map(termsText).join("\n\n")], {type: "text/plain;charset=utf-8"})),
@@ -420,7 +444,6 @@ async function zip(){
   btn.disabled = true;
   try {
     const JSZip = await loadZip(), z = new JSZip(), sizes = outputs(), used = new Set();
-    const rows = [["#", "Cruise code", "Name", "Date", "Nights and departure", "Ship", "Button", "Link", ...sizes.map(outLabel)]];
     const text = [`Email card text, prices as checked ${shortDate(today)}, subject to availability`, ""];
     let n = 0;
     for (const [i, it] of st.items.entries()) {
@@ -430,14 +453,12 @@ async function zip(){
         let name = fileName(it, k); while (used.has(name)) name = name.replace(/\.png$/, " 2.png"); used.add(name);
         z.file(name, (await make(it, k)).split(",")[1], {base64: true}); names.push(name);
       }
-      const w = words(it);
-      rows.push([i + 1, it.id, w.title, w.date, w.nights, w.ship, w.button, w.link, ...names]);
       text.push(`${i + 1}. ${copyText(it)}`, ...names.map(f => `   Picture: ${f}`), "");
     }
     z.file("email-text.txt", text.join("\n"));
     const withBadges = st.items.filter(x => badgesOf(x).length);
     if (withBadges.length) z.file("offer-terms.txt", withBadges.map(termsText).join("\n\n"));
-    z.file("cards.csv", "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n"));
+    z.file("cards.csv", csvText());
     status.textContent = "Zipping…";
     download(URL.createObjectURL(await z.generateAsync({type: "blob"})), `email-cards_${today}.zip`);
     note = `Downloaded ${st.items.length * sizes.length} pictures. Prices as checked ${shortDate(today)}.`;
