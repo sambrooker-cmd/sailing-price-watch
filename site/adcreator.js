@@ -97,6 +97,19 @@ async function unpack(s){
   const z = new Blob([unb64u(s)]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
   return JSON.parse(await new Response(z).text());
 }
+// "Make video" (Sam, 13 Oct 2026): the videos are made on GitHub (make_video.py, Actions → Make video)
+// from this ad's link, so the page copies the link and opens the workflow for it to be pasted in.
+const VIDEO_WORKFLOW = "https://github.com/sambrooker-cmd/sailing-price-watch/actions/workflows/make-video.yml";
+async function makeVideo(){
+  const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
+  let copied = true;   // copy before the new tab takes the focus, or the browser refuses the copy
+  try { await navigator.clipboard.writeText(url); } catch(e) { copied = false; prompt("Copy this link", url); }
+  window.open(VIDEO_WORKFLOW, "_blank", "noopener");
+  const up = ad.cards.some(c => c.photo && c.photo.startsWith("upload:"));
+  note = `${copied ? "Ad link copied. " : ""}On GitHub's Make video page (it opens in a new tab): Run workflow, paste the link into "Ad link" and press the green Run workflow. ` +
+         `In about 4 minutes the run page has a zip of 6 MP4s (1:1, 4:5 and 9:16; 6 and 10 seconds), without sound. ` + (up ? `Uploaded photos can't go to GitHub, so those cards use the feed image instead.` : "");
+  draw();
+}
 async function copyLink(){
   const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
   try { await navigator.clipboard.writeText(url); note = "Link copied. Anyone on the tracker's allowlist can open it in their own Ad creator; prices on the cards are always the latest."; }
@@ -277,6 +290,7 @@ function draw(){
     <div class="ac-main">
       <div class="ac-actions">
         <button type="button" class="btn" id="ac-zip"${ready() ? "" : " disabled"}>Download zip</button>
+        <button type="button" class="btn quiet" id="ac-video"${ready() ? "" : " disabled"} title="Slideshow videos for Meta, made on GitHub">Make video</button>
         <button type="button" class="btn quiet" id="ac-clear"${ad.cards.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ac-status" aria-live="polite">${readyMsg()}</span>
       </div>
@@ -436,6 +450,7 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  $("#ac-video").addEventListener("click", makeVideo);
   root.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => {
     const i = +b.dataset.dup; if (ad.cards.length >= maxSailings()) return;
     ad.cards.splice(i + 1, 0, JSON.parse(JSON.stringify(ad.cards[i]))); sel = i + 1; change(true, true);
@@ -506,6 +521,29 @@ function refreshText(){
   pv.querySelectorAll(".mp-foot").forEach((e, i) => { const t = tmp.querySelectorAll(".mp-foot")[i]; if (t) e.innerHTML = t.innerHTML; });
   const cta = pv.querySelector(".mp-story-cta"); if (cta) cta.textContent = ad.cta;
 }
+
+// ---------- video layers (used by the GitHub "Make video" job, make_video.py) ----------
+// Each slide as two transparent-free PNG layers at 2x: the background (photo, campaign artwork or
+// the brand pattern, which slowly zooms) and the foreground (logo, badge, strips, words, which fade in).
+// visibility:hidden keeps the layout exactly as on the card.
+const LAYER_CSS = {
+  bg: "#card > :not(.photo):not(.art):not(.artbg):not(.scrim){visibility:hidden!important}",
+  fg: "html,body,#card{background:transparent!important;background-image:none!important}.photo,.art,.artbg,.scrim{visibility:hidden!important}",
+};
+async function layer(html, size, pass){
+  const [w, h] = SIZES[size], f = document.createElement("iframe");
+  f.style.cssText = `position:fixed;left:-${w + 50}px;top:0;width:${w}px;height:${h}px;border:0`;
+  document.body.appendChild(f);
+  try {
+    await new Promise(r => { f.onload = r; f.srcdoc = html.replace("</head>", `<style>${LAYER_CSS[pass]}</style></head>`); });
+    await f.contentWindow.ready();
+    return await f.contentWindow.htmlToImage.toPng(f.contentWindow.document.getElementById("card"), {pixelRatio: 2, cacheBust: false});
+  } finally { f.remove(); }
+}
+window.__spwVideo = {
+  info: () => ({slides: slides().map(x => ({kind: x.kind, title: x.title})), primary: ad.primary, cta: ad.cta, until: validUntil(), prices: today}),
+  layers: async size => { const out = []; for (const x of slides()) { const html = x.doc(size); out.push({kind: x.kind, bg: await layer(html, size, "bg"), fg: await layer(html, size, "fg")}); } return out; },
+};
 
 // ---------- download ----------
 const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise((ok, bad) => {
