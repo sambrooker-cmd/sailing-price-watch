@@ -81,7 +81,46 @@ def safety_problems(state, snap):
 
 # Lists of things that happened in one check: added to the day's file.
 EVENTS = ("new", "removed", "returned", "drops", "rises", "cabin_drops", "cabin_rises", "cabin_sold_out",
-          "cabin_back", "promo_added", "promo_ended", "promo_changed", "nectar_changes", "lead_source_switch")
+          "cabin_back", "promo_added", "promo_ended", "promo_changed", "nectar_changes", "lead_source_switch",
+          "feed_gap_new", "feed_gap_fixed")
+# Feed vs website (Sam, 13 Oct 2026): a sailing whose ad feed price has differed from its page for this
+# long is reported once, in a "Feed prices don't match the website" issue (the feed is refreshed daily).
+FEED_GAP_HOURS = 3
+HOSTING_SITE = os.environ.get("HOSTING_SITE") or "acl-price-watch"
+
+
+def hours(a, b):
+    p = lambda x: dt.datetime.fromisoformat(x.replace("Z", "+00:00"))  # noqa
+    return (p(b) - p(a)).total_seconds() / 3600
+
+
+def feed_gap_report(st, snap, at):
+    """Gaps that have now lasted FEED_GAP_HOURS and weren't reported: marks them reported and
+    returns the issue text ("" when there's nothing new)."""
+    by = {s["id"]: s for s in snap["sailings"]}
+    due = sorted(((sid, r) for sid, r in (st.get("sailings") or {}).items()
+                  if r.get("feed_gap") and not r["feed_gap"].get("reported")
+                  and hours(r["feed_gap"]["since"], at) >= FEED_GAP_HOURS - 0.25),   # hourly checks drift a few minutes
+                 key=lambda x: -abs(x[1]["feed_gap"]["feed"] - x[1]["feed_gap"]["page"]))
+    if not due:
+        return ""
+    open_now = sum(1 for r in st["sailings"].values() if r.get("feed_gap"))
+    L = [f"# Ad feed prices don't match the website ({at[11:16]} UTC check)", "",
+         f"The Google ad feed (what the ads show) has had a different \"from\" price to the sailing's own page "
+         f"for at least {FEED_GAP_HOURS} hours on {len(due)} sailing{'s' if len(due) != 1 else ''}. "
+         "The tracker and cards use the website's price. Worth passing to whoever looks after the feed.", "",
+         "| Sailing | Ad feed | Website | Difference | Since (UTC) |", "|---|---|---|---|---|"]
+    for sid, r in due:
+        g = r["feed_gap"]
+        g["reported"] = at
+        d = g["feed"] - g["page"]
+        name = (by.get(sid) or {}).get("base_title") or r.get("base_title") or r.get("title") or sid
+        link = (by.get(sid) or {}).get("link") or r.get("link") or ""
+        L.append(f"| [{name}]({link}) ({sid}) | {money(g['feed'])} | {money(g['page'])} | "
+                 f"feed {'lower' if d < 0 else 'higher'} by {money(abs(d))} | {g['since'][:16].replace('T', ' ')} |")
+    L += ["", f"{open_now} sailing{'s' if open_now != 1 else ''} differ right now. Full list, with ones fixed recently: "
+          f"https://{HOSTING_SITE}.web.app → Checks → Feed vs website. Nothing has been changed in the feed or any ad account.", ""]
+    return "\n".join(L)
 
 
 def claim_key(e):
@@ -231,6 +270,8 @@ def main():
     (ROOT / "runs").mkdir(exist_ok=True)
     st = json.loads((out / "state.json").read_text())
     st["updated_at"] = at
+    gaps = feed_gap_report(st, snap, at)
+    (out / "feed_gaps.md").write_text(gaps)
     state_p.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
     shutil.copyfile(out / "cabins.json", cab_p)
     run_path.write_text(json.dumps(merge_day(day, run_doc, at), ensure_ascii=False, indent=1))
@@ -256,7 +297,7 @@ def main():
     (out / "summary.md").write_text(text)
     (out / "issue.md").write_text(text)
     print(text)
-    gh_output(new_claims="true" if has_new else "false", date=today)
+    gh_output(new_claims="true" if has_new else "false", date=today, feed_gaps="true" if gaps else "false")
     return 0
 
 
