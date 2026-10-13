@@ -166,7 +166,8 @@ OVERRIDES = json.loads(_OV.read_text()) if _OV.exists() else {}
 # flight upgrades, coach travel, solo supplements, anything else.
 # "Lower fares" / "reduced fares" offers are left off: they claim a price came down,
 # which is a was/now (reference pricing) claim, and those only ever come from run.json.
-PRICE_CLAIM = re.compile(r"\b(lower|reduced|reduction)\b.*\bfares?\b", re.I)
+# "Lower solo supplement" too (Sam, 13 Oct 2026): "lower" implies a price comparison the tracker can't back up
+PRICE_CLAIM = re.compile(r"\b(lower|reduced|reduction)\b.*\b(fares?|supplements?|prices?)\b", re.I)
 MAX_PROMOS = 2
 
 
