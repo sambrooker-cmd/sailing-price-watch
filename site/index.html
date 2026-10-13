@@ -245,6 +245,8 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .cardopts select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);align-self:flex-start}
 .co-frame{position:relative;width:150px;overflow:hidden;background:#380843;border:1px solid var(--rule)}
 .co-frame iframe{position:absolute;left:0;top:0}
+.btn.sm{padding:6px 12px;font-size:13px}
+.ac-note{margin:6px 0 0;padding:8px 10px;background:var(--warn-bg);color:var(--warn);font-size:13px}
 .ac-chip{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
 .ac-chip[aria-pressed="true"]{background:var(--allium);border-color:var(--allium);color:#fff}
 .ac-chip:disabled{opacity:.4;cursor:default}
@@ -1293,7 +1295,12 @@ const auth = getAuth(firebaseApp);
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   });
   dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
-  const fromHash = () => { const id = decodeURIComponent(location.hash.slice(1)); if (id) openDetail(id); else if (dlg.open) dlg.close(); };
+  const fromHash = () => {
+    const h = location.hash.slice(1);
+    // #ad=… is a shared Ad creator link: open it there (site/adcreator.js openShared)
+    if (h.startsWith("ad=")) { sharedAd = h.slice(3); if (dlg.open) dlg.close(); if (adsModule) { adsModule.openShared(sharedAd); sharedAd = null; } showView("ads"); return; }
+    const id = decodeURIComponent(h); if (id) openDetail(id); else if (dlg.open) dlg.close();
+  };
   window.addEventListener("hashchange", fromHash);
   document.addEventListener("click", e => {
     if (e.target.closest("a")) return;
@@ -1698,13 +1705,15 @@ const auth = getAuth(firebaseApp);
     } catch (e) { el.innerHTML = `<p class="sub">Couldn't load the card maker: ${esc(e.message)}</p>`; }
   }
   // Ad creator: its own module, loaded the first time the page is opened (site/adcreator.js)
-  let adsMounted = false;
+  let adsMounted = false, adsModule = null, sharedAd = null;
   async function mountAds(){
     if (!state || adsMounted) return;   // (state first: showView runs before adsMounted is declared)
     adsMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./adcreator.js"), getAdkit()]);
-      await m.mount($("ads"), {state, cabins, adkit: kit});
+      adsModule = m;
+      const shared = sharedAd; sharedAd = null;
+      await m.mount($("ads"), {state, cabins, adkit: kit, shared});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
 
