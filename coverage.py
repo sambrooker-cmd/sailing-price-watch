@@ -150,7 +150,7 @@ def main():
              f"The website lists {len(pages)} sailing pages; the ad feed has {len(feed_ids)}. "
              f"{len(on_sale)} sailing{'s are' if len(on_sale) != 1 else ' is'} on sale on the website but not in the feed"
              + (f", {len(new)} of them new since the last check." if prev else ".")
-             + (f" {charters} of them {'are semi-charters' if charters != 1 else 'is a semi-charter'} (sold through an agent, not meant to be in the feed)." if charters else "")
+             + (f" {charters} of them {'are' if charters != 1 else 'is'} sold through an agent, not direct (not meant to be in the feed)." if charters else "")
              + (f" {len(not_found)} sitemap page{'s' if len(not_found) != 1 else ''} return{'' if len(not_found) != 1 else 's'} 404." if not_found else ""), ""]
     if new:
         lines += ["## Newly missing from the feed"]
