@@ -18,7 +18,7 @@ const MAX = 1;   // one sailing at a time (Sam, 13 Oct 2026)
 const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across tiles", w: 1200, h: 924, badge: 44, cap: 46},
                wide: {label: "Wide", note: "2400 × 924, for full-width sailings", w: 2400, h: 924, badge: 44, cap: 46}};
 
-let ID = null, S, KIT, CAB = {}, root, today, st = fresh(), sel = 0, note = "";
+let ID = null, S, KIT, CAB = {}, T = null, root, today, st = fresh(), sel = 0, note = "";
 function fresh(){ return {items: [], allBadges: false, sizes: {standard: true, wide: true}, kinds: {card: true, pic: false}}; }
 // What to make (Sam, 13 Oct 2026: "the whole card to pop into HubSpot"): the whole card (picture, words and
 // price button, as in the emails, one PNG) and/or the picture on its own. Outputs are "<size>" or "<size>-card".
@@ -29,6 +29,7 @@ const outLabel = o => SIZES[o.split("-")[0]].label + (o.endsWith("-card") ? " ca
 export async function mount(el, ctx){
   root = el; ID = ctx.idToken || null; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated;
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
+  T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
   st.allBadges = false;   // one sailing at a time: offers are picked on the sailing itself
   st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
@@ -46,9 +47,33 @@ function sailing(id){
           image: k.image || r.image_link, photos: [k.image || r.image_link, ...(k.photos || [])].filter((u, i, a) => u && a.indexOf(u) === i)};
 }
 const badgeText = line => line.split(" · ")[0];
+// T&Cs for the offer badges on a card (Sam, 13 Oct 2026: "download promo T&Cs for any promotions featured on
+// the email card"). A badge line starts with the promotion's name (render_cards.py promo_lines); its terms
+// are the ones terms.py matched to that promotion on the website.
+function badgeTerms(it){
+  const r = sailing(it.id).r, offers = S.offers || {};
+  const live = Object.entries(r.promos || {}).filter(([, sp]) => sp.length && sp[sp.length - 1][1] == null).map(([o]) => o);
+  return badgesOf(it).map(b => {
+    const name = badgeText(b).trim().toLowerCase();
+    const oid = live.find(o => (offers[o] && offers[o].name || "").trim().toLowerCase() === name);
+    const docs = oid && T && T.offers ? (T.offers[oid] || []).map(i => T.docs[i]).filter(Boolean) : [];
+    return {badge: badgeText(b), docs, byName: !!(oid && T && T.how && T.how[oid] === "name")};
+  });
+}
+function termsText(it){
+  const w = words(it), list = badgeTerms(it);
+  const head = [`Offer T&Cs for the email card: ${w.title} (${it.id}), ${w.date}`,
+    T ? `Read from ambassadorcruiseline.com ${T.fetched_at.slice(0, 16).replace("T", " ")} UTC. Check the wording on the website before using it.` : "", ""];
+  return [...head, ...list.flatMap(x => [x.badge.toUpperCase(), "",
+    ...(x.docs.length ? x.docs.flatMap(d => [(/^[a-z:,.£\d]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`),
+                                           `(From ${d.pages[0]}${d.pages.length > 1 ? ` and ${d.pages.length - 1} more page${d.pages.length > 2 ? "s" : ""}` : ""})`, ""])
+      : [`No terms for this promotion were found on the website. General booking terms: ${(T && T.general) || "https://www.ambassadorcruiseline.com/information/terms-conditions/"}`, ""]),
+    ...(x.byName ? ["(Matched by a word in the promotion's name: check these are the right terms.)", ""] : [])])].join("\n");
+}
 const badgesOf = it => st.allBadges ? (sailing(it.id).k.promos || []).slice(0, 2) : it.badges;
 // A place name from a photo's file name, offered as a caption to check
 function captionHint(url){
+  if ((url || "").startsWith("/ships/")) return "";   // the ship photo: no place name to suggest
   const f = decodeURIComponent((url || "").split("/").pop() || "").replace(/\.\w+$/, "");
   const junk = /^(\d+|\d+x\d+|x|shutterstock|istock|getty|adobe|stock|selected|edited|dsc\d*|img\d*|new|to|use|amb|xxx|cotw|final|v\d+|copy|web|hero|header|crop(ped)?|at|sunset|aerial|view|\d+-\d+-\d+)$/i;
   const words = f.split(/[\s_\-]+/).filter(w => w && !junk.test(w) && !/\d/.test(w));
@@ -251,6 +276,7 @@ function draw(){
       <div class="ac-actions">
         <button type="button" class="btn" id="ec-zip"${it.length && outputs().length ? "" : " disabled"}>Download zip</button>
         <button type="button" class="btn quiet" id="ec-html"${it.length && htmlSizes().length ? "" : " disabled"} title="One HTML file with every card, pictures saved online">Download HTML</button>
+        <button type="button" class="btn quiet" id="ec-terms"${it.length && it.some(x => badgesOf(x).length) ? "" : " disabled title=\"Only for cards with offer badges\""}>Download offer T&amp;Cs</button>
         <button type="button" class="btn quiet" id="ec-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
       </div>
@@ -356,6 +382,11 @@ function wire(){
   }));
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
   $("#ec-zip").addEventListener("click", zip);
+  $("#ec-terms").addEventListener("click", () => {
+    const withBadges = st.items.filter(x => badgesOf(x).length);
+    download(URL.createObjectURL(new Blob([withBadges.map(termsText).join("\n\n")], {type: "text/plain;charset=utf-8"})),
+             `offer-terms_${withBadges.map(x => x.id).join("_")}_${today}.txt`);
+  });
   root.querySelectorAll("[data-html]").forEach(b => b.addEventListener("click", async () => {
     const [i, k] = b.dataset.html.split(":"), was = b.textContent;
     b.disabled = true; b.textContent = "Making…";
@@ -404,6 +435,8 @@ async function zip(){
       text.push(`${i + 1}. ${copyText(it)}`, ...names.map(f => `   Picture: ${f}`), "");
     }
     z.file("email-text.txt", text.join("\n"));
+    const withBadges = st.items.filter(x => badgesOf(x).length);
+    if (withBadges.length) z.file("offer-terms.txt", withBadges.map(termsText).join("\n\n"));
     z.file("cards.csv", "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n"));
     status.textContent = "Zipping…";
     download(URL.createObjectURL(await z.generateAsync({type: "blob"})), `email-cards_${today}.zip`);

@@ -213,6 +213,7 @@ function promoEnds(line){
 }
 // A place name from a photo's file name, offered as a caption to check (e.g. ".../bridgetown-barbados_....jpg")
 function captionHint(url){
+  if ((url || "").startsWith("/ships/")) return "";   // the ship photo: no place name to suggest
   const f = decodeURIComponent((url || "").split("/").pop() || "").replace(/\.\w+$/, "");
   const junk = /^(\d+|\d+x\d+|shutterstock|istock|getty|adobe|stock|selected|edited|dsc\d*|img\d*|new|to|use|amb|xxx|cotw|final|v\d+|copy|web|hero|header|crop(ped)?|at|sunset|aerial|view|\d+-\d+-\d+)$/i;
   const words = f.split(/[\s_\-]+/).filter(w => w && !junk.test(w) && !/\d/.test(w));
