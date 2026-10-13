@@ -3,3 +3,4 @@ data/
 db/
 img_cache/
 out/
+functions/node_modules/

@@ -17,7 +17,7 @@ const MAX_CARDS = 10;
 const KEY = "spw-ad-draft";          // the ad being worked on (this browser)
 const DRAFTS = "spw-ad-drafts";      // named saved ads (this browser): {id: {name, saved_at, ad}}
 
-let S, CAB, KIT, LOGO, TP = null, root, today;
+let S, CAB, KIT, LOGO, TP = null, root, today, ID = null;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
 const SITE = "https://www.ambassadorcruiseline.com/";
 const INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta: "Swipe to explore ›", useA: true,
@@ -28,7 +28,7 @@ let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards
 let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
-  root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
+  root = el; S = ctx.state; ID = ctx.idToken || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
   today = S.updated;
   LOGO = await (await fetch("logo-white.svg")).text();
   // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
@@ -36,6 +36,7 @@ export async function mount(el, ctx){
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { ad = normalise(d).ad; draftId = d._draft || null; } } catch(e){}
   if (ctx.shared) await openShared(ctx.shared); else draw();
+  loadVideos();
 }
 
 // Bring a saved, shared or older ad up to date with today's data, saying what had to change.
@@ -100,7 +101,78 @@ async function unpack(s){
 // "Make video" (Sam, 13 Oct 2026): the videos are made on GitHub (make_video.py, Actions → Make video)
 // from this ad's link, so the page copies the link and opens the workflow for it to be pasted in.
 const VIDEO_WORKFLOW = "https://github.com/sambrooker-cmd/sailing-price-watch/actions/workflows/make-video.yml";
+// From 13 Oct 2026 (Sam, option 3) the button asks the Firebase function (functions/index.js) to start the
+// GitHub run itself, so no GitHub account is needed; the finished videos show under "Videos". While the
+// function isn't deployed (or can't be reached) it falls back to the GitHub page below.
+const VIDEO_FN = "https://us-central1-promotions-planner.cloudfunctions.net/makeVideo";
+let videos = null, videoOff = false, videoTimer = null, playing = null;
+async function videoApi(method, body){
+  if (!ID) throw new Error("Sign in first.");
+  const token = await ID();
+  let r;
+  try {
+    r = await fetch(VIDEO_FN, {method, body: body ? JSON.stringify(body) : undefined,
+      headers: {Authorization: `Bearer ${token}`, ...(body ? {"Content-Type": "application/json"} : {})}});
+  } catch(e) { throw new Error("The video service can't be reached."); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || `The video service answered ${r.status}.`), {served: !!j.error});
+  return j;
+}
+async function loadVideos(){
+  clearTimeout(videoTimer);
+  try { videos = (await videoApi("GET")).videos || []; videoOff = false; }
+  catch(e) { if (!e.served) videoOff = true; }
+  const box = root && root.querySelector("#ac-videos");
+  if (box) box.outerHTML = videosBlock();
+  if (box) wireVideos();
+  if (root && root.isConnected && (videos || []).some(v => v.status === "queued" || v.status === "running"))
+    videoTimer = setTimeout(loadVideos, 20000);   // check again while something is being made
+}
+const SIZE_NAME = {"1x1": "1:1", "4x5": "4:5", "9x16": "9:16"};
+const ago = iso => new Date(iso).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"});
+function videosBlock(){
+  if (!videos || !videos.length) return `<div id="ac-videos"></div>`;
+  const row = v => {
+    const who = esc((v.by || "").split("@")[0].replace(/[._]/g, " "));
+    const head = `<div class="ac-vh"><b>${esc(v.title || "Ad")}</b><span class="sub">${v.cards} cards · ${who} · ${esc(ago(v.at))}</span></div>`;
+    if (v.status === "queued") return `<li>${head}<span class="ac-vs">Waiting to start…</span></li>`;
+    if (v.status === "running") return `<li>${head}<span class="ac-vs">Being made, about 4 minutes…</span></li>`;
+    if (v.status !== "done") return `<li>${head}<span class="ac-vs err">${esc(v.error || "Something went wrong.")}</span></li>`;
+    const by = {};
+    v.files.forEach(f => (by[f.size] = by[f.size] || []).push(f));
+    return `<li>${head}<span class="sub">Prices as checked ${fmtDate(v.prices)}${v.until ? ` · <b>was/now: stop running by ${fmtDate(v.until)}</b>` : ""}</span>
+      <div class="ac-vf">${Object.entries(by).map(([sz, fs]) => `<span>${SIZE_NAME[sz] || sz}: ${fs.map(f =>
+        `<a href="${esc(f.url)}" download="${esc(f.name)}">${esc(f.length)} s</a><button type="button" class="linkbtn" data-play="${esc(f.url)}" aria-label="Play ${SIZE_NAME[sz] || sz} ${esc(f.length)} seconds">▶</button>`).join(" ")}</span>`).join("")}</div>
+      ${playing && v.files.some(f => f.url === playing) ? `<video src="${esc(playing)}" controls autoplay muted playsinline></video>` : ""}</li>`;
+  };
+  return `<div id="ac-videos" class="ac-block ac-vids"><h3>Videos</h3>
+    <p class="sub">Made from this page in the last 30 days, newest first, by anyone on the tracker. No sound: add music in Ads Manager. Click a length to download it, or ▶ to watch it here.</p>
+    <ul>${videos.slice(0, 12).map(row).join("")}</ul></div>`;
+}
+function wireVideos(){
+  root.querySelectorAll("[data-play]").forEach(b => b.addEventListener("click", () => {
+    playing = playing === b.dataset.play ? null : b.dataset.play;
+    const box = root.querySelector("#ac-videos"); box.outerHTML = videosBlock(); wireVideos();
+  }));
+}
 async function makeVideo(){
+  if (videoOff || !ID) return makeVideoOnGitHub();
+  const btn = root.querySelector("#ac-video"), up = ad.cards.some(c => c.photo && c.photo.startsWith("upload:"));
+  btn.disabled = true; btn.textContent = "Starting…";
+  try {
+    const sl = slides();
+    await videoApi("POST", {code: await pack({v: 1, ad: portable()}), cards: sl.length,
+                            title: sl.filter(x => x.kind === "sailing").map(x => x.title).join(", ")});
+    note = "Making your videos. They'll appear under Videos in about 4 minutes (this page checks every 20 seconds), and you can carry on working meanwhile." +
+           (up ? " Uploaded photos can't be sent, so those cards use the feed image." : "");
+  } catch(e) {
+    if (!e.served) { videoOff = true; return makeVideoOnGitHub(); }
+    note = e.message;
+  }
+  draw();
+  loadVideos();
+}
+async function makeVideoOnGitHub(){
   const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
   let copied = true;   // copy before the new tab takes the focus, or the browser refuses the copy
   try { await navigator.clipboard.writeText(url); } catch(e) { copied = false; prompt("Copy this link", url); }
@@ -294,6 +366,7 @@ function draw(){
         <button type="button" class="btn quiet" id="ac-clear"${ad.cards.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ac-status" aria-live="polite">${readyMsg()}</span>
       </div>
+      ${videosBlock()}
       ${preview()}
     </div>
   </div>`;
@@ -466,6 +539,7 @@ function wire(){
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
   $("#ac-video").addEventListener("click", makeVideo);
+  wireVideos();
   root.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => {
     const i = +b.dataset.dup; if (ad.cards.length >= maxSailings()) return;
     ad.cards.splice(i + 1, 0, JSON.parse(JSON.stringify(ad.cards[i]))); sel = i + 1; change(true, true);
