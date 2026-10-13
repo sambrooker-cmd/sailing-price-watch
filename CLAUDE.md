@@ -23,6 +23,23 @@ Storage bucket (us-east1, inside the no-cost allowance; Sam wants no charges: ke
 shown on the tracker page. Replaced cards stay 30 days marked out of date (Sam chose this), then are deleted.
 The **Make cards** workflow still makes cards on request as a zip.
 
+## QA sweep (13 Oct 2026)
+Code review (Python and browser) plus a UX sweep (every page at 1440 desktop, 390 phone and dark mode; flows: search,
+detail view, CSVs, T&Cs dialog, Ad creator zip, Email cards, links). Fixed: was/now claims ran one day long (now
+exactly `limit` days, `ends` = since + limit − 1, capped at departure − 7 days); a sailing back in the feed after more
+than `RETURN_RESET_HOURS` = 24 h starts a fresh reference period (lead and cabins, `back` segment; `removed_at`); a
+page that fails keeps its departure date and offer (`PAGE_FIELDS`); an empty cabin list no longer marks every cabin
+sold out; `daily.py` safety stop when most page prices can't be read; feed gaps stay open while a sailing flickers
+out of the feed; card steps `continue-on-error` and the commit step `always()`; `terms.py` keeps the old terms after a
+partial read; `publish.py` publishes only the newest `OLD_SHOWN` = 2 out-of-date standard cards per sailing (was
+growing ~60 KB a day toward Firestore's limit); `card_review.py` campaign layout check. Browser: shared-ad photos must
+be the sailing's own (and image sources are escaped: a crafted link could run script); Email creator links limited to
+http(s)/mailto/tel/{{token}}; Email cards solo falls back to twin when no solo is on sale, picture cache capped;
+carousels trimmed (with a note) when an opening/closing card is switched on; malformed `#` links ignored; UK dates in
+`fmtWhen`; CSV formula guard on tab/CR; `makeVideo` marks a request failed if GitHub can't be reached. UX: table links
+in the brand colour; on phones What changed stacks each change, Feed vs website and Not in ad feed drop their least
+useful columns.
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute

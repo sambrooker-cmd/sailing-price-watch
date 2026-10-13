@@ -86,9 +86,11 @@ def fetch(old):
         try:
             return u, sections(enrich.get(u), u)
         except Exception:  # noqa
-            return u, []
+            return u, None
     with cf.ThreadPoolExecutor(8) as ex:
         found = list(ex.map(one, pages))
+    failed = sum(1 for _, secs in found if secs is None)
+    found = [(u, secs) for u, secs in found if secs]
     today = london_today()
     docs = {}
     for u, secs in found:
@@ -96,6 +98,10 @@ def fetch(old):
             i = doc_id(d)
             e = docs.setdefault(i, {**d, "pages": [], "first_seen": (old.get(i) or {}).get("first_seen", today)})
             e["pages"].append(u)
+    # A partial read (pages refused or timing out) mustn't replace good terms with a short list (QA, 13 Oct 2026)
+    if failed > len(pages) * 0.2 or (old and len(docs) < len(old) * 0.5):
+        print(f"terms: {failed} of {len(pages)} pages failed and {len(docs)} terms found (had {len(old)}): kept the old ones")
+        return None, len(pages)
     return docs, len(pages)
 
 
@@ -143,9 +149,11 @@ def main():
           f"new promotion{'s' if len(fresh) > 1 else ''} with no terms: " + ", ".join(state["offers"][o]["name"] for o in fresh) if fresh else ""
     if why:
         print(f"terms: reading the website ({why})")
-        docs, checked = fetch(docs)
-        at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        known = set(state.get("offers") or {})
+        new, checked = fetch(docs)
+        if new is not None:   # else keep the old terms and their read time, so the next check tries again
+            docs = new
+            at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            known = set(state.get("offers") or {})
         offers, how = match(docs, state)
     OUT.write_text(json.dumps({"fetched_at": at, "pages_checked": checked, "general": GENERAL, "docs": docs,
                                "offers": offers, "how": how, "known_at_fetch": sorted(known)}, ensure_ascii=False, indent=1))

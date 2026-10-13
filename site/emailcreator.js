@@ -292,6 +292,9 @@ function images(){
 
 // ---------- the email ----------
 const F = "Quicksand,Arial,Helvetica,sans-serif";
+// Typed links: web, email, phone or an email platform's {{token}} only. Anything else (e.g. "javascript:")
+// is left out, here and in the preview (QA, 13 Oct 2026).
+const safeUrl = u => { u = String(u || "").trim(); return /^(https?:\/\/|mailto:|tel:|\{\{)/i.test(u) ? u : ""; };
 function button(text, href, big){
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr>
     <td bgcolor="${COL.allium}" style="background:${COL.allium};border-radius:6px;mso-padding-alt:${big ? "12px 22px" : "10px 16px"}">
@@ -352,11 +355,11 @@ function emailHtml(src){
   const wn = em.items.map(it => [it, claimOf(it)]).filter(x => x[1]);
   const solo = em.items.some(it => !claimOf(it) && fareOf(it).fare === "solo"), twin = em.items.some(it => claimOf(it) || fareOf(it).fare === "twin");
   const basis = [twin ? "per person, based on two sharing" : "", solo ? `${twin ? "solo prices are " : ""}for one guest travelling solo` : ""].filter(Boolean).join("; ");
-  const small = [`Prices are ${basis}, as checked ${shortDate(today)}, and subject to availability.${em.terms ? ` View full offer T&amp;Cs <a href="${esc(em.terms)}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
+  const small = [`Prices are ${basis}, as checked ${shortDate(today)}, and subject to availability.${safeUrl(em.terms) ? ` View full offer T&amp;Cs <a href="${esc(safeUrl(em.terms))}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
     ...(src.nectar ? ["*Nectar points: terms and conditions apply."] : []),
     ...wn.map(([it, c]) => `Was price: ${esc(sailing(it.id).title)}${c.key !== "lead" ? ` (${esc(GRADE[c.grade].toLowerCase())} cabins)` : ""} was on sale at ${money(c.was)} for at least 28 days before it was reduced to ${money(c.now)} on ${shortDate(c.since)}.`),
     ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
-  const unsub = em.unsub.trim() || "UNSUBSCRIBE_LINK";
+  const unsub = safeUrl(em.unsub) || "UNSUBSCRIBE_LINK";
   return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -379,7 +382,7 @@ function emailHtml(src){
 ${src.hero ? heroRow(src.hero) : ""}
 ${strips("header", src)}
 ${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${F};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
-${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, em.ctaLink || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
+${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, safeUrl(em.ctaLink) || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
 ${strips("intro", src)}
 ${rows.join("\n")}
 ${strips("footer", src)}

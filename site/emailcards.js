@@ -71,7 +71,7 @@ function csvText(){
       it.caption, badgesOf(it).join("; "), tc.map(x => `${x.badge}: ${x.docs.length ? x.docs.map(d => d.title).join(", ") : "none found"}`).join("; "),
       it.photo || s.image, ...sizes.map(o => fileName(it, o)), today]);
   });
-  return "\ufeff" + rows.map(r => r.map(v => { let t = String(v ?? ""); if (/^[=+\-@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; }).join(",")).join("\r\n");
+  return "\ufeff" + rows.map(r => r.map(v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; }).join(",")).join("\r\n");
 }
 function termsText(it){
   const w = words(it), list = badgeTerms(it);
@@ -111,7 +111,8 @@ function onSale(id, fare){   // {grade: price} on sale now
   return out;
 }
 function fareOf(it){   // {fare, grade, price, label, basis} for what's chosen, falling back if it's no longer on sale
-  const s = sailing(it.id), fare = it.fare === "solo" ? "solo" : "twin", grades = onSale(it.id, fare);
+  // Solo with no solo cabin on sale falls back to twin, so a card never shows a twin price as "solo" (QA, 13 Oct 2026)
+  const s = sailing(it.id), fare = it.fare === "solo" && Object.keys(onSale(it.id, "solo")).length ? "solo" : "twin", grades = onSale(it.id, fare);
   let grade = it.grade && grades[it.grade] != null ? it.grade : "", price;
   if (grade) price = grades[grade];
   else if (fare === "twin") price = s.price;
@@ -173,6 +174,9 @@ function cardDoc(it, size){
     ${it.caption.trim() ? `<div class="c">${esc(it.caption.trim())}</div>` : ""}</div></body></html>`;
 }
 const made = new Map();   // doc → PNG data URL
+// Keep only the most recent pictures: every caption edit makes new ones, and wide PNGs are several MB (QA, 13 Oct 2026)
+const MADE_MAX = 60;
+const remember = (doc, url) => { made.delete(doc); made.set(doc, url); while (made.size > MADE_MAX) made.delete(made.keys().next().value); };
 async function render(it, size){
   const doc = cardDoc(it, size);
   if (made.has(doc)) return made.get(doc);
@@ -183,7 +187,7 @@ async function render(it, size){
     await new Promise(r => { f.onload = r; f.srcdoc = doc; });
     await f.contentWindow.ready();
     const url = await f.contentWindow.toPng();
-    made.set(doc, url);
+    remember(doc, url);
     return url;
   } finally { f.remove(); }
 }
@@ -212,7 +216,7 @@ async function renderCard(it, size){
     await new Promise(r => { f.onload = r; f.srcdoc = doc; });
     await f.contentWindow.ready();
     const url = await f.contentWindow.toPng();
-    made.set(doc, url);
+    remember(doc, url);
     return url;
   } finally { f.remove(); }
 }
@@ -333,6 +337,7 @@ function fareBlock(it){
     <label class="ac-lab" for="ec-grade">Cabin</label>
     <select id="ec-grade"><option value="">Cheapest available${Object.keys(grades).length || f.fare === "twin" ? ` (${money(cheapest)})` : ""}</option>
       ${Object.entries(GRADES).filter(([g]) => grades[g] != null).map(([g, n]) => `<option value="${g}"${f.grade === g ? " selected" : ""}>${n} (${money(grades[g])})</option>`).join("")}</select>
+    ${it.fare === "solo" && f.fare !== "solo" ? `<p class="ac-note">No solo cabins are on sale now, so the card uses twin prices.</p>` : ""}
     ${it.grade && !f.grade ? `<p class="ac-note">${esc(GRADES[it.grade] || it.grade)} cabins aren't on sale for this fare now, so the card uses the cheapest.</p>` : ""}
     <p class="sub">Button: <b>${esc(f.label || "no price on sale")}</b> · prices ${esc(f.basis)}, as checked ${shortDate(today)}.</p>`;
 }

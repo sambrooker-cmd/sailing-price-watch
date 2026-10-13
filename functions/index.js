@@ -84,12 +84,20 @@ exports.makeVideo = onRequest({
   const ref = db.collection(COL).doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued",
                  title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0))});
-  const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
-    method: "POST",
-    headers: {Authorization: `Bearer ${GH.value().trim()}`, Accept: "application/vnd.github+json",
-              "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "pricewatch-make-video"},
-    body: JSON.stringify({ref: "main", inputs: {link: code, request: ref.id}}),
-  });
+  let r;
+  try {
+    r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: "POST",
+      headers: {Authorization: `Bearer ${GH.value().trim()}`, Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "pricewatch-make-video"},
+      body: JSON.stringify({ref: "main", inputs: {link: code, request: ref.id}}),
+    });
+  } catch (e) {
+    // GitHub unreachable: mark the request failed so it doesn't hold a place in the limits (QA, 13 Oct 2026)
+    console.error("dispatch error", e.message);
+    await ref.update({status: "failed", error: "Couldn't reach GitHub. Try again in a minute."});
+    return res.status(502).json({error: "Couldn't reach GitHub to start the video. Try again in a minute."});
+  }
   if (!r.ok) {
     const why = r.status === 401 ? "the GitHub token has expired or is wrong" : `GitHub answered ${r.status}`;
     await ref.update({status: "failed", error: `Couldn't start: ${why}.`});
