@@ -57,7 +57,9 @@ def page_title(page):
 
 def agents(page):
     """Who a sailing is sold through (FareSummary search-data "agents"): ["DIRECT"] for Ambassador's own
-    sailings; agent ids for semi-charters, which aren't meant to be in the ad feed (Sam, 13 Oct 2026)."""
+    sailings; agent ids for semi-charters, which aren't meant to be in the ad feed (Sam, 13 Oct 2026). The site's
+    own script sends visitors on those pages to /404/ (checked in a browser, all 14 on 13 Oct 2026), but the
+    server still returns the page with its prices, so this reads them without a browser."""
     m = re.search(r'<astro-island[^>]*component-url="[^"]*FareSummary[^"]*"[^>]*props="([^"]*)"', page)
     if not m:
         return None
@@ -150,7 +152,7 @@ def main():
              f"The website lists {len(pages)} sailing pages; the ad feed has {len(feed_ids)}. "
              f"{len(on_sale)} sailing{'s are' if len(on_sale) != 1 else ' is'} on sale on the website but not in the feed"
              + (f", {len(new)} of them new since the last check." if prev else ".")
-             + (f" {charters} of them {'are' if charters != 1 else 'is'} sold through an agent, not direct (not meant to be in the feed)." if charters else "")
+             + (f" {charters} of them {'are' if charters != 1 else 'is'} sold through an agent, not direct (not meant to be in the feed; visitors get the 404 page)." if charters else "")
              + (f" {len(not_found)} sitemap page{'s' if len(not_found) != 1 else ''} return{'' if len(not_found) != 1 else 's'} 404." if not_found else ""), ""]
     if new:
         lines += ["## Newly missing from the feed"]
