@@ -5,6 +5,7 @@
 // saved data (state/current, state/cabins) and can't be typed in. "Lower fares" offers never
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
 import {cardDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js";
+import {suggest} from "./adcopy.js";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
@@ -98,7 +99,7 @@ function draw(){
         <textarea id="ac-primary" rows="4" placeholder="The words above the ${ad.format === "carousel" ? "carousel" : "image"}">${esc(ad.primary)}</textarea>
         <label class="ac-lab" for="ac-cta">Button</label>
         <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
-        <p class="sub">Claude-drafted ad text is coming next.</p>
+        ${suggestions()}
       </div>
     </div>
     <div class="ac-main">
@@ -113,6 +114,24 @@ function draw(){
   wire();
   paintCards();
   counts();
+}
+
+// Suggested primary text from the chosen sailings' own facts, in the brand's tone of voice (adcopy.js).
+let sugg = [];
+function suggestions(){
+  if (ad.format === "carousel" ? ad.cards.length < 2 : ad.cards.length !== 1) return "";
+  sugg = suggest(ad.cards.map(c => {
+    const d = cardData(c), s = sailing(c.id), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
+    return {title: d.title, ship: d.ship, port: d.port, fly: d.fly, nights: d.nights, departure_date: d.departure_date, price: d.price,
+            promos: s.k.promos || [], nectarPts: n, wasnow: d.wasnow};
+  }), ad.format);
+  return `<details class="ac-sugg" open><summary>Suggested primary text (${sugg.length})</summary>
+    <p class="sub">Built from these sailings' prices, dates, ports, promotions and Nectar points, in Ambassador's tone of voice. The first ${LIMITS.primary} characters (in bold) show before "See more".</p>
+    ${sugg.map((o, i) => { const cut = o.text.length <= LIMITS.primary ? o.text.length : o.text.lastIndexOf(" ", LIMITS.primary);
+      return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
+      <p><b>${esc(o.text.slice(0, cut))}</b>${esc(o.text.slice(cut))}</p>
+      <button type="button" class="btn quiet" data-use="${i}">Use this</button></div>`; }).join("")}
+  </details>`;
 }
 
 function ready(){ return ad.format === "carousel" ? ad.cards.length >= 2 : ad.cards.length === 1; }
@@ -233,6 +252,10 @@ function wire(){
     li.addEventListener("drop", e => { e.preventDefault(); if (dragFrom !== null && dragFrom !== +li.dataset.i) move(dragFrom, +li.dataset.i); dragFrom = null; });
   });
   $("#ac-primary").addEventListener("input", e => { ad.primary = e.target.value; change(false); });
+  root.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => {
+    ad.primary = sugg[+b.dataset.use].text; $("#ac-primary").value = ad.primary; change(false);
+    $("#ac-primary").focus();
+  }));
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
