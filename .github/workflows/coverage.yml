@@ -19,7 +19,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -28,6 +28,12 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+
+      # A browser, only to open the few sailings found missing from the feed (pages that send visitors to 404)
+      - name: Install a browser
+        run: |
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
 
       - name: Compare the website with the feed
         id: cov
