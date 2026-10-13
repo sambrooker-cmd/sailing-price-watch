@@ -81,6 +81,8 @@ function standard(d, w, h, LOGO){
     : `<img class="photo" crossorigin="anonymous" src="${cropUrl(d.photo, w, h)}" alt="">`;
   const offers = (d.promos || []).map(t => `<div class="strip offer"><span class="fit" data-max="27">${esc(t)}</span></div>`).join("");
   const nectar = d.nectar ? `<div class="strip nectar"><span class="fit" data-max="27">${esc(d.nectar)}</span></div>` : "";
+  // Trustpilot widget (Sam, 13 Oct 2026): Trustpilot's own artwork, in a Pearl strip under the Nectar line.
+  const trust = d.trustpilot ? `<div class="strip nectar tp" id="tp"><img src="${esc(d.trustpilot)}" alt="Trustpilot rating"></div>` : "";
   const kicker = words.kicker ? `<div class="strip kicker"><span class="fit" data-max="42">${esc(words.kicker)}</span></div>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${FONT_CSS}
@@ -105,6 +107,7 @@ html,body{width:${w}px;height:${h}px;background:#380843;overflow:hidden}
 .fare-row .from{font-size:30px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .fare-row .big{font-size:96px;font-weight:700;line-height:1;letter-spacing:-.01em}
 .fare-row .pp{font-size:34px;font-weight:700}
+.tp img{height:50px;width:auto;display:block}
 .nectar{height:76px;padding:0 60px 0 64px;background:#F1ECE7;color:#6B207D;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);font-size:27px;font-weight:700}
 .artbg{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}
 .art{position:absolute;z-index:1;left:0;width:${w}px;height:auto;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -120,6 +123,7 @@ ${art}
   ${words.sub ? `<div class="strip kicker"><span class="fit" data-max="40">${esc(words.sub)}</span></div>` : ""}
   <div class="strip fare"><div class="when"><span>${esc(d.nights + " nights")}</span><span>${esc(date)}</span></div><div class="rule"></div>${fare}</div>
   ${nectar}
+  ${trust}
   ${offers}
 </div>
 </div>
@@ -131,6 +135,8 @@ function fit(){
     const strip = el.closest('.strip');
     while (strip.getBoundingClientRect().right > W - 24 && size > 24) { size -= 1; el.style.fontSize = size + 'px'; }
   });
+  const tp = document.querySelector('#tp img');
+  if (tp) { let th = 50; while (tp.closest('.strip').getBoundingClientRect().right > W - 24 && th > 30) { th -= 1; tp.style.height = th + 'px'; } }
   const h1 = document.querySelector('.headline h1'), hs = parseFloat(h1.style.fontSize);
   document.querySelectorAll('.kicker .fit').forEach(k => { if (parseFloat(k.style.fontSize) > hs * 0.62) k.style.fontSize = Math.round(hs * 0.62) + 'px'; });
   const badge = document.getElementById('badge'), lines = badge.querySelector('.lines');
