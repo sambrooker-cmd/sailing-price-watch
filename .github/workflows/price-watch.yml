@@ -55,10 +55,12 @@ jobs:
       - name: Which cards need making
         id: cards
         if: steps.watch.outcome == 'success'
+        continue-on-error: true   # a card problem must never stop prices being saved (QA, 13 Oct 2026)
         run: python cards_sync.py plan
 
       - name: Install the card renderer
         if: steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0'
+        continue-on-error: true
         run: |
           pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
@@ -96,7 +98,8 @@ jobs:
           python card_review.py
 
       - name: Commit results
-        if: steps.watch.outcome == 'success'
+        # always(): prices are saved even if a later card step failed (QA, 13 Oct 2026)
+        if: always() && steps.watch.outcome == 'success'
         run: |
           git config user.name "price-watch-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"

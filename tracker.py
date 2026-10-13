@@ -53,6 +53,13 @@ RULES = {"min_reference_days": 28, "max_promo_days": 28, "min_saving_gbp": 10,
 META = ("title", "base_title", "flight_from", "ship", "port", "nights", "departure_date",
         "link", "image_link", "offer", "flags")
 CABIN_ORDER = ("inside", "ocean_view", "balcony", "suite")
+PAGE_FIELDS = ("departure_date", "offer")   # read from the sailing's page, not the feed
+RETURN_RESET_HOURS = 24                      # out of the feed longer than this → fresh reference period on return
+
+
+def hours(a, b):
+    p = lambda x: dt.datetime.fromisoformat(x.replace("Z", "+00:00"))  # noqa
+    return (p(b) - p(a)).total_seconds() / 3600
 
 
 def days(a, b):
@@ -82,7 +89,7 @@ def claim_for(seg, today, rules, departure_date, like_for_like=True):
     if cur.get("switch"):
         return no("the from price now comes from the web page, not the ad feed; new reference period")
     if cur.get("back"):
-        return no("cabin came back on sale at a lower price; new reference period")
+        return no("came back on sale (sold out, or out of the feed for over a day) at a lower price; new reference period")
     if like_for_like:
         if not prev.get("c") or not cur.get("c"):
             return no("cabin type behind the lead price is unknown")
@@ -93,12 +100,15 @@ def claim_for(seg, today, rules, departure_date, like_for_like=True):
     if prev["p"] - cur["p"] < rules["min_saving_gbp"]:
         return no("saving too small")
     limit = min(rules["max_promo_days"], held)
-    if days(cur["from"], today) > limit:
+    # The drop day is day 1, so a claim of `limit` days ends on since + limit - 1 (QA, 13 Oct 2026: it ran a day long)
+    if days(cur["from"], today) >= limit:
         return no(f"claim expired after {limit} days")
     if departure_date and days(today, departure_date) < rules["skip_departing_within_days"]:
         return no("departs too soon")
-    return {"eligible": True, **base,
-            "ends": (dt.date.fromisoformat(cur["from"]) + dt.timedelta(days=limit)).isoformat()}
+    ends = dt.date.fromisoformat(cur["from"]) + dt.timedelta(days=limit - 1)
+    if departure_date:   # and never past the last day before "departs too soon" stops it
+        ends = min(ends, dt.date.fromisoformat(departure_date) - dt.timedelta(days=rules["skip_departing_within_days"]))
+    return {"eligible": True, **base, "ends": ends.isoformat()}
 
 
 def was_now(sailing, today, rules):
@@ -262,8 +272,19 @@ def update(state, snap):
             run["new"].append(sid)
         else:
             if rec.get("removed"):
+                gone_since = rec.pop("removed_at", None) or rec["removed"] + "T00:00:00Z"
                 rec.pop("removed", None)
                 run["returned"].append(sid)
+                # Back after more than a day out of the feed: its prices weren't seen meanwhile, so the days it was
+                # gone can't count as "held". Start a fresh reference period for the lead price and every cabin
+                # (QA, 13 Oct 2026). Shorter gaps are the feed flickering hour to hour and are ignored.
+                if hours(gone_since, at) > RETURN_RESET_HOURS:
+                    last = rec["segments"][-1]
+                    fresh = src != "feed"
+                    rec["segments"].append({"p": p if fresh else last["p"], "from": today, "c": lc if fresh else last.get("c"), "back": True})
+                    for h in (rec.get("cabins") or {}).values():
+                        if not h.get("out"):
+                            h["seg"].append({"p": h["seg"][-1]["p"], "from": today, "back": True})
             last = rec["segments"][-1]
             if src == "feed":
                 pass   # page prices unreadable this check: keep the last "from" price, don't use the feed's
@@ -278,9 +299,13 @@ def update(state, snap):
                 (run["drops"] if p < last["p"] else run["rises"]).append(ev)
             elif lc and not last.get("c"):
                 last["c"] = lc
-        rec.update({k: s.get(k) for k in META})
+        # A page that couldn't be read leaves its fields (departure date, offer) as they were: wiping the date would
+        # switch off the "departs within 7 days" check (QA, 13 Oct 2026)
+        rec.update({k: s.get(k) for k in META if not ("page_error" in s and k in PAGE_FIELDS)})
         rec["last_seen"] = today
-        if cab is not None and "page_error" not in s:
+        # An empty cabin list means the page's prices couldn't be read (a page with nothing on sale isn't in the feed):
+        # don't mark every cabin sold out, which would restart all their reference periods (QA, 13 Oct 2026)
+        if cab and "page_error" not in s:
             update_cabins(rec, cab, today, run, sid)
         update_feed_gap(rec, s, at, run, sid, fixed)
         # "offers" is missing when the page couldn't be read: leave promotions as they were.
@@ -296,10 +321,11 @@ def update(state, snap):
     for sid, rec in sailings.items():
         if sid not in seen and not rec.get("removed"):
             rec["removed"] = today
+            rec["removed_at"] = at
             run["removed"].append(sid)
             close_promos(rec, today, run, sid, catalogue)
-            if rec.get("feed_gap"):
-                close_feed_gap(rec, at, run, sid, fixed, "left the feed")
+            # a feed-vs-website gap stays open while the sailing is out of the feed (it often flickers for an hour),
+            # so it isn't closed and reported again when it comes back (QA, 13 Oct 2026)
     for sid, rec in sailings.items():
         claim = was_now(rec, today, rules)
         if claim:

@@ -104,8 +104,8 @@ function standard(d, w, h, LOGO){
   const fare = `<div class="fare-row"><span class="from">From</span><span class="big">${money(d.price)}</span><span class="pp">pp</span></div>`;
   // Campaign artwork whole, on plain colours from its own top and bottom edges (render_cards.py matched_css, 13 Oct 2026).
   const art = d.campaign
-    ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${wholeUrl(d.photo, w)}" alt="">`
-    : `<img class="photo" crossorigin="anonymous" src="${cropUrl(d.photo, w, h)}" alt="">`;
+    ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${esc(wholeUrl(d.photo, w))}" alt="">`
+    : `<img class="photo" crossorigin="anonymous" src="${esc(cropUrl(d.photo, w, h))}" alt="">`;
   const offers = (d.promos || []).map(t => `<div class="strip offer"><span class="fit" data-max="27">${esc(t)}</span></div>`).join("");
   const nectar = d.nectar ? `<div class="strip nectar"><span class="fit" data-max="27">${esc(d.nectar)}</span></div>` : "";
   // Trustpilot widget (Sam, 13 Oct 2026): Trustpilot's own artwork, in a Pearl strip under the Nectar line.
@@ -197,8 +197,8 @@ function wasNow(d, w, h, LOGO){
   const when = [d.departure_date ? esc(longDate(d.departure_date)) : "", `${d.nights} nights`].filter(Boolean).join(" &nbsp;|&nbsp; ");
   const title = (d.words && d.words.title) || d.title;
   const photo = d.campaign
-    ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${wholeUrl(d.photo, w)}" alt="">`
-    : `<img class="photo" crossorigin="anonymous" src="${cropUrl(d.photo, w, h)}" alt="">`;
+    ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${esc(wholeUrl(d.photo, w))}" alt="">`
+    : `<img class="photo" crossorigin="anonymous" src="${esc(cropUrl(d.photo, w, h))}" alt="">`;
   const campaignCss = d.campaign ? `.artbg{position:absolute;inset:0;filter:none}.art{box-shadow:none}.scrim{display:none}
 .sticker{right:30px;top:${top + 30}px;transform:rotate(7deg) scale(.68);transform-origin:top right}` : "";
   return `<!doctype html><html><head><meta charset="utf-8"><style>

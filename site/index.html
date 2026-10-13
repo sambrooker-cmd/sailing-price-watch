@@ -375,6 +375,19 @@ tr.cov-charter td{color:var(--muted)}
 .sv-detail{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sv-tag{font-size:11px;font-weight:700;color:var(--allium);text-transform:uppercase;letter-spacing:.05em}
 .sv-acts{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+/* Links in tables in the brand colour (QA, 13 Oct 2026: some showed browser blue) */
+.ptable a{color:var(--heading)}
+/* Phones (QA, 13 Oct 2026): the change lists stack each row so the change itself isn't off the edge, and the
+   check tables drop their least useful columns (departs, since, promotions, first spotted) */
+@media (max-width:600px){
+  .ctable thead{display:none}
+  .ctable,.ctable tbody,.ctable tr,.ctable td{display:block;width:auto;min-width:0}
+  .ctable tr{padding:10px 0;border-bottom:1px solid var(--rule)}
+  .ctable td{border:0;padding:2px 0;white-space:normal}
+  .ctable td:first-child{font-size:12px;color:var(--muted)}
+  .fg-table th:nth-child(2),.fg-table td:nth-child(2),.fg-table th:nth-child(6),.fg-table td:nth-child(6),
+  .cov-table th:nth-child(4),.cov-table td:nth-child(4),.cov-table th:nth-child(5),.cov-table td:nth-child(5){display:none}
+}
 @media (max-width:620px){.sv-list li{grid-template-columns:64px minmax(0,1fr)}.sv-thumb{width:64px;height:48px}.sv-acts{grid-column:1 / -1;justify-content:flex-start}}
 dialog.pv{width:min(760px,calc(100% - 32px));max-height:calc(100% - 32px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink)}
 dialog.pv::backdrop{background:rgba(20,5,25,.7)}
@@ -663,7 +676,7 @@ const auth = getAuth(firebaseApp);
     const c = cur.switch ? null : s.claim;
     if (c && c.eligible) return {cls:"good", label:"Was/now until " + fmtDate(c.ends), rank:0};
     if (c && !c.eligible) return {cls:"warn", label:"Dropped, not eligible", title:c.reason, rank:1};
-    if (segs.length > 1 && cur.p > segs[segs.length-2].p && !cur.switch) return {cls:"warn", label:"Price rose " + fmtDate(cur.from), rank:2};
+    if (segs.length > 1 && cur.p > segs[segs.length-2].p && !cur.switch && !cur.back) return {cls:"warn", label:"Price rose " + fmtDate(cur.from), rank:2};
     const held = daysBetween(cur.from, today);
     const need = rules.min_reference_days;
     if (held < need) return {cls:"watch", label:`Watching · day ${held+1} of ${need}`, rank:3};
@@ -794,7 +807,7 @@ const auth = getAuth(firebaseApp);
       const c = coverage, list = (c.on_sale_missing || []).slice().sort((a, b) => away(a) - away(b)), gone = c.not_found || [];
       const charters = list.filter(s => s.charter).length, hidden = list.filter(s => s.visitor_404).length;
       const head = `<p class="note" style="margin:0 0 12px">Checked ${fmtDate(c.checked)} (weekly, Mondays). The website lists ${c.site_pages} sailing pages and the ad feed has ${c.feed}. Of the rest, ${(c.counts||{}).sold_out||0} are sold out, ${((c.counts||{}).no_prices||0) + ((c.counts||{}).departed||0)} show no prices or have departed${gone.length ? ` and ${gone.length} return 404 (listed below)` : ""}.</p>`;
-      $("coverage").innerHTML = head + (list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">From pp</th><th>Promotions</th><th>First spotted</th></tr></thead><tbody>${list.map(s => `
+      $("coverage").innerHTML = head + (list.length ? `<div class="tablewrap"><table class="ptable cov-table"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">From pp</th><th>Promotions</th><th>First spotted</th></tr></thead><tbody>${list.map(s => `
           <tr${away(s) ? ' class="cov-charter"' : ""}><td><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(s.title || s.id)}</b></a><div class="sub">${esc(s.id)}${s.charter ? ` <span class="chip cov-tag" title="Sold through an agent, not direct (likely a semi-charter): not meant to be in the ad feed">Sold through agent</span>` : ""}${s.visitor_404 ? ` <span class="chip cov-tag cov-404" title="Opened in a browser, the page sends visitors to the website's 404 page">404 for visitors</span>` : ""}</div></td>
             <td>${fmtDate(s.departure_date)}</td><td class="num">${s.from_pp ? fmtGBP(s.from_pp) : "solo only"}</td>
             <td>${(s.offers||[]).map(o => `<span class="chip">${esc(o)}</span>`).join(" ") || "–"}</td><td>${fmtDate(s.first_seen)}</td></tr>`).join("")}</tbody></table></div>`
@@ -819,7 +832,7 @@ const auth = getAuth(firebaseApp);
       const lower = gaps.filter(s => gapOf(s) < 0).length;
       $("feedgap").innerHTML = `<p class="note" style="margin:0 0 12px">The Google ad feed is what the ads show; it's refreshed once a day. Each hourly check compares its "from" price with the cheapest twin cabin on the sailing's own page (what the tracker and cards use). A difference that lasts 3 hours is reported once in a "Feed prices don't match the website" issue. Nothing here changes the feed or any ad account.</p>` +
         (gaps.length ? `<p style="margin:0 0 10px"><b>${gaps.length}</b> sailing${gaps.length === 1 ? "" : "s"} differ now${lower ? `, <b>${lower}</b> with the feed lower than the website (the ads show a price guests can't get)` : ""}. <button type="button" class="linkbtn" id="fg-csv">Download CSV</button></p>
-          <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Ad feed</th><th class="num">Website</th><th>Difference</th><th>Since</th></tr></thead><tbody>${gaps.map(s => `
+          <div class="tablewrap"><table class="ptable fg-table"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Ad feed</th><th class="num">Website</th><th>Difference</th><th>Since</th></tr></thead><tbody>${gaps.map(s => `
           <tr><td><a href="#${encodeURIComponent(s.id)}"><b>${esc(s.base_title || s.title)}</b></a><div class="sub">${esc(s.id)} · <a href="${esc(s.link)}" target="_blank" rel="noopener">booking page</a></div></td>
             <td>${fmtDate(s.departure_date)}</td><td class="num">${fmtGBP(s.feed_gap.feed)}</td><td class="num">${fmtGBP(s.feed_gap.page)}</td>
             <td>${diff(gapOf(s))}</td><td>${fmtWhen(s.feed_gap.since)}${s.feed_gap.reported ? `<div class="sub">reported</div>` : ""}</td></tr>`).join("")}</tbody></table></div>`
@@ -1060,6 +1073,7 @@ const auth = getAuth(firebaseApp);
     for (let i = 1; i < segs.length; i++){
       const a = segs[i-1], b = segs[i], dn = b.p < a.p;
       let note = "";
+      if (b.back){ out.push({d: b.from, k: 1, t: `Back in the feed: from price ${fmtGBP(b.p)}${b.p !== a.p ? ` (was ${fmtGBP(a.p)} before it left)` : ""}`, n: "It was out of the feed for over a day, so a fresh reference period starts."}); continue; }
       if (b.switch){ out.push({d: b.from, k: 1, t: `From price now read from the web page: ${fmtGBP(b.p)} (the ad feed said ${fmtGBP(a.p)})`, n: "Not a price change. Starts a fresh reference period."}); continue; }
       if (a.c && b.c && a.c !== b.c) note = dn ? `A cheaper cabin grade came on sale (${GRADE[a.c]} → ${GRADE[b.c]}). Not a price cut.` : `The cheapest grade on sale changed (${GRADE[a.c]} → ${GRADE[b.c]}).`;
       out.push({d: b.from, k: 1, t: `From price <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`, n: note});
@@ -1238,7 +1252,9 @@ const auth = getAuth(firebaseApp);
   // Cards: kept current by the hourly check (cards_sync.py); replaced ones stay 30 days, out of date
   const SIZE_LABEL = {"1x1": "1:1 feed & carousel", "4x5": "4:5 feed", "9x16": "9:16 Stories & Reels"};
   const cardsOf = id => ((cardsDoc || {}).sailings || {})[id] || null;
-  const fmtWhen = iso => iso ? `${fmtDate(iso.slice(0, 10))}, ${fmtTime(iso)}` : "–";
+  // UK date and time of a UTC timestamp (QA, 13 Oct 2026: the date came from UTC, a day early late on summer evenings)
+  const ukDay = iso => iso && iso.length > 10 ? new Date(iso).toLocaleDateString("en-CA", {timeZone: "Europe/London"}) : (iso || "");
+  const fmtWhen = iso => iso ? `${fmtDate(ukDay(iso))}, ${fmtTime(iso)}` : "–";
   // Card preview: clicking a card or a size opens it large here; the Download button saves it
   const pvSets = {}; let pvN = 0;
   const pvReg = (title, files, note) => { const k = "p" + (++pvN); pvSets[k] = {title, files, note}; return k; };
@@ -1268,7 +1284,7 @@ const auth = getAuth(firebaseApp);
     if (!r) return `<p class="sub">Not checked by Claude yet.</p>`;
     if (r.ok) return `<p class="sub">Checked by Claude ${fmtWhen(r.at)}: nothing spotted.</p>`;
     return `<div class="lookbox"><b>Needs a look</b> (Claude's check, ${fmtWhen(r.at)}; Claude can be wrong, you decide)
-      <ul>${r.issues.map(i => `<li>${issueText(i)}</li>`).join("")}</ul></div>`;
+      <ul>${(r.issues || []).map(i => `<li>${issueText(i)}</li>`).join("")}</ul></div>`;
   }
   function cardsDetail(s){
     const c = cardsOf(s.id);
@@ -1286,7 +1302,7 @@ const auth = getAuth(firebaseApp);
     const now = cur ? `<p>Made ${fmtWhen(cur.made_at)}${cur.reason && cur.reason !== "new" ? ` (${esc(cur.reason)})` : ""}. Price on the cards: <b>${fmtGBP(cur.price)}</b>${cur.price !== (s.segments[s.segments.length-1] || {}).p ? ` <span class="stale">Price has changed since: new cards at the next check</span>` : ""}.</p>
       <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure>${pvLink(pk, t, `<img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy">`)}
         <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>`
-      : `<p class="sub">No current cards: ${esc((c.old[0] || {}).reason || "withdrawn")}.</p>`;
+      : `<p class="sub">No current cards: ${esc(((c.old || [])[0] || {}).reason || "withdrawn")}.</p>`;
     const chk = (cur ? checkDetail(cur) : "") + (cur ? `<div id="cardopts"></div>` : "");
     const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => {
         const k = pvReg(o.kind === "wasnow" ? `${s.id} was/now (DO NOT USE): ${wnTitle(o)}` : `${s.id} (out of date)`, o.files,
@@ -1323,7 +1339,7 @@ const auth = getAuth(firebaseApp);
     const cur = withCards.filter(({id, c, s}) =>
       (!kf.month || monthKey(s) === kf.month) && (!kf.port || portOf(s) === kf.port) &&
       (!kf.kind || (kf.kind === "fly") === !!s.flight_from) &&
-      (!kf.when || (kf.when === "today" ? c.current.made_at.slice(0, 10) === today : c.current.made_at.slice(0, 10) >= addDays(today, -6))) &&
+      (!kf.when || (kf.when === "today" ? ukDay(c.current.made_at) === today : ukDay(c.current.made_at) >= addDays(today, -6))) &&
       (!kf.check || checkOf(c.current) === kf.check) &&
       (!q || [id, s.title, s.port, s.flight_from, s.ship].join(" ").toLowerCase().includes(q)))
       .sort((a, b) => b.c.current.made_at.localeCompare(a.c.current.made_at) || a.id.localeCompare(b.id));
@@ -1342,8 +1358,8 @@ const auth = getAuth(firebaseApp);
           <p class="note" style="margin:8px 0 0">Made by the hourly check on the day a claim starts; withdrawn and marked "Do not use" as soon as it stops.</p></div>` : ""}
       ${lookN ? `<p class="note" style="margin:0 0 12px"><span class="stale">${lookN} need${lookN === 1 ? "s" : ""} a look</span> Claude checks new and remade cards and flags anything a person should eyeball first. Pick "Needs a look" above to see them.</p>` : ""}
       <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Made</th><th class="num">Price on cards</th><th>Preview</th></tr></thead><tbody>${cur.map(({id, c, s}) => `
-        <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div>${checkOf(c.current) === "look" ? `<div class="look" title="${esc(c.current.review.issues.map(i => i.problem).join(" "))}">Needs a look</div>` : ""}</td>
-          <td>${fmtWhen(c.current.made_at)}${c.current.made_at.slice(0, 10) === today && c.current.reason !== "new" ? `<div class="sub">${esc(c.current.reason)}</div>` : ""}</td>
+        <tr data-id="${esc(id)}"><td><button type="button" class="open" data-id="${esc(id)}">${esc(s.base_title || s.title || id)}</button><div class="sub">${esc(id)}</div>${checkOf(c.current) === "look" ? `<div class="look" title="${esc((c.current.review.issues || []).map(i => i.problem).join(" "))}">Needs a look</div>` : ""}</td>
+          <td>${fmtWhen(c.current.made_at)}${ukDay(c.current.made_at) === today && c.current.reason !== "new" ? `<div class="sub">${esc(c.current.reason)}</div>` : ""}</td>
           <td class="num">${fmtGBP(c.current.price)}</td>
           <td>${(k => Object.keys(c.current.files).map(t => pvLink(k, t, esc(t.replace("x", ":")))).join(" · "))(pvReg(`${s.base_title || s.title || id} (${id})`, c.current.files, ""))}</td></tr>`).join("")}</tbody></table></div>` +
       (cur.length ? "" : `<div class="empty" style="margin-top:12px"><p>No cards match these filters.</p></div>`);
@@ -1380,7 +1396,7 @@ const auth = getAuth(firebaseApp);
         status.textContent = `Fetching cards… ${++done} of ${jobs.length}`;
       };
       for (let i = 0; i < jobs.length; i += 6) await Promise.all(jobs.slice(i, i + 6).map(one));
-      const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+      const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return /[",\n\r]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
       const csv = [["Cruise code", "Sailing", "Departs", "Price on cards", "Promotions on cards", "Nectar on cards", "Made", "Claude's check", "Booking link"],
         ...cardRows.map(({id, c, s}) => [id, s.base_title || s.title, s.departure_date, c.current.price, (c.current.promos || []).join(" | "), c.current.nectar || "", c.current.made_at,
           {none: "Not checked yet", fine: "Fine", look: "Needs a look: " + ((c.current.review || {}).issues || []).map(i => `${i.size} ${i.problem}`).join(" ")}[checkOf(c.current)], s.link])]
@@ -1476,7 +1492,8 @@ const auth = getAuth(firebaseApp);
     // #email=… is a shared Email creator link (site/emailcreator.js openShared)
     if (h.startsWith("email=")) { sharedEmail = h.slice(6); if (dlg.open) dlg.close(); if (emailModule) { emailModule.openShared(sharedEmail); sharedEmail = null; } showView("email"); return; }
     if (h.startsWith("ad=")) { sharedAd = h.slice(3); if (dlg.open) dlg.close(); if (adsModule) { adsModule.openShared(sharedAd); sharedAd = null; } showView("ads"); return; }
-    const id = decodeURIComponent(h); if (id) openDetail(id); else if (dlg.open) dlg.close();
+    let id = ""; try { id = decodeURIComponent(h); } catch(e) { return; }   // a malformed link mustn't stop the page (QA, 13 Oct 2026)
+    if (id) openDetail(id); else if (dlg.open) dlg.close();
   };
   window.addEventListener("hashchange", fromHash);
   document.addEventListener("click", e => {

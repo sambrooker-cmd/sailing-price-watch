@@ -53,6 +53,8 @@ function normalise(d){
     c = {...c};
     if (c.design && c.design.startsWith("wasnow:") && !claims(c.id).some(x => "wasnow:" + x.key === c.design)) { c.design = "standard"; c.words = null; ended++; }
     if (c.photo && c.photo.startsWith("upload:") && !uploads[c.photo]) { c.photo = null; c.uploadLost = true; lost++; }
+    // Only the sailing's own photos (or an upload): a saved or shared ad can't point a card at anything else (QA, 13 Oct 2026)
+    if (c.photo && !c.photo.startsWith("upload:") && !sailing(c.id).photos.includes(c.photo)) c.photo = null;
     if (c.trustpilot && TP && typeof c.trustpilot === "string" && !TP.images.some(x => x.file === c.trustpilot)) c.trustpilot = TP.images[0].file;
     return c;
   });
@@ -248,6 +250,14 @@ function autoEyebrow(){
 }
 const extras = () => ad.format === "carousel" ? (ad.intro.on ? 1 : 0) + (ad.end.on ? 1 : 0) : 0;
 const maxSailings = () => MAX_CARDS - extras();
+// Turning an opening/closing card on can push a carousel over Meta's 10 cards: take sailings off the end before the
+// page is drawn, and say which (QA, 13 Oct 2026: it used to happen silently after drawing)
+function trimToMax(){
+  if (ad.format !== "carousel" || ad.cards.length <= maxSailings()) return;
+  const gone = ad.cards.splice(maxSailings());
+  sel = Math.max(0, Math.min(sel, ad.cards.length - 1));
+  note = `Meta allows ${MAX_CARDS} cards in a carousel, so ${gone.map(c => (sailing(c.id) || {}).title || c.id).join(", ")} ${gone.length === 1 ? "was" : "were"} taken off the end.`;
+}
 // Everything in the carousel, in order: [opening] + sailing cards + [closing]. Single image ads are just the sailing.
 function slides(){
   const out = ad.cards.map((c, i) => ({kind: "sailing", i, c, name: c.id + (c.design.startsWith("wasnow:") ? "_wasnow" : ""),
@@ -581,13 +591,13 @@ function wire(){
     const [k, v] = b.dataset.all.split(":"); ad.cards.forEach(x => setStrip(x, k, v === "1")); change(true, true);
   }));
   const bind = (id, obj, key, redraw) => { const e = $(id); if (!e) return;
-    e.addEventListener(e.type === "checkbox" ? "change" : "input", () => { obj[key] = e.type === "checkbox" ? e.checked : e.value; change(true, redraw); }); };
+    e.addEventListener(e.type === "checkbox" ? "change" : "input", () => { obj[key] = e.type === "checkbox" ? e.checked : e.value; if (key === "on") trimToMax(); change(true, redraw); }); };
   bind("#in-on", ad.intro, "on", true); bind("#en-on", ad.end, "on", true);
   bind("#in-a", ad.intro, "useA"); bind("#en-a", ad.end, "useA");
   for (const [id, k] of [["#in-eyebrow", "eyebrow"], ["#in-headline", "headline"], ["#in-cta", "cta"], ["#in-mh", "mHeadline"], ["#in-md", "mDesc"], ["#in-link", "link"]]) bind(id, ad.intro, k);
   for (const [id, k] of [["#en-headline", "headline"], ["#en-cta", "cta"], ["#en-url", "url"], ["#en-mh", "mHeadline"], ["#en-md", "mDesc"], ["#en-link", "link"]]) bind(id, ad.end, k);
-  // Turning a brand card on can push the carousel over Meta's 10 cards: drop sailings from the end.
-  if (ad.cards.length > maxSailings()) { ad.cards.length = maxSailings(); sel = Math.min(sel, ad.cards.length - 1); save(); }
+  // Safety net: trimToMax() already ran (and said so) when a brand card was switched on
+  if (ad.cards.length > maxSailings()) { trimToMax(); save(); }
   if (!c) return;
   $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; change(true, true); });
   root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; delete c.uploadLost; change(true, true); }));
@@ -716,7 +726,7 @@ function adText(files){
 }
 
 function csv(files){
-  const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+  const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return /[",\n\r]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
   const rows = [["Order", "Cruise code", "Sailing", "Departs", "Design", "Price on card", "Was", "Use until", "Headline", "Description", "Link", "Files"]];
   slides().forEach((x, i) => {
     const fl = files.filter(f => f[0] === i).map(f => f[1]).join(" ");

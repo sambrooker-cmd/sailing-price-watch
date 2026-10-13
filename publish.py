@@ -59,6 +59,18 @@ def half(date):
     return f"runs-{date[:7]}-{1 if int(date[8:10]) <= 15 else 2}"
 
 
+def old_shown(old):
+    """Out-of-date versions the page shows: every withdrawn was/now card ("do not use") and the newest OLD_SHOWN
+    standard ones per sailing. The manifest keeps them all (cards_sync deletes them after 30 days); this only
+    keeps pricewatch/cards under Firestore's 1 MiB limit (QA, 13 Oct 2026: it was growing ~60 KB a day)."""
+    keep = sorted(old, key=lambda o: o.get("out_of_date_since") or o.get("made_at") or "", reverse=True)
+    std = [o for o in keep if not o.get("do_not_use")][:OLD_SHOWN]
+    return [o for o in keep if o.get("do_not_use") or o in std]
+
+
+OLD_SHOWN = 2
+
+
 def documents():
     cur = load(ROOT / "state" / "current.json")
     every = [load(p) for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)]
@@ -87,7 +99,7 @@ def documents():
                                                 "kind", "cabin", "was", "now", "since", "ends", "do_not_use")
                           if c.get(k) is not None} | {"files": {t: f["url"] for t, f in c["files"].items()}}
         docs["cards"] = {"updated_at": man.get("updated_at"), "sailings": {
-            sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in m.get("old") or []],
+            sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in old_shown(m.get("old") or [])],
                   **({"wasnow": {k: slim(c) for k, c in m["wasnow"].items()}} if m.get("wasnow") else {})}
             for sid, m in man.get("sailings", {}).items()}}
     if (ROOT / "state" / "adkit.json").exists():

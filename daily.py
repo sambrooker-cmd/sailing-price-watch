@@ -72,8 +72,11 @@ def safety_problems(state, snap):
         probs.append(f"feed returned {len(s)} sailings vs {len(live)} stored (under 70%)")
     if s and sum(1 for x in s if not x.get("departure_date")) > len(s) / 2:
         probs.append("most sailings have no departure date")
-    if s and sum(1 for x in s if "cabins" not in x) > len(s) / 2:
+    if s and sum(1 for x in s if not x.get("cabins")) > len(s) / 2:
         probs.append("most sailings have no cabin prices")
+    # the "from" price comes from the pages: stop if most of them couldn't be read (QA, 13 Oct 2026)
+    if s and any("price_source" in x for x in s) and sum(1 for x in s if x.get("price_source") == "page") < len(s) / 2:
+        probs.append("most sailings' page prices couldn't be read")
     if not s:
         probs.append("feed returned no sailings")
     return probs

@@ -58,8 +58,8 @@ top right ("No-fly on <ship> / from <port>" or "Fly-cruise on <ship> / Flights f
 at the bottom left a stack of angled strips: optional kicker (purple), the sailing name in capitals
 (purple), an orange panel with the date and nights then "From £X pp", an optional pale Nectar
 strip, and green promotion strips. When the photo is campaign artwork (it has its own text or
-graphics), it is shown whole in a band between the badge and the strips, over a blurred copy of
-itself.
+graphics), it is shown whole in a band between the badge and the strips, on two plain colours taken
+from the artwork's own top and bottom edges (no blur).
 
 Was/now (price reduction) cards use a different design: a full-bleed photo, the logo top left, a
 tilted orange "Price reduction" sticker top right with the cabin grade, "Was £X" struck through and
@@ -111,7 +111,7 @@ def expected(sid, c, s=None):
     lines += [f"Departs: {c.get('departure_date')}", f"Nights: {c.get('nights')}", f"From price: £{c.get('price'):,} pp",
               f"Promotion strips: {' | '.join(c.get('promos') or []) or 'none'}",
               f"Nectar strip: {c.get('nectar') or 'none'}",
-              f"Campaign artwork shown whole: {'yes' if c.get('layout') == 'campaign' else 'no'}"]
+              f"Campaign artwork shown whole: {'yes' if (c.get('layout') or '').startswith('campaign') else 'no'}"]
     return "\n".join(lines)
 
 
@@ -121,8 +121,8 @@ def todo(man):
     wasnow = [(sid, c) for sid, m in man.get("sailings", {}).items() for c in (m.get("wasnow") or {}).values() if unchecked(c)]
     out = [(sid, m["current"]) for sid, m in man.get("sailings", {}).items()
            if m.get("current") and unchecked(m["current"])]
-    camp = [x for x in out if x[1].get("layout") == "campaign"]
-    rest = sorted([x for x in out if x[1].get("layout") != "campaign"], key=lambda x: x[1].get("made_at") or "", reverse=True)
+    camp = [x for x in out if (x[1].get("layout") or "").startswith("campaign")]
+    rest = sorted([x for x in out if not (x[1].get("layout") or "").startswith("campaign")], key=lambda x: x[1].get("made_at") or "", reverse=True)
     return wasnow + camp + rest
 
 

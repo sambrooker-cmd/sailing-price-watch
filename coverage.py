@@ -179,7 +179,8 @@ def main():
 
     # Semi-charters aren't meant to be in the feed, so they're never reported as newly missing
     # and nor are pages that send visitors to the 404 page
-    new = [s for s in on_sale if s["id"] not in first_seen and not s.get("charter") and not s.get("visitor_404")]
+    was_missing = {s["id"] for s in prev.get("on_sale_missing") or []}   # not 404s: a page coming back on sale is new
+    new = [s for s in on_sale if s["id"] not in was_missing and not s.get("charter") and not s.get("visitor_404")]
     charters = sum(1 for s in on_sale if s.get("charter"))
     hidden = sum(1 for s in on_sale if s.get("visitor_404"))
     lines = [f"# Feed coverage check {today}",
