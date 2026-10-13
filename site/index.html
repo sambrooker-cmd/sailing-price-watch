@@ -1339,6 +1339,8 @@ const auth = getAuth(firebaseApp);
   const fromHash = () => {
     const h = location.hash.slice(1);
     // #ad=… is a shared Ad creator link: open it there (site/adcreator.js openShared)
+    // #email=… is a shared Email creator link (site/emailcreator.js openShared)
+    if (h.startsWith("email=")) { sharedEmail = h.slice(6); if (dlg.open) dlg.close(); if (emailModule) { emailModule.openShared(sharedEmail); sharedEmail = null; } showView("email"); return; }
     if (h.startsWith("ad=")) { sharedAd = h.slice(3); if (dlg.open) dlg.close(); if (adsModule) { adsModule.openShared(sharedAd); sharedAd = null; } showView("ads"); return; }
     const id = decodeURIComponent(h); if (id) openDetail(id); else if (dlg.open) dlg.close();
   };
@@ -1762,13 +1764,15 @@ const auth = getAuth(firebaseApp);
   }
 
   // Email creator: its own module, loaded the first time the page is opened (site/emailcreator.js)
-  let emailMounted = false;
+  let emailMounted = false, emailModule = null, sharedEmail = null;
   async function mountEmail(){
     if (!state || emailMounted) return;
     emailMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./emailcreator.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("emailc"), {state, cabins, adkit: kit,
+      emailModule = m;
+      const shared = sharedEmail; sharedEmail = null;
+      await m.mount($("emailc"), {state, cabins, adkit: kit, shared,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { emailMounted = false; $("emailc").innerHTML = `<p class="err">The email creator couldn't load: ${esc(e.message)}</p>`; }
   }
