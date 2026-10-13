@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-10-13T14:22:06Z",
+ "fetched_at": "2026-10-13T15:07:48Z",
  "pages_checked": 215,
  "general": "https://www.ambassadorcruiseline.com/information/terms-conditions/",
  "docs": {
@@ -233,5 +233,30 @@
    "12379bc0a2"
   ],
   "c8971712-3959-4cfb-8c1a-7c7a390d0288": []
- }
+ },
+ "how": {
+  "991789db-008b-4e9f-b5a9-a0cac87457fd": "type",
+  "41c8ea6b-ee77-4b09-af19-288695181e66": "type",
+  "54b71d3a-1547-4846-8672-f8e10862a77e": "code",
+  "7e8299d6-5745-43ee-93ba-2b06efb73e8b": "type",
+  "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9": "type",
+  "7f05011e-5cd6-4e34-b4e8-69f1fe388505": "type",
+  "ad1413f9-6c93-4464-ae88-596929a4f00b": "type",
+  "f998a597-cdc0-4e26-88d5-14228c559161": "type"
+ },
+ "known_at_fetch": [
+  "41c8ea6b-ee77-4b09-af19-288695181e66",
+  "54b71d3a-1547-4846-8672-f8e10862a77e",
+  "649b8b39-3b3b-470d-b526-5a59e8604903",
+  "79f63076-3ef6-4d75-bb53-03ece92da04d",
+  "7e8299d6-5745-43ee-93ba-2b06efb73e8b",
+  "7f05011e-5cd6-4e34-b4e8-69f1fe388505",
+  "8e09b9ee-4ff3-46ea-b466-8c7e4ca1f486",
+  "991789db-008b-4e9f-b5a9-a0cac87457fd",
+  "ad1413f9-6c93-4464-ae88-596929a4f00b",
+  "c8971712-3959-4cfb-8c1a-7c7a390d0288",
+  "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+  "cea61c00-bc82-4a3e-8637-6012a0711135",
+  "f998a597-cdc0-4e26-88d5-14228c559161"
+ ]
 }
