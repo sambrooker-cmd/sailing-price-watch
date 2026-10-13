@@ -63,11 +63,11 @@ function badgeTerms(it){
 function csvText(){
   const sizes = outputs();
   const rows = [["#", "Cruise code", "Name", "Departure date", "Nights", "Departs from", "Ship", "Fare", "Cabin", "Price £",
-    "Button", "Link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
+    "Button", "Link", "Sailing page link", "Booking link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
   st.items.forEach((it, i) => {
     const s = sailing(it.id), f = fareOf(it), w = words(it), tc = badgeTerms(it);
     rows.push([i + 1, it.id, s.title, s.r.departure_date, s.r.nights, s.fly ? s.fly + " Airport" : s.r.port, s.r.ship,
-      f.fare === "solo" ? "Solo" : "Twin", f.grade ? GRADES[f.grade] : "Cheapest available", f.price ?? "", w.button, w.link,
+      f.fare === "solo" ? "Solo" : "Twin", f.grade ? GRADES[f.grade] : "Cheapest available", f.price ?? "", w.button, w.link, w.pageLink, w.bookingLink,
       it.caption, badgesOf(it).join("; "), tc.map(x => `${x.badge}: ${x.docs.length ? x.docs.map(d => d.title).join(", ") : "none found"}`).join("; "),
       it.photo || s.image, ...sizes.map(o => fileName(it, o)), today]);
   });
@@ -123,11 +123,23 @@ function fareOf(it){   // {fare, grade, price, label, basis} for what's chosen, 
   return {fare, grade, price, label, basis};
 }
 // The words that go under the picture in the email, as in the team's emails
+const pageLink = it => { const s = sailing(it.id), f = fareOf(it); return s.link + (f.fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""); };
+// Booking flow link (Sam, 13 Oct 2026): the one the sailing page's cabin "Book" buttons open (the site's CabinTypes
+// handleBookingLink): book.ambassadorcruiseline.com with the cruise code, the cabin type (inner / outer / balcony /
+// suite) and 2 adults, or 1 for a solo fare. It opens step 1 (Cabin) with these chosen. "Cheapest available" uses
+// the grade that sets the from price for that fare. Tested 13 Oct 2026 in fresh browser sessions.
+const BOOK_TYPE = {inside: "inner", ocean_view: "outer", balcony: "balcony", suite: "suite"};
+function bookingLink(it){
+  const f = fareOf(it), grades = onSale(it.id, f.fare);
+  const grade = f.grade || Object.keys(GRADES).find(g => grades[g] != null && grades[g] === f.price) || Object.keys(GRADES).find(g => grades[g] != null) || "inside";
+  return `https://book.ambassadorcruiseline.com/?cruiseCode=${encodeURIComponent(it.id)}&cabinType=${BOOK_TYPE[grade]}&numberOfAdults=${f.fare === "solo" ? 1 : 2}`;
+}
 function words(it){
   const s = sailing(it.id), f = fareOf(it);
   return {title: s.title.toUpperCase(), date: longDate(s.r.departure_date),
           nights: `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
-          button: f.label || `From ${money(s.price)}pp`, link: s.link + (f.fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""), basis: f.basis};
+          button: f.label || `From ${money(s.price)}pp`, link: it.linkTo === "booking" ? bookingLink(it) : pageLink(it),
+          pageLink: pageLink(it), bookingLink: bookingLink(it), basis: f.basis};
 }
 // File name in the team's style: "<Caption> - Standard (<offers>).png", or the cruise code when there's no caption
 // A file name typed on the card (Sam, 13 Oct 2026) replaces all of that, keeping only the size and kind.
@@ -329,7 +341,10 @@ function editor(it){
   return `<div class="ac-block">
     <h3>${esc(s.title)}</h3>
     ${fareBlock(it)}
-    <span class="ac-lab">Photo</span>
+    <div class="ac-row" role="group" aria-label="Link to"><span class="ac-lab">Link to</span>
+      <button type="button" class="ac-seg" data-linkto="page" aria-pressed="${it.linkTo !== "booking"}">Sailing page</button>
+      <button type="button" class="ac-seg" data-linkto="booking" aria-pressed="${it.linkTo === "booking"}">Booking</button></div>
+    <p class="sub">${it.linkTo === "booking" ? "Opens the booking flow at the cabin step with this cabin type and " + (fareOf(it).fare === "solo" ? "1 guest" : "2 guests") + " already chosen." : "Opens the sailing's page on the website."}</p>
     <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>
     <label class="ac-lab" for="ec-name">File name <span class="sub">(optional: blank uses the caption and offers)</span></label>
     <input id="ec-name" value="${esc(it.name || "")}" placeholder="${esc(fileName({...it, name: ""}, outputs()[0] || "standard").replace(/ - (Standard|Wide).*$/, ""))}" maxlength="100">
@@ -386,6 +401,7 @@ function wire(){
   if (cur) {
     root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { cur.photo = b.dataset.photo; change(true); }));
     root.querySelectorAll("[data-fare]").forEach(b => b.addEventListener("click", () => { cur.fare = b.dataset.fare; cur.grade = ""; change(true); }));
+    root.querySelectorAll("[data-linkto]").forEach(b => b.addEventListener("click", () => { cur.linkTo = b.dataset.linkto; change(true); }));
     $("#ec-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
     $("#ec-caption").addEventListener("input", e => { cur.caption = e.target.value; change(false); });
     $("#ec-name").addEventListener("input", e => { cur.name = e.target.value; save(); $("#ec-names").innerHTML = outputs().map(o => esc(fileName(cur, o))).join("<br>"); });
