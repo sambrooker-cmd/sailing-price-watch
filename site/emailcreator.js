@@ -299,7 +299,7 @@ function strips(place, src){
   if (em.tp.on && em.tp.pos === place) {
     const a = (file, h, alt) => `<a href="${esc(TP_LINK)}" target="_blank" style="text-decoration:none"><img src="${file}" border="0" height="${h}" alt="${alt}" style="max-height:${h}px;display:inline-block;vertical-align:middle"></a>`;
     out.push(`<tr><td class="pad" align="center" style="padding:${place === "header" ? "20px" : "0"} 20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-      <td align="center" bgcolor="#ffffff" style="background:#ffffff;padding:14px 10px;text-align:center">${a(TP_IMG + "text1@2x.png", 18, "Human score")} &nbsp;&nbsp; ${a(TP_IMG + "stars@2x.png", 20, "Trustpilot Stars")} &nbsp;&nbsp; <span style="display:inline-block">${a(TP_IMG + "text2@2x.png", 18, "number of reviews")} &nbsp;&nbsp; ${a("https://emailsignature.trustpilot.com/brand/n/1/logo.png", 20, "Trustpilot Logo")}</span></td></tr></table></td></tr>`);
+      <td align="center" style="padding:6px 10px;text-align:center">${a(TP_IMG + "text1@2x.png", 18, "Human score")} &nbsp;&nbsp; ${a(TP_IMG + "stars@2x.png", 20, "Trustpilot Stars")} &nbsp;&nbsp; <span style="display:inline-block">${a(TP_IMG + "text2@2x.png", 18, "number of reviews")} &nbsp;&nbsp; ${a("https://emailsignature.trustpilot.com/brand/n/1/logo.png", 20, "Trustpilot Logo")}</span></td></tr></table></td></tr>`);
   }
   return out.join("\n");
 }
