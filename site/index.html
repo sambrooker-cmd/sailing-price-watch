@@ -353,6 +353,9 @@ dialog.saved{width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);bor
 dialog.saved:not([open]){display:none}
 dialog.saved::backdrop{background:rgba(20,5,25,.6)}
 .sv-open{align-self:flex-start}
+.tc-doc{border-top:1px solid var(--rule);padding:12px 0}
+.tc-doc h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.tc-doc .tc-text{white-space:pre-line;font-size:13.5px;line-height:1.5;margin:0 0 6px}
 .sv-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .sv-head h3{margin:0 0 10px;font-size:17px}
 .sv-tools{display:flex;gap:8px;margin-bottom:10px}
@@ -409,6 +412,7 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
 
 <dialog class="detail" id="detail" aria-labelledby="d-title"></dialog>
 <dialog class="pv" id="pv" aria-label="Card preview"></dialog>
+<dialog class="saved" id="tc" aria-labelledby="tc-title"></dialog>
 
 <div class="shell" id="app" hidden>
 <aside class="side">
@@ -640,7 +644,7 @@ const auth = getAuth(firebaseApp);
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}) : "";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-  let coverage = null, trends = null, cardsDoc = null;
+  let coverage = null, trends = null, cardsDoc = null, terms = null;
   const loadedHalves = new Set();  // archive documents (runs-YYYY-MM-1/-2) already merged into runs
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
@@ -766,12 +770,13 @@ const auth = getAuth(firebaseApp);
       active.forEach(s => livePromos(s).forEach(o => count[o] = (count[o] || 0) + 1));
       const ids = Object.keys(count).sort((a, b) => count[b] - count[a] || (offerInfo(a).name || "").localeCompare(offerInfo(b).name || ""));
       const none = active.filter(s => !livePromos(s).length).length;
-      $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th><th></th></tr></thead><tbody>${ids.map(o => {
+      $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th><th>Terms</th><th></th></tr></thead><tbody>${ids.map(o => {
           const i = offerInfo(o);
           return `<tr><td><b>${esc(i.name || o)}</b>${i.desc ? `<div class="sub" style="white-space:pre-line">${esc(i.desc)}</div>` : ""}</td>
             <td class="num">${count[o]}</td><td>${fmtExpiry(i.expires) || "–"}</td><td>${fmtDate(i.first_seen)}${i.first_seen === state.promos_since ? `<div class="sub">recording began</div>` : ""}</td>
+            <td>${termsOf(o) ? `<button type="button" class="linkbtn" data-tc="${esc(o)}">${termsOf(o).length ? "T&amp;Cs" : "No T&amp;Cs found"}</button>` : ""}</td>
             <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
-        }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.</p>`
+        }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.${terms ? ` T&amp;Cs are read from the website's own pages once a day (last ${fmtWhen(terms.fetched_at)}): <button type="button" class="linkbtn" data-tc="*">all ${Object.keys(terms.docs || {}).length} found</button>.` : ""}</p>`
         : `<div class="empty"><p>No promotions are live on any sailing.</p></div>`;
     }
 
@@ -942,7 +947,32 @@ const auth = getAuth(firebaseApp);
       render();
     });
   }
+  // Promotion T&Cs (Sam, 13 Oct 2026): read from the website's own pages by terms.py, matched to each promotion.
+  // The sailing pages' offers carry no terms, so some promotions have none; the general booking terms are linked.
+  const termsOf = o => terms && terms.offers ? (terms.offers[o] || []).filter(i => terms.docs[i]) : null;
+  const tcWords = d => /^[a-z:,.£\d]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`;
+  function openTerms(o){
+    const all = o === "*", ids = all ? Object.keys(terms.docs).sort((a, b) => terms.docs[a].title.localeCompare(terms.docs[b].title)) : termsOf(o);
+    const name = all ? "All terms found on the website" : (offerInfo(o).name || o);
+    const tc = $("tc");
+    tc.innerHTML = `<div class="sv-head"><h3 id="tc-title">${esc(name)}${all ? "" : " · T&amp;Cs"}</h3><button type="button" class="linkbtn" data-tcx="close">Close</button></div>
+      <p class="sub" style="margin:0 0 8px">Read from the website ${fmtWhen(terms.fetched_at)} (once a day). Check the wording on the page before using it.${ids.length > 1 ? ` <button type="button" class="linkbtn" data-tcx="all">Copy all</button>` : ""}</p>
+      <div class="sv-body">${ids.length ? ids.map(i => { const d = terms.docs[i]; return `<div class="tc-doc"><h4>${esc(d.title)}<button type="button" class="btn sm" data-tcx="${esc(i)}">Copy</button></h4>
+        <p class="tc-text">${esc(tcWords(d))}</p><p class="sub" style="margin:0">On ${d.pages.slice(0, 3).map(u => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https:\/\/www\.ambassadorcruiseline\.com/, "") || "/")}</a>`).join(", ")}${d.pages.length > 3 ? ` and ${d.pages.length - 3} more` : ""}</p></div>`; }).join("")
+        : `<p>No terms for this promotion were found on the website: its offer data has none, and no deals or landing page mentions it. The general booking terms are at <a href="${esc(terms.general)}" target="_blank" rel="noopener">${esc(terms.general)}</a>.</p>`}</div>`;
+    tc.onclick = async e => {
+      if (e.target === tc) return tc.close();
+      const b = e.target.closest("[data-tcx]"); if (!b) return;
+      if (b.dataset.tcx === "close") return tc.close();
+      const text = b.dataset.tcx === "all" ? ids.map(i => tcWords(terms.docs[i])).join("\n\n") : tcWords(terms.docs[b.dataset.tcx]);
+      try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; } catch(err) { prompt("Copy the terms:", text); }
+      setTimeout(() => { b.textContent = b.dataset.tcx === "all" ? "Copy all" : "Copy"; }, 1500);
+    };
+    tc.showModal();
+  }
   $("promos").addEventListener("click", e => {
+    const t = e.target.closest("[data-tc]");
+    if (t && terms) return openTerms(t.dataset.tc);
     const b = e.target.closest("[data-promo]");
     if (!b) return;
     filt.promo = b.dataset.promo; $("f-promo").value = filt.promo;
@@ -1920,6 +1950,7 @@ const auth = getAuth(firebaseApp);
         readJson("trends").catch(() => null),     // published since 12 Oct 2026
         readJson("cards").catch(() => null)]);    // made by the hourly check since 12 Oct 2026
       coverage = cov; trends = tr; cardsDoc = cd;
+      terms = await readJson("terms").catch(() => null);   // promotion T&Cs (terms.py, 13 Oct 2026)
       cabins = cab.sailings || {};
       runs = rs;
       state = st;

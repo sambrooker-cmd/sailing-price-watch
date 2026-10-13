@@ -92,6 +92,8 @@ def documents():
             for sid, m in man.get("sailings", {}).items()}}
     if (ROOT / "state" / "adkit.json").exists():
         docs["adkit"] = load(ROOT / "state" / "adkit.json")
+    if (ROOT / "state" / "terms.json").exists():
+        docs["terms"] = load(ROOT / "state" / "terms.json")
     if (ROOT / "state" / "coverage.json").exists():
         docs["coverage"] = load(ROOT / "state" / "coverage.json")
     out = {}

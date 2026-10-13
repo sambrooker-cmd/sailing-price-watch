@@ -43,6 +43,13 @@ jobs:
           HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: python daily.py --no-cards
 
+      # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
+      # live promotions every check. See terms.py.
+      - name: Promotion terms
+        if: steps.watch.outcome == 'success'
+        continue-on-error: true   # a terms problem must never stop prices or cards being saved
+        run: python terms.py
+
       # Standard cards for every sailing on sale (Sam, 12 Oct 2026; was/now cards stay paused):
       # only sailings whose card content changed are remade. See cards_sync.py.
       - name: Which cards need making
