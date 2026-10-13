@@ -11,9 +11,12 @@
 // Nothing here can read or change prices, cards or anything outside this one workflow.
 const {onRequest} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
-const admin = require("firebase-admin");
+// firebase-admin 14 only has the modular API (admin.auth() / admin.firestore() are gone)
+const {initializeApp} = require("firebase-admin/app");
+const {getAuth} = require("firebase-admin/auth");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 
-admin.initializeApp();
+initializeApp();
 const GH = defineSecret("GITHUB_VIDEO_TOKEN");
 const REPO = "sambrooker-cmd/sailing-price-watch";
 const WORKFLOW = "make-video.yml";
@@ -32,10 +35,13 @@ exports.makeVideo = onRequest({
   const m = (req.get("Authorization") || "").match(/^Bearer (.+)$/);
   if (!m) return res.status(401).json({error: "Sign in to the tracker first."});
   let user;
-  try { user = await admin.auth().verifyIdToken(m[1]); }
-  catch (e) { return res.status(401).json({error: "Your sign-in has expired: reload the page."}); }
+  try { user = await getAuth().verifyIdToken(m[1]); }
+  catch (e) {
+    console.error("verifyIdToken", e.code || "", e.message);
+    return res.status(401).json({error: "Your sign-in has expired: reload the page."});
+  }
   const email = user.email || "";
-  const db = admin.firestore();
+  const db = getFirestore();
   const allowed = email && user.email_verified &&
     ((await db.doc(`allowlist/${email}`).get()).exists || (await db.doc(`allowlist/${email.toLowerCase()}`).get()).exists);
   if (!allowed) return res.status(403).json({error: "You're not on the tracker's allowlist."});
@@ -66,7 +72,7 @@ exports.makeVideo = onRequest({
     return res.status(429).json({error: "You already have videos being made. Wait for those to finish."});
 
   const ref = db.collection(COL).doc();
-  await ref.set({by: email, at: admin.firestore.FieldValue.serverTimestamp(), status: "queued",
+  await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued",
                  title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0))});
   const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
     method: "POST",
