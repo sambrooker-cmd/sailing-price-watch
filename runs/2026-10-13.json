@@ -403,6 +403,9 @@
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
+  "A22633": [
+   "feed price £449 differs from cheapest cabin on the page £399 (the page price is used)"
+  ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
@@ -429,9 +432,6 @@
   ],
   "A12801": [
    "feed price £3,799 differs from cheapest cabin on the page £4,049 (the page price is used)"
-  ],
-  "A12818": [
-   "no departure date found"
   ]
  },
  "cabin_drops": [
@@ -1133,6 +1133,7 @@
   "2026-10-13T11:07:15Z",
   "2026-10-13T12:07:14Z",
   "2026-10-13T13:07:25Z",
-  "2026-10-13T13:56:23Z"
+  "2026-10-13T13:56:23Z",
+  "2026-10-13T14:07:15Z"
  ]
 }
