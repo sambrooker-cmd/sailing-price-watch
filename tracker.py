@@ -240,7 +240,8 @@ def update(state, snap):
     at = (dt.datetime.fromisoformat(snap["fetched_at"]).replace(microsecond=0).isoformat().replace("+00:00", "Z")
           if snap.get("fetched_at") else f"{today}T12:00:00Z")
     fixed = [f for f in state.get("feed_gaps_fixed", []) if days(f["fixed"][:10], today) <= 30]
-    rules = {**RULES, **state.get("rules", {})}
+    # The code's RULES are the only source (Sam, 13 Oct 2026); the copy saved in state just mirrors them for the page
+    rules = dict(RULES)
     sailings = state.get("sailings", {})
     seen = set()
     run = {"date": today, "count": snap["count"], "new": [], "removed": [], "returned": [],
