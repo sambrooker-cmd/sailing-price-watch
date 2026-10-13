@@ -413,7 +413,7 @@ function draw(){
         <input id="em-phone" value="${esc(em.phone)}">
       </div>
     </div>
-    <div class="ac-main">
+    <div class="ac-main em-main">
       <div class="ac-actions">
         <button type="button" class="btn" id="em-make"${it.length ? "" : " disabled"}>Make email</button>
         <button type="button" class="btn quiet" id="em-clear"${it.length || em.subject ? "" : " disabled"}>Start again</button>
@@ -428,26 +428,33 @@ function draw(){
         <button type="button" class="ac-seg" data-mode="desktop" aria-pressed="${previewMode === "desktop"}">Desktop</button>
         <button type="button" class="ac-seg" data-mode="mobile" aria-pressed="${previewMode === "mobile"}">Phone</button></div>
       <div class="em-frame"><iframe id="em-preview" title="Email preview" style="width:${previewMode === "mobile" ? 375 : 640}px"></iframe></div>
+      <p class="sub em-hint">Scroll inside the preview to see the whole email.</p>
     </div>
   </div>`;
   note = "";
   wire();
   preview();
 }
-let pv = 0;
+let pv = 0, previewY = 0;
 async function preview(){
   const n = ++pv, frame = root.querySelector("#em-preview"); if (!frame) return;
   const list = images(), src = {};
   const grey = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="4" height="3"><rect width="4" height="3" fill="#ddd"/></svg>`);
   for (const k of Object.keys(list)) src[k] = baked.get(JSON.stringify([...list[k], .8])) || grey;
-  frame.srcdoc = emailHtml(src);
-  const done = () => { try { frame.style.height = frame.contentDocument.documentElement.scrollHeight + "px"; } catch(e){} };
-  frame.onload = done;
+  // The preview fits the screen and scrolls inside itself (Sam, 13 Oct 2026); each refresh keeps the place
+  // you'd scrolled to, so editing near the bottom doesn't jump back to the top.
+  const show = html => {
+    let y = 0; try { y = frame.contentWindow.scrollY || 0; } catch(e){}
+    if (y) previewY = y;
+    frame.onload = () => { try { frame.contentWindow.scrollTo(0, previewY); frame.contentWindow.addEventListener("scroll", () => { previewY = frame.contentWindow.scrollY; }); } catch(e){} };
+    frame.srcdoc = html;
+  };
+  show(emailHtml(src));
   for (const [k, [kind, o]] of Object.entries(list)) {
     if (src[k] !== grey) continue;
     try { src[k] = await bake(kind, o, .8); } catch(e) { continue; }
     if (n !== pv) return;
-    frame.srcdoc = emailHtml(src);
+    show(emailHtml(src));
   }
 }
 let typing;
