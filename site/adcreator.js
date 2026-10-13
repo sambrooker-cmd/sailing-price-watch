@@ -328,10 +328,20 @@ function readyMsg(){
   return `Prices as checked ${fmtDate(today)}.`;
 }
 
+// Tabs above the card editor (Sam, 13 Oct 2026): one per sailing card, to jump between them.
+function cardTabs(){
+  if (ad.cards.length < 2) return "";
+  return `<div class="ac-tabs" role="tablist" aria-label="Card to edit">${ad.cards.map((c, i) => {
+    const t = sailing(c.id).title;
+    return `<button type="button" role="tab" class="ac-tab" data-tab="${i}" aria-selected="${i === sel}" tabindex="${i === sel ? 0 : -1}" title="${esc(t)}"><b>${i + 1}</b><span>${esc(t)}</span></button>`;
+  }).join("")}</div>`;
+}
+
 function editor(c){
   const s = sailing(c.id), cl = claims(c.id), w = c.words || {};
   const dw = defaultWords(s.title), wasnow = c.design.startsWith("wasnow:");
   return `<div class="ac-block">
+    ${cardTabs()}
     <h3>Card ${sel + 1}: ${esc(s.title)}</h3>
     <label class="ac-lab" for="ac-design">Design</label>
     <select id="ac-design"><option value="standard">Standard</option>${cl.map(x => `<option value="wasnow:${x.key}"${c.design === "wasnow:" + x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (until ${fmtDate(x.ends)})</option>`).join("")}</select>
@@ -431,6 +441,11 @@ function wire(){
     root.querySelector("#ac-find").focus();
   });
   root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
+  const tabTo = i => { sel = (i + ad.cards.length) % ad.cards.length; draw(); const t = root.querySelector(`[data-tab="${sel}"]`); t && t.focus(); };
+  root.querySelectorAll("[data-tab]").forEach(b => {
+    b.addEventListener("click", () => { if (sel !== +b.dataset.tab) tabTo(+b.dataset.tab); });
+    b.addEventListener("keydown", e => { const k = {ArrowRight: 1, ArrowLeft: -1}[e.key]; if (k) { e.preventDefault(); tabTo(sel + k); } });
+  });
   root.querySelectorAll("[data-sel]").forEach(b => b.addEventListener("click", () => { if (sel !== +b.dataset.sel) { sel = +b.dataset.sel; draw(); } }));
   const move = (i, j) => { const [x] = ad.cards.splice(i, 1); ad.cards.splice(j, 0, x); sel = j; change(true, true); };
   root.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", () => move(+b.dataset.up, +b.dataset.up - 1)));

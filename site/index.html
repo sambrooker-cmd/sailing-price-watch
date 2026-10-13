@@ -215,6 +215,14 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-side{display:flex;flex-direction:column;gap:14px}
 .ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
 .ac-block h3{margin:0 0 4px;font-size:15px}
+.ac-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin:-2px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.ac-tab{font:inherit;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0;padding:5px 9px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.ac-tab b{flex:none;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--rule);font-size:11px}
+.ac-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-tab:hover{border-color:#6B207D}
+.ac-tab[aria-selected="true"]{background:#6B207D;border-color:#6B207D;color:#fff}
+.ac-tab[aria-selected="true"] b{background:#fff;color:#6B207D}
+.ac-tab:focus-visible{outline:2px solid #F68C4E;outline-offset:1px}
 .ac-block input,.ac-block select,.ac-block textarea{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);width:100%}
 .ac-block textarea{resize:vertical}
 .ac-block input[type=search]{flex:none;max-width:none}
