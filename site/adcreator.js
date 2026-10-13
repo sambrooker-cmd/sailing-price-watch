@@ -37,7 +37,18 @@ export async function mount(el, ctx){
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { ad = normalise(d).ad; draftId = d._draft || null; } } catch(e){}
   if (ctx.shared) await openShared(ctx.shared); else draw();
+  if (ctx.add) addSailing(ctx.add);
   loadVideos();
+}
+
+// "Add to ad" from a sailing's detail view (Sam, 13 Oct 2026): adds it to the ad being worked on.
+export function addSailing(id){
+  if (!sailing(id)) { note = `${id} isn't on sale, so it can't go in an ad.`; return draw(); }
+  if (ad.format === "single") ad.cards = [];
+  if (ad.cards.length >= maxSailings()) { note = `This carousel is full (${maxSailings()} sailings), so ${(sailing(id) || {}).title || id} wasn't added.`; return draw(); }
+  ad.cards.push(newCard(id)); sel = ad.cards.length - 1;
+  note = `Added ${sailing(id).title}.`;
+  save(); draw();
 }
 
 // Bring a saved, shared or older ad up to date with today's data, saying what had to change.

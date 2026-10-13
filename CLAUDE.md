@@ -40,6 +40,17 @@ carousels trimmed (with a note) when an opening/closing card is switched on; mal
 in the brand colour; on phones What changed stacks each change, Feed vs website and Not in ad feed drop their least
 useful columns.
 
+## Usability round (13 Oct 2026, Sam picked from the QA suggestions)
+- **Find a sailing** in the sidebar (`#gq`, "/" focuses it): name, port, ship, airport or code → its detail view (on-sale first).
+- **Add to ad / Make email card** buttons in a sailing's detail view (`data-make`): open that page with the sailing added
+  (`addSailing` exported by adcreator.js and emailcards.js; `pendingAdd` when the page isn't loaded yet).
+- **Last checked … · N min ago**, amber "the HH:MM check hasn't come in" when a scheduled check (:07 past 06, 09–17, 22
+  UK, `SLOTS`) is over 40 minutes late (`renderMeta`, refreshed every minute).
+- **Phones**: per-cabin offer descriptions shown as one line (`promoShort`, e.g. "£50–£200 onboard credit per cabin, by
+  cabin grade"); bigger tap areas for small text links; the pages are a "☰ <page>" button opening the grouped list
+  (`#navtoggle`) instead of a sideways-scrolling tab bar. Not done (Sam): a "copy for the feed owner" message, a phone
+  thumbnail grid for Cards.
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute

@@ -134,15 +134,14 @@ td .sub{font-size:13px;color:var(--muted)}
   .side .logo{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .side .logo svg{width:124px;margin:0}
   .side .app-name{margin:0;font-size:11px}
-  .side nav{flex-direction:row;overflow-x:auto;gap:6px;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
-  .side nav button{flex:none;width:auto;padding:7px 12px;font-size:13px;border-radius:999px;background:rgba(255,255,255,.08)}
-  .side nav button svg{display:none}
-  .side nav .grp{display:none}
-  .side nav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  /* Phones: a "☰ <page>" button opens the pages as a grouped list, as on desktop (Sam, 13 Oct 2026: 11 tabs in a
+     sideways-scrolling bar were hard to scan) */
+  .side .navtoggle{display:inline-flex}
+  .side nav{display:none}
+  .side.navopen nav{display:flex;flex-direction:column;max-height:65vh;overflow-y:auto;padding-bottom:6px}
+  .side nav .grp{margin:12px 12px 4px}
   .side .foot .m-more,.side .foot .m-who{display:none}
-  .side nav button[aria-current="page"]{background:#F68C4E;color:#380843}
   .side nav button[aria-current="page"]::before{display:none}
-  .side nav button[aria-current="page"] .n{background:#380843;color:#fff}
   .side .foot{margin:0;padding:6px 0 0;border-top:1px solid rgba(255,255,255,.14);font-size:12px;line-height:1.45}
   .side .foot{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
   .side .foot #who{margin-top:0;white-space:nowrap}
@@ -353,6 +352,32 @@ dialog.saved{width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);bor
 dialog.saved:not([open]){display:none}
 dialog.saved::backdrop{background:rgba(20,5,25,.6)}
 .sv-open{align-self:flex-start}
+/* Find a sailing from any page (Sam, 13 Oct 2026) */
+.gsearch{position:relative;margin:0 4px}
+.gsearch input{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);color:#fff}
+.gsearch input::placeholder{color:rgba(255,255,255,.55)}
+.gsearch input:focus{outline:2px solid #F68C4E;outline-offset:0;background:rgba(255,255,255,.14)}
+.gq-res{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);background:var(--bg);color:var(--ink);border:1px solid var(--rule);
+  box-shadow:0 8px 24px rgba(20,5,25,.25);max-height:60vh;overflow-y:auto;min-width:300px}
+.gq-res button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;border-top:1px solid var(--rule);padding:9px 12px;cursor:pointer;color:var(--ink)}
+.gq-res button:first-child{border-top:0}
+.gq-res button:hover,.gq-res button.on{background:var(--bg-alt)}
+.gq-res .sub{display:block;font-size:12px}
+.gq-res p{margin:0;padding:10px 12px;font-size:13px}
+.side .foot .stale-check{display:inline-block;margin-top:4px;color:#F68C4E;font-weight:600}
+.d-short{display:none}
+@media (max-width:600px){
+  .d-full{display:none}.d-short{display:block}
+  /* bigger tap targets for the small text links (Sam, 13 Oct 2026) */
+  .linkbtn,.ptable a,td .sub a{display:inline-block;padding:6px 0;min-height:28px}
+  .cardset a{display:inline-block;padding:6px 4px}
+}
+.navtoggle{display:none;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:#fff;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap}
+.navtoggle[aria-expanded=true]{background:#F68C4E;color:#380843;border-color:#F68C4E}
+.dacts{display:flex;gap:8px;align-items:flex-start;flex-wrap:nowrap;justify-content:flex-end}
+@media (max-width:600px){.dacts{flex-wrap:wrap}}
 .cov-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:4px}
 .cov-404{background:#B3261E;color:#fff;border-color:#B3261E}
 tr.cov-charter td{color:var(--muted)}
@@ -435,6 +460,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
   <div class="logo">
     <div><svg role="img" aria-label="Ambassador Cruise Line" viewBox="0 0 465.37 98.23"><use href="#amb-logo"/></svg>
     <p class="app-name">Sailing Price Watch</p></div>
+    <button type="button" class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="sidenav"><span aria-hidden="true">☰</span> <span id="navcur">Pages</span></button>
+  </div>
+  <div class="gsearch" role="search">
+    <input id="gq" type="search" placeholder="Find a sailing  ( / )" aria-label="Find a sailing by name, port, ship or code" autocomplete="off">
+    <div id="gq-res" class="gq-res" hidden></div>
   </div>
   <nav id="sidenav" aria-label="Pages"></nav>
   <div class="foot"><div id="meta"><span class="loading">Loading the latest run…</span></div><div id="who"></div></div>
@@ -735,12 +765,45 @@ const auth = getAuth(firebaseApp);
     return live.length ? `<div class="promos">${live.map(o => `<span class="chip">${esc(offerInfo(o).name || o)}</span>`).join("")}</div>` : "";
   };
 
+  // "Last checked" says how long ago, and turns amber when a scheduled check hasn't come in (Sam, 13 Oct 2026).
+  // Checks run at :07 past 06, 09–17 and 22 UK time (cron-job.org); allow 40 minutes for one to land.
+  const SLOTS = [6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 22];
+  function lastSlot(now){
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", {timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(now).map(x => [x.type, x.value]));
+    const off = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - Math.floor(now.getTime() / 60000) * 60000;   // UK minus UTC
+    for (let back = 0; back < 3; back++)
+      for (const h of [...SLOTS].reverse()) { const t = Date.UTC(+p.year, +p.month - 1, +p.day - back, h, 7) - off; if (t <= now.getTime()) return t; }
+    return null;
+  }
+  // One line for per-cabin offer descriptions ("£50 Onboard Credit per Inside cabin" × 4) on phones (Sam, 13 Oct 2026)
+  function promoShort(desc){
+    const m = [...String(desc || "").matchAll(/£([\d,]+)\s+(.+?)\s+per\s+(.+?)\s+cabin/gi)];
+    if (m.length < 2) return "";
+    const v = m.map(x => +x[1].replace(/,/g, "")), what = m[0][2].toLowerCase();
+    return `£${Math.min(...v).toLocaleString("en-GB")}–£${Math.max(...v).toLocaleString("en-GB")} ${what} per cabin, by cabin grade`;
+  }
+  function renderMeta(){
+    if (!state) return;
+    const today = state.updated;
+    let fresh = "";
+    if (state.updated_at) {
+      const now = new Date(), last = Date.parse(state.updated_at), mins = Math.round((now - last) / 60000);
+      const ago = mins < 2 ? "just now" : mins < 90 ? `${mins} min ago` : mins < 2880 ? `${Math.round(mins / 60)} hours ago` : `${Math.round(mins / 1440)} days ago`;
+      const slot = lastSlot(now), late = slot && now - slot > 40 * 60000 && last < slot - 10 * 60000;
+      fresh = late ? `<br><span class="stale-check">${ago}: the ${fmtTime(new Date(slot).toISOString())} check hasn't come in. Reload, or look at GitHub Actions.</span>`
+                   : ` · <span class="ago">${ago}</span>`;
+    }
+    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)${fresh}<span class="m-more"><br>Checks hourly 9am–5pm, plus 6am and 10pm · tracking since ${fmtDate(state.tracking_since)}</span>`;
+  }
+  setInterval(renderMeta, 60000);
+
   function render(){
     if (!state) return;
     const today = state.updated, rules = state.rules || {};
     const all = Object.entries(state.sailings || {}).map(([id, s]) => ({id, ...s}));
     const active = all.filter(s => !s.removed);
-    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<span class="m-more"><br>Checks hourly 9am–5pm, plus 6am and 10pm · tracking since ${fmtDate(state.tracking_since)}</span>`;
+    renderMeta();
     $("st-count").textContent = active.length;
     const byShip = {}; active.forEach(s => byShip[s.ship] = (byShip[s.ship]||0)+1);
     $("st-ships").textContent = ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
@@ -788,7 +851,8 @@ const auth = getAuth(firebaseApp);
       const none = active.filter(s => !livePromos(s).length).length;
       $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th><th>Terms</th><th></th></tr></thead><tbody>${ids.map(o => {
           const i = offerInfo(o);
-          return `<tr><td><b>${esc(i.name || o)}</b>${i.desc ? `<div class="sub" style="white-space:pre-line">${esc(i.desc)}</div>` : ""}</td>
+          const short = promoShort(i.desc);
+          return `<tr><td><b>${esc(i.name || o)}</b>${i.desc ? `<div class="sub${short ? " d-full" : ""}" style="white-space:pre-line">${esc(i.desc)}</div>` : ""}${short ? `<div class="sub d-short">${esc(short)}</div>` : ""}</td>
             <td class="num">${count[o]}</td><td>${fmtExpiry(i.expires) || "–"}</td><td>${fmtDate(i.first_seen)}${i.first_seen === state.promos_since ? `<div class="sub">recording began</div>` : ""}</td>
             <td>${termsOf(o) ? `<button type="button" class="linkbtn" data-tc="${esc(o)}">${termsOf(o).length ? "T&amp;Cs" : "No T&amp;Cs found"}</button>` : ""}</td>
             <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
@@ -1461,12 +1525,16 @@ const auth = getAuth(firebaseApp);
             ${s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">View on the booking site ↗</a>` : ""}
           </div>
         </div>
-        <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
+        <div class="dacts">
+          ${s.removed ? "" : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
+          <button type="button" class="btn quiet sm" data-make="ecards" data-id="${esc(id)}">Make email card</button>`}
+          <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
+        </div>
       </div>
       <div class="dbody">
         <section><h3>Was/now status</h3><div class="verdict ${v.cls}">${v.lines.map(l => `<p>${esc(l)}</p>`).join("")}</div></section>
         <section><h3>Price per person, twin</h3>${ch.html}
-          <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price in the ad feed.</p></section>
+          <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price (the cheapest twin cabin on the sailing's page; the ad feed's price before 13 Oct 2026).</p></section>
         <section><h3>Cabins now</h3>${cabinTable(cab, today)}</section>
         <section><h3>From price, month by month</h3>${monthly(s, today)}
           <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
@@ -1496,6 +1564,33 @@ const auth = getAuth(firebaseApp);
     if (id) openDetail(id); else if (dlg.open) dlg.close();
   };
   window.addEventListener("hashchange", fromHash);
+  // Find a sailing from any page: name, port, ship, airport or cruise code → its detail view (Sam, 13 Oct 2026)
+  (() => {
+    const q = $("gq"), res = $("gq-res"); let hits = [], on = 0;
+    const show = () => {
+      const t = q.value.trim().toLowerCase();
+      if (!state || t.length < 2) { res.hidden = true; return; }
+      const words = t.split(/\s+/);
+      hits = Object.entries(state.sailings || {}).filter(([id, s]) => { const hay = [id, s.title, s.base_title, s.port, s.ship, s.flight_from].join(" ").toLowerCase(); return words.every(w => hay.includes(w)); })
+        .sort((a, b) => !!a[1].removed - !!b[1].removed || (a[1].departure_date || "9").localeCompare(b[1].departure_date || "9")).slice(0, 10);
+      on = 0;
+      res.innerHTML = hits.length ? hits.map(([id, s], i) => `<button type="button" data-gq="${esc(id)}"${i === on ? ' class="on"' : ""}><b>${esc(s.base_title || s.title)}</b><span class="sub">${esc(id)} · ${fmtDate(s.departure_date)} · ${s.flight_from ? "Fly from " + esc(s.flight_from) : esc(s.port || "")}${s.removed ? " · left the feed" : ""}</span></button>`).join("")
+        : `<p class="sub">No sailing matches "${esc(q.value.trim())}".</p>`;
+      res.hidden = false;
+    };
+    const pick = id => { res.hidden = true; q.value = ""; q.blur(); if (location.hash.slice(1) === encodeURIComponent(id)) openDetail(id); else location.hash = encodeURIComponent(id); };
+    q.addEventListener("input", show);
+    q.addEventListener("focus", show);
+    q.addEventListener("keydown", e => {
+      if (e.key === "Escape") { q.value = ""; res.hidden = true; return; }
+      if (!hits.length || res.hidden) return;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); on = (on + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % hits.length; res.querySelectorAll("[data-gq]").forEach((b, i) => b.classList.toggle("on", i === on)); }
+      if (e.key === "Enter") { e.preventDefault(); pick(hits[on][0]); }
+    });
+    res.addEventListener("mousedown", e => { const b = e.target.closest("[data-gq]"); if (b) { e.preventDefault(); pick(b.dataset.gq); } });
+    q.addEventListener("blur", () => setTimeout(() => { res.hidden = true; }, 150));
+    document.addEventListener("keydown", e => { if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !document.activeElement.isContentEditable) { e.preventDefault(); q.focus(); } });
+  })();
   document.addEventListener("click", e => {
     if (e.target.closest("a")) return;
     const t = e.target.closest("[data-id]");
@@ -1845,6 +1940,7 @@ const auth = getAuth(firebaseApp);
     if (!mayView(v)) v = "overview";
     view = v;
     for (const [id, , secs] of VIEWS) secs.forEach(s => s.hidden = id !== v);
+    const cur = VIEWS.find(x => x[0] === v); if (cur && $("navcur")) $("navcur").textContent = cur[1];
     document.querySelectorAll("#sidenav button").forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     try { localStorage.setItem("spw-view", v); } catch(e){}
     if (v === "ads") mountAds();
@@ -1853,9 +1949,10 @@ const auth = getAuth(firebaseApp);
     if (scroll) window.scrollTo({top: 0});
     renderTrends();
     const b = document.querySelector(`#sidenav button[data-view="${v}"]`);
-    if (b && b.scrollIntoView && matchMedia("(max-width:900px)").matches) b.scrollIntoView({block: "nearest", inline: "center"});
   }
-  $("sidenav").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) showView(b.dataset.view); });
+  $("sidenav").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) { showView(b.dataset.view); setNav(false); } });
+  const setNav = open => { document.querySelector(".side").classList.toggle("navopen", open); $("navtoggle").setAttribute("aria-expanded", String(open)); };
+  $("navtoggle").addEventListener("click", () => setNav(!document.querySelector(".side").classList.contains("navopen")));
   showView(view, false);
   // After sign-in: show the pages this person may see, and go back to the one they had open
   function applyAccess(email){
@@ -1921,6 +2018,16 @@ const auth = getAuth(firebaseApp);
   }
   // Ad creator: its own module, loaded the first time the page is opened (site/adcreator.js)
   let adsMounted = false, adsModule = null, sharedAd = null;
+  // "Add to ad" / "Make email card" from a sailing's detail view (Sam, 13 Oct 2026): open that page with the sailing added
+  let pendingAdd = {};
+  function makeFrom(view, id){
+    if (dlg.open) dlg.close();
+    if (view === "ads" && adsModule) adsModule.addSailing(id);
+    else if (view === "ecards" && ecardsModule) ecardsModule.addSailing(id);
+    else pendingAdd[view] = id;
+    showView(view);
+  }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-make]"); if (b) makeFrom(b.dataset.make, b.dataset.id); });
   async function mountAds(){
     if (!state || adsMounted) return;   // (state first: showView runs before adsMounted is declared)
     adsMounted = true;
@@ -1928,19 +2035,22 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./adcreator.js?v=__BUILD__"), getAdkit()]);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
-      await m.mount($("ads"), {state, cabins, adkit: kit, shared,
+      const add = pendingAdd.ads; delete pendingAdd.ads;
+      await m.mount($("ads"), {state, cabins, adkit: kit, shared, add,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
 
   // Email cards: the sailing pictures for HubSpot emails (site/emailcards.js)
-  let ecardsMounted = false;
+  let ecardsMounted = false, ecardsModule = null;
   async function mountEcards(){
     if (!state || ecardsMounted) return;
     ecardsMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./emailcards.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("ecards"), {state, cabins, adkit: kit, terms,
+      ecardsModule = m;
+      const add = pendingAdd.ecards; delete pendingAdd.ecards;
+      await m.mount($("ecards"), {state, cabins, adkit: kit, terms, add,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }

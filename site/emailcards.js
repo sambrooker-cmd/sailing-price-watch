@@ -33,8 +33,19 @@ export async function mount(el, ctx){
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
   st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
   draw();
+  if (ctx.add) addSailing(ctx.add);
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} };
+// "Make email card" from a sailing's detail view (Sam, 13 Oct 2026)
+export function addSailing(id){
+  const s = sailing(id);
+  if (!s) { note = `${id} isn't on sale.`; return draw(); }
+  const have = st.items.findIndex(x => x.id === id);
+  if (have >= 0) { sel = have; note = `${s.title} is already here.`; return draw(); }
+  if (st.items.length >= MAX) { note = `Up to ${MAX} sailings at once.`; return draw(); }
+  st.items.push({id, photo: pickPhoto(s), caption: "", name: "", badges: [], fare: "twin", grade: ""}); sel = st.items.length - 1;
+  note = `Added ${s.title}.`; save(); draw();
+}
 
 // ---------- data ----------
 const live = () => Object.entries(S.sailings || {}).filter(([, r]) => !r.removed && r.departure_date > today);
