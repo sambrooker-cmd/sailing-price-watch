@@ -232,6 +232,9 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ec-pic{display:flex;flex-direction:column;gap:3px;min-width:0}
 .ec-standard{flex:1 1 0}.ec-wide{flex:2 1 0}
 .ec-pic img{display:block;width:100%;height:auto;background:var(--bg-alt);min-height:40px}
+.ec-copy{display:flex;flex-wrap:wrap;gap:2px 14px;justify-content:center;font-size:13px}
+.ec-copy b,.ec-copy span{display:none}
+.ec-whole img{background:#F1ECE7}
 .ec-card figcaption{display:flex;flex-direction:column;align-items:center;text-align:center;font-size:13px;gap:1px}
 .ec-t{color:var(--heading);font-size:13px}
 .ec-btn{margin:4px 0 2px;background:var(--allium);color:#fff;padding:4px 10px;font-size:12px}
@@ -1818,7 +1821,8 @@ const auth = getAuth(firebaseApp);
     ecardsMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./emailcards.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("ecards"), {state, adkit: kit});
+      await m.mount($("ecards"), {state, adkit: kit,
+        idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }
   // Email creator: its own module, loaded the first time the page is opened (site/emailcreator.js)
