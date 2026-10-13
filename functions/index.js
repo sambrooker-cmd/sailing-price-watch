@@ -15,6 +15,8 @@ const {defineSecret} = require("firebase-functions/params");
 const {initializeApp} = require("firebase-admin/app");
 const {getAuth} = require("firebase-admin/auth");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
+const {getStorage} = require("firebase-admin/storage");
+const crypto = require("crypto");
 
 initializeApp();
 const GH = defineSecret("GITHUB_VIDEO_TOKEN");
@@ -26,25 +28,33 @@ const PER_PERSON = 2;      // requests one person can have waiting or running at
 const KEEP_DAYS = 30;      // video_job.py deletes older videos; the list shows the same period
 const STUCK_MIN = 30;      // a request still "queued" after this never started on GitHub
 
+// Who is asking: a signed-in, verified Google account on the planner's allowlist. Sends the refusal itself.
+async function allowedUser(req, res){
+  const m = (req.get("Authorization") || "").match(/^Bearer (.+)$/);
+  if (!m) { res.status(401).json({error: "Sign in to the tracker first."}); return null; }
+  let user;
+  try { user = await getAuth().verifyIdToken(m[1]); }
+  catch (e) {
+    console.error("verifyIdToken", e.code || "", e.message);
+    res.status(401).json({error: "Your sign-in has expired: reload the page."}); return null;
+  }
+  const email = user.email || "";
+  const db = getFirestore();
+  const ok = email && user.email_verified &&
+    ((await db.doc(`allowlist/${email}`).get()).exists || (await db.doc(`allowlist/${email.toLowerCase()}`).get()).exists);
+  if (!ok) { res.status(403).json({error: "You're not on the tracker's allowlist."}); return null; }
+  return email;
+}
+
 const iso = t => (t && t.toDate ? t.toDate() : new Date(t)).toISOString();
 
 exports.makeVideo = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"], secrets: [GH],
   maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
 }, async (req, res) => {
-  const m = (req.get("Authorization") || "").match(/^Bearer (.+)$/);
-  if (!m) return res.status(401).json({error: "Sign in to the tracker first."});
-  let user;
-  try { user = await getAuth().verifyIdToken(m[1]); }
-  catch (e) {
-    console.error("verifyIdToken", e.code || "", e.message);
-    return res.status(401).json({error: "Your sign-in has expired: reload the page."});
-  }
-  const email = user.email || "";
+  const email = await allowedUser(req, res);
+  if (!email) return;
   const db = getFirestore();
-  const allowed = email && user.email_verified &&
-    ((await db.doc(`allowlist/${email}`).get()).exists || (await db.doc(`allowlist/${email.toLowerCase()}`).get()).exists);
-  if (!allowed) return res.status(403).json({error: "You're not on the tracker's allowlist."});
 
   const since = new Date(Date.now() - KEEP_DAYS * 864e5);
   if (req.method === "GET") {
@@ -87,4 +97,59 @@ exports.makeVideo = onRequest({
     return res.status(502).json({error: `Couldn't start the video on GitHub (${why}).`});
   }
   return res.json({id: ref.id});
+});
+
+// Email creator (Sam, 13 Oct 2026): stores one email's images (logo, header, sailing pictures, made in the
+// browser) in Storage so the email's HTML can point at them. POST {images: [{name, data: base64 JPEG}]}
+// → {urls: {name: url}}. Files: pricewatch-email/<YYYY-MM-DD>/<random>/<name>.jpg with a download token,
+// public cache; deleted after EMAIL_KEEP_DAYS (emails stay viewable for a while after sending).
+const EMAIL_KEEP_DAYS = 90;
+const EMAIL_MAX_IMAGES = 16, EMAIL_MAX_BYTES = 900 * 1024, EMAIL_DAY_LIMIT = 300;   // images a day, everyone together
+
+exports.emailImages = onRequest({
+  region: "us-central1", cors: ["https://acl-price-watch.web.app"],
+  maxInstances: 2, memory: "512MiB", timeoutSeconds: 60,
+}, async (req, res) => {
+  if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
+  const email = await allowedUser(req, res);
+  if (!email) return;
+  const images = Array.isArray((req.body || {}).images) ? req.body.images : [];
+  if (!images.length || images.length > EMAIL_MAX_IMAGES) return res.status(400).json({error: `Send 1 to ${EMAIL_MAX_IMAGES} images.`});
+  const files = [];
+  for (const im of images) {
+    const name = String(im.name || "");
+    const data = Buffer.from(String(im.data || ""), "base64");
+    if (!/^[a-z0-9_-]{1,60}$/.test(name)) return res.status(400).json({error: "Bad image name."});
+    if (data.length < 100 || data.length > EMAIL_MAX_BYTES || data[0] !== 0xff || data[1] !== 0xd8)
+      return res.status(400).json({error: `Image ${name} isn't a JPEG under ${EMAIL_MAX_BYTES / 1024} KB.`});
+    files.push({name, data});
+  }
+  const db = getFirestore(), day = new Date().toISOString().slice(0, 10);
+  const counter = db.doc(`pricewatch_email/${day}`);
+  const used = await db.runTransaction(async t => {
+    const n = ((await t.get(counter)).data() || {}).images || 0;
+    if (n + files.length > EMAIL_DAY_LIMIT) return -1;
+    t.set(counter, {images: n + files.length}, {merge: true});
+    return n;
+  });
+  if (used < 0) return res.status(429).json({error: "Today's email image allowance is used up. Try again tomorrow."});
+
+  const bucket = getStorage().bucket("promotions-planner.firebasestorage.app");
+  const folder = `pricewatch-email/${day}/${crypto.randomBytes(6).toString("hex")}`;
+  const urls = {};
+  await Promise.all(files.map(async f => {
+    const path = `${folder}/${f.name}.jpg`, token = crypto.randomUUID();
+    await bucket.file(path).save(f.data, {resumable: false, metadata: {contentType: "image/jpeg",
+      cacheControl: "public, max-age=31536000", metadata: {firebaseStorageDownloadTokens: token, by: email}}});
+    urls[f.name] = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+  }));
+  console.log("email images", email, folder, files.length);
+
+  // Tidy up: delete emails' images older than EMAIL_KEEP_DAYS (dated folders), a few days at a time.
+  try {
+    const cutoff = new Date(Date.now() - EMAIL_KEEP_DAYS * 864e5).toISOString().slice(0, 10);
+    const [old] = await bucket.getFiles({prefix: "pricewatch-email/", maxResults: 300});
+    await Promise.all(old.filter(f => (f.name.split("/")[1] || "9") < cutoff).map(f => f.delete().catch(() => {})));
+  } catch (e) { console.error("email cleanup", e.message); }
+  return res.json({urls});
 });
