@@ -38,10 +38,30 @@ const baked = new Map();   // image key -> data URL (preview and upload)
 function fresh(){
   return {subject: "", preheader: "", phone: "0333 920 1164",
           hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Find your sailing", ctaLink: SITE,
-          items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: ""};
+          items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: "",
+          nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}};
+}
+// Optional strips (Sam, 13 Oct 2026), each placed under the header, after the intro or above the small print.
+// Trustpilot: Trustpilot's own email widget (the code Sam sent), whose images Trustpilot keeps up to date,
+// so the score and review count are always current. Nectar: Sam's banner artwork, listed in
+// site/email/nectar.json {"as_of", "images": [{file, label}]}; until it exists the tick box waits for it.
+const PLACES = {header: "Under the header picture", intro: "After the intro", footer: "Above the small print"};
+const TP_LINK = "https://www.trustpilot.com/review/ambassadorcruiseline.com?utm_medium=Trustbox&utm_source=EmailNewsletter1";
+const TP_IMG = "https://emailsignature.trustpilot.com/newsletter/en-US/1/620cf18be974268ffb275208/";
+let NECTAR = null;   // {images: [{file, label, w, h}]} once the artwork is in site/email/
+async function loadNectar(){
+  try {
+    const r = await fetch("email/nectar.json", {cache: "no-store"}); if (!r.ok) return;
+    const j = await r.json();
+    await Promise.all((j.images || []).map(x => new Promise(ok => {
+      const im = new Image(); im.onload = () => { x.w = im.naturalWidth; x.h = im.naturalHeight; ok(); }; im.onerror = ok; im.src = "email/" + x.file;
+    })));
+    j.images = (j.images || []).filter(x => x.w); if (j.images.length) NECTAR = j;
+  } catch(e){}
 }
 
 export async function mount(el, ctx){
+  await loadNectar();
   root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; ID = ctx.idToken || null;
   today = S.updated;
   const sym = document.getElementById("amb-logo");
@@ -53,7 +73,7 @@ export async function mount(el, ctx){
 // Bring a saved, shared or older email up to date with today's data, saying what had to change.
 // Prices are never stored in an email: it always uses the tracker's latest saved prices.
 function normalise(d){
-  const out = {...fresh(), ...d, hero: {...fresh().hero, ...(d.hero || {})}}, msgs = [];
+  const out = {...fresh(), ...d, hero: {...fresh().hero, ...(d.hero || {})}, nectar: {...fresh().nectar, ...(d.nectar || {})}, tp: {...fresh().tp, ...(d.tp || {})}}, msgs = [];
   delete out._draft;
   const gone = (d.items || []).filter(it => !sailing(it.id)).map(it => it.id);
   if (gone.length) msgs.push(`${[...new Set(gone)].join(", ")} ${gone.length === 1 ? "is" : "are"} no longer on sale, so ${gone.length === 1 ? "it was" : "they were"} left out`);
@@ -195,11 +215,13 @@ const FONT_CSS = [500, 600, 700].map(w =>
 const RUNTIME = `<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"><\/script>
 <script>window.ready=async()=>{await document.fonts.ready;await Promise.all([...document.images].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r;})));};
 window.toJpeg=q=>htmlToImage.toJpeg(document.getElementById('card'),{quality:q,pixelRatio:1,cacheBust:false,backgroundColor:'${COL.pearl}'});<\/script>`;
+const dims = (kind, o) => IMG[kind] || [o.w, o.h];
 function imageDoc(kind, o){
-  const [w, h] = IMG[kind];
+  const [w, h] = dims(kind, o);
   const page = body => `<!doctype html><html><head><meta charset="utf-8"><style>${FONT_CSS}*{margin:0;box-sizing:border-box}
     body{width:${w}px;height:${h}px;overflow:hidden;background:${COL.pearl}}#card{position:relative;width:${w}px;height:${h}px;overflow:hidden;font-family:Quicksand,sans-serif}
     .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}</style>${RUNTIME}</head><body><div id="card">${body}</div></body></html>`;
+  if (kind === "banner") return page(`<img class="ph" src="${location.origin}/email/${esc(o.file)}" style="object-fit:contain">`);
   if (kind === "logo") return page(`<div style="padding:4px 0">${LOGO_SVG.replace("<svg ", `<svg width="${w}" height="${h - 8}" `)}</div>`);
   // Header: the photo (with a soft shade when words go over it). The words themselves are live text in the
   // email, centred and responsive (Sam, 13 Oct 2026), not part of the picture.
@@ -214,7 +236,7 @@ function imageDoc(kind, o){
 async function bake(kind, o, quality){
   const key = JSON.stringify([kind, o, quality]);
   if (baked.has(key)) return baked.get(key);
-  const [w, h] = IMG[kind], f = document.createElement("iframe");
+  const [w, h] = dims(kind, o), f = document.createElement("iframe");
   f.style.cssText = `position:fixed;left:-${w + 50}px;top:0;width:${w}px;height:${h}px;border:0`;
   document.body.appendChild(f);
   try {
@@ -226,8 +248,15 @@ async function bake(kind, o, quality){
   } finally { f.remove(); }
 }
 // Every image the email needs: name → [kind, options]
+function nectarArt(){
+  if (!em.nectar.on || !NECTAR) return null;
+  const x = NECTAR.images.find(i => i.file === em.nectar.file) || NECTAR.images[0];
+  const w = Math.min(1200, x.w);
+  return {file: x.file, w, h: Math.round(x.h * w / x.w)};
+}
 function images(){
   const out = {logo: ["logo", {}]};
+  const n = nectarArt(); if (n) out.nectar = ["banner", n];
   if (em.hero.photo) out.hero = ["hero", {photo: em.hero.photo, shade: !!(em.hero.headline || em.hero.sub)}];
   em.items.forEach((it, i) => { out[`s${i + 1}_${it.id.toLowerCase()}`] = [it.layout, {photo: it.photo, caption: it.caption, badges: it.badges.map(badgeText)}]; });
   return out;
@@ -259,6 +288,17 @@ function heroRow(url){
 <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:450pt;height:236pt"><v:fill type="frame" src="${url}" color="${COL.palatyn}"/><v:textbox inset="0,0,0,0" style="v-text-anchor:middle"><![endif]-->
     ${words}
 <!--[if gte mso 9]></v:textbox></v:rect><![endif]--></td></tr>`;
+}
+function strips(place, src){
+  const out = [];
+  if (src.nectar && em.nectar.pos === place)
+    out.push(`<tr><td class="pad" align="center" style="padding:${place === "header" ? "20px" : "0"} 20px 28px"><img src="${src.nectar}" width="560" alt="Collect Nectar points when you book" style="display:block;width:100%;max-width:560px;height:auto;border:0"></td></tr>`);
+  if (em.tp.on && em.tp.pos === place) {
+    const a = (file, h, alt) => `<a href="${esc(TP_LINK)}" target="_blank" style="text-decoration:none"><img src="${file}" border="0" height="${h}" alt="${alt}" style="max-height:${h}px;display:inline-block;vertical-align:middle"></a>`;
+    out.push(`<tr><td class="pad" align="center" style="padding:${place === "header" ? "20px" : "0"} 20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td align="center" bgcolor="#ffffff" style="background:#ffffff;padding:14px 10px;text-align:center">${a(TP_IMG + "text1@2x.png", 18, "Human score")} &nbsp;&nbsp; ${a(TP_IMG + "stars@2x.png", 20, "Trustpilot Stars")} &nbsp;&nbsp; <span style="display:inline-block">${a(TP_IMG + "text2@2x.png", 18, "number of reviews")} &nbsp;&nbsp; ${a("https://emailsignature.trustpilot.com/brand/n/1/logo.png", 20, "Trustpilot Logo")}</span></td></tr></table></td></tr>`);
+  }
+  return out.join("\n");
 }
 function emailHtml(src){
   const rows = [];
@@ -306,9 +346,12 @@ function emailHtml(src){
 </tr></table></td></tr>
 <tr><td class="nav" align="center" style="padding:0 10px 18px;font-family:${F};font-weight:700;font-size:15px;color:${COL.palatyn}">${NAV.map(([t, u]) => `<a href="${u}" target="_blank" style="color:${COL.palatyn};text-decoration:none">${t}</a>`).join(" | ")}</td></tr>
 ${src.hero ? heroRow(src.hero) : ""}
+${strips("header", src)}
 ${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${F};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
 ${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, em.ctaLink || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
+${strips("intro", src)}
 ${rows.join("\n")}
+${strips("footer", src)}
 <tr><td class="pad" style="padding:6px 48px 26px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${COL.palatyn};font-size:0;line-height:0">&nbsp;</td></tr></table>
 ${small.map(t => `<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:${COL.muted};text-align:center">${t}</p>`).join("")}
 <p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;text-align:center"><a href="${esc(unsub)}" target="_blank" style="color:${COL.muted}">Manage preferences</a></p></td></tr>
@@ -401,6 +444,14 @@ function draw(){
         <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">
       </div>
       ${itemEditor()}
+      <div class="ac-block">
+        <h3>Nectar and Trustpilot</h3>
+        <label class="ac-check"><input type="checkbox" id="em-nectar"${em.nectar.on && NECTAR ? " checked" : ""}${NECTAR ? "" : " disabled"}> Nectar banner ${NECTAR ? "" : `<span class="sub">(waiting for the Nectar banner artwork)</span>`}</label>
+        ${NECTAR && em.nectar.on ? `${NECTAR.images.length > 1 ? `<select id="em-nectar-file" aria-label="Nectar banner">${NECTAR.images.map(x => `<option value="${esc(x.file)}"${x.file === em.nectar.file ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select>` : ""}
+          <select id="em-nectar-pos" aria-label="Where the Nectar banner goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.nectar.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
+        <label class="ac-check"><input type="checkbox" id="em-tp"${em.tp.on ? " checked" : ""}> Trustpilot widget <span class="sub">(Trustpilot's own, always shows the current score)</span></label>
+        ${em.tp.on ? `<select id="em-tp-pos" aria-label="Where the Trustpilot widget goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.tp.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
+      </div>
       <div class="ac-block">
         <h3>Small print</h3>
         <label class="ac-lab" for="em-terms">Offer T&amp;Cs link <span class="sub">(blank = leave out)</span></label>
@@ -544,6 +595,11 @@ function wire(){
   root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
   $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
+  $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });
+  $("#em-nectar-file") && $("#em-nectar-file").addEventListener("change", e => { em.nectar.file = e.target.value; change(true); });
+  $("#em-nectar-pos") && $("#em-nectar-pos").addEventListener("change", e => { em.nectar.pos = e.target.value; change(true); });
+  $("#em-tp").addEventListener("change", e => { em.tp.on = e.target.checked; change(true); });
+  $("#em-tp-pos") && $("#em-tp-pos").addEventListener("change", e => { em.tp.pos = e.target.value; change(true); });
   $("#em-copy") && $("#em-copy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(made); $("#em-copy").textContent = "Copied"; } catch(e) { prompt("Copy the email's HTML", made); }
   });
