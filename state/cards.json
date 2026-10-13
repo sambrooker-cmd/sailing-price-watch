@@ -4923,7 +4923,45 @@
    }
   },
   "A12708": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Nordic Neighbours: A Journey Through Sweden & Denmark",
+     "base_title": "Nordic Neighbours: A Journey Through Sweden & Denmark",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 7,
+     "departure_date": "2027-04-24",
+     "price": 899,
+     "promos": [
+      "Lower Solo Supplement"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/b8e96198c8/shutterstock_425892901-copenhagen.jpg",
+     "fp": "80c8ea40ee9f",
+     "made_at": "2026-10-12T14:20:12Z",
+     "reason": "promotions changed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_1x1.jpg?alt=media&token=debc36c6-1b69-4fc9-b9d1-cc213602c4d2",
+       "path": "pricewatch-cards/A12708/80c8ea40ee9f_1x1.jpg",
+       "kb": 401
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_4x5.jpg?alt=media&token=e75a8c80-2442-4f27-876f-87a54d813f22",
+       "path": "pricewatch-cards/A12708/80c8ea40ee9f_4x5.jpg",
+       "kb": 489
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_9x16.jpg?alt=media&token=2fa6ee9b-5bbc-4ba4-98d7-05a3b509090e",
+       "path": "pricewatch-cards/A12708/80c8ea40ee9f_9x16.jpg",
+       "kb": 603
+      }
+     },
+     "out_of_date_since": "2026-10-13T21:50:19Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Nordic Neighbours: A Journey Through Sweden & Denmark",
@@ -4934,29 +4972,27 @@
     "nights": 7,
     "departure_date": "2027-04-24",
     "price": 899,
-    "promos": [
-     "Lower Solo Supplement"
-    ],
+    "promos": [],
     "nectar": "Collect up to 30,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/b8e96198c8/shutterstock_425892901-copenhagen.jpg",
-    "fp": "80c8ea40ee9f",
-    "made_at": "2026-10-12T14:20:12Z",
-    "reason": "new",
+    "fp": "dc96e5cf36d4",
+    "made_at": "2026-10-13T21:50:19Z",
+    "reason": "promotions changed",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_1x1.jpg?alt=media&token=debc36c6-1b69-4fc9-b9d1-cc213602c4d2",
-      "path": "pricewatch-cards/A12708/80c8ea40ee9f_1x1.jpg",
-      "kb": 401
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2Fdc96e5cf36d4_1x1.jpg?alt=media&token=0892dfaa-7ba8-4f6c-a425-b531bc39c9f0",
+      "path": "pricewatch-cards/A12708/dc96e5cf36d4_1x1.jpg",
+      "kb": 419
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_4x5.jpg?alt=media&token=e75a8c80-2442-4f27-876f-87a54d813f22",
-      "path": "pricewatch-cards/A12708/80c8ea40ee9f_4x5.jpg",
-      "kb": 489
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2Fdc96e5cf36d4_4x5.jpg?alt=media&token=723086ad-c501-4c8f-9cf4-5e321fbbd1b3",
+      "path": "pricewatch-cards/A12708/dc96e5cf36d4_4x5.jpg",
+      "kb": 496
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2F80c8ea40ee9f_9x16.jpg?alt=media&token=2fa6ee9b-5bbc-4ba4-98d7-05a3b509090e",
-      "path": "pricewatch-cards/A12708/80c8ea40ee9f_9x16.jpg",
-      "kb": 603
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12708%2Fdc96e5cf36d4_9x16.jpg?alt=media&token=0ccb9323-dca5-4d88-9c2e-60790ebfd111",
+      "path": "pricewatch-cards/A12708/dc96e5cf36d4_9x16.jpg",
+      "kb": 614
      }
     }
    }
@@ -5190,7 +5226,45 @@
    }
   },
   "A12711": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Dutch Escape",
+     "base_title": "Dutch Escape",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 2,
+     "departure_date": "2027-05-15",
+     "price": 239,
+     "promos": [
+      "Lower Solo Supplement"
+     ],
+     "nectar": "Collect up to 8,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/29c5003554/rs14381_amsterdam-2018-07-29-ydi_4164.jpg",
+     "fp": "1fb5dad3b834",
+     "made_at": "2026-10-12T14:20:12Z",
+     "reason": "promotions changed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_1x1.jpg?alt=media&token=698aa958-3477-4033-98f3-77915a8304f9",
+       "path": "pricewatch-cards/A12711/1fb5dad3b834_1x1.jpg",
+       "kb": 356
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_4x5.jpg?alt=media&token=e76396b5-950b-43fe-89c7-eb61e7944666",
+       "path": "pricewatch-cards/A12711/1fb5dad3b834_4x5.jpg",
+       "kb": 392
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_9x16.jpg?alt=media&token=9c0d0c45-e391-42b1-8790-816ac97175e0",
+       "path": "pricewatch-cards/A12711/1fb5dad3b834_9x16.jpg",
+       "kb": 445
+      }
+     },
+     "out_of_date_since": "2026-10-13T21:50:19Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Dutch Escape",
@@ -5201,29 +5275,27 @@
     "nights": 2,
     "departure_date": "2027-05-15",
     "price": 239,
-    "promos": [
-     "Lower Solo Supplement"
-    ],
+    "promos": [],
     "nectar": "Collect up to 8,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/29c5003554/rs14381_amsterdam-2018-07-29-ydi_4164.jpg",
-    "fp": "1fb5dad3b834",
-    "made_at": "2026-10-12T14:20:12Z",
-    "reason": "new",
+    "fp": "c5ba21170e89",
+    "made_at": "2026-10-13T21:50:19Z",
+    "reason": "promotions changed",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_1x1.jpg?alt=media&token=698aa958-3477-4033-98f3-77915a8304f9",
-      "path": "pricewatch-cards/A12711/1fb5dad3b834_1x1.jpg",
-      "kb": 356
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2Fc5ba21170e89_1x1.jpg?alt=media&token=0a69ce6b-e05d-4083-b086-a01c822d28c9",
+      "path": "pricewatch-cards/A12711/c5ba21170e89_1x1.jpg",
+      "kb": 360
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_4x5.jpg?alt=media&token=e76396b5-950b-43fe-89c7-eb61e7944666",
-      "path": "pricewatch-cards/A12711/1fb5dad3b834_4x5.jpg",
-      "kb": 392
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2Fc5ba21170e89_4x5.jpg?alt=media&token=3c036af2-da8e-4c60-b5bd-c9d777ca726c",
+      "path": "pricewatch-cards/A12711/c5ba21170e89_4x5.jpg",
+      "kb": 401
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2F1fb5dad3b834_9x16.jpg?alt=media&token=9c0d0c45-e391-42b1-8790-816ac97175e0",
-      "path": "pricewatch-cards/A12711/1fb5dad3b834_9x16.jpg",
-      "kb": 445
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12711%2Fc5ba21170e89_9x16.jpg?alt=media&token=c03cd4be-8daa-4151-9780-639f6b07f1d9",
+      "path": "pricewatch-cards/A12711/c5ba21170e89_9x16.jpg",
+      "kb": 452
      }
     }
    }
@@ -12957,5 +13029,5 @@
    }
   }
  },
- "updated_at": "2026-10-13T16:56:12Z"
+ "updated_at": "2026-10-13T21:50:19Z"
 }
