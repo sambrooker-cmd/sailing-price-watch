@@ -53,6 +53,9 @@ jobs:
       - name: Deploy page to Firebase Hosting
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
-          printf '{"hosting":{"site":"%s","public":"site"}}\n' "$HOSTING_SITE" > firebase.json
+          # Page, scripts and data files: browsers check for a newer copy every time (a quick "not changed"
+          # when nothing has), so a merged change shows on the next reload instead of up to an hour later.
+          printf '{"hosting":{"site":"%s","public":"site","headers":[{"source":"/","headers":[{"key":"Cache-Control","value":"no-cache"}]},{"source":"**/*.@(html|js|json)","headers":[{"key":"Cache-Control","value":"no-cache"}]}]}}\n' "$HOSTING_SITE" > firebase.json
+          python -c "import json; json.load(open('firebase.json'))"
           GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json" \
             npx --yes firebase-tools@15.31.0 deploy --only hosting --project "$FIREBASE_PROJECT" --non-interactive
