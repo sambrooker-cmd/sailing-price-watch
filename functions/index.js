@@ -161,3 +161,64 @@ exports.emailImages = onRequest({
   } catch (e) { console.error("email cleanup", e.message); }
   return res.json({urls});
 });
+
+// Saved ads and emails, shared by everyone on the allowlist (Sam, 13 Oct 2026: they lived in one browser, so they
+// didn't follow people between devices and the team couldn't see each other's). Firestore pricewatch_saved/<id>:
+// {kind: "ad" | "email", name, by, saved_at, data (the ad or email as JSON; no prices, no uploaded photos)}.
+// GET ?kind=ad → {me, items}. POST {op: "save", kind, id?, name, data} → {id, saved_at}; {op: "rename", id, name};
+// {op: "delete", id}. Everyone can open and copy anything; only the person who saved an item can save over,
+// rename or delete it.
+const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
+exports.saved = onRequest({
+  region: "us-central1", cors: ["https://acl-price-watch.web.app"],
+  maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
+}, async (req, res) => {
+  const email = await allowedUser(req, res);
+  if (!email) return;
+  const db = getFirestore(), col = db.collection(SAVED);
+  if (req.method === "GET") {
+    const kind = String(req.query.kind || "");
+    if (!SAVED_KINDS.includes(kind)) return res.status(400).json({error: "Unknown kind."});
+    const snap = await col.where("kind", "==", kind).get();   // one field: no extra index needed; sorted here
+    const items = snap.docs.map(d => { const v = d.data(); return {id: d.id, name: v.name, by: v.by, saved_at: iso(v.saved_at), data: v.data}; })
+      .sort((a, b) => b.saved_at.localeCompare(a.saved_at));
+    return res.json({me: email, items});
+  }
+  if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
+  const b = req.body || {}, op = String(b.op || "");
+  const name = String(b.name || "").trim().slice(0, 120);
+  const mineOr403 = async id => {
+    const doc = await col.doc(id).get();
+    if (!doc.exists) { res.status(404).json({error: "That item has been deleted."}); return null; }
+    if (doc.data().by !== email) { res.status(403).json({error: `Only ${doc.data().by} can change this one. Use "Save a copy" to keep your own.`}); return null; }
+    return doc;
+  };
+  if (op === "save") {
+    const kind = String(b.kind || ""), data = String(b.data || "");
+    if (!SAVED_KINDS.includes(kind)) return res.status(400).json({error: "Unknown kind."});
+    if (!name) return res.status(400).json({error: "Give it a name."});
+    if (!data || data.length > SAVED_MAX_BYTES) return res.status(400).json({error: "That's too big to save."});
+    try { JSON.parse(data); } catch (e) { return res.status(400).json({error: "That couldn't be read."}); }
+    const at = FieldValue.serverTimestamp();
+    if (b.id) {
+      if (!/^[A-Za-z0-9]{10,40}$/.test(String(b.id))) return res.status(400).json({error: "Bad id."});
+      if (!(await mineOr403(String(b.id)))) return;
+      await col.doc(String(b.id)).update({name, data, saved_at: at});
+      return res.json({id: String(b.id), saved_at: new Date().toISOString()});
+    }
+    if ((await col.where("kind", "==", kind).count().get()).data().count >= SAVED_MAX)
+      return res.status(429).json({error: `There are ${SAVED_MAX} saved already: delete some old ones first.`});
+    const ref = col.doc();
+    await ref.set({kind, name, by: email, data, saved_at: at, created_at: at});
+    return res.json({id: ref.id, saved_at: new Date().toISOString()});
+  }
+  if (op === "rename" || op === "delete") {
+    const id = String(b.id || "");
+    if (!/^[A-Za-z0-9]{10,40}$/.test(id)) return res.status(400).json({error: "Bad id."});
+    if (!(await mineOr403(id))) return;
+    if (op === "rename") { if (!name) return res.status(400).json({error: "Give it a name."}); await col.doc(id).update({name}); }
+    else await col.doc(id).delete();
+    return res.json({ok: true});
+  }
+  return res.status(400).json({error: "Unknown request."});
+});

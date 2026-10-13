@@ -6,7 +6,7 @@
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
 import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
-import {openSaved} from "./saved.js?v=__BUILD__";
+import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
@@ -16,7 +16,8 @@ const CTAS = ["Learn more", "Book now", "See more", "Get offer"];
 const LIMITS = {primary: 125, headline: 40, description: 30};   // roughly where Meta cuts text off in the feed
 const MAX_CARDS = 10;
 const KEY = "spw-ad-draft";          // the ad being worked on (this browser)
-const DRAFTS = "spw-ad-drafts";      // named saved ads (this browser): {id: {name, saved_at, ad}}
+const DRAFTS = "spw-ad-drafts";      // named saved ads from before the shared list (this browser): {id: {name, saved_at, ad}}
+let store = null;                    // saved ads, shared by the team (saved.js sharedStore, Sam 13 Oct 2026)
 
 let S, CAB, KIT, LOGO, TP = null, root, today, ID = null;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
@@ -35,7 +36,9 @@ export async function mount(el, ctx){
   // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
   // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
+  store = await sharedStore({kind: "ad", localKey: DRAFTS, field: "ad", idToken: ID}).load();
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { ad = normalise(d).ad; draftId = d._draft || null; } } catch(e){}
+  if (draftId && !store.all()[draftId]) draftId = null;   // saved in this browser before, or deleted since
   if (ctx.shared) await openShared(ctx.shared); else draw();
   if (ctx.add) addSailing(ctx.add);
   loadVideos();
@@ -80,23 +83,22 @@ function load(d, msg){
   save(); draw();
 }
 
-// ---------- saved drafts (this browser) ----------
-const drafts = () => { try { return JSON.parse(localStorage.getItem(DRAFTS) || "{}") || {}; } catch(e) { return {}; } };
-const storeDrafts = d => { try { localStorage.setItem(DRAFTS, JSON.stringify(d)); return true; } catch(e) { note = "Couldn't save: this browser's storage is full or blocked."; return false; } };
+// ---------- saved ads (shared list; this browser only if it can't be reached) ----------
+const drafts = () => store ? store.all() : {};
 // Uploads are left out of saved drafts and links (too big); normalise() flags them when the ad is opened.
 const portable = () => JSON.parse(JSON.stringify({...ad, cards: ad.cards.map(c => ({...c, uploadLost: undefined}))}));
-function saveDraft(asNew){
+async function saveDraft(asNew){
   const all = drafts();
-  let id = asNew ? null : draftId;
+  let id = asNew || (draftId && !store.mine(draftId)) ? null : draftId;   // someone else's: save your own copy
   let name = id && all[id] ? all[id].name : "";
   if (!id) {
     const first = ad.cards[0] && sailing(ad.cards[0].id);
-    name = prompt("Name this ad", first ? `${first.title}${ad.cards.length > 1 ? ` + ${ad.cards.length - 1} more` : ""}` : "New ad");
+    const was = draftId && all[draftId] ? `${all[draftId].name} (copy)` : "";
+    name = prompt("Name this ad", was || (first ? `${first.title}${ad.cards.length > 1 ? ` + ${ad.cards.length - 1} more` : ""}` : "New ad"));
     if (!name) return;
-    id = "d" + Date.now().toString(36);
   }
-  all[id] = {name, saved_at: new Date().toISOString(), ad: portable()};
-  if (storeDrafts(all)) { draftId = id; note = `Saved "${name}".`; }
+  try { draftId = await store.save(id, name, portable()); note = `Saved "${name}"${store.shared ? "" : " in this browser"}.`; }
+  catch(e) { note = `Couldn't save: ${e.message}`; }
   save(); draw();
 }
 
@@ -323,17 +325,20 @@ function setStrip(c, k, on){
 }
 
 function draftsBlock(){
-  const all = drafts(), ids = Object.keys(all).sort((a, b) => all[b].saved_at.localeCompare(all[a].saved_at));
-  const cur = draftId && all[draftId];
+  const all = drafts(), ids = Object.keys(all);
+  const cur = draftId && all[draftId], mine = cur && store.mine(draftId), oldHere = Object.keys(store ? store.localOnly() : {}).length;
   return `<div class="ac-block">
     <h3>${cur ? esc(cur.name) : "Unsaved ad"}</h3>
+    ${cur && !mine ? `<p class="sub" style="margin:0 0 6px">Saved by ${esc(cur.by)}. Save a copy to keep your own changes.</p>` : ""}
     <div class="ac-row">
-      <button type="button" class="btn quiet sm" id="dr-save"${ad.cards.length ? "" : " disabled"}>${cur ? "Save" : "Save as…"}</button>
+      ${cur && !mine ? "" : `<button type="button" class="btn quiet sm" id="dr-save"${ad.cards.length ? "" : " disabled"}>${cur ? "Save" : "Save as…"}</button>`}
       ${cur ? `<button type="button" class="btn quiet sm" id="dr-saveas">Save a copy…</button>` : ""}
       <button type="button" class="btn quiet sm" id="dr-link"${ad.cards.length ? "" : " disabled"}>Copy link</button>
       <button type="button" class="btn quiet sm" id="dr-new">New ad</button>
     </div>
     ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved ads (${ids.length})</button>` : ""}
+    ${store && store.problem ? `<p class="ac-note">${esc(store.problem)}</p>` : ""}
+    ${oldHere ? `<p class="sub" style="margin:8px 0 0">${oldHere} ad${oldHere === 1 ? " is" : "s are"} saved in this browser only. <button type="button" class="linkbtn" id="dr-move">Move ${oldHere === 1 ? "it" : "them"} to the shared list</button></p>` : ""}
     ${note ? `<p class="ac-note" role="status">${esc(note)}</p>` : ""}
   </div>`;
 }
@@ -569,6 +574,11 @@ function wire(){
   $("#dr-save") && $("#dr-save").addEventListener("click", () => saveDraft(false));
   $("#dr-saveas") && $("#dr-saveas").addEventListener("click", () => saveDraft(true));
   $("#dr-link") && $("#dr-link").addEventListener("click", copyLink);
+  $("#dr-move") && $("#dr-move").addEventListener("click", async () => {
+    try { const n = await store.moveLocal(); note = `Moved ${n} saved ad${n === 1 ? "" : "s"} to the shared list.`; draftId = null; }
+    catch(e) { note = `Couldn't move them: ${e.message}`; }
+    save(); draw();
+  });
   $("#dr-new") && $("#dr-new").addEventListener("click", () => {
     if (ad.cards.length && !draftId && !confirm("Start a new ad? This one isn't saved.")) return;
     draftId = null; ad = fresh(); sel = 0; done(); save(); draw();
@@ -577,21 +587,22 @@ function wire(){
   $("#dr-browse") && $("#dr-browse").addEventListener("click", () => {
     const all = drafts();
     openSaved({title: "Saved ads", noun: "ad", current: draftId,
+      note: store.shared ? "Shared with everyone on the tracker. You can open or copy anyone's; only your own can be changed." : "",
       items: Object.entries(all).map(([id, d]) => {
         const xs = (d.ad.cards || []), first = xs[0] && sailing(xs[0].id);
         const photo = xs[0] && xs[0].photo && !String(xs[0].photo).startsWith("upload:") ? xs[0].photo : first && first.image;
         return {id, name: d.name, saved_at: d.saved_at, count: xs.length, thumb: photo ? cropUrl(photo, 120, 90) : "",
+                by: d.by || "", mine: store.mine(id),
                 detail: [...new Set(xs.map(x => (sailing(x.id) || {title: x.id}).title))].join(" · ")};
       }),
       onOpen: id => { const d = drafts()[id]; if (!d) return; draftId = id; load(d.ad, `Opened "${d.name}"`); },
-      onCopy: id => {
-        const all = drafts(), d = all[id]; if (!d) return;
-        const nid = "a" + Date.now().toString(36);
-        all[nid] = {...JSON.parse(JSON.stringify(d)), name: `${d.name} (copy)`, saved_at: new Date().toISOString()};
-        if (storeDrafts(all)) { draftId = nid; load(all[nid].ad, `Made a copy: "${all[nid].name}"`); }
+      onCopy: async id => {
+        const d = drafts()[id]; if (!d) return;
+        try { const name = `${d.name} (copy)`; draftId = await store.save(null, name, JSON.parse(JSON.stringify(d.ad))); load(d.ad, `Made a copy: "${name}"`); }
+        catch(e) { note = `Couldn't copy: ${e.message}`; draw(); }
       },
-      onRename: (id, name) => { const all = drafts(); if (!all[id]) return; all[id].name = name; storeDrafts(all); draw(); },
-      onDelete: id => { const all = drafts(); delete all[id]; storeDrafts(all); if (draftId === id) draftId = null; draw(); },
+      onRename: async (id, name) => { try { await store.rename(id, name); } catch(e) { alert(`Couldn't rename: ${e.message}`); } draw(); },
+      onDelete: async id => { try { await store.remove(id); if (draftId === id) draftId = null; } catch(e) { alert(`Couldn't delete: ${e.message}`); } draw(); },
     });
   });
   root.querySelectorAll("[data-strip]").forEach(b => b.addEventListener("click", e => {

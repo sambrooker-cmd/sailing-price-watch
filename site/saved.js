@@ -15,34 +15,39 @@ export function openSaved(o){
   dlg.className = "saved";
   dlg.setAttribute("aria-label", o.title);
   document.body.appendChild(dlg);
-  let q = "", items = o.items.slice();
+  let q = "", items = o.items.slice(), who = "all";
+  const anyOthers = items.some(x => x.mine === false);
   const close = () => { dlg.close(); dlg.remove(); };
   const rows = () => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const list = items.filter(x => words.every(w => `${x.name} ${x.detail}`.toLowerCase().includes(w)))
+    const list = items.filter(x => (who === "all" || x.mine !== false) && words.every(w => `${x.name} ${x.detail} ${x.by || ""}`.toLowerCase().includes(w)))
       .sort((a, b) => SORT === "name" ? a.name.localeCompare(b.name) : SORT === "old" ? a.saved_at.localeCompare(b.saved_at) : b.saved_at.localeCompare(a.saved_at));
     if (!items.length) return `<p class="sub">Nothing saved yet. Use "Save as…" to keep this ${o.noun} for later.</p>`;
     if (!list.length) return `<p class="sub">No saved ${o.noun}s match "${esc(q)}".</p>`;
     return `<ul class="sv-list">${list.map(x => `<li${x.id === o.current ? ' class="on"' : ""}>
       <div class="sv-thumb">${x.thumb ? `<img src="${esc(x.thumb)}" alt="" loading="lazy">` : ""}</div>
       <div class="sv-text"><b>${esc(x.name)}</b>${x.id === o.current ? ` <span class="sv-tag">Open now</span>` : ""}
-        <span class="sub">${x.count} sailing${x.count === 1 ? "" : "s"} · saved ${esc(when(x.saved_at))}</span>
+        <span class="sub">${x.count} sailing${x.count === 1 ? "" : "s"} · saved ${esc(when(x.saved_at))}${x.by ? ` by ${esc(x.mine ? "you" : x.by)}` : ""}</span>
         ${x.detail ? `<span class="sub sv-detail">${esc(x.detail)}</span>` : ""}</div>
       <div class="sv-acts">
         <button type="button" class="btn sm" data-sv="open" data-id="${esc(x.id)}">Open</button>
         <button type="button" class="btn quiet sm" data-sv="copy" data-id="${esc(x.id)}">Duplicate</button>
-        <button type="button" class="btn quiet sm" data-sv="ren" data-id="${esc(x.id)}">Rename</button>
-        <button type="button" class="btn quiet sm" data-sv="del" data-id="${esc(x.id)}" aria-label="Delete ${esc(x.name)}">Delete</button>
+        ${x.mine === false ? "" : `<button type="button" class="btn quiet sm" data-sv="ren" data-id="${esc(x.id)}">Rename</button>
+        <button type="button" class="btn quiet sm" data-sv="del" data-id="${esc(x.id)}" aria-label="Delete ${esc(x.name)}">Delete</button>`}
       </div></li>`).join("")}</ul>`;
   };
   dlg.innerHTML = `<div class="sv-head"><h3>${esc(o.title)} <span class="sub">(${items.length})</span></h3>
       <button type="button" class="linkbtn" data-sv="close">Close</button></div>
     <div class="sv-tools">
-      <input type="search" placeholder="Search names and sailings" aria-label="Search saved ${esc(o.noun)}s">
+      <input type="search" placeholder="Search names, sailings and people" aria-label="Search saved ${esc(o.noun)}s">
+      ${anyOthers ? `<select aria-label="Whose" data-who><option value="all">Everyone's</option><option value="mine">Mine</option></select>` : ""}
       <select aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="name">Name A–Z</option></select>
     </div>
+    ${o.note ? `<p class="sub" style="margin:0 0 8px">${esc(o.note)}</p>` : ""}
     <div class="sv-body">${rows()}</div>`;
-  const body = dlg.querySelector(".sv-body"), search = dlg.querySelector("input"), sort = dlg.querySelector("select");
+  const body = dlg.querySelector(".sv-body"), search = dlg.querySelector("input"), sort = dlg.querySelector("select:not([data-who])");
+  const whoSel = dlg.querySelector("[data-who]");
+  whoSel && whoSel.addEventListener("change", () => { who = whoSel.value; body.innerHTML = rows(); });
   sort.value = SORT;
   search.addEventListener("input", () => { q = search.value.trim(); body.innerHTML = rows(); });
   sort.addEventListener("change", () => { SORT = sort.value; try { localStorage.setItem("spw-saved-sort", SORT); } catch(e){} body.innerHTML = rows(); });
@@ -66,4 +71,56 @@ export function openSaved(o){
   dlg.addEventListener("close", () => dlg.remove());
   dlg.showModal();
   search.focus();
+}
+
+// ---------- shared store (Sam, 13 Oct 2026) ----------
+// Saved ads and emails live in the tracker's database through the `saved` Firebase function (allowlist checked), so
+// they follow people between devices and the whole team sees them. Everyone can open and copy anything; only the
+// person who saved an item can save over, rename or delete it. If the function can't be reached, this falls back to
+// the browser's own storage (as before) and says so. Items saved in this browser before can be moved across once.
+// The data is the ad or email itself: no prices (always the latest) and no uploaded photos.
+const SAVED_FN = "https://us-central1-promotions-planner.cloudfunctions.net/saved";
+export function sharedStore({kind, localKey, field, idToken}){
+  let items = {}, me = "", shared = false, problem = "";
+  const local = () => { try { return JSON.parse(localStorage.getItem(localKey) || "{}") || {}; } catch(e) { return {}; } };
+  const setLocal = d => { try { localStorage.setItem(localKey, JSON.stringify(d)); return true; } catch(e) { return false; } };
+  async function call(method, body){
+    const tok = idToken ? await idToken() : "";
+    const r = await fetch(method === "GET" ? `${SAVED_FN}?kind=${kind}` : SAVED_FN, {method,
+      headers: {Authorization: `Bearer ${tok}`, ...(body ? {"Content-Type": "application/json"} : {})}, body: body ? JSON.stringify(body) : undefined});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(j.error || `The saved list answered ${r.status}`), {status: r.status});
+    return j;
+  }
+  const fromServer = x => { let data = null; try { data = JSON.parse(x.data); } catch(e){} return [x.id, {name: x.name, saved_at: x.saved_at, by: x.by, [field]: data}]; };
+  return {
+    get shared(){ return shared; }, get me(){ return me; }, get problem(){ return problem; },
+    all: () => shared ? items : local(),
+    mine: id => !shared || (items[id] && items[id].by === me),
+    localOnly: () => shared ? local() : {},   // saved in this browser before the shared list: offered to move across
+    async load(){
+      try { const j = await call("GET"); me = j.me; items = Object.fromEntries(j.items.map(fromServer).filter(([, v]) => v[field])); shared = true; problem = ""; }
+      catch(e) { shared = false; problem = e.status === 401 || e.status === 403 ? e.message : "The shared saved list can't be reached, so saving uses this browser only for now."; }
+      return this;
+    },
+    async save(id, name, data){   // id null = new; returns the id
+      if (!shared) { const all = local(); id = id || "d" + Date.now().toString(36); all[id] = {name, saved_at: new Date().toISOString(), [field]: data}; if (!setLocal(all)) throw new Error("This browser's storage is full or blocked."); return id; }
+      const j = await call("POST", {op: "save", kind, id: id || undefined, name, data: JSON.stringify(data)});
+      items[j.id] = {name, saved_at: j.saved_at, by: (items[j.id] || {}).by || me, [field]: data};
+      return j.id;
+    },
+    async rename(id, name){
+      if (!shared) { const all = local(); if (all[id]) { all[id].name = name; setLocal(all); } return; }
+      await call("POST", {op: "rename", id, name}); if (items[id]) items[id].name = name;
+    },
+    async remove(id){
+      if (!shared) { const all = local(); delete all[id]; setLocal(all); return; }
+      await call("POST", {op: "delete", id}); delete items[id];
+    },
+    async moveLocal(){   // copy everything saved in this browser to the shared list, then clear it here
+      const all = local(); let n = 0;
+      for (const d of Object.values(all)) { if (d && d[field]) { await this.save(null, d.name, d[field]); n++; } }
+      setLocal({}); return n;
+    },
+  };
 }
