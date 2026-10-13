@@ -8,13 +8,15 @@
   "A32650",
   "A22638",
   "A22637",
-  "A22712BL"
+  "A22712BL",
+  "A22637"
  ],
  "returned": [
   "A22638",
   "A32650",
   "A22637",
-  "A22638"
+  "A22638",
+  "A22712BL"
  ],
  "drops": [
   {
@@ -401,22 +403,14 @@
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
-  "A32651": [
-   "feed price £1,599 differs from cheapest cabin on the page £1,699"
-  ],
   "A12630": [
-   "feed price £369 differs from cheapest cabin on the page £399",
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
-   "feed price £679 differs from cheapest cabin on the page £739",
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22639": [
-   "feed price £1,829 differs from cheapest cabin on the page £2,479"
-  ],
   "A12701": [
-   "feed price £2,699 differs from cheapest cabin on the page £3,249"
+   "feed price £3,249 differs from cheapest cabin on the page £3,499 (the page price is used)"
   ],
   "A22702": [
    "feed image looks like campaign art (may contain text)"
@@ -432,6 +426,12 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12801": [
+   "feed price £3,799 differs from cheapest cabin on the page £4,049 (the page price is used)"
+  ],
+  "A12818": [
+   "no departure date found"
   ]
  },
  "cabin_drops": [
@@ -646,6 +646,59 @@
     "held_days": 0
    },
    "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A32651",
+   "cabin": "twin.inside",
+   "from": 1699,
+   "to": 1599,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 1699,
+    "now": 1599,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12634",
+   "cabin": "twin.ocean_view",
+   "from": 739,
+   "to": 679,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 739,
+    "now": 679,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A22639",
+   "cabin": "twin.ocean_view",
+   "from": 2479,
+   "to": 1829,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 2479,
+    "now": 1829,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.ocean_view",
+   "from": 4499,
+   "to": 4289,
+   "claim": null,
+   "at": "2026-10-13T13:56:23Z"
   }
  ],
  "cabin_rises": [
@@ -774,6 +827,20 @@
    "from": 1829,
    "to": 2479,
    "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22702",
+   "cabin": "twin.suite",
+   "from": 3169,
+   "to": 3659,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12801",
+   "cabin": "twin.inside",
+   "from": 3799,
+   "to": 4049,
+   "at": "2026-10-13T13:56:23Z"
   }
  ],
  "cabin_sold_out": [
@@ -886,6 +953,26 @@
    "id": "A3280123M",
    "cabin": "solo.balcony",
    "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22630BR",
+   "cabin": "twin.suite",
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A22639",
+   "cabin": "solo.inside",
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "twin.inside",
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A32704M",
+   "cabin": "solo.balcony",
+   "at": "2026-10-13T13:56:23Z"
   }
  ],
  "cabin_back": [
@@ -960,6 +1047,30 @@
    "cabin": "solo.ocean_view",
    "p": 2639,
    "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A12630",
+   "cabin": "twin.inside",
+   "p": 299,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12634",
+   "cabin": "solo.ocean_view",
+   "p": 989,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12703",
+   "cabin": "solo.ocean_view",
+   "p": 1869,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A3280123M",
+   "cabin": "solo.balcony",
+   "p": 5399,
+   "at": "2026-10-13T13:56:23Z"
   }
  ],
  "cabin_eligible": [],
@@ -992,6 +1103,26 @@
    "at": "2026-10-13T13:07:25Z"
   }
  ],
+ "lead_source_switch": [
+  {
+   "id": "A12630",
+   "from": 369,
+   "to": 299,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12701",
+   "from": 2699,
+   "to": 3499,
+   "at": "2026-10-13T13:56:23Z"
+  },
+  {
+   "id": "A12801",
+   "from": 3799,
+   "to": 4049,
+   "at": "2026-10-13T13:56:23Z"
+  }
+ ],
  "reported": [],
  "checks": [
   "2026-10-13T02:55:56Z",
@@ -1001,6 +1132,7 @@
   "2026-10-13T10:07:15Z",
   "2026-10-13T11:07:15Z",
   "2026-10-13T12:07:14Z",
-  "2026-10-13T13:07:25Z"
+  "2026-10-13T13:07:25Z",
+  "2026-10-13T13:56:23Z"
  ]
 }
