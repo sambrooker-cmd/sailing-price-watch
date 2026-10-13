@@ -208,7 +208,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify({...em, _dra
 function newItem(id){
   const s = sailing(id);
   return {id, layout: em.items.filter(x => x.layout === "tile").length % 3 === 0 && em.items.length >= 3 ? "wide" : "tile",
-          design: "standard", photo: pickPhoto(s), caption: "", badges: (s.k.promos || []).slice(0, 1)};
+          design: "standard", photo: pickPhoto(s), caption: "", badges: []};
 }
 const sendBy = () => em.items.map(claimOf).filter(Boolean).map(c => c.ends).sort()[0] || "";
 
@@ -601,7 +601,8 @@ function wire(){
   root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
   $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
-  $("#em-allbadges") && $("#em-allbadges").addEventListener("change", e => { em.allBadges = e.target.checked; change(true); });
+  // Off means no badges until chosen per sailing (Sam, 13 Oct 2026)
+  $("#em-allbadges") && $("#em-allbadges").addEventListener("change", e => { em.allBadges = e.target.checked; if (!em.allBadges) em.items.forEach(x => { x.badges = []; }); change(true); });
   $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });
   root.querySelectorAll("[data-nectar]").forEach(b => b.addEventListener("click", () => { em.nectar.file = b.dataset.nectar; change(true); }));
   $("#em-nectar-pos") && $("#em-nectar-pos").addEventListener("change", e => { em.nectar.pos = e.target.value; change(true); });

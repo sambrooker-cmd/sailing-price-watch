@@ -280,7 +280,7 @@ function wire(){
   res.addEventListener("click", e => {
     const b = e.target.closest("[data-add]"); if (!b || st.items.length >= MAX) return;
     const s = sailing(b.dataset.add), photo = pickPhoto(s);
-    st.items.push({id: s.id, photo, caption: "", badges: (s.k.promos || []).slice(0, 1)}); sel = st.items.length - 1;
+    st.items.push({id: s.id, photo, caption: "", badges: []}); sel = st.items.length - 1;
     change(true); root.querySelector("#ec-find").focus();
   });
   root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
@@ -289,7 +289,8 @@ function wire(){
   root.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", () => move(+b.dataset.up, +b.dataset.up - 1)));
   root.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", () => move(+b.dataset.down, +b.dataset.down + 1)));
   root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { st.items.splice(+b.dataset.del, 1); sel = Math.max(0, Math.min(sel, st.items.length - 1)); change(true); }));
-  $("#ec-all").addEventListener("change", e => { st.allBadges = e.target.checked; change(true); });
+  // Off means no badges until chosen per sailing (Sam, 13 Oct 2026: the toggle didn't turn them off)
+  $("#ec-all").addEventListener("change", e => { st.allBadges = e.target.checked; if (!st.allBadges) st.items.forEach(x => { x.badges = []; }); change(true); });
   root.querySelectorAll("[data-size]").forEach(b => b.addEventListener("change", () => { st.sizes[b.dataset.size] = b.checked; change(true); }));
   root.querySelectorAll("[data-kind]").forEach(b => b.addEventListener("change", () => { st.kinds[b.dataset.kind] = b.checked; change(true); }));
   const cur = st.items[sel];
