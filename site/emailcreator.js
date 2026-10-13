@@ -323,6 +323,7 @@ function emailHtml(src){
   flush();
   const wn = em.items.map(it => [it, claimOf(it)]).filter(x => x[1]);
   const small = [`Prices are per person, based on two sharing, as checked ${shortDate(today)}, and subject to availability.${em.terms ? ` View full offer T&amp;Cs <a href="${esc(em.terms)}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
+    ...(src.nectar ? ["*Nectar points: terms and conditions apply."] : []),
     ...wn.map(([it, c]) => `Was price: ${esc(sailing(it.id).title)}${c.key !== "lead" ? ` (${esc(GRADE[c.grade].toLowerCase())} cabins)` : ""} was on sale at ${money(c.was)} for at least 28 days before it was reduced to ${money(c.now)} on ${shortDate(c.since)}.`),
     ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
   const unsub = em.unsub.trim() || "UNSUBSCRIBE_LINK";
@@ -447,7 +448,7 @@ function draw(){
       <div class="ac-block">
         <h3>Nectar and Trustpilot</h3>
         <label class="ac-check"><input type="checkbox" id="em-nectar"${em.nectar.on && NECTAR ? " checked" : ""}${NECTAR ? "" : " disabled"}> Nectar banner ${NECTAR ? "" : `<span class="sub">(waiting for the Nectar banner artwork)</span>`}</label>
-        ${NECTAR && em.nectar.on ? `${NECTAR.images.length > 1 ? `<select id="em-nectar-file" aria-label="Nectar banner">${NECTAR.images.map(x => `<option value="${esc(x.file)}"${x.file === em.nectar.file ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select>` : ""}
+        ${NECTAR && em.nectar.on ? `${NECTAR.images.length > 1 ? `<div class="ac-photos em-banners" role="group" aria-label="Nectar banner">${NECTAR.images.map((x, i) => `<button type="button" class="ac-ph${x.file === (em.nectar.file || NECTAR.images[0].file) ? " on" : ""}" data-nectar="${esc(x.file)}" title="${esc(x.label)}" aria-label="${esc(x.label)}"><img src="email/${esc(x.file)}" alt=""></button>`).join("")}</div>` : ""}
           <select id="em-nectar-pos" aria-label="Where the Nectar banner goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.nectar.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
         <label class="ac-check"><input type="checkbox" id="em-tp"${em.tp.on ? " checked" : ""}> Trustpilot widget <span class="sub">(Trustpilot's own, always shows the current score)</span></label>
         ${em.tp.on ? `<select id="em-tp-pos" aria-label="Where the Trustpilot widget goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.tp.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
@@ -596,7 +597,7 @@ function wire(){
   $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
   $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });
-  $("#em-nectar-file") && $("#em-nectar-file").addEventListener("change", e => { em.nectar.file = e.target.value; change(true); });
+  root.querySelectorAll("[data-nectar]").forEach(b => b.addEventListener("click", () => { em.nectar.file = b.dataset.nectar; change(true); }));
   $("#em-nectar-pos") && $("#em-nectar-pos").addEventListener("change", e => { em.nectar.pos = e.target.value; change(true); });
   $("#em-tp").addEventListener("change", e => { em.tp.on = e.target.checked; change(true); });
   $("#em-tp-pos") && $("#em-tp-pos").addEventListener("change", e => { em.tp.pos = e.target.value; change(true); });
