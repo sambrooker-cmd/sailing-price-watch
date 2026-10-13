@@ -215,6 +215,14 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-side{display:flex;flex-direction:column;gap:14px}
 .ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
 .ac-block h3{margin:0 0 4px;font-size:15px}
+.ac-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin:-2px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.ac-tab{font:inherit;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0;padding:5px 9px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.ac-tab b{flex:none;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--rule);font-size:11px}
+.ac-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-tab:hover{border-color:#6B207D}
+.ac-tab[aria-selected="true"]{background:#6B207D;border-color:#6B207D;color:#fff}
+.ac-tab[aria-selected="true"] b{background:#fff;color:#6B207D}
+.ac-tab:focus-visible{outline:2px solid #F68C4E;outline-offset:1px}
 .ac-block input,.ac-block select,.ac-block textarea{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);width:100%}
 .ac-block textarea{resize:vertical}
 .ac-block input[type=search]{flex:none;max-width:none}
@@ -230,10 +238,17 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-results button,.ac-pick{font:inherit;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:7px 2px;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:1px}
 .ac-results button:disabled{opacity:.45;cursor:default}
 .ac-results button:hover:not(:disabled),.ac-pick:hover{color:var(--heading)}
-.ac-list{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column}
-.ac-list li{display:flex;justify-content:space-between;align-items:center;gap:6px;border-bottom:1px solid var(--rule)}
-.ac-list li.on .ac-pick b{color:var(--heading);text-decoration:underline}
-.ac-list li .ac-pick{border:0;flex:1;min-width:0}
+.ac-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.ac-n{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:8px;border-radius:999px;background:var(--rule);font-size:11px;vertical-align:2px}
+.ac-list li.on .ac-n{background:var(--allium);color:#fff}
+/* Each sailing: name across the full width, its switches and order buttons on the line below (Sam, 13 Oct 2026) */
+.ac-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"pick pick" "strips ord";gap:6px 8px;align-items:center;
+  padding:8px 8px 10px;border-bottom:1px solid var(--rule)}
+.ac-list li.on{background:var(--bg-alt);box-shadow:inset 3px 0 0 var(--allium)}
+.ac-list li.on .ac-pick b{color:var(--heading)}
+.ac-list li .ac-pick{grid-area:pick;border:0;padding:0;min-width:0}
+.ac-list li .ac-strips{grid-area:strips}
+.ac-list li .ac-ord{grid-area:ord}
 .ac-ord{display:flex;gap:2px;flex:none}
 .ac-ord button{font:inherit;font-size:13px;width:28px;height:28px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
 .ac-ord button:disabled{opacity:.35;cursor:default}
@@ -254,8 +269,10 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-chip[aria-pressed="true"]{background:var(--allium);border-color:var(--allium);color:#fff}
 .ac-chip:disabled{opacity:.4;cursor:default}
 .ac-strips{display:flex;gap:4px;flex:none}
-.ac-bulk{gap:6px;margin:0 0 6px}
-.ac-list li{flex-wrap:wrap}
+.ac-bulk{gap:6px 12px;margin:0 0 6px;align-items:center}
+.ac-pair{display:inline-flex;align-items:center;gap:0;font-size:13px}
+.ac-pair > span{margin-right:6px}
+.ac-pair .ac-chip + .ac-chip{border-left:0}
 .ac-sugg{margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
 .ac-sugg summary{font-size:13px;font-weight:700;cursor:pointer}
 .ac-opt{border:1px solid var(--rule);padding:8px 10px;margin-top:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
