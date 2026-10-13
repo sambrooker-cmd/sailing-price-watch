@@ -14,7 +14,8 @@ const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", s
 const CTAS = ["Learn more", "Book now", "See more", "Get offer"];
 const LIMITS = {primary: 125, headline: 40, description: 30};   // roughly where Meta cuts text off in the feed
 const MAX_CARDS = 10;
-const KEY = "spw-ad-draft";
+const KEY = "spw-ad-draft";          // the ad being worked on (this browser)
+const DRAFTS = "spw-ad-drafts";      // named saved ads (this browser): {id: {name, saved_at, ad}}
 
 let S, CAB, KIT, LOGO, TP = null, root, today;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
@@ -24,7 +25,7 @@ const INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta
 const END = {on: true, headline: "The warmest welcome at sea", cta: "Book your sailing", url: "ambassadorcruiseline.com", useA: true,
              mHeadline: "Book your sailing", mDesc: "", link: SITE};
 let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}};
-let sel = 0, uploads = {}, upN = 0;
+let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
   root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
@@ -33,14 +34,85 @@ export async function mount(el, ctx){
   // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
   // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) ad = {...ad, ...d}; } catch(e){}
-  ad.intro = {...INTRO, ...(ad.intro || {})}; ad.end = {...END, ...(ad.end || {})};
-  ad.cards = ad.cards.filter(c => sailing(c.id)).map(c => ({...c, photo: c.photo && c.photo.startsWith("upload:") ? null : c.photo}));
-  sel = Math.min(sel, Math.max(0, ad.cards.length - 1));
-  draw();
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { ad = normalise(d).ad; draftId = d._draft || null; } } catch(e){}
+  if (ctx.shared) await openShared(ctx.shared); else draw();
 }
 
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ad)); } catch(e){} };
+// Bring a saved, shared or older ad up to date with today's data, saying what had to change.
+// Prices are never stored in an ad: the cards always use the tracker's latest saved prices.
+function normalise(d){
+  const out = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", ...d}, msgs = [];
+  delete out._draft;
+  out.intro = {...INTRO, ...(d.intro || {})}; out.end = {...END, ...(d.end || {})};
+  const gone = (d.cards || []).filter(c => !sailing(c.id)).map(c => c.id);
+  if (gone.length) msgs.push(`${gone.join(", ")} ${gone.length === 1 ? "is" : "are"} no longer on sale, so ${gone.length === 1 ? "it was" : "they were"} left out`);
+  let ended = 0, lost = 0;
+  out.cards = (d.cards || []).filter(c => sailing(c.id)).map(c => {
+    c = {...c};
+    if (c.design && c.design.startsWith("wasnow:") && !claims(c.id).some(x => "wasnow:" + x.key === c.design)) { c.design = "standard"; c.words = null; ended++; }
+    if (c.photo && c.photo.startsWith("upload:") && !uploads[c.photo]) { c.photo = null; c.uploadLost = true; lost++; }
+    if (c.trustpilot && TP && typeof c.trustpilot === "string" && !TP.images.some(x => x.file === c.trustpilot)) c.trustpilot = TP.images[0].file;
+    return c;
+  });
+  if (ended) msgs.push(`${ended} was/now card${ended === 1 ? "" : "s"} switched to standard because the price-reduction claim has ended`);
+  if (lost) msgs.push(`${lost} uploaded photo${lost === 1 ? " needs" : "s need"} adding again (uploads stay on the computer they came from)`);
+  return {ad: out, msgs};
+}
+const fresh = () => ({format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}});
+function load(d, msg){
+  const n = normalise(d); ad = n.ad; sel = 0;
+  note = [msg, ...n.msgs].filter(Boolean).join(". ") + (n.msgs.length || msg ? "." : "");
+  save(); draw();
+}
+
+// ---------- saved drafts (this browser) ----------
+const drafts = () => { try { return JSON.parse(localStorage.getItem(DRAFTS) || "{}") || {}; } catch(e) { return {}; } };
+const storeDrafts = d => { try { localStorage.setItem(DRAFTS, JSON.stringify(d)); return true; } catch(e) { note = "Couldn't save: this browser's storage is full or blocked."; return false; } };
+// Uploads are left out of saved drafts and links (too big); normalise() flags them when the ad is opened.
+const portable = () => JSON.parse(JSON.stringify({...ad, cards: ad.cards.map(c => ({...c, uploadLost: undefined}))}));
+function saveDraft(asNew){
+  const all = drafts();
+  let id = asNew ? null : draftId;
+  let name = id && all[id] ? all[id].name : "";
+  if (!id) {
+    const first = ad.cards[0] && sailing(ad.cards[0].id);
+    name = prompt("Name this ad", first ? `${first.title}${ad.cards.length > 1 ? ` + ${ad.cards.length - 1} more` : ""}` : "New ad");
+    if (!name) return;
+    id = "d" + Date.now().toString(36);
+  }
+  all[id] = {name, saved_at: new Date().toISOString(), ad: portable()};
+  if (storeDrafts(all)) { draftId = id; note = `Saved "${name}".`; }
+  save(); draw();
+}
+
+// ---------- shareable link ----------
+// The whole ad (no prices, no uploads) squeezed into the link: deflate + base64url, after #ad=
+const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+async function pack(obj){
+  const z = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return b64u(new Uint8Array(await new Response(z).arrayBuffer()));
+}
+async function unpack(s){
+  const z = new Blob([unb64u(s)]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return JSON.parse(await new Response(z).text());
+}
+async function copyLink(){
+  const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
+  try { await navigator.clipboard.writeText(url); note = "Link copied. Anyone on the tracker's allowlist can open it in their own Ad creator; prices on the cards are always the latest."; }
+  catch(e) { prompt("Copy this link", url); note = ""; }
+  draw();
+}
+export async function openShared(s){
+  try {
+    const d = await unpack(s);
+    history.replaceState(null, "", location.pathname + location.search);
+    draftId = null;
+    load(d.ad || d, "Opened a shared ad. It's now your own copy: changes don't affect the sender's");
+  } catch(e) { note = "That ad link couldn't be read. It may have been cut short when it was copied."; draw(); }
+}
+
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({...ad, _draft: draftId})); } catch(e){} };
 const live = () => Object.entries(S.sailings || {}).filter(([, r]) => !r.removed && r.departure_date > today);
 function sailing(id){
   const r = (S.sailings || {})[id];
@@ -143,12 +215,31 @@ function setStrip(c, k, on){
   c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2);   // still at most 1 promotion with either strip
 }
 
+function draftsBlock(){
+  const all = drafts(), ids = Object.keys(all).sort((a, b) => all[b].saved_at.localeCompare(all[a].saved_at));
+  const cur = draftId && all[draftId];
+  return `<div class="ac-block">
+    <h3>${cur ? esc(cur.name) : "Unsaved ad"}</h3>
+    <div class="ac-row">
+      <button type="button" class="btn quiet sm" id="dr-save"${ad.cards.length ? "" : " disabled"}>${cur ? "Save" : "Save as…"}</button>
+      ${cur ? `<button type="button" class="btn quiet sm" id="dr-saveas">Save a copy…</button>` : ""}
+      <button type="button" class="btn quiet sm" id="dr-link"${ad.cards.length ? "" : " disabled"}>Copy link</button>
+      <button type="button" class="btn quiet sm" id="dr-new">New ad</button>
+    </div>
+    ${ids.length ? `<label class="ac-lab sm" for="dr-list">Saved ads in this browser (${ids.length})</label>
+      <div class="ac-row"><select id="dr-list">${ids.map(i => `<option value="${i}"${i === draftId ? " selected" : ""}>${esc(all[i].name)} · ${new Date(all[i].saved_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}</option>`).join("")}</select>
+      <button type="button" class="btn quiet sm" id="dr-open">Open</button><button type="button" class="btn quiet sm" id="dr-ren">Rename</button><button type="button" class="btn quiet sm" id="dr-del">Delete</button></div>` : ""}
+    ${note ? `<p class="ac-note" role="status">${esc(note)}</p>` : ""}
+  </div>`;
+}
+
 // ---------- drawing ----------
 function draw(){
   const c = ad.cards[sel];
   root.innerHTML = `
   <div class="ac">
     <div class="ac-side">
+      ${draftsBlock()}
       <div class="ac-block">
         <div class="ac-row" role="group" aria-label="Ad format">
           <button type="button" class="ac-seg" data-format="carousel" aria-pressed="${ad.format === "carousel"}">Carousel</button>
@@ -169,7 +260,7 @@ function draw(){
             <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
             <span class="ac-strips">${["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
               return `<button type="button" class="ac-chip" data-strip="${k}" data-i="${i}" aria-pressed="${!why && on}"${why ? ` disabled title="${esc(why)}"` : ""}>${k === "nectar" ? "Nectar" : "Trustpilot"}</button>`; }).join("")}</span>
-            <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
+            <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this card"${ad.cards.length < maxSailings() ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
           </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}
       </div>
       ${brandEditor()}
@@ -192,6 +283,7 @@ function draw(){
       ${preview()}
     </div>
   </div>`;
+  note = "";   // a message shows once, on the draw after whatever set it
   wire();
   paintCards();
   counts();
@@ -235,6 +327,7 @@ function editor(c){
       ${Object.keys(uploads).map(k => `<button type="button" class="ac-ph${c.photo === k ? " on" : ""}" data-photo="${k}" aria-label="Use uploaded image"><img src="${uploads[k]}" alt=""></button>`).join("")}
       <label class="ac-up">Upload<input type="file" id="ac-upload" accept="image/jpeg,image/png,image/webp" hidden></label></div>
     <p class="sub">First is the feed image${s.k.campaign ? " (campaign artwork: shown whole)" : ""}; the others are photos from the sailing's page.</p>
+    ${c.uploadLost ? `<p class="ac-note">This card used an uploaded photo, which can't travel in a saved ad or link. Upload it again, or pick a photo above.</p>` : ""}
     <span class="ac-lab">Words on the card</span>
     ${wasnow ? `<input id="w-title" value="${esc(w.title ?? s.title)}" aria-label="Sailing name">` : `
       <input id="w-kicker" value="${esc(w.kicker ?? dw.kicker)}" placeholder="Small heading (optional)" aria-label="Small heading">
@@ -343,6 +436,22 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  root.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => {
+    const i = +b.dataset.dup; if (ad.cards.length >= maxSailings()) return;
+    ad.cards.splice(i + 1, 0, JSON.parse(JSON.stringify(ad.cards[i]))); sel = i + 1; change(true, true);
+  }));
+  const done = () => { note = ""; };
+  $("#dr-save") && $("#dr-save").addEventListener("click", () => saveDraft(false));
+  $("#dr-saveas") && $("#dr-saveas").addEventListener("click", () => saveDraft(true));
+  $("#dr-link") && $("#dr-link").addEventListener("click", copyLink);
+  $("#dr-new") && $("#dr-new").addEventListener("click", () => {
+    if (ad.cards.length && !draftId && !confirm("Start a new ad? This one isn't saved.")) return;
+    draftId = null; ad = fresh(); sel = 0; done(); save(); draw();
+  });
+  const pick = () => $("#dr-list").value;
+  $("#dr-open") && $("#dr-open").addEventListener("click", () => { const d = drafts()[pick()]; if (!d) return; draftId = pick(); load(d.ad, `Opened "${d.name}"`); });
+  $("#dr-ren") && $("#dr-ren").addEventListener("click", () => { const all = drafts(), d = all[pick()]; const n = d && prompt("New name", d.name); if (!n) return; d.name = n; storeDrafts(all); draw(); });
+  $("#dr-del") && $("#dr-del").addEventListener("click", () => { const all = drafts(), id = pick(); if (!all[id] || !confirm(`Delete "${all[id].name}"?`)) return; delete all[id]; storeDrafts(all); if (draftId === id) draftId = null; note = "Deleted."; draw(); });
   root.querySelectorAll("[data-strip]").forEach(b => b.addEventListener("click", e => {
     e.stopPropagation(); const x = ad.cards[+b.dataset.i];
     setStrip(x, b.dataset.strip, b.getAttribute("aria-pressed") !== "true"); change(true, true);
@@ -360,11 +469,11 @@ function wire(){
   if (ad.cards.length > maxSailings()) { ad.cards.length = maxSailings(); sel = Math.min(sel, ad.cards.length - 1); save(); }
   if (!c) return;
   $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; change(true, true); });
-  root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; change(true, true); }));
+  root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; delete c.uploadLost; change(true, true); }));
   $("#ac-upload").addEventListener("change", e => {
     const f = e.target.files[0]; if (!f) return;
     const rd = new FileReader();
-    rd.onload = () => { const k = "upload:" + (++upN); uploads[k] = rd.result; c.photo = k; change(true, true); };
+    rd.onload = () => { const k = "upload:" + (++upN); uploads[k] = rd.result; c.photo = k; delete c.uploadLost; change(true, true); };
     rd.readAsDataURL(f);
   });
   const words = () => {
