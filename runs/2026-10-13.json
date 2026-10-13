@@ -1,13 +1,14 @@
 {
  "date": "2026-10-13",
- "count": 224,
+ "count": 223,
  "new": [
   "A22637"
  ],
  "removed": [
   "A32650",
   "A22638",
-  "A22637"
+  "A22637",
+  "A22712BL"
  ],
  "returned": [
   "A22638",
@@ -227,6 +228,50 @@
     "held_days": 0
    },
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A22630BR",
+   "from": 1369,
+   "to": 879,
+   "mix": "suite → ocean_view",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (suite → ocean_view), not a price cut",
+    "was": 1369,
+    "now": 879,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A12701",
+   "from": 3249,
+   "to": 2699,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 3249,
+    "now": 2699,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22702",
+   "from": 2379,
+   "to": 1899,
+   "mix": "ocean_view → inside",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (ocean_view → inside), not a price cut",
+    "was": 2379,
+    "now": 1899,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "rises": [
@@ -343,6 +388,12 @@
    "to": 2379,
    "mix": "inside → ocean_view",
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A12630",
+   "from": 299,
+   "to": 369,
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "eligible": [],
@@ -350,37 +401,25 @@
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
-  "A22633": [
-   "feed price £399 differs from cheapest cabin on the page £449"
+  "A32651": [
+   "feed price £1,599 differs from cheapest cabin on the page £1,699"
   ],
   "A12630": [
+   "feed price £369 differs from cheapest cabin on the page £399",
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22636": [
-   "feed price £1,229 differs from cheapest cabin on the page £1,119"
   ],
   "A12634": [
    "feed price £679 differs from cheapest cabin on the page £739",
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22637": [
-   "feed price £429 differs from cheapest cabin on the page £389"
-  ],
-  "A22638": [
-   "feed price £929 differs from cheapest cabin on the page £1,019"
+  "A22639": [
+   "feed price £1,829 differs from cheapest cabin on the page £2,479"
   ],
   "A12701": [
-   "feed price £3,249 differs from cheapest cabin on the page £3,499"
+   "feed price £2,699 differs from cheapest cabin on the page £3,249"
   ],
   "A22702": [
-   "feed price £2,379 differs from cheapest cabin on the page £1,899",
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A12704": [
-   "feed price £699 differs from cheapest cabin on the page £899"
-  ],
-  "A22704": [
-   "feed price £1,119 differs from cheapest cabin on the page £1,239"
   ],
   "A12706": [
    "feed image looks like campaign art (may contain text)"
@@ -388,17 +427,11 @@
   "A22705": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22706PO": [
-   "feed price £989 differs from cheapest cabin on the page £1,039"
-  ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22723NC": [
-   "feed price £899 differs from cheapest cabin on the page £909"
   ]
  },
  "cabin_drops": [
@@ -514,6 +547,105 @@
     "held_days": 5
    },
    "at": "2026-10-13T10:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "cabin": "twin.ocean_view",
+   "from": 449,
+   "to": 399,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 449,
+    "now": 399,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22638",
+   "cabin": "twin.suite",
+   "from": 1019,
+   "to": 929,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 1019,
+    "now": 929,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.inside",
+   "from": 3899,
+   "to": 3639,
+   "claim": null,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.ocean_view",
+   "from": 5299,
+   "to": 4499,
+   "claim": null,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A32705",
+   "cabin": "solo.ocean_view",
+   "from": 3519,
+   "to": 3429,
+   "claim": null,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22704",
+   "cabin": "twin.inside",
+   "from": 1239,
+   "to": 1119,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 1239,
+    "now": 1119,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22706PO",
+   "cabin": "twin.inside",
+   "from": 1039,
+   "to": 989,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 1039,
+    "now": 989,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22723NC",
+   "cabin": "twin.inside",
+   "from": 909,
+   "to": 899,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 909,
+    "now": 899,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "cabin_rises": [
@@ -614,6 +746,34 @@
    "from": 899,
    "to": 909,
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A32651",
+   "cabin": "twin.inside",
+   "from": 1599,
+   "to": 1699,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22636",
+   "cabin": "twin.suite",
+   "from": 1119,
+   "to": 1229,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22637",
+   "cabin": "twin.ocean_view",
+   "from": 389,
+   "to": 429,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22639",
+   "cabin": "twin.ocean_view",
+   "from": 1829,
+   "to": 2479,
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "cabin_sold_out": [
@@ -711,6 +871,21 @@
    "id": "A22716DD",
    "cabin": "solo.ocean_view",
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A12630",
+   "cabin": "twin.inside",
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A12634",
+   "cabin": "solo.ocean_view",
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A3280123M",
+   "cabin": "solo.balcony",
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "cabin_back": [
@@ -743,6 +918,48 @@
    "cabin": "twin.suite",
    "p": 1019,
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A22630BR",
+   "cabin": "twin.ocean_view",
+   "p": 879,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22632",
+   "cabin": "solo.inside",
+   "p": 1399,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "twin.inside",
+   "p": 3249,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "twin.suite",
+   "p": 6999,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.suite",
+   "p": 7899,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A12704",
+   "cabin": "twin.inside",
+   "p": 699,
+   "at": "2026-10-13T13:07:25Z"
+  },
+  {
+   "id": "A22716DD",
+   "cabin": "solo.ocean_view",
+   "p": 2639,
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "cabin_eligible": [],
@@ -767,6 +984,12 @@
    "from": 30000,
    "to": 50000,
    "at": "2026-10-13T12:07:14Z"
+  },
+  {
+   "id": "A22630BR",
+   "from": 50000,
+   "to": 30000,
+   "at": "2026-10-13T13:07:25Z"
   }
  ],
  "reported": [],
@@ -777,6 +1000,7 @@
   "2026-10-13T09:07:15Z",
   "2026-10-13T10:07:15Z",
   "2026-10-13T11:07:15Z",
-  "2026-10-13T12:07:14Z"
+  "2026-10-13T12:07:14Z",
+  "2026-10-13T13:07:25Z"
  ]
 }
