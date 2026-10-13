@@ -449,7 +449,8 @@ function editor(c){
 function preview(){
   const more = ad.primary.length > LIMITS.primary;
   const text = esc(more ? ad.primary.slice(0, LIMITS.primary).trimEnd() : ad.primary);
-  const head = `<div class="mp-head"><span class="mp-av">A</span><div><b>Ambassador Cruise Line</b><span class="sub">Sponsored · <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" fill="none" stroke="currentColor"/></svg></span></div></div>
+  // Profile picture: Ambassador's own Facebook page picture (white A on Allium), saved as site/meta-profile.jpg (Sam, 13 Oct 2026)
+  const head = `<div class="mp-head"><img class="mp-av" src="meta-profile.jpg" alt=""><div><b>Ambassador Cruise Line</b><span class="sub">Sponsored · <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" fill="none" stroke="currentColor"/></svg></span></div></div>
     <p class="mp-text">${text || `<span class="sub">Primary text appears here.</span>`}${more ? `… <span class="sub">See more</span>` : ""}</p>`;
   const foot = c => `<div class="mp-foot"><div><b>${esc(c.headline || "")}</b><span>${esc(c.description || "")}</span></div><span class="mp-cta">${esc(ad.cta)}</span></div>`;
   if (!ad.cards.length) return `<div class="mp"><div class="mp-post">${head}<div class="mp-empty">Add sailings to see the ad.</div></div></div>`;
@@ -463,7 +464,7 @@ function preview(){
       <div class="mp-frame" style="aspect-ratio:1080/1350"><iframe data-card="0" data-size="4x5" title="Feed image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
     <div><p class="sub">Feed (1:1)</p><div class="mp-post">${head}<div class="mp-frame" style="aspect-ratio:1"><iframe data-card="0" data-size="1x1" title="Square image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
     <div><p class="sub">Stories and Reels (9:16)</p><div class="mp-story"><div class="mp-frame" style="aspect-ratio:1080/1920"><iframe data-card="0" data-size="9x16" title="Story image" tabindex="-1"></iframe></div>
-      <div class="mp-story-top"><span class="mp-av">A</span> Ambassador Cruise Line <span class="sub">Sponsored</span></div><div class="mp-story-cta">${esc(ad.cta)}</div></div></div></div>`;
+      <div class="mp-story-top"><img class="mp-av" src="meta-profile.jpg" alt=""> Ambassador Cruise Line <span class="sub">Sponsored</span></div><div class="mp-story-cta">${esc(ad.cta)}</div></div></div></div>`;
 }
 
 // Live card previews: each iframe renders the full-size card and is scaled to fit its box.
