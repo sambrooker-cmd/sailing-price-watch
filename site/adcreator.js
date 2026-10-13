@@ -4,8 +4,8 @@
 // Nothing is sent to Meta. Prices, dates and was/now figures always come from the tracker's
 // saved data (state/current, state/cabins) and can't be typed in. "Lower fares" offers never
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
-import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js";
-import {suggest} from "./adcopy.js";
+import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
+import {suggest} from "./adcopy.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");

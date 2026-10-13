@@ -3,7 +3,7 @@
 // previewed in all three sizes and downloaded one size at a time. Nothing is saved or sent anywhere.
 // Uses the Ad creator's card designs (adcards.js) and data (pricewatch/adkit), so it matches the
 // automatic cards. Prices always come from the tracker's saved state.
-import {cardDoc, SIZES} from "./adcards.js";
+import {cardDoc, SIZES} from "./adcards.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const fmtDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
