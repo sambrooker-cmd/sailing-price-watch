@@ -776,7 +776,7 @@ const auth = getAuth(firebaseApp);
             <td class="num">${count[o]}</td><td>${fmtExpiry(i.expires) || "–"}</td><td>${fmtDate(i.first_seen)}${i.first_seen === state.promos_since ? `<div class="sub">recording began</div>` : ""}</td>
             <td>${termsOf(o) ? `<button type="button" class="linkbtn" data-tc="${esc(o)}">${termsOf(o).length ? "T&amp;Cs" : "No T&amp;Cs found"}</button>` : ""}</td>
             <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
-        }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.${terms ? ` T&amp;Cs are read from the website's own pages once a day (last ${fmtWhen(terms.fetched_at)}): <button type="button" class="linkbtn" data-tc="*">all ${Object.keys(terms.docs || {}).length} found</button>.` : ""}</p>`
+        }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.${terms ? ` T&amp;Cs are read from the website's own pages once a day and when a new promotion appears (last ${fmtWhen(terms.fetched_at)}): <button type="button" class="linkbtn" data-tc="*">all ${Object.keys(terms.docs || {}).length} found</button>.` : ""}</p>`
         : `<div class="empty"><p>No promotions are live on any sailing.</p></div>`;
     }
 
@@ -956,7 +956,8 @@ const auth = getAuth(firebaseApp);
     const name = all ? "All terms found on the website" : (offerInfo(o).name || o);
     const tc = $("tc");
     tc.innerHTML = `<div class="sv-head"><h3 id="tc-title">${esc(name)}${all ? "" : " · T&amp;Cs"}</h3><button type="button" class="linkbtn" data-tcx="close">Close</button></div>
-      <p class="sub" style="margin:0 0 8px">Read from the website ${fmtWhen(terms.fetched_at)} (once a day). Check the wording on the page before using it.${ids.length > 1 ? ` <button type="button" class="linkbtn" data-tcx="all">Copy all</button>` : ""}</p>
+      ${!all && (terms.how || {})[o] === "name" ? `<p class="ac-note" style="margin:0 0 8px">Matched by a word in the promotion's name: check these are the right terms.</p>` : ""}
+      <p class="sub" style="margin:0 0 8px">Read from the website ${fmtWhen(terms.fetched_at)} (once a day, and again when a new promotion appears). Check the wording on the page before using it.${ids.length > 1 ? ` <button type="button" class="linkbtn" data-tcx="all">Copy all</button>` : ""}</p>
       <div class="sv-body">${ids.length ? ids.map(i => { const d = terms.docs[i]; return `<div class="tc-doc"><h4>${esc(d.title)}<button type="button" class="btn sm" data-tcx="${esc(i)}">Copy</button></h4>
         <p class="tc-text">${esc(tcWords(d))}</p><p class="sub" style="margin:0">On ${d.pages.slice(0, 3).map(u => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https:\/\/www\.ambassadorcruiseline\.com/, "") || "/")}</a>`).join(", ")}${d.pages.length > 3 ? ` and ${d.pages.length - 3} more` : ""}</p></div>`; }).join("")
         : `<p>No terms for this promotion were found on the website: its offer data has none, and no deals or landing page mentions it. The general booking terms are at <a href="${esc(terms.general)}" target="_blank" rel="noopener">${esc(terms.general)}</a>.</p>`}</div>`;
