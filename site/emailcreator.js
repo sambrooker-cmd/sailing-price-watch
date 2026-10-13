@@ -19,7 +19,8 @@ const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB"
 const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
 const SITE = "https://www.ambassadorcruiseline.com/";
 const FN = "https://us-central1-promotions-planner.cloudfunctions.net/emailImages";
-const KEY = "spw-email-draft";
+const KEY = "spw-email-draft";      // the email being worked on (this browser)
+const DRAFTS = "spw-email-drafts";  // named saved emails (this browser): {id: {name, saved_at, email}}
 const MAX = 12;
 const NAV = [["Find a Cruise", SITE + "search/"], ["Last-Minute Deals", SITE + "deals/late-deals/"], ["Our Ships", SITE + "our-ships/"], ["Order a Brochure", SITE + "brochures/"]];
 const LEGAL = "Calls to 03 numbers cost no more than calls to geographic numbers (01 or 02) and are included in inclusive minutes from landlines and mobiles.\n" +
@@ -30,7 +31,7 @@ const COL = {allium: "#6B207D", palatyn: "#380843", pearl: "#F1ECE7", amber: "#F
 const IMG = {logo: [442, 96], hero: [1200, 630], tile: [376, 320], wide: [1120, 430]};
 
 let S, CAB, KIT, ID, root, today, LOGO_SVG = "";
-let em = fresh(), sel = 0, note = "", made = null, previewMode = "desktop";
+let em = fresh(), sel = 0, note = "", made = null, previewMode = "desktop", draftId = null;
 const baked = new Map();   // image key -> data URL (preview and upload)
 
 function fresh(){
@@ -44,12 +45,94 @@ export async function mount(el, ctx){
   today = S.updated;
   const sym = document.getElementById("amb-logo");
   if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) em = {...fresh(), ...d}; } catch(e){}
-  em.items = em.items.filter(it => sailing(it.id)).map(it => {
-    if (it.design !== "standard" && !claims(it.id).some(c => "wasnow:" + c.key === it.design)) it.design = "standard";
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) { em = normalise(d).em; draftId = d._draft || null; } } catch(e){}
+  if (ctx.shared) await openShared(ctx.shared); else draw();
+}
+
+// Bring a saved, shared or older email up to date with today's data, saying what had to change.
+// Prices are never stored in an email: it always uses the tracker's latest saved prices.
+function normalise(d){
+  const out = {...fresh(), ...d, hero: {...fresh().hero, ...(d.hero || {})}}, msgs = [];
+  delete out._draft;
+  const gone = (d.items || []).filter(it => !sailing(it.id)).map(it => it.id);
+  if (gone.length) msgs.push(`${[...new Set(gone)].join(", ")} ${gone.length === 1 ? "is" : "are"} no longer on sale, so ${gone.length === 1 ? "it was" : "they were"} left out`);
+  let ended = 0, offers = 0;
+  out.items = (d.items || []).filter(it => sailing(it.id)).map(it => {
+    it = {layout: "tile", design: "standard", photo: sailing(it.id).image, caption: "", badges: [], ...it};
+    if (it.design !== "standard" && !claims(it.id).some(c => "wasnow:" + c.key === it.design)) { it.design = "standard"; ended++; }
+    const live = sailing(it.id).k.promos || [], kept = it.badges.filter(b => live.includes(b));
+    offers += it.badges.length - kept.length; it.badges = kept;
     return it;
   });
+  if (ended) msgs.push(`${ended} was/now price${ended === 1 ? "" : "s"} switched to "From" because the price-reduction claim has ended`);
+  if (offers) msgs.push(`${offers} offer badge${offers === 1 ? " was" : "s were"} removed because the offer has ended or changed`);
+  return {em: out, msgs};
+}
+function load(d, msg){
+  const n = normalise(d); em = n.em; sel = 0; made = null;
+  note = esc([msg, ...n.msgs].filter(Boolean).join(". ") + (n.msgs.length || msg ? "." : ""));
+  save(); draw();
+}
+
+// ---------- saved emails (this browser) ----------
+const drafts = () => { try { return JSON.parse(localStorage.getItem(DRAFTS) || "{}") || {}; } catch(e) { return {}; } };
+const storeDrafts = d => { try { localStorage.setItem(DRAFTS, JSON.stringify(d)); return true; } catch(e) { note = "Couldn't save: this browser's storage is full or blocked."; return false; } };
+const portable = () => JSON.parse(JSON.stringify(em));
+function saveDraft(asNew){
+  const all = drafts();
+  let id = asNew ? null : draftId;
+  let name = id && all[id] ? all[id].name : "";
+  if (!id) {
+    const first = em.items[0] && sailing(em.items[0].id);
+    name = prompt(asNew ? "Name the copy" : "Name this email", em.subject || (first ? `${first.title}${em.items.length > 1 ? ` + ${em.items.length - 1} more` : ""}` : "New email"));
+    if (!name) return;
+    id = "e" + Date.now().toString(36);
+  }
+  all[id] = {name, saved_at: new Date().toISOString(), email: portable()};
+  if (storeDrafts(all)) { draftId = id; note = esc(`Saved "${name}".`); }
+  save(); draw();
+}
+function draftsBlock(){
+  const all = drafts(), ids = Object.keys(all).sort((a, b) => all[b].saved_at.localeCompare(all[a].saved_at));
+  const cur = draftId && all[draftId];
+  return `<div class="ac-block">
+    <h3>${cur ? esc(cur.name) : "Unsaved email"}</h3>
+    <div class="ac-row">
+      <button type="button" class="btn quiet sm" id="dr-save"${em.items.length ? "" : " disabled"}>${cur ? "Save" : "Save as…"}</button>
+      ${cur ? `<button type="button" class="btn quiet sm" id="dr-saveas">Save a copy…</button>` : ""}
+      <button type="button" class="btn quiet sm" id="dr-link"${em.items.length ? "" : " disabled"}>Copy link</button>
+      <button type="button" class="btn quiet sm" id="dr-new">New email</button>
+    </div>
+    ${ids.length ? `<label class="ac-lab sm" for="dr-list">Saved emails in this browser (${ids.length})</label>
+      <div class="ac-row"><select id="dr-list">${ids.map(i => `<option value="${i}"${i === draftId ? " selected" : ""}>${esc(all[i].name)} · ${new Date(all[i].saved_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}</option>`).join("")}</select>
+      <button type="button" class="btn quiet sm" id="dr-open">Open</button><button type="button" class="btn quiet sm" id="dr-ren">Rename</button><button type="button" class="btn quiet sm" id="dr-del">Delete</button></div>` : ""}
+  </div>`;
+}
+
+// ---------- shareable link: the whole email (no prices) squeezed into the link, after #email= ----------
+const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+async function pack(obj){
+  const z = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return b64u(new Uint8Array(await new Response(z).arrayBuffer()));
+}
+async function unpack(s){
+  const z = new Blob([unb64u(s)]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return JSON.parse(await new Response(z).text());
+}
+async function copyLink(){
+  const url = `${location.origin}${location.pathname}#email=${await pack({v: 1, email: portable()})}`;
+  try { await navigator.clipboard.writeText(url); note = "Link copied. Anyone on the tracker's allowlist can open it in their own Email creator; prices are always the latest."; }
+  catch(e) { prompt("Copy this link", url); note = ""; }
   draw();
+}
+export async function openShared(s){
+  try {
+    const d = await unpack(s);
+    history.replaceState(null, "", location.pathname + location.search);
+    draftId = null;
+    load(d.email || d, "Opened a shared email. It's now your own copy: changes don't affect the sender's");
+  } catch(e) { note = "That email link couldn't be read. It may have been cut short when it was copied."; draw(); }
 }
 
 // ---------- data (the tracker's saved state only) ----------
@@ -99,7 +182,7 @@ function pickPhoto(s){
   return s.photos.find(u => u !== s.image && !CAMPAIGN.test(u) && captionHint(u)) || s.photos.find(u => u !== s.image && !CAMPAIGN.test(u)) || s.image;
 }
 
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(em)); } catch(e){} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({...em, _draft: draftId})); } catch(e){} };
 function newItem(id){
   const s = sailing(id);
   return {id, layout: em.items.filter(x => x.layout === "tile").length % 3 === 0 && em.items.length >= 3 ? "wide" : "tile",
@@ -280,6 +363,7 @@ function draw(){
   const by = sendBy();
   root.innerHTML = `<div class="ac">
     <div class="ac-side">
+      ${draftsBlock()}
       <div class="ac-block">
         <h3>Email</h3>
         <label class="ac-lab" for="em-subject">Subject line <span class="sub" id="em-n-subject"></span></label>
@@ -297,7 +381,7 @@ function draw(){
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
           <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${x.layout === "wide" ? "full width" : "tile"}${x.design !== "standard" ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
-          <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
+          <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this sailing (e.g. full width with another photo)"${it.length < MAX ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
           <p class="sub">Tiles go 3 across (on phones they stack); a full-width sailing starts a new row.</p>` : `<p class="sub">Search above and add the sailings for this email.</p>`}
       </div>
       <div class="ac-block">
@@ -398,6 +482,21 @@ function wire(){
   const move = (i, j) => { const [x] = em.items.splice(i, 1); em.items.splice(j, 0, x); sel = j; change(true); };
   root.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", () => move(+b.dataset.up, +b.dataset.up - 1)));
   root.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", () => move(+b.dataset.down, +b.dataset.down + 1)));
+  root.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => {
+    const i = +b.dataset.dup; if (em.items.length >= MAX) return;
+    em.items.splice(i + 1, 0, JSON.parse(JSON.stringify(em.items[i]))); sel = i + 1; change(true);
+  }));
+  $("#dr-save") && $("#dr-save").addEventListener("click", () => saveDraft(false));
+  $("#dr-saveas") && $("#dr-saveas").addEventListener("click", () => saveDraft(true));
+  $("#dr-link") && $("#dr-link").addEventListener("click", copyLink);
+  $("#dr-new") && $("#dr-new").addEventListener("click", () => {
+    if (em.items.length && !draftId && !confirm("Start a new email? This one isn't saved.")) return;
+    draftId = null; em = fresh(); sel = 0; made = null; note = ""; save(); draw();
+  });
+  const pick = () => $("#dr-list").value;
+  $("#dr-open") && $("#dr-open").addEventListener("click", () => { const d = drafts()[pick()]; if (!d) return; draftId = pick(); load(d.email, `Opened "${d.name}"`); });
+  $("#dr-ren") && $("#dr-ren").addEventListener("click", () => { const all = drafts(), d = all[pick()]; const n = d && prompt("New name", d.name); if (!n) return; d.name = n; storeDrafts(all); draw(); });
+  $("#dr-del") && $("#dr-del").addEventListener("click", () => { const all = drafts(), id = pick(); if (!all[id] || !confirm(`Delete "${all[id].name}"?`)) return; delete all[id]; storeDrafts(all); if (draftId === id) draftId = null; note = "Deleted."; draw(); });
   root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { em.items.splice(+b.dataset.del, 1); sel = Math.max(0, Math.min(sel, em.items.length - 1)); change(true); }));
   const tabTo = i => { sel = (i + em.items.length) % em.items.length; draw(); const t = root.querySelector(`[data-tab="${sel}"]`); t && t.focus(); };
   root.querySelectorAll("[data-tab]").forEach(b => {
@@ -420,7 +519,7 @@ function wire(){
     }));
   }
   root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
-  $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; change(true); } });
+  $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
   $("#em-copy") && $("#em-copy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(made); $("#em-copy").textContent = "Copied"; } catch(e) { prompt("Copy the email's HTML", made); }
