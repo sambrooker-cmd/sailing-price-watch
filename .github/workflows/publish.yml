@@ -57,5 +57,7 @@ jobs:
           # when nothing has), so a merged change shows on the next reload instead of up to an hour later.
           printf '{"hosting":{"site":"%s","public":"site","headers":[{"source":"/","headers":[{"key":"Cache-Control","value":"no-cache"}]},{"source":"**/*.@(html|js|json)","headers":[{"key":"Cache-Control","value":"no-cache"}]}]}}\n' "$HOSTING_SITE" > firebase.json
           python -c "import json; json.load(open('firebase.json'))"
+          # Each deploy's scripts get their own address (?v=<commit>), so an older copy kept by a browser is never used
+          sed -i "s/__BUILD__/$(git rev-parse --short HEAD)/g" site/index.html site/*.js
           GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json" \
             npx --yes firebase-tools@15.31.0 deploy --only hosting --project "$FIREBASE_PROJECT" --non-interactive

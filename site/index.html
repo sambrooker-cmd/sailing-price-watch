@@ -1702,7 +1702,7 @@ const auth = getAuth(firebaseApp);
   async function mountCardOpts(id){
     const el = $("cardopts"), r = (state.sailings || {})[id]; if (!el || !r) return;
     try {
-      const [m, kit] = await Promise.all([import("./cardmaker.js"), getAdkit()]);
+      const [m, kit] = await Promise.all([import("./cardmaker.js?v=__BUILD__"), getAdkit()]);
       if ($("cardopts") === el) await m.mount(el, id, r, ((kit || {}).sailings || {})[id]);
     } catch (e) { el.innerHTML = `<p class="sub">Couldn't load the card maker: ${esc(e.message)}</p>`; }
   }
@@ -1712,7 +1712,7 @@ const auth = getAuth(firebaseApp);
     if (!state || adsMounted) return;   // (state first: showView runs before adsMounted is declared)
     adsMounted = true;
     try {
-      const [m, kit] = await Promise.all([import("./adcreator.js"), getAdkit()]);
+      const [m, kit] = await Promise.all([import("./adcreator.js?v=__BUILD__"), getAdkit()]);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
       await m.mount($("ads"), {state, cabins, adkit: kit, shared});
