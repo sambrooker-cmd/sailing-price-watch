@@ -4,9 +4,10 @@
 // then the small print. Images (logo, header, sailing pictures with badges and captions) are made in the
 // browser; "Make email" stores them in Storage through the emailImages function (allowlist checked) and gives
 // standard email HTML to copy or download. Nothing is sent to anyone.
-// Prices, dates, ships and offers come from the tracker's saved data and can't be typed in. Twin prices only
-// (Sam: no solo prices for now). Was/now only from a live claim (tracker.py), with its own figures, and the
-// email says until when it may be sent. "Lower fares" offers never reach the badges (cards_sync adkit).
+// Prices, dates, ships and offers come from the tracker's saved data and can't be typed in. Each sailing's
+// "From" price can be twin or solo, cheapest cabin or a chosen grade (Sam, 13 Oct 2026, as Email cards).
+// Was/now only from a live claim (tracker.py, twin only), with its own figures, and the email says until
+// when it may be sent. "Lower fares" offers never reach the badges (cards_sync adkit).
 // HubSpot specifics (template, unsubscribe token, UTM) are left for later (Sam).
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
@@ -77,15 +78,18 @@ function normalise(d){
   delete out._draft;
   const gone = (d.items || []).filter(it => !sailing(it.id)).map(it => it.id);
   if (gone.length) msgs.push(`${[...new Set(gone)].join(", ")} ${gone.length === 1 ? "is" : "are"} no longer on sale, so ${gone.length === 1 ? "it was" : "they were"} left out`);
-  let ended = 0, offers = 0;
+  let ended = 0, offers = 0, cabins = 0;
   out.items = (d.items || []).filter(it => sailing(it.id)).map(it => {
     it = {layout: "tile", design: "standard", photo: sailing(it.id).image, caption: "", badges: [], ...it};
     if (it.design !== "standard" && !claims(it.id).some(c => "wasnow:" + c.key === it.design)) { it.design = "standard"; ended++; }
+    const f = fareOf(it);
+    if ((it.fare === "solo" && f.fare !== "solo") || (it.grade && !f.grade)) { cabins++; it.fare = f.fare; it.grade = f.grade; }
     const live = sailing(it.id).k.promos || [], kept = it.badges.filter(b => live.includes(b));
     offers += it.badges.length - kept.length; it.badges = kept;
     return it;
   });
   if (ended) msgs.push(`${ended} was/now price${ended === 1 ? "" : "s"} switched to "From" because the price-reduction claim has ended`);
+  if (cabins) msgs.push(`${cabins} cabin choice${cabins === 1 ? " is" : "s are"} no longer on sale, so ${cabins === 1 ? "it uses" : "they use"} the cheapest available`);
   if (offers) msgs.push(`${offers} offer badge${offers === 1 ? " was" : "s were"} removed because the offer has ended or changed`);
   return {em: out, msgs};
 }
@@ -175,6 +179,26 @@ function claims(id){
   return out;
 }
 const claimOf = it => it.design.startsWith("wasnow:") ? claims(it.id).find(c => "wasnow:" + c.key === it.design) : null;
+// Fare and cabin for a "From" price (Sam, 13 Oct 2026, as Email cards): twin or solo, the cheapest cabin or a
+// chosen grade, from the tracker's saved per-grade prices (state/cabins.json "twin.<grade>" / "solo.<grade>",
+// latest segment, not sold out). The twin "cheapest" is the sailing's own lead price.
+function onSale(id, fare){   // {grade: price} on sale now
+  const out = {};
+  for (const [k, c] of Object.entries((CAB[id] || {}).cabins || {})) {
+    const [f, g] = k.split(".");
+    if (f === fare && GRADE[g] && !c.out && c.seg && c.seg.length) out[g] = c.seg[c.seg.length - 1].p;
+  }
+  return out;
+}
+const linkOf = it => claimOf(it) ? sailing(it.id).link : fareOf(it).link;   // solo fares link with ?solo=true
+function fareOf(it){   // {fare, grade, price, label, link} for what's chosen, falling back to the cheapest
+  const s = sailing(it.id), fare = it.fare === "solo" && Object.keys(onSale(it.id, "solo")).length ? "solo" : "twin";
+  const grades = onSale(it.id, fare), grade = it.grade && grades[it.grade] != null ? it.grade : "";
+  const price = grade ? grades[grade] : fare === "twin" ? s.price : Math.min(...Object.values(grades));
+  const label = fare === "solo" ? `Solo ${grade ? GRADE[grade].toLowerCase() + " " : "pricing "}from ${money(price)}`
+                                : `${grade ? GRADE[grade] + " from" : "From"} ${money(price)}pp`;
+  return {fare, grade, price, label, link: s.link + (fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : "")};
+}
 // Offer badges on a sailing's picture: its own choice, or with "Offer badges on every sailing" ticked
 // (Sam, 13 Oct 2026, as in the Friday round-up emails) its first 2 live offers, kept up to date.
 const badgesOf = it => em.allBadges ? (sailing(it.id).k.promos || []).slice(0, 2) : it.badges;
@@ -208,7 +232,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify({...em, _dra
 function newItem(id){
   const s = sailing(id);
   return {id, layout: em.items.filter(x => x.layout === "tile").length % 3 === 0 && em.items.length >= 3 ? "wide" : "tile",
-          design: "standard", photo: pickPhoto(s), caption: "", badges: []};
+          design: "standard", fare: "twin", grade: "", photo: pickPhoto(s), caption: "", badges: []};
 }
 const sendBy = () => em.items.map(claimOf).filter(Boolean).map(c => c.ends).sort()[0] || "";
 
@@ -277,7 +301,7 @@ function sailingInfo(it, size){
   const price = c ? `<p style="margin:0 0 8px;font-family:${F};font-size:14px;color:${COL.ink}">${c.grade && c.key !== "lead" ? esc(GRADE[c.grade]) + " cabins: " : ""}was <s>${money(c.was)}</s></p>` : "";
   return `<p style="margin:14px 0 10px;font-family:${F};font-weight:700;font-size:${size}px;line-height:1.3;color:${COL.allium};text-transform:uppercase">${esc(s.title)}</p>
     <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:${COL.ink}">${longDate(s.r.departure_date)}<br>${s.r.nights} nights departing ${esc(s.fly ? s.fly + " Airport" : s.r.port)}<br>${esc(s.r.ship)}</p>
-    ${price}${button(c ? `Now ${money(c.now)}pp` : `From ${money(s.price)}pp`, s.link)}`;
+    ${price}${button(c ? `Now ${money(c.now)}pp` : fareOf(it).label, linkOf(it))}`;
 }
 // Header picture as the cell's background with the words as live text on top, centred: readable and
 // responsive on phones. Outlook on Windows ignores CSS backgrounds, so it gets the same picture in VML.
@@ -311,7 +335,7 @@ function emailHtml(src){
     // Three columns of 196 px across the 600 px email (188 px pictures, Sam: bigger tiles)
     rows.push(`<tr><td class="pad" style="padding:0 6px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
       ${tiles.map(([it, name]) => `<td class="tile" width="196" valign="top" align="center" style="padding:0 4px">
-        <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="188" height="160" alt="${esc(sailing(it.id).title)}" style="display:block;width:188px;height:auto;border:0"></a>
+        <a href="${esc(linkOf(it))}" target="_blank"><img src="${src[name]}" width="188" height="160" alt="${esc(sailing(it.id).title)}" style="display:block;width:188px;height:auto;border:0"></a>
         ${sailingInfo(it, 15)}</td>`).join("")}</tr></table></td></tr>`);
     tiles = [];
   };
@@ -320,12 +344,14 @@ function emailHtml(src){
     if (it.layout === "tile") { tiles.push([it, name]); if (tiles.length === 3) flush(); return; }
     flush();
     rows.push(`<tr><td class="pad wide" align="center" style="padding:0 20px 32px">
-      <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="560" alt="${esc(sailing(it.id).title)}" style="display:block;width:100%;max-width:560px;height:auto;border:0"></a>
+      <a href="${esc(linkOf(it))}" target="_blank"><img src="${src[name]}" width="560" alt="${esc(sailing(it.id).title)}" style="display:block;width:100%;max-width:560px;height:auto;border:0"></a>
       ${sailingInfo(it, 16)}</td></tr>`);
   });
   flush();
   const wn = em.items.map(it => [it, claimOf(it)]).filter(x => x[1]);
-  const small = [`Prices are per person, based on two sharing, as checked ${shortDate(today)}, and subject to availability.${em.terms ? ` View full offer T&amp;Cs <a href="${esc(em.terms)}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
+  const solo = em.items.some(it => !claimOf(it) && fareOf(it).fare === "solo"), twin = em.items.some(it => claimOf(it) || fareOf(it).fare === "twin");
+  const basis = [twin ? "per person, based on two sharing" : "", solo ? `${twin ? "solo prices are " : ""}for one guest travelling solo` : ""].filter(Boolean).join("; ");
+  const small = [`Prices are ${basis}, as checked ${shortDate(today)}, and subject to availability.${em.terms ? ` View full offer T&amp;Cs <a href="${esc(em.terms)}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
     ...(src.nectar ? ["*Nectar points: terms and conditions apply."] : []),
     ...wn.map(([it, c]) => `Was price: ${esc(sailing(it.id).title)}${c.key !== "lead" ? ` (${esc(GRADE[c.grade].toLowerCase())} cabins)` : ""} was on sale at ${money(c.was)} for at least 28 days before it was reduced to ${money(c.now)} on ${shortDate(c.since)}.`),
     ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
@@ -391,8 +417,9 @@ function itemEditor(){
       <button type="button" class="ac-seg" data-layout="tile" aria-pressed="${it.layout === "tile"}">Tile (3 across)</button>
       <button type="button" class="ac-seg" data-layout="wide" aria-pressed="${it.layout === "wide"}">Full width</button></div>
     <label class="ac-lab" for="em-design">Price</label>
-    <select id="em-design"><option value="standard">From ${money(s.price)}pp</option>${cl.map(c => `<option value="wasnow:${c.key}"${it.design === "wasnow:" + c.key ? " selected" : ""}>Was/now: ${esc(c.label)}, was ${money(c.was)} now ${money(c.now)} (send by ${shortDate(c.ends)})</option>`).join("")}</select>
+    <select id="em-design"><option value="standard">${it.design === "standard" ? esc(fareOf(it).label) : `From ${money(s.price)}pp`}</option>${cl.map(c => `<option value="wasnow:${c.key}"${it.design === "wasnow:" + c.key ? " selected" : ""}>Was/now: ${esc(c.label)}, was ${money(c.was)} now ${money(c.now)} (send by ${shortDate(c.ends)})</option>`).join("")}</select>
     ${cl.length ? "" : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
+    ${it.design === "standard" ? fareBlock(it) : ""}
     <span class="ac-lab">Photo</span>${photoPicker(it.photo, "data-photo", s.photos)}
     <label class="ac-lab" for="em-caption">Location caption <span class="sub">(optional: check it matches the photo)</span></label>
     <input id="em-caption" value="${esc(it.caption)}" placeholder="e.g. Bridgetown, Barbados" maxlength="40">
@@ -402,6 +429,17 @@ function itemEditor(){
     ${em.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked, so this shows its first ${Math.min(2, s.k.promos.length)}. Untick it to choose.</p>` : ""}
     ${ends.length ? `<p class="ac-note">${ends.map(([b, d]) => `"${esc(badgeText(b))}" ends ${shortDate(d)}`).join("; ")}: check it's still on when the email goes out.</p>` : ""}
   </div>`;
+}
+function fareBlock(it){
+  const f = fareOf(it), solo = onSale(it.id, "solo"), grades = onSale(it.id, f.fare);
+  const cheapest = f.fare === "solo" ? Math.min(...Object.values(solo)) : sailing(it.id).price;
+  return `<div class="ac-row" role="group" aria-label="Fare"><span class="ac-lab">Fare</span>
+      <button type="button" class="ac-seg" data-fare="twin" aria-pressed="${f.fare === "twin"}">Twin (2 sharing)</button>
+      <button type="button" class="ac-seg" data-fare="solo" aria-pressed="${f.fare === "solo"}"${Object.keys(solo).length ? "" : " disabled title=\"No solo cabins on sale\""}>Solo</button></div>
+    <label class="ac-lab" for="em-grade">Cabin</label>
+    <select id="em-grade"><option value="">Cheapest available (${money(cheapest)})</option>
+      ${Object.entries(GRADE).filter(([g]) => grades[g] != null).map(([g, n]) => `<option value="${g}"${f.grade === g ? " selected" : ""}>${n} (${money(grades[g])})</option>`).join("")}</select>
+    <p class="sub">Button: <b>${esc(f.label)}</b>${f.fare === "solo" ? " · links to the solo fares" : ""}</p>`;
 }
 const addDays = (iso, n) => new Date(Date.parse(iso + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
 function draw(){
@@ -590,6 +628,8 @@ function wire(){
   if (cur) {
     root.querySelectorAll("[data-layout]").forEach(b => b.addEventListener("click", () => { cur.layout = b.dataset.layout; change(true); }));
     $("#em-design").addEventListener("change", e => { cur.design = e.target.value; change(true); });
+    root.querySelectorAll("[data-fare]").forEach(b => b.addEventListener("click", () => { cur.fare = b.dataset.fare; cur.grade = ""; change(true); }));
+    $("#em-grade") && $("#em-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
     root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { cur.photo = b.dataset.photo; change(true); }));
     $("#em-hint") && $("#em-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });
     root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {

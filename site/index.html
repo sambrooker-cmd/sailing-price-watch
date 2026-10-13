@@ -1720,6 +1720,11 @@ const auth = getAuth(firebaseApp);
     runs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     rules: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8"/>',
   };
+  // Pages shown only to some signed-in people (Sam, 13 Oct 2026: the Email creator is hidden for everyone else
+  // for now). This only hides the menu entry; it isn't a lock (everyone signed in is on the allowlist anyway).
+  const ONLY = {email: ["sam.brooker@ambassadorcruiseline.com"]};
+  let me = "";
+  const mayView = v => !ONLY[v] || ONLY[v].includes(me.toLowerCase());
   // Grouped (Sam, 13 Oct 2026: "tidy up the nav"): prices, then making ads, then the checks behind them.
   const VIEWS = [
     ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"], "Prices"],
@@ -1729,7 +1734,7 @@ const auth = getAuth(firebaseApp);
     ["cards", "Cards", ["h-cards"], "Creative"],
     ["ads", "Ad creator", ["h-ads"], "Creative"],
     ["ecards", "Email cards", ["h-ecards"], "Creative"],
-    // ["email", "Email creator", ["h-email"], "Creative"],   // hidden for now (Sam, 13 Oct 2026)
+    ["email", "Email creator", ["h-email"], "Creative"],   // only for the people in ONLY.email
     ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
     ["runs", "Check history", ["h-runs"], "Checks"],
     ["rules", "Was/now rules", ["h-rules"], "Checks"],
@@ -1737,10 +1742,12 @@ const auth = getAuth(firebaseApp);
    .filter(v => v[2].length);
   $("sidenav").innerHTML = VIEWS.map(([id, label, , grp], i) =>
     (i === 0 || VIEWS[i - 1][3] !== grp ? `<p class="grp" aria-hidden="true">${grp}</p>` : "") +
-    `<button type="button" data-view="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[id]}</svg><span class="lbl">${label}</span><span class="n" id="nav-${id}"></span></button>`).join("");
-  let view = "overview";
-  try { const v = localStorage.getItem("spw-view"); if (VIEWS.some(x => x[0] === v)) view = v; } catch(e){}
+    `<button type="button" data-view="${id}"${ONLY[id] ? " hidden" : ""}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[id]}</svg><span class="lbl">${label}</span><span class="n" id="nav-${id}"></span></button>`).join("");
+  let view = "overview", wanted = "overview";
+  try { const v = localStorage.getItem("spw-view"); if (VIEWS.some(x => x[0] === v)) wanted = v; } catch(e){}
+  view = mayView(wanted) ? wanted : "overview";
   function showView(v, scroll = true){
+    if (!mayView(v)) v = "overview";
     view = v;
     for (const [id, , secs] of VIEWS) secs.forEach(s => s.hidden = id !== v);
     document.querySelectorAll("#sidenav button").forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
@@ -1755,6 +1762,12 @@ const auth = getAuth(firebaseApp);
   }
   $("sidenav").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) showView(b.dataset.view); });
   showView(view, false);
+  // After sign-in: show the pages this person may see, and go back to the one they had open
+  function applyAccess(email){
+    me = email || "";
+    document.querySelectorAll("#sidenav button[data-view]").forEach(b => { if (ONLY[b.dataset.view]) b.hidden = !mayView(b.dataset.view); });
+    if (wanted !== view && mayView(wanted)) showView(wanted, false);
+  }
   function updateCounts(){
     // Counts only where the number is worth seeing before opening the page (Sam, 13 Oct 2026)
     const n = {
@@ -1880,6 +1893,7 @@ const auth = getAuth(firebaseApp);
       return;
     }
     $("gate").hidden = true; $("app").hidden = false;
+    applyAccess(user.email);
     render();
     fromHash();
     if (view === "ads") mountAds();
