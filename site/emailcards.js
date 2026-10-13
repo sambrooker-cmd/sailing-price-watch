@@ -13,12 +13,12 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
 const KEY = "spw-email-cards";
-const MAX = 24;
+const MAX = 1;   // one sailing at a time (Sam, 13 Oct 2026)
 // Sizes and type measured from the team's HubSpot pictures (13 Oct 2026)
 const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across tiles", w: 1200, h: 924, badge: 44, cap: 46},
                wide: {label: "Wide", note: "2400 × 924, for full-width sailings", w: 2400, h: 924, badge: 44, cap: 46}};
 
-let ID = null, S, KIT, root, today, st = fresh(), sel = 0, note = "";
+let ID = null, S, KIT, CAB = {}, root, today, st = fresh(), sel = 0, note = "";
 function fresh(){ return {items: [], allBadges: false, sizes: {standard: true, wide: true}, kinds: {card: true, pic: false}}; }
 // What to make (Sam, 13 Oct 2026: "the whole card to pop into HubSpot"): the whole card (picture, words and
 // price button, as in the emails, one PNG) and/or the picture on its own. Outputs are "<size>" or "<size>-card".
@@ -28,8 +28,10 @@ const outLabel = o => SIZES[o.split("-")[0]].label + (o.endsWith("-card") ? " ca
 
 export async function mount(el, ctx){
   root = el; ID = ctx.idToken || null; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated;
+  CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
-  st.items = st.items.filter(it => sailing(it.id)).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
+  st.allBadges = false;   // one sailing at a time: offers are picked on the sailing itself
+  st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
   draw();
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} };
@@ -58,19 +60,44 @@ function pickPhoto(s){
   if (!s.k.campaign && !CAMPAIGN.test(s.image)) return s.image;
   return s.photos.find(u => u !== s.image && !CAMPAIGN.test(u) && captionHint(u)) || s.photos.find(u => u !== s.image && !CAMPAIGN.test(u)) || s.image;
 }
+// Fare and cabin (Sam, 13 Oct 2026): twin or solo, the cheapest cabin or a chosen grade. Prices are the
+// tracker's saved per-grade prices (state/cabins.json "twin.<grade>" / "solo.<grade>", latest segment, not
+// sold out); the twin "cheapest" is the sailing's own lead price. Never typed in.
+const GRADES = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+function onSale(id, fare){   // {grade: price} on sale now
+  const out = {};
+  for (const [k, c] of Object.entries((CAB[id] || {}).cabins || {})) {
+    const [f, g] = k.split(".");
+    if (f === fare && GRADES[g] && !c.out && c.seg && c.seg.length) out[g] = c.seg[c.seg.length - 1].p;
+  }
+  return out;
+}
+function fareOf(it){   // {fare, grade, price, label, basis} for what's chosen, falling back if it's no longer on sale
+  const s = sailing(it.id), fare = it.fare === "solo" ? "solo" : "twin", grades = onSale(it.id, fare);
+  let grade = it.grade && grades[it.grade] != null ? it.grade : "", price;
+  if (grade) price = grades[grade];
+  else if (fare === "twin") price = s.price;
+  else { const best = Object.entries(grades).sort((a, b) => a[1] - b[1])[0]; if (best) { price = best[1]; } }
+  const basis = fare === "solo" ? "for one guest travelling solo" : "per person, based on two sharing";
+  if (price == null) return {fare, grade, price: null, label: "", basis};
+  const label = fare === "solo" ? `Solo ${grade ? GRADES[grade].toLowerCase() + " " : "pricing "}from ${money(price)}`
+                                : `${grade ? GRADES[grade] + " from" : "From"} ${money(price)}pp`;
+  return {fare, grade, price, label, basis};
+}
 // The words that go under the picture in the email, as in the team's emails
 function words(it){
-  const s = sailing(it.id);
+  const s = sailing(it.id), f = fareOf(it);
   return {title: s.title.toUpperCase(), date: longDate(s.r.departure_date),
           nights: `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
-          button: `From ${money(s.price)}pp`, link: s.link};
+          button: f.label || `From ${money(s.price)}pp`, link: s.link + (f.fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""), basis: f.basis};
 }
 // File name in the team's style: "<Caption> - Standard (<offers>).png", or the cruise code when there's no caption
 function fileName(it, out){
   const size = out.split("-")[0], card = out.endsWith("-card");
   const base = (it.caption.trim() || `${it.id} ${sailing(it.id).title}`).replace(/[\\/:*?"<>|]+/g, "").slice(0, 60);
-  const offers = badgesOf(it).map(badgeText);
-  return `${base} - ${SIZES[size].label}${card ? " card" : ""}${offers.length ? ` (${offers.join(", ").replace(/[\\/:*?"<>|]+/g, "").slice(0, 60)})` : ""}.png`;
+  const f = fareOf(it), fare = f.fare === "solo" || f.grade ? [`${f.grade ? GRADES[f.grade] + " " : ""}${f.fare}`.trim()] : [];
+  const tags = [...fare, ...badgesOf(it).map(badgeText)];
+  return `${base} - ${SIZES[size].label}${card ? " card" : ""}${tags.length ? ` (${tags.join(", ").replace(/[\\/:*?"<>|]+/g, "").slice(0, 70)})` : ""}.png`;
 }
 
 // ---------- pictures, made in the browser ----------
@@ -207,12 +234,11 @@ function draw(){
         <div id="ec-results" class="ac-results"></div>
       </div>
       <div class="ac-block">
-        <h3>Sailings (${it.length})</h3>
+        <h3>Sailing</h3>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
-          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}</span></button>
+          <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}</span></button>
           <span class="ac-strips"></span>
-          <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and add the sailings you need pictures for.</p>`}
-        <label class="ac-check"><input type="checkbox" id="ec-all"${st.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
+          <span class="ac-ord"><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and pick the sailing to make a card for. Picking another one replaces it.</p>`}
         <span class="ac-lab">Sizes</span>
         ${Object.entries(SIZES).map(([k, z]) => `<label class="ac-check"><input type="checkbox" data-size="${k}"${st.sizes[k] ? " checked" : ""}> ${z.label} <span class="sub">(${z.note})</span></label>`).join("")}
         <span class="ac-lab">Download</span>
@@ -241,10 +267,23 @@ function draw(){
   wire();
   paint();
 }
+function fareBlock(it){
+  const f = fareOf(it), twin = onSale(it.id, "twin"), solo = onSale(it.id, "solo"), grades = f.fare === "solo" ? solo : twin;
+  const cheapest = f.fare === "solo" ? Math.min(...Object.values(solo)) : sailing(it.id).price;
+  return `<div class="ac-row" role="group" aria-label="Fare"><span class="ac-lab">Fare</span>
+      <button type="button" class="ac-seg" data-fare="twin" aria-pressed="${f.fare === "twin"}">Twin (2 sharing)</button>
+      <button type="button" class="ac-seg" data-fare="solo" aria-pressed="${f.fare === "solo"}"${Object.keys(solo).length ? "" : " disabled title=\"No solo cabins on sale\""}>Solo</button></div>
+    <label class="ac-lab" for="ec-grade">Cabin</label>
+    <select id="ec-grade"><option value="">Cheapest available${Object.keys(grades).length || f.fare === "twin" ? ` (${money(cheapest)})` : ""}</option>
+      ${Object.entries(GRADES).filter(([g]) => grades[g] != null).map(([g, n]) => `<option value="${g}"${f.grade === g ? " selected" : ""}>${n} (${money(grades[g])})</option>`).join("")}</select>
+    ${it.grade && !f.grade ? `<p class="ac-note">${esc(GRADES[it.grade] || it.grade)} cabins aren't on sale for this fare now, so the card uses the cheapest.</p>` : ""}
+    <p class="sub">Button: <b>${esc(f.label || "no price on sale")}</b> · prices ${esc(f.basis)}, as checked ${shortDate(today)}.</p>`;
+}
 function editor(it){
   const s = sailing(it.id), hint = captionHint(it.photo);
   return `<div class="ac-block">
-    <h3>${sel + 1}. ${esc(s.title)}</h3>
+    <h3>${esc(s.title)}</h3>
+    ${fareBlock(it)}
     <span class="ac-lab">Photo</span>
     <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>
     <label class="ac-lab" for="ec-caption">Location caption <span class="sub">(check it matches the photo)</span></label>
@@ -265,7 +304,7 @@ async function paint(){
 }
 let typing;
 function change(redraw){ save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(draw, 500); } }
-const copyText = it => { const w = words(it); return [w.title, w.date, w.nights, w.ship, `${w.button}: ${w.link}`].join("\n"); };
+const copyText = it => { const w = words(it); return [w.title, w.date, w.nights, w.ship, `${w.button}: ${w.link}`, `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.)`].join("\n"); };
 function wire(){
   const $ = q => root.querySelector(q);
   const find = $("#ec-find"), res = $("#ec-results");
@@ -274,13 +313,13 @@ function wire(){
     if (q.length < 2) { res.innerHTML = ""; return; }
     const hits = live().filter(([id, r]) => [id, r.title, r.base_title, r.port, r.flight_from, r.ship].join(" ").toLowerCase().includes(q))
       .sort((a, b) => a[1].departure_date.localeCompare(b[1].departure_date)).slice(0, 8);
-    res.innerHTML = hits.length ? hits.map(([id, r]) => `<button type="button" data-add="${esc(id)}"${st.items.some(x => x.id === id) || st.items.length >= MAX ? " disabled" : ""}><b>${esc(r.flight_from ? r.base_title : r.title)}</b><span class="sub">${esc(id)} · ${shortDate(r.departure_date)} · ${r.flight_from ? "Fly from " + esc(r.flight_from) : esc(r.port)} · ${money(r.segments[r.segments.length - 1].p)}</span></button>`).join("")
+    res.innerHTML = hits.length ? hits.map(([id, r]) => `<button type="button" data-add="${esc(id)}"${st.items.some(x => x.id === id) ? " disabled" : ""}><b>${esc(r.flight_from ? r.base_title : r.title)}</b><span class="sub">${esc(id)} · ${shortDate(r.departure_date)} · ${r.flight_from ? "Fly from " + esc(r.flight_from) : esc(r.port)} · ${money(r.segments[r.segments.length - 1].p)}</span></button>`).join("")
       : `<p class="sub">No sailings on sale match.</p>`;
   });
   res.addEventListener("click", e => {
-    const b = e.target.closest("[data-add]"); if (!b || st.items.length >= MAX) return;
+    const b = e.target.closest("[data-add]"); if (!b) return;
     const s = sailing(b.dataset.add), photo = pickPhoto(s);
-    st.items.push({id: s.id, photo, caption: "", badges: []}); sel = st.items.length - 1;
+    st.items = [{id: s.id, photo, caption: "", badges: [], fare: "twin", grade: ""}]; sel = 0;
     change(true); root.querySelector("#ec-find").focus();
   });
   root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
@@ -290,12 +329,14 @@ function wire(){
   root.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", () => move(+b.dataset.down, +b.dataset.down + 1)));
   root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { st.items.splice(+b.dataset.del, 1); sel = Math.max(0, Math.min(sel, st.items.length - 1)); change(true); }));
   // Off means no badges until chosen per sailing (Sam, 13 Oct 2026: the toggle didn't turn them off)
-  $("#ec-all").addEventListener("change", e => { st.allBadges = e.target.checked; if (!st.allBadges) st.items.forEach(x => { x.badges = []; }); change(true); });
+  $("#ec-all") && $("#ec-all").addEventListener("change", e => { st.allBadges = e.target.checked; if (!st.allBadges) st.items.forEach(x => { x.badges = []; }); change(true); });
   root.querySelectorAll("[data-size]").forEach(b => b.addEventListener("change", () => { st.sizes[b.dataset.size] = b.checked; change(true); }));
   root.querySelectorAll("[data-kind]").forEach(b => b.addEventListener("change", () => { st.kinds[b.dataset.kind] = b.checked; change(true); }));
   const cur = st.items[sel];
   if (cur) {
     root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { cur.photo = b.dataset.photo; change(true); }));
+    root.querySelectorAll("[data-fare]").forEach(b => b.addEventListener("click", () => { cur.fare = b.dataset.fare; cur.grade = ""; change(true); }));
+    $("#ec-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
     $("#ec-caption").addEventListener("input", e => { cur.caption = e.target.value; change(false); });
     $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });
     root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {
@@ -331,7 +372,7 @@ function wire(){
       const blocks = await htmlFor(list);
       const page = `<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Email cards ${today}</title></head>
 <body style="margin:0;background:#F1ECE7">
-<!-- Email cards from the price tracker, prices as checked ${shortDate(today)} (per person, based on two sharing, subject to availability).
+<!-- Email cards from the price tracker, prices as checked ${shortDate(today)}, subject to availability (${esc(st.items.map(x => words(x).basis).filter((v, i, a) => a.indexOf(v) === i).join("; "))}).
      Copy one card's block (from its comment to the end of its table) into HubSpot. Pictures are kept online for 90 days. -->
 <div style="max-width:600px;margin:0 auto;padding:20px 0">
 ${blocks.join("\n\n")}
@@ -348,7 +389,7 @@ async function zip(){
   try {
     const JSZip = await loadZip(), z = new JSZip(), sizes = outputs(), used = new Set();
     const rows = [["#", "Cruise code", "Name", "Date", "Nights and departure", "Ship", "Button", "Link", ...sizes.map(outLabel)]];
-    const text = [`Email card text, prices as checked ${shortDate(today)} (per person, based on two sharing, subject to availability)`, ""];
+    const text = [`Email card text, prices as checked ${shortDate(today)}, subject to availability`, ""];
     let n = 0;
     for (const [i, it] of st.items.entries()) {
       const names = [];
