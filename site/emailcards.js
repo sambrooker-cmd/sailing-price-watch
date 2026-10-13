@@ -113,7 +113,8 @@ function cardDoc(it, size){
     .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
     .bs{position:absolute;top:20px;right:0;display:flex;flex-direction:column;align-items:flex-end;gap:14px}
     .b{background:#F68C4E;color:#fff;font-weight:700;text-transform:uppercase;font-size:${z.badge}px;line-height:1;letter-spacing:.01em;padding:38px 52px}
-    .c{position:absolute;left:0;bottom:0;background:rgba(27,27,32,.86);color:#fff;font-weight:600;font-size:${z.cap}px;line-height:1;padding:25px 40px}</style>${RUNTIME}</head>
+    .c{position:absolute;left:0;bottom:0;background:rgba(27,27,32,.86);color:#fff;font-weight:600;font-size:${z.cap}px;line-height:1;padding:25px 75px 25px 40px;
+      clip-path:polygon(0 0,calc(100% - 35px) 0,100% 100%,0 100%)}   /* right edge at the brand's 20° slant: 96 px tall × tan 20° ≈ 35 px (Sam, 13 Oct 2026) */</style>${RUNTIME}</head>
     <body><div id="card"><img class="ph" crossorigin="anonymous" src="${esc(cropUrl(it.photo || s.image, z.w, z.h))}">
     <div class="bs">${badgesOf(it).map(b => `<div class="b">${esc(badgeText(b))}</div>`).join("")}</div>
     ${it.caption.trim() ? `<div class="c">${esc(it.caption.trim())}</div>` : ""}</div></body></html>`;
