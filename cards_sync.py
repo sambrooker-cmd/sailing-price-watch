@@ -78,7 +78,8 @@ def fingerprint(s):
 
 
 def cardable(s, today):
-    return ("page_error" not in s and s.get("departure_date") and s["departure_date"] > today
+    # price_source "feed": the page's prices couldn't be read, so keep the cards as they are
+    return ("page_error" not in s and s.get("price_source") != "feed" and s.get("departure_date") and s["departure_date"] > today
             and s.get("image_link") and s.get("price_pp"))
 
 

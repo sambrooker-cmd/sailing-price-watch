@@ -81,7 +81,7 @@ def safety_problems(state, snap):
 
 # Lists of things that happened in one check: added to the day's file.
 EVENTS = ("new", "removed", "returned", "drops", "rises", "cabin_drops", "cabin_rises", "cabin_sold_out",
-          "cabin_back", "promo_added", "promo_ended", "promo_changed", "nectar_changes")
+          "cabin_back", "promo_added", "promo_ended", "promo_changed", "nectar_changes", "lead_source_switch")
 
 
 def claim_key(e):
@@ -134,6 +134,10 @@ def summarise(run_doc, snap, today, cards, with_cards=True, reported=frozenset()
     if nq:
         other.append("Drops that don't qualify: " + ", ".join(
             f"{d['id']} {money(d['from'])}→{money(d['to'])} ({(d.get('claim') or {}).get('reason', '')})" for d in nq))
+    if run_doc.get("lead_source_switch"):
+        other.append("From prices now read from the web pages instead of the ad feed (not price changes; these "
+                     "sailings' reference periods start again today): " + ", ".join(
+            f"{d['id']} feed {money(d['from'])}, page {money(d['to'])}" for d in run_doc["lead_source_switch"]))
     if run_doc["rises"]:
         other.append("Rises: " + ", ".join(f"{d['id']} {money(d['from'])}→{money(d['to'])}" for d in run_doc["rises"]))
     if run_doc["cabin_drops"]:

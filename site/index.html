@@ -645,11 +645,13 @@ const auth = getAuth(firebaseApp);
 
   function status(s, today, rules){
     if (s.removed) return {cls:"bad", label:"Left the feed " + fmtDate(s.removed), rank:4};
-    const c = s.claim;
+    const segs = s.segments; const cur = segs[segs.length-1];
+    // "switch": the from price moved when it started coming from the web page instead of the ad feed
+    // (13 Oct 2026). Not a drop or a rise: just a new reference period.
+    const c = cur.switch ? null : s.claim;
     if (c && c.eligible) return {cls:"good", label:"Was/now until " + fmtDate(c.ends), rank:0};
     if (c && !c.eligible) return {cls:"warn", label:"Dropped, not eligible", title:c.reason, rank:1};
-    const segs = s.segments; const cur = segs[segs.length-1];
-    if (segs.length > 1 && cur.p > segs[segs.length-2].p) return {cls:"warn", label:"Price rose " + fmtDate(cur.from), rank:2};
+    if (segs.length > 1 && cur.p > segs[segs.length-2].p && !cur.switch) return {cls:"warn", label:"Price rose " + fmtDate(cur.from), rank:2};
     const held = daysBetween(cur.from, today);
     const need = rules.min_reference_days;
     if (held < need) return {cls:"watch", label:`Watching · day ${held+1} of ${need}`, rank:3};
@@ -941,8 +943,10 @@ const auth = getAuth(firebaseApp);
       lines.push(`This sailing left the feed on ${fmtDate(s.removed)}. Its last price was ${fmtGBP(cur.p)}.`);
       return {cls, lines};
     }
-    const c = s.claim;
-    if (c && c.eligible){
+    const c = cur.switch ? null : s.claim;
+    if (cur.switch){
+      lines.push(`On ${fmtDate(cur.from)} the from price started coming from the sailing's web page instead of the ad feed, which said ${fmtGBP(prev.p)}. The page's price is ${fmtGBP(cur.p)}. That isn't a price change, so the reference period starts again from that day.`);
+    } else if (c && c.eligible){
       cls = "good";
       lines.push(`Ready for was/now: was ${fmtGBP(c.was)}, now ${fmtGBP(c.now)} (save ${fmtGBP(c.was - c.now)}).`);
       lines.push(`The price dropped on ${fmtDate(c.since)} after the earlier price had been on sale for ${c.held_days} days. The claim can run until ${fmtDate(c.ends)}.`);
@@ -980,6 +984,7 @@ const auth = getAuth(firebaseApp);
     for (let i = 1; i < segs.length; i++){
       const a = segs[i-1], b = segs[i], dn = b.p < a.p;
       let note = "";
+      if (b.switch){ out.push({d: b.from, k: 1, t: `From price now read from the web page: ${fmtGBP(b.p)} (the ad feed said ${fmtGBP(a.p)})`, n: "Not a price change. Starts a fresh reference period."}); continue; }
       if (a.c && b.c && a.c !== b.c) note = dn ? `A cheaper cabin grade came on sale (${GRADE[a.c]} → ${GRADE[b.c]}). Not a price cut.` : `The cheapest grade on sale changed (${GRADE[a.c]} → ${GRADE[b.c]}).`;
       out.push({d: b.from, k: 1, t: `From price <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`, n: note});
     }

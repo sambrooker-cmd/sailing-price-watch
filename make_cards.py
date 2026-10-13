@@ -47,6 +47,8 @@ def main():
             problems.append(f"{c}: not in today's ad feed")
         elif "page_error" in s:
             problems.append(f"{c}: its booking page didn't load ({s['page_error']})")
+        elif s.get("price_source") == "feed":
+            problems.append(f"{c}: its booking page's prices couldn't be read")
         elif not s.get("departure_date"):
             problems.append(f"{c}: no departure date on its booking page")
         elif s["departure_date"] <= today:

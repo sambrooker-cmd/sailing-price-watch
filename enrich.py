@@ -206,11 +206,22 @@ def main(day):
             "flight_from": ("Heathrow" if "Heathrow" in r["title"] else "Manchester") if fly else None,
             "ship": SHIPS.get(sid[:2].upper()),
             "port": port, "nights": nights, "blurb": blurb,
-            "price_pp": float(amt), "currency": cur,
+            "price_pp": float(amt), "currency": cur, "feed_price_pp": float(amt),
             "link": r["link"], "image_link": r["image_link"],
             "availability": r["availability"],
             **p,
         }
+        # The "from" price is the cheapest twin cabin on the sailing's own page, read every check (Sam,
+        # 13 Oct 2026: the feed can lag the website). price_source says where price_pp came from:
+        #   page   cheapest twin cabin on the page
+        #   solo   page read, but no twin cabin on sale: the feed's price (a solo price), as before
+        #   feed   the page's prices couldn't be read: the feed's price; tracker.py keeps the last
+        #          "from" price instead, and cards_sync.py leaves the cards as they are
+        tw = (s.get("cabins") or {}).get("twin") or {}
+        if tw and "page_error" not in s:
+            s["price_pp"], s["price_source"] = float(min(tw.values())), "page"
+        else:
+            s["price_source"] = "solo" if s.get("cabins") and "page_error" not in s else "feed"
         if s.get("nectar"):
             s["nectar_pts"] = nectar_headline(s)
         flags = []
@@ -222,13 +233,13 @@ def main(day):
         # port on a fly-cruise is legitimate — no flag.
         if not s.get("departure_date"):
             flags.append("no departure date found")
-        tw = (s.get("cabins") or {}).get("twin") or {}
         if "cabins" not in s and "page_error" not in s:
             flags.append("no cabin prices found on the landing page")
         elif not tw and (s.get("cabins") or {}).get("solo"):
             flags.append("no twin cabins on sale; the feed price is a solo price")
-        elif tw and min(tw.values()) != s["price_pp"]:
-            flags.append(f"feed price {money(s['price_pp'])} differs from cheapest cabin on the page {money(min(tw.values()))}")
+        elif tw and min(tw.values()) != s["feed_price_pp"]:
+            flags.append(f"feed price {money(s['feed_price_pp'])} differs from cheapest cabin on the page "
+                         f"{money(min(tw.values()))} (the page price is used)")
         if re.search(r"(cotw|dig-\d|carousel|boom-radio|back_to_90s)", r["image_link"], re.I):
             flags.append("feed image looks like campaign art (may contain text)")
         s["flags"] = flags
