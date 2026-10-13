@@ -100,6 +100,15 @@ def is_light(css):
     return 0.299 * r + 0.587 * g + 0.114 * b > 160
 
 
+def matched_css(top_c):
+    """Standard cards with campaign artwork: plain matched colours instead of the blurred copy; the logo
+    turns Allium on a light top colour (the whiteout logo needs a dark ground)."""
+    css = ".artbg{inset:0;filter:none}.art{box-shadow:none}.scrim{display:none}"
+    if is_light(top_c):
+        css += ".logo svg path{fill:#6B207D!important}"
+    return css
+
+
 def campaign_css(top_c, top):
     """Was/now cards with campaign artwork: plain matched colours, smaller corner sticker."""
     css = (".artbg{position:absolute;inset:0;filter:none}.art{box-shadow:none}.scrim{display:none}"
@@ -309,10 +318,13 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None, campaign=None):
     else:
         fare = f"""
         <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>"""
+    top_c = bot_c = None
     if campaign:
+        # Campaign artwork whole, on plain colours from its own top and bottom edges (Sam, 13 Oct 2026,
+        # as on was/now cards; replaced the blurred copy of the artwork).
         art = photo_whole(s["image_link"], s["id"], w)
-        art_html = (f'<div class="artbg" style="background-image:url({art})"></div>'
-                    f'<img class="art" id="art" src="{art}" alt="">')
+        top_c, bot_c = edge_colours(CACHE / f"{s['id']}_{w}x0.jpg")
+        art_html = f'<div class="artbg" id="artbg"></div><img class="art" id="art" src="{art}" alt="">'
     else:
         art_html = (f'<img class="photo" src="{photo(OVERRIDES.get(s["id"], s["image_link"]), s["id"] + ("_ov" if s["id"] in OVERRIDES else ""), w, h)}" alt="">')
     offer_html = "".join(f'<div class="strip offer"><span class="fit" data-max="27">{html.escape(t)}</span></div>' for t in promo_lines(s))
@@ -359,6 +371,7 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 .art{{position:absolute;z-index:1;left:0;width:{w}px;height:auto;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,.35)}}
 .offer{{height:76px;padding:0 60px 0 64px;background:#009165;color:#fff;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);
   font-size:27px;font-weight:700}}
+{matched_css(top_c) if campaign else ""}
 </style></head><body><div id="card">
 {art_html}
 <div class="scrim"></div>
@@ -405,8 +418,11 @@ function fit(){{
     const ratio = art.naturalHeight / art.naturalWidth, room = bot - top;
     let aw = W, ah = W * ratio;
     if (ah > room) {{ ah = room; aw = ah / ratio; }}
+    const y = top + (room - ah) / 2;
     art.style.width = aw + 'px'; art.style.height = ah + 'px';
-    art.style.left = (W - aw) / 2 + 'px'; art.style.top = (top + (room - ah) / 2) + 'px';
+    art.style.left = (W - aw) / 2 + 'px'; art.style.top = y + 'px';
+    document.getElementById('artbg').style.background =
+      `linear-gradient(to bottom, {top_c} 0, {top_c} ${{y + ah}}px, {bot_c} ${{y + ah}}px, {bot_c} 100%)`;
   }}
 }}
 </script>

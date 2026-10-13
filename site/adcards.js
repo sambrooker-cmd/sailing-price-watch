@@ -70,14 +70,41 @@ window.ready = async () => {
 window.toJpeg = () => htmlToImage.toJpeg(document.getElementById('card'), {quality: .92, pixelRatio: 1, cacheBust: false});
 <\/script>`;
 
+// Campaign artwork background: the most common colour along the artwork's top and bottom edges
+// (render_cards.py edge_colours), split straight at the artwork's bottom; Allium logo on a light top.
+const EDGES = `
+let topC = null, botC = null;
+window.prep = () => {
+  const art = document.getElementById('art'); if (!art) return;
+  const c = document.createElement('canvas'), W = c.width = art.naturalWidth, H = c.height = art.naturalHeight, x = c.getContext('2d');
+  x.drawImage(art, 0, 0);
+  const mode = (y0, y1) => {
+    const n = {}, d = x.getImageData(0, y0, W, y1 - y0).data;
+    for (let i = 0; i < d.length; i += 8) { const k = (d[i] / 24 | 0) + ',' + (d[i + 1] / 24 | 0) + ',' + (d[i + 2] / 24 | 0); (n[k] = n[k] || [0, 0, 0, 0]); n[k][0]++; n[k][1] += d[i]; n[k][2] += d[i + 1]; n[k][3] += d[i + 2]; }
+    const b = Object.values(n).sort((a, b) => b[0] - a[0])[0];
+    return [b[1] / b[0] | 0, b[2] / b[0] | 0, b[3] / b[0] | 0];
+  };
+  topC = mode(0, Math.min(6, H)); botC = mode(Math.max(0, H - 6), H);
+  if (0.299 * topC[0] + 0.587 * topC[1] + 0.114 * topC[2] > 160) {
+    document.querySelector('.logo').style.filter = 'none';
+    document.querySelectorAll('.logo svg path').forEach(p => p.style.fill = '#6B207D');
+  }
+};
+function paintEdges(split){
+  const bg = document.getElementById('artbg'); if (!bg || !topC) return;
+  const rgb = c => 'rgb(' + c.join(',') + ')';
+  bg.style.background = 'linear-gradient(to bottom, ' + rgb(topC) + ' 0, ' + rgb(topC) + ' ' + split + 'px, ' + rgb(botC) + ' ' + split + 'px, ' + rgb(botC) + ' 100%)';
+}`;
+
 function standard(d, w, h, LOGO){
   const story = h / w >= 1.7, top = story ? Math.round(h * 0.14) : 0, bottom = story ? Math.round(h * 0.20) + 24 : 64;
   const fly = d.fly, words = {...defaultWords(d.title), ...(d.words || {})};
   const [badgeIcon, b1, b2] = fly ? [PLANE_ICON, `Fly-cruise on ${d.ship}`, `Flights from ${fly}`] : [SHIP_ICON, `No-fly on ${d.ship}`, `from ${d.port}`];
   const date = d.departure_date ? niceDate(d.departure_date) : "";
   const fare = `<div class="fare-row"><span class="from">From</span><span class="big">${money(d.price)}</span><span class="pp">pp</span></div>`;
+  // Campaign artwork whole, on plain colours from its own top and bottom edges (render_cards.py matched_css, 13 Oct 2026).
   const art = d.campaign
-    ? `<div class="artbg" style="background-image:url('${wholeUrl(d.photo, w)}')"></div><img class="art" id="art" crossorigin="anonymous" src="${wholeUrl(d.photo, w)}" alt="">`
+    ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${wholeUrl(d.photo, w)}" alt="">`
     : `<img class="photo" crossorigin="anonymous" src="${cropUrl(d.photo, w, h)}" alt="">`;
   const offers = (d.promos || []).map(t => `<div class="strip offer"><span class="fit" data-max="27">${esc(t)}</span></div>`).join("");
   const nectar = d.nectar ? `<div class="strip nectar"><span class="fit" data-max="27">${esc(d.nectar)}</span></div>` : "";
@@ -113,6 +140,7 @@ html,body{width:${w}px;height:${h}px;background:#380843;overflow:hidden}
 .artbg{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}
 .art{position:absolute;z-index:1;left:0;width:${w}px;height:auto;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .offer{height:76px;padding:0 60px 0 64px;background:#009165;color:#fff;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);font-size:27px;font-weight:700}
+${d.campaign ? ".artbg{inset:0;filter:none}.art{box-shadow:none}.scrim{display:none}" : ""}
 </style></head><body><div id="card">
 ${art}
 <div class="scrim"></div>
@@ -129,6 +157,7 @@ ${art}
 </div>
 </div>
 <script>
+${EDGES}
 function fit(){
   const W = ${w};
   document.querySelectorAll('.fit').forEach(el => {
@@ -150,8 +179,10 @@ function fit(){
     const ratio = art.naturalHeight / art.naturalWidth, room = bot - top;
     let aw = W, ah = W * ratio;
     if (ah > room) { ah = room; aw = ah / ratio; }
+    const y = top + (room - ah) / 2;
     art.style.width = aw + 'px'; art.style.height = ah + 'px';
-    art.style.left = (W - aw) / 2 + 'px'; art.style.top = (top + (room - ah) / 2) + 'px';
+    art.style.left = (W - aw) / 2 + 'px'; art.style.top = y + 'px';
+    paintEdges(y + ah);
   }
 }
 </script>${RUNTIME}

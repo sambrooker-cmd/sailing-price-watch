@@ -68,7 +68,8 @@ def on_card(s):
         "price": round(s["price_pp"]), "promos": rc.promo_lines(s), "nectar": rc.nectar_line(s),
         "photo": rc.OVERRIDES.get(s["id"], s.get("image_link")),
         # only present for campaign artwork, so adding it didn't change every other card's fingerprint
-        **({"layout": "campaign"} if rc.is_campaign(s) else {}),
+        # "campaign-matched" (13 Oct 2026) remade just these cards when the blurred background was replaced
+        **({"layout": "campaign-matched"} if rc.is_campaign(s) else {}),
     }
 
 
@@ -95,7 +96,7 @@ def why(old, new):
     if old.get("photo") != new["photo"]:
         out.append("photo changed")
     if old.get("layout") != new.get("layout"):
-        out.append("campaign artwork shown whole")
+        out.append("campaign artwork on matched colours" if new.get("layout") == "campaign-matched" else "campaign artwork shown whole")
     if old.get("departure_date") != new["departure_date"] or old.get("nights") != new["nights"]:
         out.append("date or length changed")
     if (old.get("title"), old.get("ship"), old.get("port"), old.get("flight_from")) != \
