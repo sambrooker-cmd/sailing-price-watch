@@ -18,8 +18,12 @@ Usage:
     cabin tracking mid-day.
 
 Two price histories per sailing:
-  * the lead "from" price in the feed (segments), tagged with the cabin type
-    that sets it ("c"), and
+  * the lead "from" price (segments), tagged with the cabin type that sets
+    it ("c"). Until 13 Oct 2026 this was the ad feed's price; since then it is
+    the cheapest twin cabin on the sailing's page (enrich.py price_source).
+    The check that switched marks sailings whose price moved with the switch
+    ("switch"): not a drop or rise, and a new reference period. When a page
+    can't be read the last "from" price is kept, not the feed's. And
   * per-person prices by cabin type from the landing page (cabins), for
     twin and solo occupancy: inside, ocean_view, balcony, suite.
 
@@ -69,6 +73,8 @@ def claim_for(seg, today, rules, departure_date, like_for_like=True):
     held = days(prev["from"], cur["from"])
     base["held_days"] = held
     no = lambda why: {"eligible": False, "reason": why, **base}  # noqa
+    if cur.get("switch"):
+        return no("the from price now comes from the web page, not the ad feed; new reference period")
     if cur.get("back"):
         return no("cabin came back on sale at a lower price; new reference period")
     if like_for_like:
@@ -201,7 +207,11 @@ def update(state, snap):
            "drops": [], "rises": [], "eligible": [], "flags": {},
            "cabin_drops": [], "cabin_rises": [], "cabin_sold_out": [], "cabin_back": [],
            "cabin_eligible": [], "promo_added": [], "promo_ended": [], "promo_changed": [],
-           "nectar_changes": []}
+           "nectar_changes": [], "lead_source_switch": []}
+    # The first check reading "from" prices off the pages (13 Oct 2026) doesn't report the
+    # difference from the feed's prices as drops or rises.
+    switching = "lead_from_page_since" not in state
+    page_seen = False
     catalogue = state.get("offers", {})
     # The first run that sees promotions records what is live without
     # reporting every one of them as newly started.
@@ -211,6 +221,8 @@ def update(state, snap):
     nectar_seen = False
     for s in snap["sailings"]:
         sid, p = s["id"], round(s["price_pp"])
+        src = s.get("price_source")
+        page_seen |= src == "page"
         seen.add(sid)
         cab = s.get("cabins")
         lc = lead_cabin(p, cab)
@@ -223,7 +235,12 @@ def update(state, snap):
                 rec.pop("removed", None)
                 run["returned"].append(sid)
             last = rec["segments"][-1]
-            if p != last["p"]:
+            if src == "feed":
+                pass   # page prices unreadable this check: keep the last "from" price, don't use the feed's
+            elif switching and src == "page" and p != last["p"]:
+                rec["segments"].append({"p": p, "from": today, "c": lc, "switch": True})
+                run["lead_source_switch"].append({"id": sid, "from": last["p"], "to": p})
+            elif p != last["p"]:
                 rec["segments"].append({"p": p, "from": today, "c": lc})
                 ev = {"id": sid, "from": last["p"], "to": p}
                 if last.get("c") and lc and last["c"] != lc:
@@ -286,6 +303,10 @@ def update(state, snap):
                  "rules": rules, "sailings": sailings}
     if promos_seen and first_promos:
         run["promo_tracking_started"] = True
+    if page_seen or "lead_from_page_since" in state:
+        new_state["lead_from_page_since"] = state.get("lead_from_page_since", today)
+    if not run["lead_source_switch"]:
+        run.pop("lead_source_switch")
     if nectar_seen or "nectar_since" in state:
         new_state["nectar_since"] = state.get("nectar_since", today)
     if promos_seen or "promos_since" in state:
