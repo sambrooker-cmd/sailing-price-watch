@@ -1,13 +1,14 @@
 {
- "checked": "2026-10-12",
- "checked_at": "2026-10-12T11:44:28Z",
+ "checked": "2026-10-13",
+ "checked_at": "2026-10-13T20:48:23Z",
  "site_pages": 415,
- "feed": 221,
+ "feed": 225,
  "feed_not_on_site": [],
  "counts": {
-  "no_prices": 169,
-  "sold_out": 10,
-  "on_sale": 15
+  "not_found": 141,
+  "no_prices": 28,
+  "sold_out": 7,
+  "on_sale": 14
  },
  "on_sale_missing": [
   {
@@ -15,150 +16,875 @@
    "url": "https://www.ambassadorcruiseline.com/cruise/s261030-cruise-van-ijmuiden-naar-cura-ao/",
    "title": "Spring Escape: Caribbean to London Adventure",
    "departure_date": "2026-10-30",
+   "charter": true,
    "from_pp": 5389.93,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S261125",
    "url": "https://www.ambassadorcruiseline.com/cruise/s261125-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2026-11-25",
+   "charter": true,
    "from_pp": 2581.79,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S261202",
    "url": "https://www.ambassadorcruiseline.com/cruise/s261202-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2026-12-02",
+   "charter": true,
    "from_pp": 2707.68,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S261216",
    "url": "https://www.ambassadorcruiseline.com/cruise/s261216-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2026-12-16",
+   "charter": true,
    "from_pp": 1865.75,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
-  },
-  {
-   "id": "A22638",
-   "url": "https://www.ambassadorcruiseline.com/cruise/a22638-christmas-markets-of-holland-belgium/",
-   "title": "Christmas Markets of Holland & Belgium",
-   "departure_date": "2026-12-17",
-   "from_pp": 1019,
-   "solo_only": false,
-   "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S261225",
    "url": "https://www.ambassadorcruiseline.com/cruise/s261225-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2026-12-25",
+   "charter": true,
    "from_pp": 3462.75,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270108",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270108-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-01-08",
+   "charter": true,
    "from_pp": 1641.89,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270115",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270115-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-01-15",
+   "charter": true,
    "from_pp": 2581.79,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270127",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270127-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-01-27",
+   "charter": true,
    "from_pp": 1865.75,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270205",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270205-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-02-05",
+   "charter": true,
    "from_pp": 2280.36,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270216",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270216-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-02-16",
+   "charter": true,
    "from_pp": 2073.05,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270226",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270226-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-02-26",
+   "charter": true,
    "from_pp": 1865.75,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "S270307",
    "url": "https://www.ambassadorcruiseline.com/cruise/s270307-cura-ao-caribbean-pearls/",
    "title": "Curaçao & Caribbean Pearls",
    "departure_date": "2027-03-07",
+   "charter": true,
    "from_pp": 5597.24,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "A12705",
    "url": "https://www.ambassadorcruiseline.com/cruise/a12705-nashville-nights-authentic-no-fly-country-music-themed-cruise/",
    "title": "Nashville Nights: Authentic No-Fly Country Music Themed Cruise",
    "departure_date": "2027-03-25",
-   "from_pp": 509,
+   "charter": true,
+   "from_pp": 769,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
   },
   {
    "id": "A12824",
    "url": "https://www.ambassadorcruiseline.com/cruise/a12824-blue-suede-cruise/",
    "title": "City Charms of Scandinavia",
    "departure_date": "2028-09-14",
-   "from_pp": 839,
+   "charter": true,
+   "from_pp": 779,
    "solo_only": false,
    "offers": [],
-   "first_seen": "2026-10-12"
+   "first_seen": "2026-10-12",
+   "visitor_404": true
+  }
+ ],
+ "not_found": [
+  {
+   "id": "A12502",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12502-nordic-city-escapes/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12503",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12503-sun-kissed-mediterranean-barcelona-rome-sicily-beyond/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12504",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12504-norway-s-land-of-the-northern-lights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12505",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12505-springtime-norwegian-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12506",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12506-easter-wonders-a-journey-through-france-isles-of-scilly-ireland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12507",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12507-denmark-norway-experience/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12508",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12508-back-to-the-80s-benelux-coastal-explorer/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12510",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12510-land-of-eternal-sunshine-norway-s-6-most-beautiful-coastal-gems/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12511",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12511-scandinavian-explorer/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12512",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12512-gems-of-the-english-channel/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12513",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12513-treasures-of-scotland-and-iceland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12515",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12515-scandinavian-explorer/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12516",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12516-norway-s-fjords-multi-generational-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12517",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12517-iberian-multi-generational-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12518",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12518-french-escape/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12519",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12519-treasures-of-northern-europe/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12520",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12520-british-isles-discovery/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12521",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12521-france-portugal-spain-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12523",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12523-spain-portugal-and-canary-islands-odyssey/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12524",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12524-aurora-isles-discover-norway-s-northern-lights-the-scottish-highlands/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12525",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12525-coastal-charms-amsterdam-to-honfleur/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12526",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12526-winter-sun-treasures-of-portugal-andalusia/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12527",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12527-christmas-markets-northern-europe-escape/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12528",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12528-nordic-christmas-markets/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12531",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12531-christmas-market-voyage-hamburg-to-bruges/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12532",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12532-christmas-in-the-canaries/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12603",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12603-norwegian-arctic-adventure-northern-lights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12604",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12604-greatest-hits-radio-escape-ii/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12605",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12605-springtime-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12606",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12606-charms-of-british-isles-normandy/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12607",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12607-scandinavian-springtime-delights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12608",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12608-bank-holiday-escape-to-holland-belgium/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12609",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12609-tastes-treasures-of-france-spain-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12610",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12610-treasures-of-the-british-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12611",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12611-delights-of-canary-islands-madeira-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12612",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12612-iceland-s-land-of-ice-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12613",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12613-summertime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12614",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12614-summertime-gardens-of-the-channel-islands-northern-france/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12615",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12615-weekend-escape-to-holland-belgium/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12616",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12616-hidden-gems-of-the-baltic-sea/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12617",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12617-weekend-escape-to-holland-belgium/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12618",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12618-adventure-to-france-spain-and-the-solar-eclipse/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12619",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12619-escape-to-spain-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12620",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12620-bank-holiday-short-break-to-honfleur/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12621",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12621-treasures-of-the-british-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12622",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12622-iceland-s-land-of-ice-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12623",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12623-autumn-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12625HPTV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12625hptv-cruise-with-marti-and-tony/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A12625JMIG",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a12625jmig-cruise-with-jane-mcdonald/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22502",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22502-norway-s-land-of-the-northern-lights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22503",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22503-hidden-gems-of-france-spain-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22504",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22504-springtime-azores-madeira-north-africa/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22505",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22505-battle-of-the-bands-taste-of-ireland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22506BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22506bl-pilgrimage-and-pinot-brittany-compostela-bordeaux/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22506LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22506lv-pilgrimage-and-pinot-brittany-compostela-bordeaux/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22507BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22507bl-enchanting-shores-belgium-netherlands-normandy-and-the-isles-of-scilly/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22507LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22507lv-enchanting-shores-belgium-netherlands-normandy-and-the-isles-of-scilly/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22508LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22508lv-icelandic-discovery/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22509LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22509lv-british-isles-and-european-delights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22510BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22510br-iceland-s-land-of-ice-and-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22510FL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22510fl-iceland-s-land-of-ice-and-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22511BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22511br-marvels-of-france-portugal-and-spain/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22511FL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22511fl-marvels-of-france-portugal-and-spain/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22512BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22512br-summertime-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22512FL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22512fl-summertime-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22513BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22513br-line-aid-the-summer-of-85-revisited/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22513FL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22513fl-line-aid-the-summer-of-85-revisited/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22514DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22514dd-normandy-and-the-british-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22514NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22514nc-normandy-and-the-british-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22515DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22515dd-norway-s-fjords-multi-generational-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22515NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22515nc-norway-s-fjords-multi-generational-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22516DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22516dd-norwegian-fjord-expedition/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22516NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22516nc-norwegian-fjord-expedition/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22517DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22517dd-france-northern-spain-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22517NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22517nc-france-northern-spain-adventure/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22518DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22518dd-summertime-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22518NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22518nc-summertime-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22519DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22519dd-mysteries-of-the-northern-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22519NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22519nc-mysteries-of-the-northern-isles/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22520BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22520bl-scotland-shetlands-and-norwegian-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22520LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22520lv-scotland-shetlands-and-norwegian-fjords/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22521BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22521bl-gems-of-spain-and-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22521LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22521lv-gems-of-spain-and-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22523BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22523bl-ireland-and-normandy-experience/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22523LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22523lv-ireland-and-normandy-experience/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22525",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22525-christmas-markets-of-bruges-amsterdam/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22528",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22528-belgian-christmas-markets-in-antwerp-bruges/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22531",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22531-festive-break-to-german-christmas-markets/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22532",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22532-christmas-market-magic-with-overnight-in-antwerp/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22534",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22534-festive-tilbury-taster/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22535",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22535-sunshine-christmas-in-spain-portugal-and-morocco/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22536",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22536-winter-city-escapes-hamburg-amsterdam/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22537LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22537lv-emerald-isle-odyssey/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22539LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22539lv-liverpool-mini-cruise/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22601",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22601-enchanting-escapes-and-iberian-charm-madeira-to-morocco/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22602",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22602-spain-morocco-and-the-canary-islands/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22603",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22603-classical-mediterranean/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22604",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22604-arctic-explorer-northern-lights/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22605",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22605-back-to-the-70-s-sailing/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22606PO",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22606po-escape-to-belgium-france-holland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22607PO",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22607po-springtime-sunshine-in-portugal-spain/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22608PB",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22608pb-irish-mini-break/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22608PL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22608pl-irish-mini-break/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22609BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22609bl-springtime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22609LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22609lv-springtime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22610BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22610bl-delights-of-western-france-spain-explorer/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22610LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22610lv-delights-of-western-france-spain-explorer/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22611BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22611bl-highlights-of-devon-and-brittany/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22611LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22611lv-highlights-of-devon-and-brittany/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22612BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22612bl-coastlines-of-cornwall-northern-france/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22612LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22612lv-coastlines-of-cornwall-northern-france/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22613BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22613bl-iceland-s-land-of-ice-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22613LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22613lv-iceland-s-land-of-ice-fire/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22614BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22614bl-summertime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22614LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22614lv-summertime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22615BL",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22615bl-summertime-gardens-of-france-holland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22615LV",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22615lv-summertime-gardens-of-france-holland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22616DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22616dd-treasures-of-scandinavia-british-islands-northern-europe/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22617DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22617dd-summer-escape-to-norway/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22618DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22618dd-summertime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22619DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22619dd-hidden-gems-of-the-baltic-sea/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22620DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22620dd-2026-solar-eclipse-cruise/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22620WP",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22620wp-2026-solar-eclipse-cruise/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22621DD",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22621dd-party-night-with-ambassador/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22622NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22622nc-weekend-escape-to-amsterdam/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22623NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22623nc-summertime-fjordland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22624NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22624nc-coastlines-of-france-belgium-holland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22625NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22625nc-gateway-to-the-baltic-sea/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22626NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22626nc-decks-decades-a-70s-80s-90s-celebration-theme-cruise/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22627BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22627br-vistas-of-france-spain-portugal/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A22628BR",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22628br-coastlines-of-france-ireland/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32501",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32501-autumn-escape-london-tilbury-to-caribbean-adventure-heathrow-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32501M",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32501m-autumn-escape-london-tilbury-to-caribbean-adventure-manchester-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32503",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32503-island-wonders-14-night-caribbean-fly-cruise-heathrow-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32503M",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32503m-island-wonders-14-night-caribbean-fly-cruise-manchester-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32504",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32504-christmas-in-the-caribbean-14-night-caribbean-fly-cruise-heathrow-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32504M",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32504m-christmas-in-the-caribbean-14-night-caribbean-fly-cruise-manchester-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32505",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32505-new-year-in-the-caribbean-14-night-caribbean-fly-cruise-heathrow-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32505M",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32505m-new-year-in-the-caribbean-14-night-caribbean-fly-cruise-manchester-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32601",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32601-caribbean-sun-getaway-14-night-caribbean-fly-cruise-heathrow-airport/",
+   "first_seen": "2026-10-13"
+  },
+  {
+   "id": "A32601M",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a32601m-caribbean-sun-getaway-14-night-caribbean-fly-cruise-manchester-airport/",
+   "first_seen": "2026-10-13"
   }
  ]
 }
