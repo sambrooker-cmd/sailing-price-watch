@@ -4,7 +4,7 @@
 // Nothing is sent to Meta. Prices, dates and was/now figures always come from the tracker's
 // saved data (state/current, state/cabins) and can't be typed in. "Lower fares" offers never
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
-import {cardDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js";
+import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js";
 import {suggest} from "./adcopy.js";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -17,7 +17,13 @@ const MAX_CARDS = 10;
 const KEY = "spw-ad-draft";
 
 let S, CAB, KIT, LOGO, TP = null, root, today;
-let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: []};
+// Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
+const SITE = "https://www.ambassadorcruiseline.com/";
+const INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta: "Swipe to explore ›", useA: true,
+               mHeadline: "Where will you sail next?", mDesc: "", link: SITE};
+const END = {on: true, headline: "The warmest welcome at sea", cta: "Book your sailing", url: "ambassadorcruiseline.com", useA: true,
+             mHeadline: "Book your sailing", mDesc: "", link: SITE};
+let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}};
 let sel = 0, uploads = {}, upN = 0;
 
 export async function mount(el, ctx){
@@ -28,6 +34,7 @@ export async function mount(el, ctx){
   // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) ad = {...ad, ...d}; } catch(e){}
+  ad.intro = {...INTRO, ...(ad.intro || {})}; ad.end = {...END, ...(ad.end || {})};
   ad.cards = ad.cards.filter(c => sailing(c.id)).map(c => ({...c, photo: c.photo && c.photo.startsWith("upload:") ? null : c.photo}));
   sel = Math.min(sel, Math.max(0, ad.cards.length - 1));
   draw();
@@ -75,6 +82,52 @@ function cardData(c){
           wasnow: cl ? {was: cl.was, now: cl.now, grade: cl.grade} : null};
 }
 
+// The opening card's small line above the headline, when left blank: a fact true of every chosen sailing.
+function autoEyebrow(){
+  const ss = ad.cards.map(c => sailing(c.id)).filter(Boolean);
+  if (!ss.length) return "";
+  return ss.every(s => !s.fly) ? "No-fly cruises from UK ports" : ss.every(s => s.fly) ? "Fly-cruises from UK airports" : "Cruises from the UK";
+}
+const extras = () => ad.format === "carousel" ? (ad.intro.on ? 1 : 0) + (ad.end.on ? 1 : 0) : 0;
+const maxSailings = () => MAX_CARDS - extras();
+// Everything in the carousel, in order: [opening] + sailing cards + [closing]. Single image ads are just the sailing.
+function slides(){
+  const out = ad.cards.map((c, i) => ({kind: "sailing", i, c, name: c.id + (c.design.startsWith("wasnow:") ? "_wasnow" : ""),
+    title: `${sailing(c.id).title} (${c.id})`, headline: c.headline, description: c.description, link: c.link,
+    doc: size => cardDoc(cardData(c), size, LOGO)}));
+  if (ad.format !== "carousel") return out;
+  if (ad.intro.on) out.unshift({kind: "intro", name: "opening", title: "Opening card", headline: ad.intro.mHeadline, description: ad.intro.mDesc, link: ad.intro.link,
+    doc: size => introDoc({...ad.intro, eyebrow: ad.intro.eyebrow || autoEyebrow()}, size, LOGO)});
+  if (ad.end.on) out.push({kind: "end", name: "closing", title: "Closing card", headline: ad.end.mHeadline, description: ad.end.mDesc, link: ad.end.link,
+    doc: size => endDoc(ad.end, size, LOGO)});
+  return out;
+}
+
+function brandEditor(){
+  if (ad.format !== "carousel") return "";
+  const I = ad.intro, E = ad.end;
+  return `<div class="ac-block">
+    <h3>Opening and closing cards</h3>
+    <label class="ac-check"><input type="checkbox" id="in-on"${I.on ? " checked" : ""}> Opening card</label>
+    ${I.on ? `<input id="in-eyebrow" value="${esc(I.eyebrow)}" placeholder="${esc(autoEyebrow() || "Small line above the headline")}" aria-label="Small line above the headline">
+      <input id="in-headline" value="${esc(I.headline)}" placeholder="Headline" aria-label="Opening headline">
+      <input id="in-cta" value="${esc(I.cta)}" placeholder="Call to action (optional)" aria-label="Opening call to action">
+      <label class="ac-check"><input type="checkbox" id="in-a"${I.useA ? " checked" : ""}> Use the Ambassador A for the first letter A</label>
+      <label class="ac-lab sm" for="in-mh">Under the card on Meta: headline</label><input id="in-mh" value="${esc(I.mHeadline)}">
+      <label class="ac-lab sm" for="in-md">Description</label><input id="in-md" value="${esc(I.mDesc)}">
+      <label class="ac-lab sm" for="in-link">Link</label><input id="in-link" value="${esc(I.link)}" inputmode="url">` : ""}
+    <label class="ac-check" style="margin-top:10px"><input type="checkbox" id="en-on"${E.on ? " checked" : ""}> Closing card</label>
+    ${E.on ? `<input id="en-headline" value="${esc(E.headline)}" placeholder="Headline" aria-label="Closing headline">
+      <input id="en-cta" value="${esc(E.cta)}" placeholder="Call to action" aria-label="Closing call to action">
+      <input id="en-url" value="${esc(E.url)}" placeholder="Web address (optional)" aria-label="Web address on the card">
+      <label class="ac-check"><input type="checkbox" id="en-a"${E.useA ? " checked" : ""}> Use the Ambassador A for the first letter A</label>
+      <label class="ac-lab sm" for="en-mh">Under the card on Meta: headline</label><input id="en-mh" value="${esc(E.mHeadline)}">
+      <label class="ac-lab sm" for="en-md">Description</label><input id="en-md" value="${esc(E.mDesc)}">
+      <label class="ac-lab sm" for="en-link">Link</label><input id="en-link" value="${esc(E.link)}" inputmode="url">` : ""}
+    <p class="sub">Allium with the brand's 20° pattern, as in the design system. Each counts towards Meta's 10-card limit.</p>
+  </div>`;
+}
+
 // ---------- drawing ----------
 function draw(){
   const c = ad.cards[sel];
@@ -92,13 +145,14 @@ function draw(){
         <div id="ac-results" class="ac-results"></div>
       </div>
       <div class="ac-block">
-        <h3>${ad.format === "carousel" ? `Cards in order (${ad.cards.length} of ${MAX_CARDS})` : "Sailing"}</h3>
+        <h3>${ad.format === "carousel" ? `Sailings in order (${ad.cards.length} of ${maxSailings()})` : "Sailing"}</h3>
         ${ad.cards.length ? `<ol class="ac-list">${ad.cards.map((x, i) => { const s = sailing(x.id); return `
           <li class="${i === sel ? "on" : ""}" draggable="true" data-i="${i}">
             <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
             <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
           </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}
       </div>
+      ${brandEditor()}
       ${c ? editor(c) : ""}
       <div class="ac-block">
         <h3>Ad text</h3>
@@ -141,9 +195,9 @@ function suggestions(){
   </details>`;
 }
 
-function ready(){ return ad.format === "carousel" ? ad.cards.length >= 2 : ad.cards.length === 1; }
+function ready(){ return ad.format === "carousel" ? ad.cards.length >= 1 && slides().length >= 2 : ad.cards.length === 1; }
 function readyMsg(){
-  if (ad.format === "carousel" && ad.cards.length < 2) return "A carousel needs at least 2 cards.";
+  if (ad.format === "carousel" && !ready()) return "A carousel needs at least 2 cards, including at least one sailing.";
   if (ad.format === "single" && ad.cards.length > 1) return "A single image ad uses one sailing: remove the others or switch to Carousel.";
   return `Prices as checked ${fmtDate(today)}.`;
 }
@@ -193,7 +247,7 @@ function preview(){
   if (ad.format === "carousel"){
     const [w, h] = SIZES[ad.size];
     return `<div class="mp"><p class="sub">How it looks in a Facebook or Instagram feed. Swipe or scroll the cards.</p><div class="mp-post">${head}
-      <div class="mp-car">${ad.cards.map((c, i) => `<div class="mp-card${i === sel ? " on" : ""}" data-sel="${i}"><div class="mp-frame" style="aspect-ratio:${w}/${h}"><iframe data-card="${i}" data-size="${ad.size}" title="Card ${i + 1}" tabindex="-1"></iframe></div>${foot(c)}</div>`).join("")}</div></div></div>`;
+      <div class="mp-car">${slides().map((x, n) => `<div class="mp-card${x.kind === "sailing" && x.i === sel ? " on" : ""}"${x.kind === "sailing" ? ` data-sel="${x.i}"` : ""}><div class="mp-frame" style="aspect-ratio:${w}/${h}"><iframe data-slide="${n}" data-size="${ad.size}" title="Card ${n + 1}" tabindex="-1"></iframe></div>${foot(x)}</div>`).join("")}</div></div></div>`;
   }
   const c = ad.cards[0];
   return `<div class="mp mp-single"><div><p class="sub">Feed (4:5)</p><div class="mp-post">${head}
@@ -207,15 +261,16 @@ function preview(){
 let paintT = 0;
 function paintCards(){
   clearTimeout(paintT);
-  paintT = setTimeout(() => root.querySelectorAll("iframe[data-card]").forEach(async f => {
-    const c = ad.cards[+f.dataset.card]; if (!c) return;
+  const sl = slides();
+  paintT = setTimeout(() => root.querySelectorAll("iframe[data-card],iframe[data-slide]").forEach(async f => {
+    const x = f.dataset.slide != null ? sl[+f.dataset.slide] : sl.find(y => y.kind === "sailing" && y.i === +f.dataset.card); if (!x) return;
     const [w, h] = SIZES[f.dataset.size], box = f.parentElement;
     f.style.cssText = `width:${w}px;height:${h}px;border:0;transform-origin:0 0;transform:scale(${box.clientWidth / w});pointer-events:none`;
-    f.srcdoc = cardDoc(cardData(c), f.dataset.size, LOGO);
+    f.srcdoc = x.doc(f.dataset.size);
     f.onload = () => f.contentWindow.ready && f.contentWindow.ready();
   }), 150);
 }
-new ResizeObserver(() => root && root.querySelectorAll("iframe[data-card]").forEach(f => {
+new ResizeObserver(() => root && root.querySelectorAll("iframe[data-card],iframe[data-slide]").forEach(f => {
   const [w] = SIZES[f.dataset.size]; if (f.parentElement) f.style.transform = `scale(${f.parentElement.clientWidth / w})`;
 })).observe(document.body);
 
@@ -244,7 +299,7 @@ function wire(){
   res.addEventListener("click", e => {
     const b = e.target.closest("[data-add]"); if (!b) return;
     if (ad.format === "single") ad.cards = [];
-    if (ad.cards.length >= MAX_CARDS) return;
+    if (ad.cards.length >= maxSailings()) return;
     ad.cards.push(newCard(b.dataset.add)); sel = ad.cards.length - 1; change(true, true);
     root.querySelector("#ac-find").focus();
   });
@@ -268,6 +323,14 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  const bind = (id, obj, key, redraw) => { const e = $(id); if (!e) return;
+    e.addEventListener(e.type === "checkbox" ? "change" : "input", () => { obj[key] = e.type === "checkbox" ? e.checked : e.value; change(true, redraw); }); };
+  bind("#in-on", ad.intro, "on", true); bind("#en-on", ad.end, "on", true);
+  bind("#in-a", ad.intro, "useA"); bind("#en-a", ad.end, "useA");
+  for (const [id, k] of [["#in-eyebrow", "eyebrow"], ["#in-headline", "headline"], ["#in-cta", "cta"], ["#in-mh", "mHeadline"], ["#in-md", "mDesc"], ["#in-link", "link"]]) bind(id, ad.intro, k);
+  for (const [id, k] of [["#en-headline", "headline"], ["#en-cta", "cta"], ["#en-url", "url"], ["#en-mh", "mHeadline"], ["#en-md", "mDesc"], ["#en-link", "link"]]) bind(id, ad.end, k);
+  // Turning a brand card on can push the carousel over Meta's 10 cards: drop sailings from the end.
+  if (ad.cards.length > maxSailings()) { ad.cards.length = maxSailings(); sel = Math.min(sel, ad.cards.length - 1); save(); }
   if (!c) return;
   $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; change(true, true); });
   root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; change(true, true); }));
@@ -316,12 +379,12 @@ const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise
   document.head.appendChild(sc);
 });
 
-async function renderJpeg(c, size){
+async function renderJpeg(html, size){
   const [w, h] = SIZES[size], f = document.createElement("iframe");
   f.style.cssText = `position:fixed;left:-${w + 50}px;top:0;width:${w}px;height:${h}px;border:0`;
   document.body.appendChild(f);
   try {
-    await new Promise(r => { f.onload = r; f.srcdoc = cardDoc(cardData(c), size, LOGO); });
+    await new Promise(r => { f.onload = r; f.srcdoc = html; });
     await f.contentWindow.ready();
     const url = await f.contentWindow.toJpeg();
     return await (await fetch(url)).blob();
@@ -334,12 +397,12 @@ async function download(){
   try {
     const JSZip = await loadZip(), zip = new JSZip();
     const sizes = ad.format === "carousel" ? [ad.size] : ["1x1", "4x5", "9x16"];
-    const files = [];
+    const files = [], sl = slides();
     let n = 0;
-    for (const [i, c] of ad.cards.entries()) for (const size of sizes) {
-      st.textContent = `Making card ${++n} of ${ad.cards.length * sizes.length}…`;
-      const name = `${String(i + 1).padStart(2, "0")}_${c.id}${c.design.startsWith("wasnow:") ? "_wasnow" : ""}_${size}.jpg`;
-      zip.file(name, await renderJpeg(c, size)); files.push([i, name]);
+    for (const [i, x] of sl.entries()) for (const size of sizes) {
+      st.textContent = `Making card ${++n} of ${sl.length * sizes.length}…`;
+      const name = `${String(i + 1).padStart(2, "0")}_${x.name}_${size}.jpg`;
+      zip.file(name, await renderJpeg(x.doc(size), size)); files.push([i, name]);
     }
     zip.file("ad_text.txt", adText(files));
     zip.file("cards.csv", csv(files));
@@ -365,10 +428,9 @@ const validUntil = () => {
 function adText(files){
   const L = [`Ambassador Cruise Line ${ad.format === "carousel" ? "carousel" : "single image"} ad`, `Prices as checked ${fmtDate(today)}.`, "",
              "PRIMARY TEXT", ad.primary || "(none yet)", "", "CALL TO ACTION BUTTON", ad.cta, ""];
-  ad.cards.forEach((c, i) => {
-    const s = sailing(c.id);
-    L.push(`CARD ${i + 1}: ${s.title} (${c.id})`, `Image: ${files.filter(f => f[0] === i).map(f => f[1]).join(", ")}`,
-           `Headline: ${c.headline}`, `Description: ${c.description}`, `Website URL: ${c.link}`, "");
+  slides().forEach((x, i) => {
+    L.push(`CARD ${i + 1}: ${x.title}`, `Image: ${files.filter(f => f[0] === i).map(f => f[1]).join(", ")}`,
+           `Headline: ${x.headline}`, `Description: ${x.description}`, `Website URL: ${x.link}`, "");
   });
   return L.join("\n");
 }
@@ -376,10 +438,12 @@ function adText(files){
 function csv(files){
   const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
   const rows = [["Order", "Cruise code", "Sailing", "Departs", "Design", "Price on card", "Was", "Use until", "Headline", "Description", "Link", "Files"]];
-  ad.cards.forEach((c, i) => {
-    const d = cardData(c), s = sailing(c.id), cl = c.design.startsWith("wasnow:") ? claims(c.id).find(x => x.key === c.design.slice(7)) : null;
+  slides().forEach((x, i) => {
+    const fl = files.filter(f => f[0] === i).map(f => f[1]).join(" ");
+    if (x.kind !== "sailing") { rows.push([i + 1, "", x.title, "", x.kind === "intro" ? "Opening" : "Closing", "", "", "", x.headline, x.description, x.link, fl]); return; }
+    const c = x.c, d = cardData(c), s = sailing(c.id), cl = c.design.startsWith("wasnow:") ? claims(c.id).find(y => y.key === c.design.slice(7)) : null;
     rows.push([i + 1, c.id, s.title, s.r.departure_date, cl ? "Was/now" : "Standard", d.wasnow ? d.wasnow.now : d.price, cl ? cl.was : "", cl ? cl.ends : "",
-               c.headline, c.description, c.link, files.filter(f => f[0] === i).map(f => f[1]).join(" ")]);
+               c.headline, c.description, c.link, fl]);
   });
   return "﻿" + rows.map(r => r.map(cell).join(",")).join("\r\n");
 }
@@ -393,8 +457,8 @@ function howTo(files){
     "1. Open your campaign and ad set, then click **+ Create** (or edit an existing ad).",
     `2. Under **Ad setup**, choose **Create ad** and format **${carousel ? "Carousel" : "Single image or video"}**.`,
     carousel
-      ? `3. Under **Carousel cards**, add ${ad.cards.length} cards and fill them in **in this order**:\n` +
-        ad.cards.map((c, i) => `   - Card ${i + 1}: image \`${files.find(f => f[0] === i)[1]}\`, headline "${c.headline}", description "${c.description}", website URL ${c.link}`).join("\n")
+      ? `3. Under **Carousel cards**, add ${slides().length} cards and fill them in **in this order**:\n` +
+        slides().map((x, i) => `   - Card ${i + 1}${x.kind === "sailing" ? "" : ` (${x.title.toLowerCase()})`}: image \`${files.find(f => f[0] === i)[1]}\`, headline "${x.headline}", description "${x.description}", website URL ${x.link}`).join("\n")
       : `3. Under **Media**, click **Add media → Add image** and upload \`${files.find(f => f[1].endsWith("_4x5.jpg"))[1]}\` for Feeds and \`${files.find(f => f[1].endsWith("_9x16.jpg"))[1]}\` for Stories and Reels (use **Select images for placements**). The 1:1 version is for Right column and Marketplace if you use them.`,
     `4. **Primary text**: paste it from \`ad_text.txt\`.`,
     carousel ? "5. Leave **Show the best performing cards first** off if the order matters (it usually does)." : `5. **Headline** "${ad.cards[0].headline}", **Description** "${ad.cards[0].description}", **Website URL** ${ad.cards[0].link}.`,

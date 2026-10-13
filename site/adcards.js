@@ -259,3 +259,62 @@ export function cardDoc(d, size, logoSvg){
   const [w, h] = SIZES[size];
   return d.wasnow ? wasNow(d, w, h, logoSvg) : standard(d, w, h, logoSvg);
 }
+
+// Opening and closing cards for carousels (Sam, 13 Oct 2026: "Intro 2" and "End 1"), from the
+// Ambassador design system: solid Allium with the 20° background pattern (#753685 hatch), whiteout
+// logo, a Display Headline (caps, Regular, tracking 180) with the Ambassador A in place of its first
+// letter A (Aloe on Allium), and an Aloe tagline container (white caps, ends cut at 20°).
+// o: {eyebrow, headline, cta, useA} for the opening card; {headline, cta, url, useA} for the closing one.
+const A_MASK = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='239.81 127.97 145.95 221.12'%3E%3Cpath d='M384.77 338.29C366.95 336.18 363.8 331.65 353.93 305.11 332.91 247.95 310.02 185.12 289.35 128.97L275.02 170 304.28 254.79 245.76 254.79 240.81 269.12 308.95 269.12C316.28 289.45 322.94 307.44 327.27 320.43 331.13 332 329.14 335.38 313.89 337.86L310.36 348.09 381.14 348.09C382.34 344.83 383.55 341.56 384.77 338.29Z'/%3E%3C/svg%3E")`;
+// The headline's first letter A becomes the Ambassador A (once per card, as the guidelines allow).
+function withA(text, useA){
+  const i = useA === false ? -1 : String(text || "").search(/a/i);
+  return i < 0 ? esc(text) : `${esc(text.slice(0, i))}<span class="a" role="img" aria-label="A"></span>${esc(text.slice(i + 1))}`;
+}
+function brandCard(w, h, LOGO, body, maxHead, centred){
+  const story = h / w >= 1.7, top = story ? Math.round(h * 0.14) : 0, bottom = story ? Math.round(h * 0.20) : 0;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+${FONT_CSS}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:${w}px;height:${h}px;background:#6B207D;overflow:hidden}
+#card{position:relative;width:${w}px;height:${h}px;overflow:hidden;font-family:'Quicksand',Helvetica,Arial,sans-serif;color:#fff;
+  background-color:#6B207D;background-image:repeating-linear-gradient(70deg,#753685 0 2px,transparent 2px 14px)}
+.logo{position:absolute;left:72px;top:${top + 64}px;height:64px}
+.logo svg{height:64px;width:auto;display:block}
+.body{position:absolute;left:72px;right:72px;top:${centred ? top + 64 : top + 160}px;bottom:${bottom + 64}px;display:flex;flex-direction:column;justify-content:center;
+  ${centred ? "align-items:center;text-align:center;" : "align-items:flex-start;"}gap:48px}
+.eyebrow{font-weight:500;font-size:28px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:-20px}
+.disp{font-weight:400;letter-spacing:.18em;text-transform:uppercase;line-height:1.15;font-size:${maxHead}px;overflow-wrap:break-word}
+.a{display:inline-block;width:.7em;height:1.064em;vertical-align:-.065em;margin:0 .14em;background:#009165;
+  -webkit-mask:${A_MASK} center/contain no-repeat;mask:${A_MASK} center/contain no-repeat}
+.tag{display:inline-block;padding:.55em calc(1.082em - .18em) .55em 1.082em;font-weight:500;font-size:34px;line-height:1;white-space:nowrap;
+  letter-spacing:.18em;text-transform:uppercase;color:#fff;background:#009165;clip-path:polygon(0 0,calc(100% - .764em) 0,100% 100%,.764em 100%)}
+.url{font-size:30px;font-weight:600;letter-spacing:.04em}
+.biglogo svg{height:110px;width:auto;display:block}
+</style></head><body><div id="card">${body}</div>
+<script>
+// Shrink the headline until the whole block fits, and the tagline until it fits the width.
+function fit(){
+  const b = document.querySelector('.body'), d = document.querySelector('.disp'), t = document.querySelector('.tag');
+  let s = ${maxHead}; d.style.fontSize = s + 'px';
+  while ((b.scrollHeight > b.clientHeight + 1 || d.scrollWidth > d.clientWidth + 1) && s > 40) { s -= 2; d.style.fontSize = s + 'px'; }
+  if (t) { let ts = 34; while (t.getBoundingClientRect().width > ${w} - 144 && ts > 20) { ts -= 1; t.style.fontSize = ts + 'px'; } }
+}
+</script>${RUNTIME}
+</body></html>`;
+}
+export function introDoc(o, size, LOGO){
+  const [w, h] = SIZES[size];
+  return brandCard(w, h, LOGO, `<div class="logo">${LOGO}</div><div class="body">
+    ${o.eyebrow ? `<p class="eyebrow">${esc(o.eyebrow)}</p>` : ""}
+    <h1 class="disp">${withA(o.headline, o.useA)}</h1>
+    ${o.cta ? `<span class="tag">${esc(o.cta)}</span>` : ""}</div>`, 92, false);
+}
+export function endDoc(o, size, LOGO){
+  const [w, h] = SIZES[size];
+  return brandCard(w, h, LOGO, `<div class="body">
+    <div class="biglogo">${LOGO}</div>
+    <h1 class="disp">${withA(o.headline, o.useA)}</h1>
+    ${o.cta ? `<span class="tag">${esc(o.cta)}</span>` : ""}
+    ${o.url ? `<p class="url">${esc(o.url)}</p>` : ""}</div>`, 62, true);
+}
