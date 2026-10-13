@@ -222,6 +222,11 @@ def main(day):
             s["price_pp"], s["price_source"] = float(min(tw.values())), "page"
         else:
             s["price_source"] = "solo" if s.get("cabins") and "page_error" not in s else "feed"
+        # Every page carries the site menu's ship pictures (e.g. "amb_xxx_renaissance-_new_1-to-use",
+        # from "Our ships"), which aren't this sailing's ship: drop photos naming another ship (Sam, 13 Oct 2026).
+        if s.get("photos"):
+            others = [n.lower() for n in SHIPS.values() if n != s["ship"]]
+            s["photos"] = [u for u in s["photos"] if not any(n in u.rsplit("/", 1)[-1].lower() for n in others)]
         if s.get("nectar"):
             s["nectar_pts"] = nectar_headline(s)
         flags = []
