@@ -24,8 +24,8 @@ export async function mount(el, ctx){
   root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
   today = S.updated;
   LOGO = await (await fetch("logo-white.svg")).text();
-  // Trustpilot widget: Trustpilot's own image, added by hand to site/trustpilot/ with widget.json
-  // {"image": "<file>", "as_of": "YYYY-MM-DD"}. Until it exists the tick box is shown but off.
+  // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
+  // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) ad = {...ad, ...d}; } catch(e){}
   ad.cards = ad.cards.filter(c => sailing(c.id)).map(c => ({...c, photo: c.photo && c.photo.startsWith("upload:") ? null : c.photo}));
@@ -62,13 +62,16 @@ function newCard(id){
 }
 
 // Everything the card design needs, from the saved data plus this card's choices.
+// The chosen Trustpilot layout (c.trustpilot is its file name; true from an older draft = the first one).
+const tpFile = c => (TP.images.find(x => x.file === c.trustpilot) || TP.images[0]).file;
+
 function cardData(c){
   const s = sailing(c.id), r = s.r, cl = c.design.startsWith("wasnow:") ? claims(c.id).find(x => x.key === c.design.slice(7)) : null;
   const photo = c.photo && c.photo.startsWith("upload:") ? uploads[c.photo] : (c.photo || s.image);
   const campaign = !!s.k.campaign && photo === s.image && !(c.photo || "").startsWith("upload:");
   return {id: c.id, title: s.title, ship: r.ship, port: r.port, fly: s.fly, nights: r.nights, departure_date: r.departure_date,
           price: s.price, promos: c.promos || [], nectar: c.nectar ? s.k.nectar : "", photo, campaign, words: c.words || null,
-          trustpilot: c.trustpilot && TP ? `${location.origin}/trustpilot/${TP.image}` : "",
+          trustpilot: c.trustpilot && TP ? `${location.origin}/trustpilot/${tpFile(c)}` : "",
           wasnow: cl ? {was: cl.was, now: cl.now, grade: cl.grade} : null};
 }
 
@@ -166,7 +169,8 @@ function editor(c){
     <button type="button" class="linkbtn" id="w-reset">Back to the sailing's own name</button>
     ${wasnow ? "" : `<span class="ac-lab">Strips</span>
       ${s.k.nectar ? `<label class="ac-check"><input type="checkbox" id="ac-nectar"${c.nectar ? " checked" : ""}> ${esc(s.k.nectar)}</label>` : ""}
-      <label class="ac-check"><input type="checkbox" id="ac-tp"${c.trustpilot && TP ? " checked" : ""}${TP ? "" : " disabled"}> Trustpilot widget ${TP ? `<span class="sub">(image dated ${fmtDate(TP.as_of)}: check the score is still current)</span>` : `<span class="sub">(waiting for the Trustpilot image)</span>`}</label>
+      <label class="ac-check"><input type="checkbox" id="ac-tp"${c.trustpilot && TP ? " checked" : ""}${TP ? "" : " disabled"}> Trustpilot widget ${TP ? `<span class="sub">(score as of ${fmtDate(TP.as_of)}: check it's still current)</span>` : `<span class="sub">(waiting for the Trustpilot image)</span>`}</label>
+      ${c.trustpilot && TP ? `<select id="ac-tp-style" aria-label="Trustpilot layout">${TP.images.map(x => `<option value="${esc(x.file)}"${tpFile(c) === x.file ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select>` : ""}
       ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-promo="${i}"${(c.promos || []).includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No promotions on this sailing right now.</p>`}
       <p class="sub">Up to ${c.nectar || c.trustpilot ? "1 promotion with the Nectar line or Trustpilot widget" : "2 promotions"}, so the card doesn't get too busy.</p>`}
     <span class="ac-lab">Under the ${ad.format === "carousel" ? "card" : "image"} on Meta</span>
@@ -281,7 +285,8 @@ function wire(){
   $("#w-reset").addEventListener("click", () => { c.words = null; change(true, true); });
   const s = sailing(c.id);
   $("#ac-nectar") && $("#ac-nectar").addEventListener("change", e => { c.nectar = e.target.checked; c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2); change(true, true); });
-  $("#ac-tp") && $("#ac-tp").addEventListener("change", e => { c.trustpilot = e.target.checked; c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2); change(true, true); });
+  $("#ac-tp-style") && $("#ac-tp-style").addEventListener("change", e => { c.trustpilot = e.target.value; change(true, true); });
+  $("#ac-tp") && $("#ac-tp").addEventListener("change", e => { c.trustpilot = e.target.checked ? TP.images[0].file : ""; c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2); change(true, true); });
   root.querySelectorAll("[data-promo]").forEach(b => b.addEventListener("change", () => {
     const p = s.k.promos[+b.dataset.promo], max = c.nectar || c.trustpilot ? 1 : 2;
     c.promos = (c.promos || []).filter(x => x !== p);

@@ -107,7 +107,8 @@ html,body{width:${w}px;height:${h}px;background:#380843;overflow:hidden}
 .fare-row .from{font-size:30px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .fare-row .big{font-size:96px;font-weight:700;line-height:1;letter-spacing:-.01em}
 .fare-row .pp{font-size:34px;font-weight:700}
-.tp img{height:50px;width:auto;display:block}
+.nectar.tp{height:96px}
+.tp img{height:64px;width:auto;display:block}
 .nectar{height:76px;padding:0 60px 0 64px;background:#F1ECE7;color:#6B207D;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 100%,0 100%);font-size:27px;font-weight:700}
 .artbg{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(36px) brightness(.72) saturate(1.1)}
 .art{position:absolute;z-index:1;left:0;width:${w}px;height:auto;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -136,7 +137,7 @@ function fit(){
     while (strip.getBoundingClientRect().right > W - 24 && size > 24) { size -= 1; el.style.fontSize = size + 'px'; }
   });
   const tp = document.querySelector('#tp img');
-  if (tp) { let th = 50; while (tp.closest('.strip').getBoundingClientRect().right > W - 24 && th > 30) { th -= 1; tp.style.height = th + 'px'; } }
+  if (tp) { let th = 64; while (tp.closest('.strip').getBoundingClientRect().right > W - 24 && th > 30) { th -= 1; tp.style.height = th + 'px'; } }
   const h1 = document.querySelector('.headline h1'), hs = parseFloat(h1.style.fontSize);
   document.querySelectorAll('.kicker .fit').forEach(k => { if (parseFloat(k.style.fontSize) > hs * 0.62) k.style.fontSize = Math.round(hs * 0.62) + 'px'; });
   const badge = document.getElementById('badge'), lines = badge.querySelector('.lines');
