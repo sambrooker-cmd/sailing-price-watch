@@ -55,11 +55,59 @@ def page_title(page):
     return html.unescape(m.group(1)).split("|")[0].strip() if m else ""
 
 
+def agents(page):
+    """Who a sailing is sold through (FareSummary search-data "agents"): ["DIRECT"] for Ambassador's own
+    sailings; agent ids for semi-charters, which aren't meant to be in the ad feed (Sam, 13 Oct 2026). The site's
+    own script sends visitors on those pages to /404/ (checked in a browser, all 14 on 13 Oct 2026), but the
+    server still returns the page with its prices, so this reads them without a browser."""
+    m = re.search(r'<astro-island[^>]*component-url="[^"]*FareSummary[^"]*"[^>]*props="([^"]*)"', page)
+    if not m:
+        return None
+    try:
+        return (enrich._dv(json.loads(html.unescape(m.group(1)))).get("search-data") or {}).get("agents")
+    except Exception:  # noqa
+        return None
+
+
+def visitor_404(urls):
+    """{url: True/False/None}: does a visitor's browser end up on the website's 404 page? (Sam, 13 Oct 2026: the
+    agent-sold pages load fine without a browser but the site's own script sends visitors to /404/.) Run only for
+    the sailings the first pass found on sale but missing from the feed, not every page. None = couldn't tell."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("browser check skipped: Playwright isn't installed")
+        return {}
+    out = {}
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        pg = b.new_page()
+        for u in urls:
+            try:
+                pg.goto(u, wait_until="networkidle", timeout=45000)
+                # the redirect happens after the page loads, sometimes a few seconds later: wait up to 8 s for it
+                for _ in range(16):
+                    if "/404" in pg.url.split("ambassadorcruiseline.com", 1)[-1]:
+                        break
+                    pg.wait_for_timeout(500)
+                out[u] = "/404" in pg.url.split("ambassadorcruiseline.com", 1)[-1]
+            except Exception as e:  # noqa
+                print(f"browser check: {u}: {str(e)[:100]}")
+                out[u] = None
+        b.close()
+    return out
+
+
 def check(code, url, today):
     try:
         page = enrich.get(url + "/")
     except Exception as e:  # noqa
+        # A sitemap page that doesn't exist is listed as a 404 (Sam, 13 Oct 2026)
+        if getattr(e, "code", None) == 404:
+            return {"id": code, "url": url + "/", "status": "not_found"}
         return {"id": code, "url": url, "status": "error", "error": str(e)[:100]}
+    if re.search(r'<link rel="canonical" href="[^"]*/404/?"', page):
+        return {"id": code, "url": url + "/", "status": "not_found"}
     f = enrich.page_fields(url + "/")
     tw = (f.get("cabins") or {}).get("twin") or {}
     solo = (f.get("cabins") or {}).get("solo") or {}
@@ -76,7 +124,9 @@ def check(code, url, today):
         status = "no_prices"
     out = {"id": code, "url": url + "/", "status": status}
     if status == "on_sale":
+        ag = agents(page)
         out.update({"title": page_title(page), "departure_date": dep,
+                    "charter": bool(ag) and "DIRECT" not in ag,
                     "from_pp": min(tw.values()) if tw else None, "solo_only": not tw,
                     "offers": [o["name"] for o in (f.get("offers") or [])]})
     return out
@@ -106,26 +156,40 @@ def main():
 
     path = ROOT / "state" / "coverage.json"
     prev = json.loads(path.read_text()) if path.exists() else {}
-    first_seen = {s["id"]: s.get("first_seen") for s in prev.get("on_sale_missing") or []}
+    first_seen = {s["id"]: s.get("first_seen") for s in (prev.get("on_sale_missing") or []) + (prev.get("not_found") or [])}
     on_sale = []
     for r in res:
         if r["status"] == "on_sale":
             on_sale.append({**{k: v for k, v in r.items() if k != "status"}, "first_seen": first_seen.get(r["id"]) or today})
+    seen404 = visitor_404([s["url"] for s in on_sale])
+    for s in on_sale:
+        if seen404.get(s["url"]) is not None:
+            s["visitor_404"] = seen404[s["url"]]
     on_sale.sort(key=lambda s: (s.get("departure_date") or "9", s["id"]))
+    not_found = sorted(({"id": r["id"], "url": r["url"], "first_seen": first_seen.get(r["id"]) or today}
+                        for r in res if r["status"] == "not_found"), key=lambda s: s["id"])
     counts = {}
     for r in res:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     doc = {"checked": today, "checked_at": at, "site_pages": len(pages), "feed": len(feed_ids),
-           "feed_not_on_site": sorted(feed_ids - set(pages)), "counts": counts, "on_sale_missing": on_sale}
+           "feed_not_on_site": sorted(feed_ids - set(pages)), "counts": counts, "on_sale_missing": on_sale,
+           "not_found": not_found}
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(doc, ensure_ascii=False, indent=1))
 
-    new = [s for s in on_sale if s["id"] not in first_seen]
+    # Semi-charters aren't meant to be in the feed, so they're never reported as newly missing
+    # and nor are pages that send visitors to the 404 page
+    new = [s for s in on_sale if s["id"] not in first_seen and not s.get("charter") and not s.get("visitor_404")]
+    charters = sum(1 for s in on_sale if s.get("charter"))
+    hidden = sum(1 for s in on_sale if s.get("visitor_404"))
     lines = [f"# Feed coverage check {today}",
              "",
              f"The website lists {len(pages)} sailing pages; the ad feed has {len(feed_ids)}. "
              f"{len(on_sale)} sailing{'s are' if len(on_sale) != 1 else ' is'} on sale on the website but not in the feed"
-             + (f", {len(new)} of them new since the last check." if prev else "."), ""]
+             + (f", {len(new)} of them new since the last check." if prev else ".")
+             + (f" {charters} of them {'are' if charters != 1 else 'is'} sold through an agent, not direct (not meant to be in the feed)." if charters else "")
+             + (f" In a browser, {hidden} of them send{'s' if hidden == 1 else ''} visitors to the 404 page." if hidden else "")
+             + (f" {len(not_found)} sitemap page{'s' if len(not_found) != 1 else ''} return{'' if len(not_found) != 1 else 's'} 404." if not_found else ""), ""]
     if new:
         lines += ["## Newly missing from the feed"]
         for s in new:

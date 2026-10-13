@@ -353,6 +353,9 @@ dialog.saved{width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);bor
 dialog.saved:not([open]){display:none}
 dialog.saved::backdrop{background:rgba(20,5,25,.6)}
 .sv-open{align-self:flex-start}
+.cov-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:4px}
+.cov-404{background:#B3261E;color:#fff;border-color:#B3261E}
+tr.cov-charter td{color:var(--muted)}
 .tc-doc{border-top:1px solid var(--rule);padding:12px 0}
 .tc-doc h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .tc-doc .tc-text{white-space:pre-line;font-size:13.5px;line-height:1.5;margin:0 0 6px}
@@ -784,13 +787,22 @@ const auth = getAuth(firebaseApp);
     if (!coverage){
       $("coverage").innerHTML = `<div class="empty"><p>The weekly check of the website against the ad feed runs on Mondays at 09:30 GMT. Results appear here after its first run.</p></div>`;
     } else {
-      const c = coverage, list = c.on_sale_missing || [];
-      const head = `<p class="note" style="margin:0 0 12px">Checked ${fmtDate(c.checked)} (weekly, Mondays). The website lists ${c.site_pages} sailing pages and the ad feed has ${c.feed}. Of the rest, ${(c.counts||{}).sold_out||0} are sold out and ${((c.counts||{}).no_prices||0) + ((c.counts||{}).departed||0)} show no prices or have departed.</p>`;
+      // Tags (Sam, 13 Oct 2026): semi-charters are sold through an agent, not "DIRECT", and aren't meant to be in
+      // the feed; sitemap pages that return 404 are listed apart.
+      // and pages a browser is sent to the 404 page from (visitor_404, checked only for these sailings).
+      const away = s => !!(s.charter || s.visitor_404);
+      const c = coverage, list = (c.on_sale_missing || []).slice().sort((a, b) => away(a) - away(b)), gone = c.not_found || [];
+      const charters = list.filter(s => s.charter).length, hidden = list.filter(s => s.visitor_404).length;
+      const head = `<p class="note" style="margin:0 0 12px">Checked ${fmtDate(c.checked)} (weekly, Mondays). The website lists ${c.site_pages} sailing pages and the ad feed has ${c.feed}. Of the rest, ${(c.counts||{}).sold_out||0} are sold out, ${((c.counts||{}).no_prices||0) + ((c.counts||{}).departed||0)} show no prices or have departed${gone.length ? ` and ${gone.length} return 404 (listed below)` : ""}.</p>`;
       $("coverage").innerHTML = head + (list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">From pp</th><th>Promotions</th><th>First spotted</th></tr></thead><tbody>${list.map(s => `
-          <tr><td><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(s.title || s.id)}</b></a><div class="sub">${esc(s.id)}</div></td>
+          <tr${away(s) ? ' class="cov-charter"' : ""}><td><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(s.title || s.id)}</b></a><div class="sub">${esc(s.id)}${s.charter ? ` <span class="chip cov-tag" title="Sold through an agent, not direct (likely a semi-charter): not meant to be in the ad feed">Sold through agent</span>` : ""}${s.visitor_404 ? ` <span class="chip cov-tag cov-404" title="Opened in a browser, the page sends visitors to the website's 404 page">404 for visitors</span>` : ""}</div></td>
             <td>${fmtDate(s.departure_date)}</td><td class="num">${s.from_pp ? fmtGBP(s.from_pp) : "solo only"}</td>
             <td>${(s.offers||[]).map(o => `<span class="chip">${esc(o)}</span>`).join(" ") || "–"}</td><td>${fmtDate(s.first_seen)}</td></tr>`).join("")}</tbody></table></div>`
         : `<div class="empty"><p>Every sailing on sale on the website is in the ad feed.</p></div>`)
+        + (charters ? `<p class="note">${charters} of these ${charters === 1 ? "is" : "are"} sold through an agent rather than direct, so not meant to be in the ad feed.</p>` : "")
+        + (hidden ? `<p class="note">${hidden} ${hidden === 1 ? "sends" : "send"} visitors to the website's 404 page when opened in a browser (checked only for the sailings above). The website still lists ${hidden === 1 ? "it" : "them"} in its sitemap and still sends the page's details (prices, dates) before redirecting, which is where these figures come from. Tagged sailings are never reported as newly missing.</p>` : "")
+        + (gone.length ? `<h3 style="margin:18px 0 8px;font-size:15px">In the sitemap but the page returns 404 (${gone.length})</h3><div class="tablewrap"><table class="ptable"><thead><tr><th>Page</th><th>First spotted</th></tr></thead><tbody>${gone.map(s => `
+          <tr><td><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(s.id)}</b></a> <span class="chip cov-tag cov-404">404</span><div class="sub">${esc(s.url)}</div></td><td>${fmtDate(s.first_seen)}</td></tr>`).join("")}</tbody></table></div>` : "")
         + ((c.feed_not_on_site||[]).length ? `<p class="flag">In the feed but missing from the website's sitemap: ${esc(c.feed_not_on_site.join(", "))}</p>` : "");
     }
 
@@ -950,7 +962,7 @@ const auth = getAuth(firebaseApp);
   // Promotion T&Cs (Sam, 13 Oct 2026): read from the website's own pages by terms.py, matched to each promotion.
   // The sailing pages' offers carry no terms, so some promotions have none; the general booking terms are linked.
   const termsOf = o => terms && terms.offers ? (terms.offers[o] || []).filter(i => terms.docs[i]) : null;
-  const tcWords = d => /^[a-z:,.£\d]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`;
+  const tcWords = d => /^[a-z:,.£]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`;
   function openTerms(o){
     const all = o === "*", ids = all ? Object.keys(terms.docs).sort((a, b) => terms.docs[a].title.localeCompare(terms.docs[b].title)) : termsOf(o);
     const name = all ? "All terms found on the website" : (offerInfo(o).name || o);
@@ -1838,7 +1850,7 @@ const auth = getAuth(firebaseApp);
     // Counts only where the number is worth seeing before opening the page (Sam, 13 Oct 2026)
     const n = {
       promos: document.querySelectorAll("#promos tbody tr").length || "",
-      coverage: coverage ? (coverage.on_sale_missing || []).length || "" : "",
+      coverage: coverage ? (coverage.on_sale_missing || []).filter(s => !s.charter && !s.visitor_404).length || "" : "",   // semi-charters don't count
       feedgap: Object.values(state ? state.sailings || {} : {}).filter(s => !s.removed && s.feed_gap).length || "",
     };
     for (const [id] of VIEWS){ const el = $("nav-" + id); if (el) el.textContent = n[id] == null ? "" : String(n[id]); }
@@ -1911,7 +1923,7 @@ const auth = getAuth(firebaseApp);
     ecardsMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./emailcards.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("ecards"), {state, cabins, adkit: kit,
+      await m.mount($("ecards"), {state, cabins, adkit: kit, terms,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }

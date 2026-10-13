@@ -255,7 +255,8 @@ def write_adkit(snap, today, at):
         kit[s["id"]] = {k: v for k, v in {
             "promos": rc.promo_lines(s, limit=0), "nectar": rc.nectar_line(s), "lead_grade": rc.lead_grade(s),
             "campaign": rc.is_campaign(s), "image": rc.OVERRIDES.get(s["id"], s.get("image_link")),
-            "photos": s.get("photos") or []}.items() if v}
+            # plus a photo of the sailing's own ship, hosted with the tracker page (site/ships/, Sam 13 Oct 2026)
+            "photos": (s.get("photos") or []) + ([f"/ships/{s['ship'].lower()}.jpg"] if s.get("ship") else [])}.items() if v}
     path = ROOT / "state" / "adkit.json"
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps({"updated_at": at, "date": today, "sailings": kit}, ensure_ascii=False, separators=(",", ":")))
