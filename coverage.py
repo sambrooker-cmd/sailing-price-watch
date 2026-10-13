@@ -19,6 +19,16 @@ SITE = "https://www.ambassadorcruiseline.com"
 
 
 def sitemap_pages():
+    pages = {}
+    for u in sitemap_urls():
+        if "/cruise/" in u:
+            u = u.rstrip("/")
+            pages[u.rsplit("/cruise/", 1)[1].split("-", 1)[0].upper()] = u
+    return pages
+
+
+def sitemap_urls():
+    """Every page in the site's sitemap (also used by terms.py)."""
     robots = ""
     try:
         robots = enrich.get(SITE + "/robots.txt")
@@ -37,12 +47,7 @@ def sitemap_pages():
             continue
         todo += [l for l in locs if l.endswith(".xml")]
         urls |= {l for l in locs if not l.endswith(".xml")}
-    pages = {}
-    for u in urls:
-        if "/cruise/" in u:
-            u = u.rstrip("/")
-            pages[u.rsplit("/cruise/", 1)[1].split("-", 1)[0].upper()] = u
-    return pages
+    return urls
 
 
 def page_title(page):
