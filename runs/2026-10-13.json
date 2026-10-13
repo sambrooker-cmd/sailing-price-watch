@@ -1,10 +1,12 @@
 {
  "date": "2026-10-13",
- "count": 224,
+ "count": 223,
  "new": [
   "A22637"
  ],
- "removed": [],
+ "removed": [
+  "A32650"
+ ],
  "returned": [
   "A22638"
  ],
@@ -37,6 +39,34 @@
     "held_days": 5
    },
    "at": "2026-10-13T08:07:16Z"
+  },
+  {
+   "id": "A12701",
+   "from": 3499,
+   "to": 2699,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 3499,
+    "now": 2699,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T09:07:15Z"
+  },
+  {
+   "id": "A22713LV",
+   "from": 1799,
+   "to": 1739,
+   "claim": {
+    "eligible": false,
+    "reason": "cabin type behind the lead price is unknown",
+    "was": 1799,
+    "now": 1739,
+    "since": "2026-10-13",
+    "held_days": 0
+   },
+   "at": "2026-10-13T09:07:15Z"
   }
  ],
  "rises": [
@@ -52,21 +82,46 @@
    "from": 1739,
    "to": 1799,
    "at": "2026-10-13T08:07:16Z"
+  },
+  {
+   "id": "A12639",
+   "from": 299,
+   "to": 549,
+   "mix": "inside → balcony",
+   "at": "2026-10-13T09:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "from": 399,
+   "to": 449,
+   "at": "2026-10-13T09:07:15Z"
+  },
+  {
+   "id": "A12712",
+   "from": 2049,
+   "to": 2239,
+   "at": "2026-10-13T09:07:15Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A32650": [
-   "no twin cabins on sale; the feed price is a solo price"
+  "A12639": [
+   "feed price £549 differs from cheapest cabin on the page £299"
   ],
   "A22630BR": [
    "feed price £649 differs from cheapest cabin on the page £879"
+  ],
+  "A22633": [
+   "feed price £449 differs from cheapest cabin on the page £399"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12701": [
+   "feed price £2,699 differs from cheapest cabin on the page £3,499"
   ],
   "A22702": [
    "feed image looks like campaign art (may contain text)"
@@ -84,10 +139,8 @@
    "no twin cabins on sale; the feed price is a solo price"
   ],
   "A12712": [
+   "feed price £2,239 differs from cheapest cabin on the page £2,049",
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22713LV": [
-   "feed price £1,799 differs from cheapest cabin on the page £1,739"
   ],
   "A12734": [
    "feed price £189 differs from cheapest cabin on the page £229"
@@ -275,6 +328,7 @@
  "checks": [
   "2026-10-13T02:55:56Z",
   "2026-10-13T05:07:14Z",
-  "2026-10-13T08:07:16Z"
+  "2026-10-13T08:07:16Z",
+  "2026-10-13T09:07:15Z"
  ]
 }
