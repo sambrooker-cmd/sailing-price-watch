@@ -234,7 +234,7 @@ function imageDoc(kind, o){
   return page(`<img class="ph" crossorigin="anonymous" src="${esc(cropUrl(o.photo, w, h))}">
     <div style="position:absolute;top:${Math.round(h * .035)}px;right:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
       ${(o.badges || []).map(b => `<div style="background:${COL.amber};color:#fff;font-weight:700;text-transform:uppercase;font-size:${Math.round(15 * f)}px;letter-spacing:.02em;padding:${Math.round(6 * f)}px ${Math.round(12 * f)}px">${esc(b)}</div>`).join("")}</div>
-    ${o.caption ? `<div style="position:absolute;left:0;bottom:0;background:rgba(27,18,32,.86);color:#fff;font-weight:600;font-size:${Math.round(15 * f)}px;padding:${Math.round(6 * f)}px ${Math.round(12 * f)}px">${esc(o.caption)}</div>` : ""}`);
+    ${o.caption ? `<div style="position:absolute;left:0;bottom:0;background:rgba(27,18,32,.86);color:#fff;font-weight:600;font-size:${Math.round(15 * f)}px;line-height:1;padding:${Math.round(6 * f)}px ${Math.round(22 * f)}px ${Math.round(6 * f)}px ${Math.round(12 * f)}px;clip-path:polygon(0 0,calc(100% - ${Math.round(27 * f * .364)}px) 0,100% 100%,0 100%)">${esc(o.caption)}</div>` : ""}`);
 }
 async function bake(kind, o, quality){
   const key = JSON.stringify([kind, o, quality]);
