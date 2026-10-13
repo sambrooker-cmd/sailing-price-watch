@@ -1821,7 +1821,7 @@ const auth = getAuth(firebaseApp);
     ecardsMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./emailcards.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("ecards"), {state, adkit: kit,
+      await m.mount($("ecards"), {state, cabins, adkit: kit,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }
