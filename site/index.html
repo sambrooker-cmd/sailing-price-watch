@@ -503,6 +503,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="coverage"><p class="loading">Checking…</p></div>
   </section>
 
+  <section aria-labelledby="h-feedgap">
+    <h2 id="h-feedgap"><span class="mini amber"></span>Ad feed vs website prices</h2>
+    <div id="feedgap"><p class="loading">Checking…</p></div>
+  </section>
+
   <section aria-labelledby="h-changes">
     <h2 id="h-changes"><span class="mini"></span>What changed</h2>
     <div class="controls" role="group" aria-label="What changed filters">
@@ -782,6 +787,34 @@ const auth = getAuth(firebaseApp);
             <td>${(s.offers||[]).map(o => `<span class="chip">${esc(o)}</span>`).join(" ") || "–"}</td><td>${fmtDate(s.first_seen)}</td></tr>`).join("")}</tbody></table></div>`
         : `<div class="empty"><p>Every sailing on sale on the website is in the ad feed.</p></div>`)
         + ((c.feed_not_on_site||[]).length ? `<p class="flag">In the feed but missing from the website's sitemap: ${esc(c.feed_not_on_site.join(", "))}</p>` : "");
+    }
+
+    // Ad feed vs website prices (Sam, 13 Oct 2026): the Google feed is refreshed daily, so its "from" price can
+    // differ from the page's (cheapest twin cabin), which the tracker uses. tracker.py feed_gap / feed_gaps_fixed.
+    if (!state.lead_from_page_since){
+      $("feedgap").innerHTML = `<div class="empty"><p>Appears after the next hourly check.</p></div>`;
+    } else {
+      const gapOf = s => s.feed_gap.feed - s.feed_gap.page;
+      const gaps = active.filter(s => s.feed_gap).sort((a, b) => Math.abs(gapOf(b)) - Math.abs(gapOf(a)));
+      const fixed = (state.feed_gaps_fixed || []).filter(f => daysBetween(f.fixed.slice(0, 10), today) < 7).slice().reverse();
+      const nameOf = id => { const r = (state.sailings || {})[id] || {}; return r.base_title || r.title || id; };
+      const diff = d => d < 0 ? `<span class="up2">feed ${fmtGBP(-d)} lower</span>` : `<b>feed ${fmtGBP(d)} higher</b>`;   // lower is the one to fix first
+      const lower = gaps.filter(s => gapOf(s) < 0).length;
+      $("feedgap").innerHTML = `<p class="note" style="margin:0 0 12px">The Google ad feed is what the ads show; it's refreshed once a day. Each hourly check compares its "from" price with the cheapest twin cabin on the sailing's own page (what the tracker and cards use). A difference that lasts 3 hours is reported once in a "Feed prices don't match the website" issue. Nothing here changes the feed or any ad account.</p>` +
+        (gaps.length ? `<p style="margin:0 0 10px"><b>${gaps.length}</b> sailing${gaps.length === 1 ? "" : "s"} differ now${lower ? `, <b>${lower}</b> with the feed lower than the website (the ads show a price guests can't get)` : ""}. <button type="button" class="linkbtn" id="fg-csv">Download CSV</button></p>
+          <div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Ad feed</th><th class="num">Website</th><th>Difference</th><th>Since</th></tr></thead><tbody>${gaps.map(s => `
+          <tr><td><a href="#${encodeURIComponent(s.id)}"><b>${esc(s.base_title || s.title)}</b></a><div class="sub">${esc(s.id)} · <a href="${esc(s.link)}" target="_blank" rel="noopener">booking page</a></div></td>
+            <td>${fmtDate(s.departure_date)}</td><td class="num">${fmtGBP(s.feed_gap.feed)}</td><td class="num">${fmtGBP(s.feed_gap.page)}</td>
+            <td>${diff(gapOf(s))}</td><td>${fmtWhen(s.feed_gap.since)}${s.feed_gap.reported ? `<div class="sub">reported</div>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+          : `<div class="empty"><p>Every sailing's ad feed price matches its website price.</p></div>`) +
+        (fixed.length ? `<h3 style="margin:18px 0 8px;font-size:15px">Fixed in the last 7 days</h3><div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th class="num">Ad feed</th><th class="num">Website</th><th>From</th><th>Fixed</th></tr></thead><tbody>${fixed.map(f => `
+          <tr><td><b>${esc(nameOf(f.id))}</b><div class="sub">${esc(f.id)}</div></td><td class="num">${fmtGBP(f.feed)}</td><td class="num">${fmtGBP(f.page)}</td>
+            <td>${fmtWhen(f.since)}</td><td>${fmtWhen(f.fixed)}${f.how && f.how !== "matches the website" ? `<div class="sub">${esc(f.how)}</div>` : ""}</td></tr>`).join("")}</tbody></table></div>` : "");
+      const b = $("fg-csv");
+      if (b) b.addEventListener("click", () => downloadCsv(`feed-vs-website-${today}.csv`,
+        ["Cruise code", "Sailing", "Departs", "Ad feed £", "Website £", "Difference", "Since (UTC)", "Booking page"],
+        gaps.map(s => [s.id, s.base_title || s.title, s.departure_date, s.feed_gap.feed, s.feed_gap.page,
+          `feed £${Math.abs(gapOf(s)).toLocaleString("en-GB")} ${gapOf(s) < 0 ? "lower" : "higher"}`, s.feed_gap.since, s.link])));
     }
 
     // Runs
@@ -1711,6 +1744,7 @@ const auth = getAuth(firebaseApp);
     overview: '<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
     promos: '<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
     coverage: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     cards: '<rect x="3" y="5" width="13" height="15" rx="1"/><path d="M8 2h13v15"/>',
@@ -1736,6 +1770,7 @@ const auth = getAuth(firebaseApp);
     ["ecards", "Email cards", ["h-ecards"], "Creative"],
     ["email", "Email creator", ["h-email"], "Creative"],   // only for the people in ONLY.email
     ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
+    ["feedgap", "Feed vs website", ["h-feedgap"], "Checks"],
     ["runs", "Check history", ["h-runs"], "Checks"],
     ["rules", "Was/now rules", ["h-rules"], "Checks"],
   ].map(([id, label, secs, grp]) => [id, label, secs.map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
@@ -1773,6 +1808,7 @@ const auth = getAuth(firebaseApp);
     const n = {
       promos: document.querySelectorAll("#promos tbody tr").length || "",
       coverage: coverage ? (coverage.on_sale_missing || []).length || "" : "",
+      feedgap: Object.values(state ? state.sailings || {} : {}).filter(s => !s.removed && s.feed_gap).length || "",
     };
     for (const [id] of VIEWS){ const el = $("nav-" + id); if (el) el.textContent = n[id] == null ? "" : String(n[id]); }
   }

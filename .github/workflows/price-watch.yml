@@ -39,6 +39,8 @@ jobs:
         id: watch
         # Card rendering is paused (Sam, 12 Oct 2026): prices only. To turn it back on,
         # drop --no-cards and restore the Playwright install step (see git history).
+        env:
+          HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: python daily.py --no-cards
 
       # Standard cards for every sailing on sale (Sam, 12 Oct 2026; was/now cards stay paused):
@@ -118,6 +120,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         # One issue per day; later checks that day with new claims add a comment.
         run: .github/issue.sh "New was/now claims — ${{ steps.watch.outputs.date }}" out/issue.md
+
+      - name: Open issue for ad feed prices that don't match the website
+        if: steps.watch.outputs.feed_gaps == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # One issue per day; later checks that find more add a comment (each sailing reported once).
+        run: .github/issue.sh "Feed prices don't match the website — ${{ steps.watch.outputs.date }}" out/feed_gaps.md
 
       - name: Open issue for ended was/now claims
         if: steps.cardrun.outputs.wasnow_ended != '' && steps.cardrun.outputs.wasnow_ended != '0'

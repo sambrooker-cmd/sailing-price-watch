@@ -38,6 +38,12 @@ Was/now rule (defaults; agree the numbers with compliance):
     came on sale is not a reduction, and a cabin that sold out and came back
     starts a fresh reference period.
 Cabin was/now claims are offered for twin (per person sharing) prices only.
+
+Feed vs website (Sam, 13 Oct 2026): the Google ad feed is refreshed daily, so its price can differ
+from the page. Each sailing whose feed price isn't the page's cheapest twin cabin carries
+feed_gap = {feed, page, since, seen} (UTC times of the checks); run lists feed_gap_new / feed_gap_fixed;
+fixed ones go to state feed_gaps_fixed (30 days). daily.py reports a gap once it has lasted
+FEED_GAP_HOURS. Recorded only: never part of claims.
 """
 import datetime as dt, json, sys
 from pathlib import Path
@@ -198,8 +204,32 @@ def cabin_claims(rec, today, rules):
     return out
 
 
+def update_feed_gap(rec, s, at, run, sid, fixed):
+    """Feed price vs the page's cheapest twin cabin. Only when the page's prices were read."""
+    if s.get("price_source") != "page" or s.get("feed_price_pp") is None:
+        return
+    feed, page, gap = round(s["feed_price_pp"]), round(s["price_pp"]), rec.get("feed_gap")
+    if feed != page:
+        if not gap:
+            rec["feed_gap"] = {"feed": feed, "page": page, "since": at, "seen": at}
+            run["feed_gap_new"].append({"id": sid, "feed": feed, "page": page})
+        else:
+            gap.update(feed=feed, page=page, seen=at)
+    elif gap:
+        close_feed_gap(rec, at, run, sid, fixed, "matches the website")
+
+
+def close_feed_gap(rec, at, run, sid, fixed, how):
+    gap = rec.pop("feed_gap")
+    fixed.append({"id": sid, "feed": gap["feed"], "page": gap["page"], "since": gap["since"], "fixed": at, "how": how})
+    run["feed_gap_fixed"].append({"id": sid, "feed": gap["feed"], "page": gap["page"], "how": how})
+
+
 def update(state, snap):
     today = snap["date"]
+    at = (dt.datetime.fromisoformat(snap["fetched_at"]).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          if snap.get("fetched_at") else f"{today}T12:00:00Z")
+    fixed = [f for f in state.get("feed_gaps_fixed", []) if days(f["fixed"][:10], today) <= 30]
     rules = {**RULES, **state.get("rules", {})}
     sailings = state.get("sailings", {})
     seen = set()
@@ -207,7 +237,7 @@ def update(state, snap):
            "drops": [], "rises": [], "eligible": [], "flags": {},
            "cabin_drops": [], "cabin_rises": [], "cabin_sold_out": [], "cabin_back": [],
            "cabin_eligible": [], "promo_added": [], "promo_ended": [], "promo_changed": [],
-           "nectar_changes": [], "lead_source_switch": []}
+           "nectar_changes": [], "lead_source_switch": [], "feed_gap_new": [], "feed_gap_fixed": []}
     # The first check reading "from" prices off the pages (13 Oct 2026) doesn't report the
     # difference from the feed's prices as drops or rises.
     switching = "lead_from_page_since" not in state
@@ -252,6 +282,7 @@ def update(state, snap):
         rec["last_seen"] = today
         if cab is not None and "page_error" not in s:
             update_cabins(rec, cab, today, run, sid)
+        update_feed_gap(rec, s, at, run, sid, fixed)
         # "offers" is missing when the page couldn't be read: leave promotions as they were.
         if s.get("offers") is not None and "page_error" not in s:
             update_promos(rec, s["offers"], today, run, sid, catalogue, first_promos)
@@ -267,6 +298,8 @@ def update(state, snap):
             rec["removed"] = today
             run["removed"].append(sid)
             close_promos(rec, today, run, sid, catalogue)
+            if rec.get("feed_gap"):
+                close_feed_gap(rec, at, run, sid, fixed, "left the feed")
     for sid, rec in sailings.items():
         claim = was_now(rec, today, rules)
         if claim:
@@ -307,6 +340,7 @@ def update(state, snap):
         new_state["lead_from_page_since"] = state.get("lead_from_page_since", today)
     if not run["lead_source_switch"]:
         run.pop("lead_source_switch")
+    new_state["feed_gaps_fixed"] = fixed
     if nectar_seen or "nectar_since" in state:
         new_state["nectar_since"] = state.get("nectar_since", today)
     if promos_seen or "promos_since" in state:
