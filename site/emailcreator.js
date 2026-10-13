@@ -27,7 +27,7 @@ const LEGAL = "Calls to 03 numbers cost no more than calls to geographic numbers
   "Ambassador Cruise Line, Gateway House, Stonehouse Lane, Purfleet, Essex RM19 1NS";
 const COL = {allium: "#6B207D", palatyn: "#380843", pearl: "#F1ECE7", amber: "#F68C4E", ink: "#1B1220", muted: "#5E5465"};
 // Image sizes, at twice the size they show in the email (sharp on phones and retina screens)
-const IMG = {logo: [442, 96], hero: [1200, 630], tile: [352, 272], wide: [1120, 430]};
+const IMG = {logo: [442, 96], hero: [1200, 630], tile: [376, 320], wide: [1120, 430]};
 
 let S, CAB, KIT, ID, root, today, LOGO_SVG = "";
 let em = fresh(), sel = 0, note = "", made = null, previewMode = "desktop";
@@ -119,11 +119,10 @@ function imageDoc(kind, o){
     body{width:${w}px;height:${h}px;overflow:hidden;background:${COL.pearl}}#card{position:relative;width:${w}px;height:${h}px;overflow:hidden;font-family:Quicksand,sans-serif}
     .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}</style>${RUNTIME}</head><body><div id="card">${body}</div></body></html>`;
   if (kind === "logo") return page(`<div style="padding:4px 0">${LOGO_SVG.replace("<svg ", `<svg width="${w}" height="${h - 8}" `)}</div>`);
+  // Header: the photo (with a soft shade when words go over it). The words themselves are live text in the
+  // email, centred and responsive (Sam, 13 Oct 2026), not part of the picture.
   if (kind === "hero") return page(`<img class="ph" crossorigin="anonymous" src="${esc(cropUrl(o.photo, w, h))}">
-    ${o.headline || o.sub ? `<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,10,25,.72),rgba(20,10,25,.45) 45%,rgba(0,0,0,0) 75%)"></div>
-    <div style="position:absolute;left:96px;right:380px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.55)">
-      <div style="font-size:64px;font-weight:700;line-height:1.08">${esc(o.headline)}</div>
-      ${o.sub ? `<div style="font-size:30px;font-weight:500;line-height:1.3;margin-top:14px">${esc(o.sub)}</div>` : ""}</div>` : ""}`);
+    ${o.shade ? `<div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(20,10,25,.5),rgba(20,10,25,.22) 75%)"></div>` : ""}`);
   const f = kind === "tile" ? 1 : 1.25;   // badge and caption text size
   return page(`<img class="ph" crossorigin="anonymous" src="${esc(cropUrl(o.photo, w, h))}">
     <div style="position:absolute;top:${Math.round(h * .035)}px;right:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
@@ -147,7 +146,7 @@ async function bake(kind, o, quality){
 // Every image the email needs: name → [kind, options]
 function images(){
   const out = {logo: ["logo", {}]};
-  if (em.hero.photo) out.hero = ["hero", {photo: em.hero.photo, headline: em.hero.headline, sub: em.hero.sub}];
+  if (em.hero.photo) out.hero = ["hero", {photo: em.hero.photo, shade: !!(em.hero.headline || em.hero.sub)}];
   em.items.forEach((it, i) => { out[`s${i + 1}_${it.id.toLowerCase()}`] = [it.layout, {photo: it.photo, caption: it.caption, badges: it.badges.map(badgeText)}]; });
   return out;
 }
@@ -166,15 +165,28 @@ function sailingInfo(it, size){
     <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:${COL.ink}">${longDate(s.r.departure_date)}<br>${s.r.nights} nights departing ${esc(s.fly ? s.fly + " Airport" : s.r.port)}<br>${esc(s.r.ship)}</p>
     ${price}${button(c ? `Now ${money(c.now)}pp` : `From ${money(s.price)}pp`, s.link)}`;
 }
+// Header picture as the cell's background with the words as live text on top, centred: readable and
+// responsive on phones. Outlook on Windows ignores CSS backgrounds, so it gets the same picture in VML.
+function heroRow(url){
+  const h = em.hero.headline.trim(), sub = em.hero.sub.trim(), shadow = "text-shadow:0 2px 12px rgba(0,0,0,.55)";
+  const words = h || sub ? `<div style="padding:0 30px;text-align:center">
+      ${h ? `<p class="hero-h" style="margin:0;font-family:${F};font-weight:700;font-size:38px;line-height:1.15;color:#ffffff;${shadow}">${esc(h)}</p>` : ""}
+      ${sub ? `<p class="hero-s" style="margin:${h ? 10 : 0}px 0 0;font-family:${F};font-weight:500;font-size:18px;line-height:1.4;color:#ffffff;${shadow}">${esc(sub)}</p>` : ""}</div>` : "&nbsp;";
+  return `<tr><td class="hero" background="${url}" bgcolor="${COL.palatyn}" width="600" height="315" valign="middle" align="center"
+    style="background:${COL.palatyn} url('${url}') center center / cover no-repeat;height:315px;vertical-align:middle;text-align:center">
+<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:450pt;height:236pt"><v:fill type="frame" src="${url}" color="${COL.palatyn}"/><v:textbox inset="0,0,0,0" style="v-text-anchor:middle"><![endif]-->
+    ${words}
+<!--[if gte mso 9]></v:textbox></v:rect><![endif]--></td></tr>`;
+}
 function emailHtml(src){
   const rows = [];
   let tiles = [];
   const flush = () => {
     if (!tiles.length) return;
-    const w = tiles.length === 1 ? 186 : 186;
-    rows.push(`<tr><td class="pad" style="padding:0 15px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-      ${tiles.map(([it, name]) => `<td class="tile" width="${w}" valign="top" align="center" style="padding:0 5px">
-        <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="176" alt="${esc(sailing(it.id).title)}" style="display:block;width:176px;height:auto;border:0"></a>
+    // Three columns of 196 px across the 600 px email (188 px pictures, Sam: bigger tiles)
+    rows.push(`<tr><td class="pad" style="padding:0 6px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      ${tiles.map(([it, name]) => `<td class="tile" width="196" valign="top" align="center" style="padding:0 4px">
+        <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="188" height="160" alt="${esc(sailing(it.id).title)}" style="display:block;width:188px;height:auto;border:0"></a>
         ${sailingInfo(it, 15)}</td>`).join("")}</tr></table></td></tr>`);
     tiles = [];
   };
@@ -193,14 +205,14 @@ function emailHtml(src){
     ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
   const unsub = em.unsub.trim() || "UNSUBSCRIBE_LINK";
   return `<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || "Ambassador Cruise Line")}</title>
 <!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
 <style>body{margin:0;padding:0;background:#ffffff}img{border:0;line-height:100%;outline:none;text-decoration:none}a{color:${COL.allium}}
 @media only screen and (max-width:620px){.w600{width:100%!important}.pad{padding-left:16px!important;padding-right:16px!important}
-.tile{display:block!important;width:100%!important;padding:0 0 28px!important}.tile img{width:100%!important;max-width:352px!important;margin:0 auto}
-.hero img{width:100%!important;height:auto!important}.logo img{width:170px!important;height:auto!important}.phone{font-size:18px!important}.nav{font-size:13px!important}}</style>
+.tile{display:block!important;width:100%!important;padding:0 0 28px!important}.tile img{width:100%!important;max-width:376px!important;margin:0 auto}
+.hero{height:230px!important}.hero-h{font-size:28px!important}.hero-s{font-size:15px!important}.logo img{width:170px!important;height:auto!important}.phone{font-size:18px!important}.nav{font-size:13px!important}}</style>
 </head>
 <body style="margin:0;padding:0;background:#ffffff">
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${esc(em.preheader)}&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;</div>
@@ -211,7 +223,7 @@ function emailHtml(src){
   <td class="phone" align="right" valign="middle" style="font-family:${F};font-weight:700;font-size:24px;color:${COL.palatyn}"><a href="tel:${esc(em.phone.replace(/\s/g, ""))}" style="color:${COL.palatyn};text-decoration:none">${esc(em.phone)}</a></td>
 </tr></table></td></tr>
 <tr><td class="nav" align="center" style="padding:0 10px 18px;font-family:${F};font-weight:700;font-size:15px;color:${COL.palatyn}">${NAV.map(([t, u]) => `<a href="${u}" target="_blank" style="color:${COL.palatyn};text-decoration:none">${t}</a>`).join(" | ")}</td></tr>
-${src.hero ? `<tr><td class="hero"><a href="${esc(em.ctaLink || SITE)}" target="_blank"><img src="${src.hero}" width="600" alt="${esc(em.hero.headline || em.subject)}" style="display:block;width:600px;height:auto"></a></td></tr>` : ""}
+${src.hero ? heroRow(src.hero) : ""}
 ${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${F};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
 ${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, em.ctaLink || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
 ${rows.join("\n")}
