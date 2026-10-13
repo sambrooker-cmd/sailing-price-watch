@@ -39,7 +39,7 @@ function fresh(){
   return {subject: "", preheader: "", phone: "0333 920 1164",
           hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Find your sailing", ctaLink: SITE,
           items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: "",
-          nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}};
+          nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}, allBadges: false};
 }
 // Optional strips (Sam, 13 Oct 2026), each placed under the header, after the intro or above the small print.
 // Trustpilot: Trustpilot's own email widget (the code Sam sent), whose images Trustpilot keeps up to date,
@@ -175,6 +175,9 @@ function claims(id){
   return out;
 }
 const claimOf = it => it.design.startsWith("wasnow:") ? claims(it.id).find(c => "wasnow:" + c.key === it.design) : null;
+// Offer badges on a sailing's picture: its own choice, or with "Offer badges on every sailing" ticked
+// (Sam, 13 Oct 2026, as in the Friday round-up emails) its first 2 live offers, kept up to date.
+const badgesOf = it => em.allBadges ? (sailing(it.id).k.promos || []).slice(0, 2) : it.badges;
 const badgeText = line => line.split(" · ")[0];
 // "ends 13 Oct" in an ad kit promotion line → ISO date (this year or next), to warn before it lapses
 function promoEnds(line){
@@ -258,7 +261,7 @@ function images(){
   const out = {logo: ["logo", {}]};
   const n = nectarArt(); if (n) out.nectar = ["banner", n];
   if (em.hero.photo) out.hero = ["hero", {photo: em.hero.photo, shade: !!(em.hero.headline || em.hero.sub)}];
-  em.items.forEach((it, i) => { out[`s${i + 1}_${it.id.toLowerCase()}`] = [it.layout, {photo: it.photo, caption: it.caption, badges: it.badges.map(badgeText)}]; });
+  em.items.forEach((it, i) => { out[`s${i + 1}_${it.id.toLowerCase()}`] = [it.layout, {photo: it.photo, caption: it.caption, badges: badgesOf(it).map(badgeText)}]; });
   return out;
 }
 
@@ -281,7 +284,7 @@ function sailingInfo(it, size){
 function heroRow(url){
   const h = em.hero.headline.trim(), sub = em.hero.sub.trim(), shadow = "text-shadow:0 2px 12px rgba(0,0,0,.55)";
   const words = h || sub ? `<div style="padding:0 30px;text-align:center">
-      ${h ? `<p class="hero-h" style="margin:0;font-family:${F};font-weight:700;font-size:38px;line-height:1.15;color:#ffffff;${shadow}">${esc(h)}</p>` : ""}
+      ${h ? `<p class="hero-h" style="margin:0;font-family:${F};font-weight:300;font-size:26px;line-height:1.25;letter-spacing:.14em;text-transform:uppercase;color:#ffffff;${shadow}">${esc(h)}</p>` : ""}
       ${sub ? `<p class="hero-s" style="margin:${h ? 10 : 0}px 0 0;font-family:${F};font-weight:500;font-size:18px;line-height:1.4;color:#ffffff;${shadow}">${esc(sub)}</p>` : ""}</div>` : "&nbsp;";
   return `<tr><td class="hero" background="${url}" bgcolor="${COL.palatyn}" width="600" height="315" valign="middle" align="center"
     style="background:${COL.palatyn} url('${url}') center center / cover no-repeat;height:315px;vertical-align:middle;text-align:center">
@@ -331,11 +334,11 @@ function emailHtml(src){
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || "Ambassador Cruise Line")}</title>
-<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
+<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
 <style>body{margin:0;padding:0;background:#ffffff}img{border:0;line-height:100%;outline:none;text-decoration:none}a{color:${COL.allium}}
 @media only screen and (max-width:620px){.w600{width:100%!important}.pad{padding-left:16px!important;padding-right:16px!important}
 .tile{display:block!important;width:100%!important;padding:0 0 28px!important}.tile img{width:100%!important;max-width:376px!important;margin:0 auto}
-.hero{height:230px!important}.hero-h{font-size:28px!important}.hero-s{font-size:15px!important}.logo img{width:170px!important;height:auto!important}.phone{font-size:18px!important}.nav{font-size:13px!important}}</style>
+.hero{height:230px!important}.hero-h{font-size:18px!important;letter-spacing:.1em!important}.hero-s{font-size:15px!important}.logo img{width:170px!important;height:auto!important}.phone{font-size:18px!important}.nav{font-size:13px!important}}</style>
 </head>
 <body style="margin:0;padding:0;background:#ffffff">
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${esc(em.preheader)}&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;</div>
@@ -366,7 +369,7 @@ function suggestionsFor(){
   return suggest(em.items.map(it => {
     const s = sailing(it.id), c = claimOf(it), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
     return {title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date, price: s.price,
-            promos: it.badges, nectarPts: n, wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
+            promos: badgesOf(it), nectarPts: n, wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
   }), em.items.length === 1 ? "single" : "carousel")
     .map(o => ({...o, text: o.text.replace(/\s*Based on two sharing and subject to availability\.$/, "")   // the small print says this
       .replace("Swipe through and find the one that's calling you.", "Take a look and find the one that's calling you.")   // ad wording → email
@@ -379,7 +382,7 @@ function photoPicker(cur, attr, list){
 function itemEditor(){
   const it = em.items[sel]; if (!it) return "";
   const s = sailing(it.id), cl = claims(it.id), hint = captionHint(it.photo);
-  const ends = it.badges.map(b => [b, promoEnds(b)]).filter(([, d]) => d && d <= addDays(today, 3));
+  const ends = badgesOf(it).map(b => [b, promoEnds(b)]).filter(([, d]) => d && d <= addDays(today, 3));
   return `<div class="ac-block">
     ${em.items.length > 1 ? `<div class="ac-tabs" role="tablist" aria-label="Sailing to edit">${em.items.map((x, i) =>
       `<button type="button" role="tab" class="ac-tab" data-tab="${i}" aria-selected="${i === sel}" tabindex="${i === sel ? 0 : -1}" title="${esc(sailing(x.id).title)}"><b>${i + 1}</b><span>${esc(sailing(x.id).title)}</span></button>`).join("")}</div>` : ""}
@@ -395,7 +398,8 @@ function itemEditor(){
     <input id="em-caption" value="${esc(it.caption)}" placeholder="e.g. Bridgetown, Barbados" maxlength="40">
     ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="em-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
     <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
-    ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${it.badges.includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
+    ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${em.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
+    ${em.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked, so this shows its first ${Math.min(2, s.k.promos.length)}. Untick it to choose.</p>` : ""}
     ${ends.length ? `<p class="ac-note">${ends.map(([b, d]) => `"${esc(badgeText(b))}" ends ${shortDate(d)}`).join("; ")}: check it's still on when the email goes out.</p>` : ""}
   </div>`;
 }
@@ -425,13 +429,14 @@ function draw(){
           <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${x.layout === "wide" ? "full width" : "tile"}${x.design !== "standard" ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
           <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this sailing (e.g. full width with another photo)"${it.length < MAX ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
+          <label class="ac-check"><input type="checkbox" id="em-allbadges"${em.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
           <p class="sub">Tiles go 3 across (on phones they stack); a full-width sailing starts a new row.</p>` : `<p class="sub">Search above and add the sailings for this email.</p>`}
       </div>
       <div class="ac-block">
         <h3>Header picture</h3>
         ${heroPhotos.length ? photoPicker(em.hero.photo, "data-hero", heroPhotos) : `<p class="sub">Add a sailing to choose from its photos.</p>`}
         ${em.hero.photo ? `<button type="button" class="linkbtn" id="em-nohero">No header picture</button>` : ""}
-        <input id="em-headline" value="${esc(em.hero.headline)}" placeholder="Headline, e.g. Winter sunshine" maxlength="28" aria-label="Header headline">
+        <input id="em-headline" value="${esc(em.hero.headline)}" placeholder="Headline, e.g. The weekly cruise round-up" maxlength="28" aria-label="Header headline">
         <input id="em-sub" value="${esc(em.hero.sub)}" placeholder="Second line (optional)" maxlength="70" aria-label="Header second line">
       </div>
       <div class="ac-block">
@@ -596,6 +601,7 @@ function wire(){
   root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
   $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
+  $("#em-allbadges") && $("#em-allbadges").addEventListener("change", e => { em.allBadges = e.target.checked; change(true); });
   $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });
   root.querySelectorAll("[data-nectar]").forEach(b => b.addEventListener("click", () => { em.nectar.file = b.dataset.nectar; change(true); }));
   $("#em-nectar-pos") && $("#em-nectar-pos").addEventListener("change", e => { em.nectar.pos = e.target.value; change(true); });
