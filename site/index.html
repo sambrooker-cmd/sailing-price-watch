@@ -215,8 +215,13 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-side{display:flex;flex-direction:column;gap:14px}
 .ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
 .ac-block h3{margin:0 0 4px;font-size:15px}
-.em-frame{overflow:auto;border:1px solid var(--rule);background:#fff;max-width:100%}
-.em-frame iframe{display:block;border:0;min-height:600px;margin:0 auto}
+/* Email preview: the right-hand column stays in view and the preview fills the rest of the screen,
+   scrolling inside itself (Sam, 13 Oct 2026: it overlapped its box and didn't fit the screen) */
+.em-main{height:calc(100vh - 24px)}
+.em-frame{flex:1 1 auto;min-height:420px;display:flex;justify-content:center;overflow:hidden;border:1px solid var(--rule);background:#e9e5e1}
+.em-frame iframe{display:block;border:0;height:100%;max-width:100%;background:#fff}
+.em-hint{margin:-6px 0 0;font-size:12px}
+@media (max-width:860px){.em-main{height:auto}.em-frame{height:75vh;flex:none}}
 .em-modes{margin:10px 0 8px}
 .em-made{margin:10px 0}
 .ac-vids{margin:0 0 14px}
