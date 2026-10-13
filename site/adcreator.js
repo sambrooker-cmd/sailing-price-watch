@@ -128,6 +128,21 @@ function brandEditor(){
   </div>`;
 }
 
+// Nectar line and Trustpilot widget, per card or for every card at once (Sam, 13 Oct 2026).
+// Why a strip can't go on this card ("" when it can): standard design only, and only when there's something to show.
+function stripBlock(c, k){
+  if (c.design !== "standard") return "Not on was/now cards";
+  if (k === "nectar" && !sailing(c.id).k.nectar) return "This sailing has no Nectar points";
+  if (k === "tp" && !TP) return "Waiting for the Trustpilot image";
+  return "";
+}
+function setStrip(c, k, on){
+  if (stripBlock(c, k)) return;
+  if (k === "nectar") c.nectar = on;
+  else c.trustpilot = on ? (typeof c.trustpilot === "string" && c.trustpilot ? c.trustpilot : TP.images[0].file) : "";
+  c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2);   // still at most 1 promotion with either strip
+}
+
 // ---------- drawing ----------
 function draw(){
   const c = ad.cards[sel];
@@ -146,9 +161,14 @@ function draw(){
       </div>
       <div class="ac-block">
         <h3>${ad.format === "carousel" ? `Sailings in order (${ad.cards.length} of ${maxSailings()})` : "Sailing"}</h3>
+        ${ad.cards.length ? `<div class="ac-row ac-bulk" role="group" aria-label="Strips on every card"><span class="sub">Every card:</span>
+          <button type="button" class="ac-chip" data-all="nectar:1">Nectar on</button><button type="button" class="ac-chip" data-all="nectar:0">Nectar off</button>
+          <button type="button" class="ac-chip" data-all="tp:1"${TP ? "" : " disabled"}>Trustpilot on</button><button type="button" class="ac-chip" data-all="tp:0"${TP ? "" : " disabled"}>Trustpilot off</button></div>` : ""}
         ${ad.cards.length ? `<ol class="ac-list">${ad.cards.map((x, i) => { const s = sailing(x.id); return `
           <li class="${i === sel ? "on" : ""}" draggable="true" data-i="${i}">
             <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
+            <span class="ac-strips">${["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
+              return `<button type="button" class="ac-chip" data-strip="${k}" data-i="${i}" aria-pressed="${!why && on}"${why ? ` disabled title="${esc(why)}"` : ""}>${k === "nectar" ? "Nectar" : "Trustpilot"}</button>`; }).join("")}</span>
             <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
           </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}
       </div>
@@ -323,6 +343,13 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  root.querySelectorAll("[data-strip]").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation(); const x = ad.cards[+b.dataset.i];
+    setStrip(x, b.dataset.strip, b.getAttribute("aria-pressed") !== "true"); change(true, true);
+  }));
+  root.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => {
+    const [k, v] = b.dataset.all.split(":"); ad.cards.forEach(x => setStrip(x, k, v === "1")); change(true, true);
+  }));
   const bind = (id, obj, key, redraw) => { const e = $(id); if (!e) return;
     e.addEventListener(e.type === "checkbox" ? "change" : "input", () => { obj[key] = e.type === "checkbox" ? e.checked : e.value; change(true, redraw); }); };
   bind("#in-on", ad.intro, "on", true); bind("#en-on", ad.end, "on", true);

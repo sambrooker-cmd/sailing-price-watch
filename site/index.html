@@ -241,6 +241,16 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-up{display:flex;align-items:center;justify-content:center;width:62px;height:62px;border:1px dashed var(--rule);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted)}
 .ac-check{display:flex;gap:8px;align-items:flex-start;font-size:14px}
 .ac-check input{width:auto;margin-top:3px}
+.cardopts{margin:14px 0;padding:10px 14px;border:1px solid var(--rule);display:flex;flex-direction:column;gap:6px;font-size:14px}
+.cardopts select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);align-self:flex-start}
+.co-frame{position:relative;width:150px;overflow:hidden;background:#380843;border:1px solid var(--rule)}
+.co-frame iframe{position:absolute;left:0;top:0}
+.ac-chip{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
+.ac-chip[aria-pressed="true"]{background:var(--allium);border-color:var(--allium);color:#fff}
+.ac-chip:disabled{opacity:.4;cursor:default}
+.ac-strips{display:flex;gap:4px;flex:none}
+.ac-bulk{gap:6px;margin:0 0 6px}
+.ac-list li{flex-wrap:wrap}
 .ac-sugg{margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
 .ac-sugg summary{font-size:13px;font-weight:700;cursor:pointer}
 .ac-opt{border:1px solid var(--rule);padding:8px 10px;margin-top:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
@@ -1100,7 +1110,7 @@ const auth = getAuth(firebaseApp);
       <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure>${pvLink(pk, t, `<img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy">`)}
         <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>`
       : `<p class="sub">No current cards: ${esc((c.old[0] || {}).reason || "withdrawn")}.</p>`;
-    const chk = cur ? checkDetail(cur) : "";
+    const chk = (cur ? checkDetail(cur) : "") + (cur ? `<div id="cardopts"></div>` : "");
     const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => {
         const k = pvReg(o.kind === "wasnow" ? `${s.id} was/now (DO NOT USE): ${wnTitle(o)}` : `${s.id} (out of date)`, o.files,
           o.kind === "wasnow" ? `<span class="dnu">Do not use</span> ${esc(o.reason)}` : `<span class="stale">Out of date</span> ${esc(o.reason)}`);
@@ -1276,6 +1286,7 @@ const auth = getAuth(firebaseApp);
     ch.wire(dlg);
     $("d-close").addEventListener("click", () => dlg.close());
     if (!dlg.open) dlg.showModal();
+    if ($("cardopts")) mountCardOpts(id);
     dlg.querySelector(".dbody").scrollTop = 0; dlg.scrollTop = 0;
   }
   dlg.addEventListener("close", () => {
@@ -1675,13 +1686,24 @@ const auth = getAuth(firebaseApp);
   });
   $("gate-signout").addEventListener("click", () => signOut(auth).catch(() => {}));
 
+  // Ad kit (pricewatch/adkit): per-sailing card extras, loaded once when the Ad creator or a card version needs it
+  let adkitP = null;
+  const getAdkit = () => adkitP || (adkitP = readJson("adkit").catch(() => null));
+  // "Make a version" in a sailing's Cards section: Nectar line / Trustpilot widget on or off (site/cardmaker.js)
+  async function mountCardOpts(id){
+    const el = $("cardopts"), r = (state.sailings || {})[id]; if (!el || !r) return;
+    try {
+      const [m, kit] = await Promise.all([import("./cardmaker.js"), getAdkit()]);
+      if ($("cardopts") === el) await m.mount(el, id, r, ((kit || {}).sailings || {})[id]);
+    } catch (e) { el.innerHTML = `<p class="sub">Couldn't load the card maker: ${esc(e.message)}</p>`; }
+  }
   // Ad creator: its own module, loaded the first time the page is opened (site/adcreator.js)
   let adsMounted = false;
   async function mountAds(){
     if (!state || adsMounted) return;   // (state first: showView runs before adsMounted is declared)
     adsMounted = true;
     try {
-      const [m, kit] = await Promise.all([import("./adcreator.js"), readJson("adkit").catch(() => null)]);
+      const [m, kit] = await Promise.all([import("./adcreator.js"), getAdkit()]);
       await m.mount($("ads"), {state, cabins, adkit: kit});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
