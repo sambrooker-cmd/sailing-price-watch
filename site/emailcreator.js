@@ -1,0 +1,450 @@
+// Email creator (Sam, 13 Oct 2026): pick sailings, choose the header, words, photos and offer badges, and get
+// a marketing email in the layout of Ambassador's HubSpot emails (Sam's 10 Oct 2026 solo email): logo and
+// phone, links, a header picture with a headline, intro and button, sailings as 3-across tiles or full-width,
+// then the small print. Images (logo, header, sailing pictures with badges and captions) are made in the
+// browser; "Make email" stores them in Storage through the emailImages function (allowlist checked) and gives
+// standard email HTML to copy or download. Nothing is sent to anyone.
+// Prices, dates, ships and offers come from the tracker's saved data and can't be typed in. Twin prices only
+// (Sam: no solo prices for now). Was/now only from a live claim (tracker.py), with its own figures, and the
+// email says until when it may be sent. "Lower fares" offers never reach the badges (cards_sync adkit).
+// HubSpot specifics (template, unsubscribe token, UTM) are left for later (Sam).
+import {cropUrl} from "./adcards.js?v=__BUILD__";
+import {suggest} from "./adcopy.js?v=__BUILD__";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
+const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
+const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+const SITE = "https://www.ambassadorcruiseline.com/";
+const FN = "https://us-central1-promotions-planner.cloudfunctions.net/emailImages";
+const KEY = "spw-email-draft";
+const MAX = 12;
+const NAV = [["Find a Cruise", SITE + "search/"], ["Last-Minute Deals", SITE + "deals/late-deals/"], ["Our Ships", SITE + "our-ships/"], ["Order a Brochure", SITE + "brochures/"]];
+const LEGAL = "Calls to 03 numbers cost no more than calls to geographic numbers (01 or 02) and are included in inclusive minutes from landlines and mobiles.\n" +
+  "© 2026. Ambassador Cruise Holidays Limited is a company registered in England and Wales. Registered number: 13299365.\n" +
+  "Ambassador Cruise Line, Gateway House, Stonehouse Lane, Purfleet, Essex RM19 1NS";
+const COL = {allium: "#6B207D", palatyn: "#380843", pearl: "#F1ECE7", amber: "#F68C4E", ink: "#1B1220", muted: "#5E5465"};
+// Image sizes, at twice the size they show in the email (sharp on phones and retina screens)
+const IMG = {logo: [442, 96], hero: [1200, 630], tile: [352, 272], wide: [1120, 430]};
+
+let S, CAB, KIT, ID, root, today, LOGO_SVG = "";
+let em = fresh(), sel = 0, note = "", made = null, previewMode = "desktop";
+const baked = new Map();   // image key -> data URL (preview and upload)
+
+function fresh(){
+  return {subject: "", preheader: "", phone: "0333 920 1164",
+          hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Find your sailing", ctaLink: SITE,
+          items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: ""};
+}
+
+export async function mount(el, ctx){
+  root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; ID = ctx.idToken || null;
+  today = S.updated;
+  const sym = document.getElementById("amb-logo");
+  if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) em = {...fresh(), ...d}; } catch(e){}
+  em.items = em.items.filter(it => sailing(it.id)).map(it => {
+    if (it.design !== "standard" && !claims(it.id).some(c => "wasnow:" + c.key === it.design)) it.design = "standard";
+    return it;
+  });
+  draw();
+}
+
+// ---------- data (the tracker's saved state only) ----------
+const live = () => Object.entries(S.sailings || {}).filter(([, r]) => !r.removed && r.departure_date > today);
+function sailing(id){
+  const r = (S.sailings || {})[id];
+  if (!r || r.removed || !(r.departure_date > today)) return null;
+  const k = KIT[id] || {}, fly = r.flight_from;
+  return {id, r, k, fly, title: fly ? r.base_title : r.title, price: r.segments[r.segments.length - 1].p, link: r.link || SITE,
+          image: k.image || r.image_link, photos: [k.image || r.image_link, ...(k.photos || [])].filter((u, i, a) => u && a.indexOf(u) === i)};
+}
+// Was/now claims valid today (tracker.py claim_for), as in the Ad creator
+function claims(id){
+  const s = sailing(id); if (!s) return [];
+  const out = [], c = s.r.claim;
+  if (c && c.eligible && c.ends >= today && c.now === s.price)
+    out.push({key: "lead", label: "Lead price", was: c.was, now: c.now, ends: c.ends, since: c.since, grade: s.k.lead_grade || null});
+  for (const [k, cc] of Object.entries((CAB[id] || {}).cabin_claims || {}))
+    if (k.startsWith("twin.") && cc.eligible && cc.ends >= today)
+      out.push({key: k, label: GRADE[k.slice(5)] + " cabins", was: cc.was, now: cc.now, ends: cc.ends, since: cc.since, grade: k.slice(5)});
+  return out;
+}
+const claimOf = it => it.design.startsWith("wasnow:") ? claims(it.id).find(c => "wasnow:" + c.key === it.design) : null;
+const badgeText = line => line.split(" · ")[0];
+// "ends 13 Oct" in an ad kit promotion line → ISO date (this year or next), to warn before it lapses
+function promoEnds(line){
+  const m = line.match(/ends (\d{1,2}) (\w{3})/); if (!m) return null;
+  const mi = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(m[2]); if (mi < 0) return null;
+  let y = +today.slice(0, 4); const iso = (yy) => `${yy}-${String(mi + 1).padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (iso(y) < today) y++;
+  return iso(y);
+}
+// A place name from a photo's file name, offered as a caption to check (e.g. ".../bridgetown-barbados_....jpg")
+function captionHint(url){
+  const f = decodeURIComponent((url || "").split("/").pop() || "").replace(/\.\w+$/, "");
+  const junk = /^(\d+|\d+x\d+|shutterstock|istock|getty|adobe|stock|selected|edited|dsc\d*|img\d*|new|to|use|amb|xxx|cotw|final|v\d+|copy|web|hero|header|crop(ped)?|at|sunset|aerial|view|\d+-\d+-\d+)$/i;
+  const words = f.split(/[\s_\-]+/).filter(w => w && !junk.test(w) && !/\d/.test(w));
+  if (!words.length || words.length > 5) return "";
+  return words.map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+}
+
+// Default picture for a sailing: a destination photo from its page rather than campaign artwork
+// (Cruise of the Week roundels, Boom Radio and similar, as render_cards.py is_campaign), when there is one.
+const CAMPAIGN = /cotw|dig-|carousel|boom-radio|weekender|back_to_|no-logo|renaissance|ambience|ambition|_ship|ship_/i;
+function pickPhoto(s){
+  if (!s.k.campaign && !CAMPAIGN.test(s.image)) return s.image;
+  return s.photos.find(u => u !== s.image && !CAMPAIGN.test(u) && captionHint(u)) || s.photos.find(u => u !== s.image && !CAMPAIGN.test(u)) || s.image;
+}
+
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(em)); } catch(e){} };
+function newItem(id){
+  const s = sailing(id);
+  return {id, layout: em.items.filter(x => x.layout === "tile").length % 3 === 0 && em.items.length >= 3 ? "wide" : "tile",
+          design: "standard", photo: pickPhoto(s), caption: "", badges: (s.k.promos || []).slice(0, 1)};
+}
+const sendBy = () => em.items.map(claimOf).filter(Boolean).map(c => c.ends).sort()[0] || "";
+
+// ---------- images, made in the browser ----------
+const FONT_CSS = [500, 600, 700].map(w =>
+  `@font-face{font-family:'Quicksand';font-weight:${w};src:url(${location.origin}/fonts/quicksand-latin-${w}-normal.woff2) format('woff2')}`).join("");
+const RUNTIME = `<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"><\/script>
+<script>window.ready=async()=>{await document.fonts.ready;await Promise.all([...document.images].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r;})));};
+window.toJpeg=q=>htmlToImage.toJpeg(document.getElementById('card'),{quality:q,pixelRatio:1,cacheBust:false,backgroundColor:'${COL.pearl}'});<\/script>`;
+function imageDoc(kind, o){
+  const [w, h] = IMG[kind];
+  const page = body => `<!doctype html><html><head><meta charset="utf-8"><style>${FONT_CSS}*{margin:0;box-sizing:border-box}
+    body{width:${w}px;height:${h}px;overflow:hidden;background:${COL.pearl}}#card{position:relative;width:${w}px;height:${h}px;overflow:hidden;font-family:Quicksand,sans-serif}
+    .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}</style>${RUNTIME}</head><body><div id="card">${body}</div></body></html>`;
+  if (kind === "logo") return page(`<div style="padding:4px 0">${LOGO_SVG.replace("<svg ", `<svg width="${w}" height="${h - 8}" `)}</div>`);
+  if (kind === "hero") return page(`<img class="ph" crossorigin="anonymous" src="${esc(cropUrl(o.photo, w, h))}">
+    ${o.headline || o.sub ? `<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,10,25,.72),rgba(20,10,25,.45) 45%,rgba(0,0,0,0) 75%)"></div>
+    <div style="position:absolute;left:96px;right:380px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.55)">
+      <div style="font-size:64px;font-weight:700;line-height:1.08">${esc(o.headline)}</div>
+      ${o.sub ? `<div style="font-size:30px;font-weight:500;line-height:1.3;margin-top:14px">${esc(o.sub)}</div>` : ""}</div>` : ""}`);
+  const f = kind === "tile" ? 1 : 1.25;   // badge and caption text size
+  return page(`<img class="ph" crossorigin="anonymous" src="${esc(cropUrl(o.photo, w, h))}">
+    <div style="position:absolute;top:${Math.round(h * .035)}px;right:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      ${(o.badges || []).map(b => `<div style="background:${COL.amber};color:#fff;font-weight:700;text-transform:uppercase;font-size:${Math.round(15 * f)}px;letter-spacing:.02em;padding:${Math.round(6 * f)}px ${Math.round(12 * f)}px">${esc(b)}</div>`).join("")}</div>
+    ${o.caption ? `<div style="position:absolute;left:0;bottom:0;background:rgba(27,18,32,.86);color:#fff;font-weight:600;font-size:${Math.round(15 * f)}px;padding:${Math.round(6 * f)}px ${Math.round(12 * f)}px">${esc(o.caption)}</div>` : ""}`);
+}
+async function bake(kind, o, quality){
+  const key = JSON.stringify([kind, o, quality]);
+  if (baked.has(key)) return baked.get(key);
+  const [w, h] = IMG[kind], f = document.createElement("iframe");
+  f.style.cssText = `position:fixed;left:-${w + 50}px;top:0;width:${w}px;height:${h}px;border:0`;
+  document.body.appendChild(f);
+  try {
+    await new Promise(r => { f.onload = r; f.srcdoc = imageDoc(kind, o); });
+    await f.contentWindow.ready();
+    const url = await f.contentWindow.toJpeg(quality);
+    baked.set(key, url);
+    return url;
+  } finally { f.remove(); }
+}
+// Every image the email needs: name → [kind, options]
+function images(){
+  const out = {logo: ["logo", {}]};
+  if (em.hero.photo) out.hero = ["hero", {photo: em.hero.photo, headline: em.hero.headline, sub: em.hero.sub}];
+  em.items.forEach((it, i) => { out[`s${i + 1}_${it.id.toLowerCase()}`] = [it.layout, {photo: it.photo, caption: it.caption, badges: it.badges.map(badgeText)}]; });
+  return out;
+}
+
+// ---------- the email ----------
+const F = "Quicksand,Arial,Helvetica,sans-serif";
+function button(text, href, big){
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr>
+    <td bgcolor="${COL.allium}" style="background:${COL.allium};border-radius:6px;mso-padding-alt:${big ? "12px 22px" : "10px 16px"}">
+    <a href="${esc(href)}" target="_blank" style="display:inline-block;padding:${big ? "12px 22px" : "10px 16px"};font-family:${F};font-size:${big ? 17 : 15}px;color:#ffffff;text-decoration:none;border-radius:6px">${esc(text)}</a></td></tr></table>`;
+}
+function sailingInfo(it, size){
+  const s = sailing(it.id), c = claimOf(it);
+  const price = c ? `<p style="margin:0 0 8px;font-family:${F};font-size:14px;color:${COL.ink}">${c.grade && c.key !== "lead" ? esc(GRADE[c.grade]) + " cabins: " : ""}was <s>${money(c.was)}</s></p>` : "";
+  return `<p style="margin:14px 0 10px;font-family:${F};font-weight:700;font-size:${size}px;line-height:1.3;color:${COL.allium};text-transform:uppercase">${esc(s.title)}</p>
+    <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:${COL.ink}">${longDate(s.r.departure_date)}<br>${s.r.nights} nights departing ${esc(s.fly ? s.fly + " Airport" : s.r.port)}<br>${esc(s.r.ship)}</p>
+    ${price}${button(c ? `Now ${money(c.now)}pp` : `From ${money(s.price)}pp`, s.link)}`;
+}
+function emailHtml(src){
+  const rows = [];
+  let tiles = [];
+  const flush = () => {
+    if (!tiles.length) return;
+    const w = tiles.length === 1 ? 186 : 186;
+    rows.push(`<tr><td class="pad" style="padding:0 15px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      ${tiles.map(([it, name]) => `<td class="tile" width="${w}" valign="top" align="center" style="padding:0 5px">
+        <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="176" alt="${esc(sailing(it.id).title)}" style="display:block;width:176px;height:auto;border:0"></a>
+        ${sailingInfo(it, 15)}</td>`).join("")}</tr></table></td></tr>`);
+    tiles = [];
+  };
+  em.items.forEach((it, i) => {
+    const name = `s${i + 1}_${it.id.toLowerCase()}`;
+    if (it.layout === "tile") { tiles.push([it, name]); if (tiles.length === 3) flush(); return; }
+    flush();
+    rows.push(`<tr><td class="pad wide" align="center" style="padding:0 20px 32px">
+      <a href="${esc(sailing(it.id).link)}" target="_blank"><img src="${src[name]}" width="560" alt="${esc(sailing(it.id).title)}" style="display:block;width:100%;max-width:560px;height:auto;border:0"></a>
+      ${sailingInfo(it, 16)}</td></tr>`);
+  });
+  flush();
+  const wn = em.items.map(it => [it, claimOf(it)]).filter(x => x[1]);
+  const small = [`Prices are per person, based on two sharing, as checked ${shortDate(today)}, and subject to availability.${em.terms ? ` View full offer T&amp;Cs <a href="${esc(em.terms)}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
+    ...wn.map(([it, c]) => `Was price: ${esc(sailing(it.id).title)}${c.key !== "lead" ? ` (${esc(GRADE[c.grade].toLowerCase())} cabins)` : ""} was on sale at ${money(c.was)} for at least 28 days before it was reduced to ${money(c.now)} on ${shortDate(c.since)}.`),
+    ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
+  const unsub = em.unsub.trim() || "UNSUBSCRIBE_LINK";
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || "Ambassador Cruise Line")}</title>
+<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
+<style>body{margin:0;padding:0;background:#ffffff}img{border:0;line-height:100%;outline:none;text-decoration:none}a{color:${COL.allium}}
+@media only screen and (max-width:620px){.w600{width:100%!important}.pad{padding-left:16px!important;padding-right:16px!important}
+.tile{display:block!important;width:100%!important;padding:0 0 28px!important}.tile img{width:100%!important;max-width:352px!important;margin:0 auto}
+.hero img{width:100%!important;height:auto!important}.logo img{width:170px!important;height:auto!important}.phone{font-size:18px!important}.nav{font-size:13px!important}}</style>
+</head>
+<body style="margin:0;padding:0;background:#ffffff">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${esc(em.preheader)}&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff"><tr><td align="center" style="padding:16px 0">
+<table role="presentation" class="w600" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;background:${COL.pearl}">
+<tr><td class="pad" style="padding:22px 30px 14px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+  <td class="logo" valign="middle"><a href="${SITE}" target="_blank"><img src="${src.logo}" width="221" height="48" alt="Ambassador Cruise Line" style="display:block;width:221px;height:48px"></a></td>
+  <td class="phone" align="right" valign="middle" style="font-family:${F};font-weight:700;font-size:24px;color:${COL.palatyn}"><a href="tel:${esc(em.phone.replace(/\s/g, ""))}" style="color:${COL.palatyn};text-decoration:none">${esc(em.phone)}</a></td>
+</tr></table></td></tr>
+<tr><td class="nav" align="center" style="padding:0 10px 18px;font-family:${F};font-weight:700;font-size:15px;color:${COL.palatyn}">${NAV.map(([t, u]) => `<a href="${u}" target="_blank" style="color:${COL.palatyn};text-decoration:none">${t}</a>`).join(" | ")}</td></tr>
+${src.hero ? `<tr><td class="hero"><a href="${esc(em.ctaLink || SITE)}" target="_blank"><img src="${src.hero}" width="600" alt="${esc(em.hero.headline || em.subject)}" style="display:block;width:600px;height:auto"></a></td></tr>` : ""}
+${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${F};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
+${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, em.ctaLink || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
+${rows.join("\n")}
+<tr><td class="pad" style="padding:6px 48px 26px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${COL.palatyn};font-size:0;line-height:0">&nbsp;</td></tr></table>
+${small.map(t => `<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:${COL.muted};text-align:center">${t}</p>`).join("")}
+<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;text-align:center"><a href="${esc(unsub)}" target="_blank" style="color:${COL.muted}">Manage preferences</a></p></td></tr>
+</table></td></tr></table>
+</body></html>`;
+}
+
+// ---------- page ----------
+function suggestionsFor(){
+  if (!em.items.length) return [];
+  return suggest(em.items.map(it => {
+    const s = sailing(it.id), c = claimOf(it), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
+    return {title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date, price: s.price,
+            promos: it.badges, nectarPts: n, wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
+  }), em.items.length === 1 ? "single" : "carousel")
+    .map(o => ({...o, text: o.text.replace(/\s*Based on two sharing and subject to availability\.$/, "")   // the small print says this
+      .replace("Swipe through and find the one that's calling you.", "Take a look and find the one that's calling you.")   // ad wording → email
+      .replace(/Swipe to see all (\w+) sailings/, "Here are all $1 sailings")}));
+}
+let sugg = [];
+function photoPicker(cur, attr, list){
+  return `<div class="ac-photos">${list.map(u => `<button type="button" class="ac-ph${cur === u ? " on" : ""}" ${attr}="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>`;
+}
+function itemEditor(){
+  const it = em.items[sel]; if (!it) return "";
+  const s = sailing(it.id), cl = claims(it.id), hint = captionHint(it.photo);
+  const ends = it.badges.map(b => [b, promoEnds(b)]).filter(([, d]) => d && d <= addDays(today, 3));
+  return `<div class="ac-block">
+    ${em.items.length > 1 ? `<div class="ac-tabs" role="tablist" aria-label="Sailing to edit">${em.items.map((x, i) =>
+      `<button type="button" role="tab" class="ac-tab" data-tab="${i}" aria-selected="${i === sel}" tabindex="${i === sel ? 0 : -1}" title="${esc(sailing(x.id).title)}"><b>${i + 1}</b><span>${esc(sailing(x.id).title)}</span></button>`).join("")}</div>` : ""}
+    <h3>Sailing ${sel + 1}: ${esc(s.title)}</h3>
+    <div class="ac-row" role="group" aria-label="Layout"><span class="ac-lab">Layout</span>
+      <button type="button" class="ac-seg" data-layout="tile" aria-pressed="${it.layout === "tile"}">Tile (3 across)</button>
+      <button type="button" class="ac-seg" data-layout="wide" aria-pressed="${it.layout === "wide"}">Full width</button></div>
+    <label class="ac-lab" for="em-design">Price</label>
+    <select id="em-design"><option value="standard">From ${money(s.price)}pp</option>${cl.map(c => `<option value="wasnow:${c.key}"${it.design === "wasnow:" + c.key ? " selected" : ""}>Was/now: ${esc(c.label)}, was ${money(c.was)} now ${money(c.now)} (send by ${shortDate(c.ends)})</option>`).join("")}</select>
+    ${cl.length ? "" : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
+    <span class="ac-lab">Photo</span>${photoPicker(it.photo, "data-photo", s.photos)}
+    <label class="ac-lab" for="em-caption">Location caption <span class="sub">(optional: check it matches the photo)</span></label>
+    <input id="em-caption" value="${esc(it.caption)}" placeholder="e.g. Bridgetown, Barbados" maxlength="40">
+    ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="em-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
+    <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
+    ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${it.badges.includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
+    ${ends.length ? `<p class="ac-note">${ends.map(([b, d]) => `"${esc(badgeText(b))}" ends ${shortDate(d)}`).join("; ")}: check it's still on when the email goes out.</p>` : ""}
+  </div>`;
+}
+const addDays = (iso, n) => new Date(Date.parse(iso + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+function draw(){
+  const it = em.items, heroPhotos = [...new Set(it.flatMap(x => sailing(x.id).photos))];
+  sugg = suggestionsFor();
+  const by = sendBy();
+  root.innerHTML = `<div class="ac">
+    <div class="ac-side">
+      <div class="ac-block">
+        <h3>Email</h3>
+        <label class="ac-lab" for="em-subject">Subject line <span class="sub" id="em-n-subject"></span></label>
+        <input id="em-subject" value="${esc(em.subject)}" placeholder="e.g. Winter sunshine from ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "£399"}pp">
+        <label class="ac-lab" for="em-pre">Preview text <span class="sub">(shown after the subject in the inbox)</span></label>
+        <input id="em-pre" value="${esc(em.preheader)}" placeholder="One line that adds to the subject">
+      </div>
+      <div class="ac-block">
+        <label class="ac-lab" for="em-find">Add a sailing</label>
+        <input id="em-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
+        <div id="em-results" class="ac-results"></div>
+      </div>
+      <div class="ac-block">
+        <h3>Sailings in order (${it.length} of ${MAX})</h3>
+        ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
+          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${x.layout === "wide" ? "full width" : "tile"}${x.design !== "standard" ? " · was/now" : ""}</span></button>
+          <span class="ac-strips"></span>
+          <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
+          <p class="sub">Tiles go 3 across (on phones they stack); a full-width sailing starts a new row.</p>` : `<p class="sub">Search above and add the sailings for this email.</p>`}
+      </div>
+      <div class="ac-block">
+        <h3>Header picture</h3>
+        ${heroPhotos.length ? photoPicker(em.hero.photo, "data-hero", heroPhotos) : `<p class="sub">Add a sailing to choose from its photos.</p>`}
+        ${em.hero.photo ? `<button type="button" class="linkbtn" id="em-nohero">No header picture</button>` : ""}
+        <input id="em-headline" value="${esc(em.hero.headline)}" placeholder="Headline, e.g. Winter sunshine" maxlength="28" aria-label="Header headline">
+        <input id="em-sub" value="${esc(em.hero.sub)}" placeholder="Second line (optional)" maxlength="70" aria-label="Header second line">
+      </div>
+      <div class="ac-block">
+        <h3>Intro</h3>
+        <textarea id="em-intro" rows="5" placeholder="A few lines introducing these sailings">${esc(em.intro)}</textarea>
+        ${sugg.length ? `<details class="ac-sugg"><summary>Suggested intros (${sugg.length})</summary>
+          <p class="sub">Built from these sailings' own facts in Ambassador's tone of voice.</p>
+          ${sugg.map((o, i) => `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span><p>${esc(o.text)}</p><button type="button" class="btn quiet" data-use="${i}">Use this</button></div>`).join("")}</details>` : ""}
+        <label class="ac-lab" for="em-cta">Button under the intro <span class="sub">(blank = no button)</span></label>
+        <input id="em-cta" value="${esc(em.cta)}">
+        <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">
+      </div>
+      ${itemEditor()}
+      <div class="ac-block">
+        <h3>Small print</h3>
+        <label class="ac-lab" for="em-terms">Offer T&amp;Cs link <span class="sub">(blank = leave out)</span></label>
+        <input id="em-terms" value="${esc(em.terms)}">
+        <label class="ac-lab" for="em-legal">Footer text <span class="sub">(one paragraph per line)</span></label>
+        <textarea id="em-legal" rows="5">${esc(em.legal)}</textarea>
+        <label class="ac-lab" for="em-unsub">Unsubscribe / preferences link</label>
+        <input id="em-unsub" value="${esc(em.unsub)}" placeholder="Your email platform's link (for now the email says UNSUBSCRIBE_LINK)">
+        <label class="ac-lab" for="em-phone">Phone number in the header</label>
+        <input id="em-phone" value="${esc(em.phone)}">
+      </div>
+    </div>
+    <div class="ac-main">
+      <div class="ac-actions">
+        <button type="button" class="btn" id="em-make"${it.length ? "" : " disabled"}>Make email</button>
+        <button type="button" class="btn quiet" id="em-clear"${it.length || em.subject ? "" : " disabled"}>Start again</button>
+        <span class="sub" id="em-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
+      </div>
+      ${by ? `<p class="ac-note"><b>This email has was/now prices: send it by ${shortDate(by)}.</b> After that the reduction can no longer be claimed.</p>` : ""}
+      ${note ? `<p class="ac-note">${note}</p>` : ""}
+      ${made ? `<div class="ac-block em-made"><h3>Your email is ready</h3>
+        <p class="sub">Images are stored for 90 days. Paste the HTML into your email platform, then set the unsubscribe link there before sending.</p>
+        <div class="ac-row"><button type="button" class="btn" id="em-copy">Copy HTML</button><button type="button" class="btn quiet" id="em-dl">Download .html</button></div></div>` : ""}
+      <div class="ac-row em-modes" role="group" aria-label="Preview size">
+        <button type="button" class="ac-seg" data-mode="desktop" aria-pressed="${previewMode === "desktop"}">Desktop</button>
+        <button type="button" class="ac-seg" data-mode="mobile" aria-pressed="${previewMode === "mobile"}">Phone</button></div>
+      <div class="em-frame"><iframe id="em-preview" title="Email preview" style="width:${previewMode === "mobile" ? 375 : 640}px"></iframe></div>
+    </div>
+  </div>`;
+  note = "";
+  wire();
+  preview();
+}
+let pv = 0;
+async function preview(){
+  const n = ++pv, frame = root.querySelector("#em-preview"); if (!frame) return;
+  const list = images(), src = {};
+  const grey = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="4" height="3"><rect width="4" height="3" fill="#ddd"/></svg>`);
+  for (const k of Object.keys(list)) src[k] = baked.get(JSON.stringify([...list[k], .8])) || grey;
+  frame.srcdoc = emailHtml(src);
+  const done = () => { try { frame.style.height = frame.contentDocument.documentElement.scrollHeight + "px"; } catch(e){} };
+  frame.onload = done;
+  for (const [k, [kind, o]] of Object.entries(list)) {
+    if (src[k] !== grey) continue;
+    try { src[k] = await bake(kind, o, .8); } catch(e) { continue; }
+    if (n !== pv) return;
+    frame.srcdoc = emailHtml(src);
+  }
+}
+let typing;
+function change(redraw){ made = null; save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(preview, 400); } }
+function wire(){
+  const $ = s => root.querySelector(s);
+  const bind = (id, set) => { const el = $(id); el && el.addEventListener("input", () => { set(el.value); change(false); }); };
+  bind("#em-subject", v => em.subject = v); bind("#em-pre", v => em.preheader = v);
+  bind("#em-headline", v => em.hero.headline = v); bind("#em-sub", v => em.hero.sub = v);
+  bind("#em-intro", v => em.intro = v); bind("#em-cta", v => em.cta = v); bind("#em-ctalink", v => em.ctaLink = v);
+  bind("#em-terms", v => em.terms = v); bind("#em-legal", v => em.legal = v); bind("#em-unsub", v => em.unsub = v); bind("#em-phone", v => em.phone = v);
+  bind("#em-caption", v => em.items[sel].caption = v);
+  const cnt = () => { const n = $("#em-n-subject"); if (n) n.textContent = em.subject ? `${em.subject.length} characters${em.subject.length > 60 ? ", may be cut short on phones" : ""}` : ""; };
+  cnt(); $("#em-subject").addEventListener("input", cnt);
+  const find = $("#em-find"), res = $("#em-results");
+  find.addEventListener("input", () => {
+    const q = find.value.trim().toLowerCase();
+    if (q.length < 2) { res.innerHTML = ""; return; }
+    const hits = live().filter(([id, r]) => [id, r.title, r.base_title, r.port, r.flight_from, r.ship].join(" ").toLowerCase().includes(q))
+      .sort((a, b) => a[1].departure_date.localeCompare(b[1].departure_date)).slice(0, 8);
+    res.innerHTML = hits.length ? hits.map(([id, r]) => `<button type="button" data-add="${esc(id)}"${em.items.some(x => x.id === id) || em.items.length >= MAX ? " disabled" : ""}><b>${esc(r.flight_from ? r.base_title : r.title)}</b><span class="sub">${esc(id)} · ${shortDate(r.departure_date)} · ${r.flight_from ? "Fly from " + esc(r.flight_from) : esc(r.port)} · ${money(r.segments[r.segments.length - 1].p)}</span></button>`).join("")
+      : `<p class="sub">No sailings on sale match.</p>`;
+  });
+  res.addEventListener("click", e => {
+    const b = e.target.closest("[data-add]"); if (!b || em.items.length >= MAX) return;
+    em.items.push(newItem(b.dataset.add)); sel = em.items.length - 1;
+    if (!em.hero.photo) em.hero.photo = pickPhoto(sailing(b.dataset.add));
+    change(true); root.querySelector("#em-find").focus();
+  });
+  root.querySelectorAll(".ac-pick").forEach(b => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
+  const move = (i, j) => { const [x] = em.items.splice(i, 1); em.items.splice(j, 0, x); sel = j; change(true); };
+  root.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", () => move(+b.dataset.up, +b.dataset.up - 1)));
+  root.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", () => move(+b.dataset.down, +b.dataset.down + 1)));
+  root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { em.items.splice(+b.dataset.del, 1); sel = Math.max(0, Math.min(sel, em.items.length - 1)); change(true); }));
+  const tabTo = i => { sel = (i + em.items.length) % em.items.length; draw(); const t = root.querySelector(`[data-tab="${sel}"]`); t && t.focus(); };
+  root.querySelectorAll("[data-tab]").forEach(b => {
+    b.addEventListener("click", () => { if (sel !== +b.dataset.tab) tabTo(+b.dataset.tab); });
+    b.addEventListener("keydown", e => { const k = {ArrowRight: 1, ArrowLeft: -1}[e.key]; if (k) { e.preventDefault(); tabTo(sel + k); } });
+  });
+  root.querySelectorAll("[data-hero]").forEach(b => b.addEventListener("click", () => { em.hero.photo = b.dataset.hero; change(true); }));
+  $("#em-nohero") && $("#em-nohero").addEventListener("click", () => { em.hero.photo = ""; change(true); });
+  root.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => { em.intro = sugg[+b.dataset.use].text; change(true); }));
+  const cur = em.items[sel];
+  if (cur) {
+    root.querySelectorAll("[data-layout]").forEach(b => b.addEventListener("click", () => { cur.layout = b.dataset.layout; change(true); }));
+    $("#em-design").addEventListener("change", e => { cur.design = e.target.value; change(true); });
+    root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { cur.photo = b.dataset.photo; change(true); }));
+    $("#em-hint") && $("#em-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });
+    root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {
+      const p = sailing(cur.id).k.promos[+b.dataset.badge];
+      cur.badges = b.checked ? [...cur.badges.filter(x => x !== p), p].slice(-2) : cur.badges.filter(x => x !== p);
+      change(true);
+    }));
+  }
+  root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
+  $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; change(true); } });
+  $("#em-make").addEventListener("click", makeEmail);
+  $("#em-copy") && $("#em-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(made); $("#em-copy").textContent = "Copied"; } catch(e) { prompt("Copy the email's HTML", made); }
+  });
+  $("#em-dl") && $("#em-dl").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([made], {type: "text/html"}));
+    a.download = `email_${today}_${(em.subject || "ambassador").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40)}.html`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+async function makeEmail(){
+  const st = root.querySelector("#em-status"), btn = root.querySelector("#em-make");
+  if (!ID) { note = "Sign in again to make the email."; return draw(); }
+  btn.disabled = true;
+  try {
+    const list = images(), names = Object.keys(list), body = [];
+    for (const [i, k] of names.entries()) {
+      st.textContent = `Making images ${i + 1} of ${names.length}…`;
+      const [kind, o] = list[k];
+      let url;
+      try { url = await bake(kind, o, .86); }
+      catch(e) { throw new Error(`Couldn't make the ${k === "logo" ? "logo" : k === "hero" ? "header picture" : "picture for sailing " + k.split("_")[0].slice(1)} (${e.message || e}).`); }
+      body.push({name: k, data: url.split(",")[1]});
+    }
+    st.textContent = "Saving the images…";
+    let r;
+    try { r = await fetch(FN, {method: "POST", headers: {Authorization: `Bearer ${await ID()}`, "Content-Type": "application/json"}, body: JSON.stringify({images: body})}); }
+    catch(e) { throw new Error("The image service can't be reached. If it was only just added, it goes live with the next Video function deploy."); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `The image service answered ${r.status}.`);
+    made = emailHtml(j.urls);
+    note = em.unsub.trim() ? "" : "No unsubscribe link is set: the email says UNSUBSCRIBE_LINK where it goes. Put your platform's link there before sending.";
+  } catch(e) {
+    console.error(e);
+    note = esc(e.message || String(e));
+  }
+  draw();
+}
