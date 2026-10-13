@@ -12042,7 +12042,41 @@
      },
      "out_of_date_since": "2026-10-13T10:08:11Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Christmas Markets of Holland & Belgium",
+    "base_title": "Christmas Markets of Holland & Belgium",
+    "ship": "Ambition",
+    "port": "London Tilbury",
+    "flight_from": null,
+    "nights": 3,
+    "departure_date": "2026-12-14",
+    "price": 429,
+    "promos": [],
+    "nectar": "Collect up to 14,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
+    "fp": "6ee5bde3e290",
+    "made_at": "2026-10-13T14:22:32Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_1x1.jpg?alt=media&token=5aeeebd7-bfdb-4845-94e0-b4417eb9bfcd",
+      "path": "pricewatch-cards/A22637/6ee5bde3e290_1x1.jpg",
+      "kb": 312
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_4x5.jpg?alt=media&token=e02a494f-0dd3-4a68-b47a-7d2b52e3ca9f",
+      "path": "pricewatch-cards/A22637/6ee5bde3e290_4x5.jpg",
+      "kb": 430
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_9x16.jpg?alt=media&token=21b523f0-5d00-4d37-a6df-d998d615b5bf",
+      "path": "pricewatch-cards/A22637/6ee5bde3e290_9x16.jpg",
+      "kb": 544
+     }
+    }
+   }
   },
   "A22638": {
    "old": [
@@ -12153,5 +12187,5 @@
    }
   }
  },
- "updated_at": "2026-10-13T13:57:17Z"
+ "updated_at": "2026-10-13T14:22:32Z"
 }
