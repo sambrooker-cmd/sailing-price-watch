@@ -1,0 +1,62 @@
+name: Make video
+
+# Slideshow videos of an Ad creator ad (Sam, 13 Oct 2026): paste the ad's link from the Ad creator
+# ("Make video" copies it), get a zip of MP4s (1:1, 4:5 and 9:16; 6 s and 10 s) on the run page.
+# Prices are the latest saved check in the repo. Saves nothing to the repo and never touches Meta
+# or any ad account.
+on:
+  workflow_dispatch:
+    inputs:
+      link:
+        description: "Ad link from the Ad creator (Make video copies it)"
+        required: true
+      lengths:
+        description: "Video lengths in seconds, separated by commas"
+        default: "6,10"
+      sizes:
+        description: "Sizes"
+        type: choice
+        default: "1x1,4x5,9x16"
+        options:
+          - "1x1,4x5,9x16"
+          - "1x1"
+          - "4x5"
+          - "9x16"
+          - "4x5,9x16"
+
+permissions:
+  contents: read
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the browser and video tools
+        run: |
+          pip install playwright==1.56.0 pillow==11.3.0
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Make the videos
+        env:
+          LINK: ${{ inputs.link }}
+          LENGTHS: ${{ inputs.lengths }}
+          SIZES: ${{ inputs.sizes }}
+        run: |
+          python make_video.py "$LINK" videos --lengths "$LENGTHS" --sizes "$SIZES"
+          cat videos/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: video-${{ github.run_number }}
+          path: videos/
+          retention-days: 30
+          if-no-files-found: ignore
