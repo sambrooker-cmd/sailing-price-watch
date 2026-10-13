@@ -266,11 +266,11 @@ function draw(){
       <div class="ac-block">
         <h3>${ad.format === "carousel" ? `Sailings in order (${ad.cards.length} of ${maxSailings()})` : "Sailing"}</h3>
         ${ad.cards.length ? `<div class="ac-row ac-bulk" role="group" aria-label="Strips on every card"><span class="sub">Every card:</span>
-          <button type="button" class="ac-chip" data-all="nectar:1">Nectar on</button><button type="button" class="ac-chip" data-all="nectar:0">Nectar off</button>
-          <button type="button" class="ac-chip" data-all="tp:1"${TP ? "" : " disabled"}>Trustpilot on</button><button type="button" class="ac-chip" data-all="tp:0"${TP ? "" : " disabled"}>Trustpilot off</button></div>` : ""}
+          <span class="ac-pair"><span>Nectar</span><button type="button" class="ac-chip" data-all="nectar:1" aria-label="Nectar on every card">On</button><button type="button" class="ac-chip" data-all="nectar:0" aria-label="Nectar off every card">Off</button></span>
+          <span class="ac-pair"><span>Trustpilot</span><button type="button" class="ac-chip" data-all="tp:1" aria-label="Trustpilot on every card"${TP ? "" : " disabled"}>On</button><button type="button" class="ac-chip" data-all="tp:0" aria-label="Trustpilot off every card"${TP ? "" : " disabled"}>Off</button></span></div>` : ""}
         ${ad.cards.length ? `<ol class="ac-list">${ad.cards.map((x, i) => { const s = sailing(x.id); return `
           <li class="${i === sel ? "on" : ""}" draggable="true" data-i="${i}">
-            <button type="button" class="ac-pick" data-i="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
+            <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
             <span class="ac-strips">${["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
               return `<button type="button" class="ac-chip" data-strip="${k}" data-i="${i}" aria-pressed="${!why && on}"${why ? ` disabled title="${esc(why)}"` : ""}>${k === "nectar" ? "Nectar" : "Trustpilot"}</button>`; }).join("")}</span>
             <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this card"${ad.cards.length < maxSailings() ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
