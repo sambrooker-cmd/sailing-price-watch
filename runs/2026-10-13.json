@@ -620,6 +620,9 @@
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
+  "A22630BR": [
+   "feed price £1,279 differs from cheapest cabin on the page £879 (the page price is used)"
+  ],
   "A22633": [
    "feed price £449 differs from cheapest cabin on the page £399 (the page price is used)"
   ],
@@ -1810,6 +1813,12 @@
    "feed": 449,
    "page": 399,
    "at": "2026-10-13T20:50:46Z"
+  },
+  {
+   "id": "A22630BR",
+   "feed": 1279,
+   "page": 879,
+   "at": "2026-10-13T21:07:16Z"
   }
  ],
  "feed_gap_fixed": [
@@ -1941,6 +1950,7 @@
   "2026-10-13T15:07:14Z",
   "2026-10-13T16:07:16Z",
   "2026-10-13T16:55:10Z",
-  "2026-10-13T20:50:46Z"
+  "2026-10-13T20:50:46Z",
+  "2026-10-13T21:07:16Z"
  ]
 }
