@@ -71,6 +71,8 @@ def capture(code, sizes):
         pg.route("**/firebasejs/**", lambda r: r.fulfill(status=200, content_type="text/javascript", body=FIREBASE[r.request.url.rsplit('/', 1)[1]]))
         pg.route("**/fonts.googleapis.com/**", lambda r: r.abort())
         pg.route("http://ad.local/**", site)
+        # The Ad creator asks the cloud functions for saved ads and videos: not needed here, answer "unavailable"
+        pg.route("https://*.cloudfunctions.net/**", lambda r: r.fulfill(status=503, content_type="application/json", body="{}"))
         pg.goto(f"http://ad.local/#ad={code}")
         pg.wait_for_function("window.__spwVideo && document.querySelectorAll('.ac-list .ac-pick').length > 0", timeout=60000)
         info = pg.evaluate("window.__spwVideo.info()")

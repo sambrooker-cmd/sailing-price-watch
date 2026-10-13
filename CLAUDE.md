@@ -51,6 +51,18 @@ useful columns.
   (`#navtoggle`) instead of a sideways-scrolling tab bar. Not done (Sam): a "copy for the feed owner" message, a phone
   thumbnail grid for Cards.
 
+## Shared saved ads and emails (13 Oct 2026, Sam)
+Saved ads (Ad creator) and saved emails (Email creator) are kept in Firestore `pricewatch_saved/<id>` {kind "ad" |
+"email", name, by, saved_at, created_at, data (the ad/email JSON: no prices, no uploads)} through the Firebase function
+`saved` (functions/index.js; allowlist checked; deployed by video-function.yml with makeVideo and emailImages): GET
+?kind= lists all with `me`; POST op save (new, or over your own), rename, delete. Everyone on the allowlist sees and can
+open or copy everything; only the person who saved an item can save over, rename or delete it (403 otherwise; opening
+someone else's shows "Saved by X. Save a copy…"). Browser side: `saved.js` `sharedStore` (falls back to the old
+browser-only storage, with a note, if the function can't be reached) and the Saved dialog shows "by you / by X", an
+Everyone's / Mine filter, and Rename/Delete only on your own. Ads saved in a browser before this get "Move them to the
+shared list" (`moveLocal`), which uploads them and clears the browser copy. Limits: 300 KB an item, 1,000 per kind.
+`make_video.py` answers the function calls with 503 (not needed there).
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
