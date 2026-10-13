@@ -324,6 +324,28 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .mp-story-cta{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#fff;color:#1c1e21;font:700 13px Helvetica,Arial,sans-serif;padding:8px 16px;border-radius:18px}
 .mp-empty{padding:40px 12px;text-align:center;color:#65676b;font-size:14px}
 @media (max-width:860px){.ac{grid-template-columns:1fr}.ac-main{position:static;order:-1}}
+/* Saved ads and emails (site/saved.js) */
+dialog.saved{width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+dialog.saved:not([open]){display:none}
+dialog.saved::backdrop{background:rgba(20,5,25,.6)}
+.sv-open{align-self:flex-start}
+.sv-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.sv-head h3{margin:0 0 10px;font-size:17px}
+.sv-tools{display:flex;gap:8px;margin-bottom:10px}
+.sv-tools input{flex:1;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.sv-tools select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.sv-body{overflow-y:auto;min-height:120px}
+.sv-list{list-style:none;margin:0;padding:0}
+.sv-list li{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:10px 8px;border-top:1px solid var(--rule)}
+.sv-list li.on{background:var(--bg-alt);box-shadow:inset 3px 0 0 var(--allium)}
+.sv-thumb{width:80px;height:60px;background:var(--bg-alt);overflow:hidden}
+.sv-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.sv-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sv-text b{font-size:15px}
+.sv-detail{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv-tag{font-size:11px;font-weight:700;color:var(--allium);text-transform:uppercase;letter-spacing:.05em}
+.sv-acts{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+@media (max-width:620px){.sv-list li{grid-template-columns:64px minmax(0,1fr)}.sv-thumb{width:64px;height:48px}.sv-acts{grid-column:1 / -1;justify-content:flex-start}}
 dialog.pv{width:min(760px,calc(100% - 32px));max-height:calc(100% - 32px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink)}
 dialog.pv::backdrop{background:rgba(20,5,25,.7)}
 .pvhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}

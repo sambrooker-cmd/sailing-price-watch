@@ -6,6 +6,7 @@
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
 import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
+import {openSaved} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
@@ -311,9 +312,7 @@ function draftsBlock(){
       <button type="button" class="btn quiet sm" id="dr-link"${ad.cards.length ? "" : " disabled"}>Copy link</button>
       <button type="button" class="btn quiet sm" id="dr-new">New ad</button>
     </div>
-    ${ids.length ? `<label class="ac-lab sm" for="dr-list">Saved ads in this browser (${ids.length})</label>
-      <div class="ac-row"><select id="dr-list">${ids.map(i => `<option value="${i}"${i === draftId ? " selected" : ""}>${esc(all[i].name)} · ${new Date(all[i].saved_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}</option>`).join("")}</select>
-      <button type="button" class="btn quiet sm" id="dr-open">Open</button><button type="button" class="btn quiet sm" id="dr-ren">Rename</button><button type="button" class="btn quiet sm" id="dr-del">Delete</button></div>` : ""}
+    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved ads (${ids.length})</button>` : ""}
     ${note ? `<p class="ac-note" role="status">${esc(note)}</p>` : ""}
   </div>`;
 }
@@ -552,10 +551,27 @@ function wire(){
     if (ad.cards.length && !draftId && !confirm("Start a new ad? This one isn't saved.")) return;
     draftId = null; ad = fresh(); sel = 0; done(); save(); draw();
   });
-  const pick = () => $("#dr-list").value;
-  $("#dr-open") && $("#dr-open").addEventListener("click", () => { const d = drafts()[pick()]; if (!d) return; draftId = pick(); load(d.ad, `Opened "${d.name}"`); });
-  $("#dr-ren") && $("#dr-ren").addEventListener("click", () => { const all = drafts(), d = all[pick()]; const n = d && prompt("New name", d.name); if (!n) return; d.name = n; storeDrafts(all); draw(); });
-  $("#dr-del") && $("#dr-del").addEventListener("click", () => { const all = drafts(), id = pick(); if (!all[id] || !confirm(`Delete "${all[id].name}"?`)) return; delete all[id]; storeDrafts(all); if (draftId === id) draftId = null; note = "Deleted."; draw(); });
+  // Saved ads: a searchable list in a dialog (site/saved.js), not a dropdown (Sam, 13 Oct 2026)
+  $("#dr-browse") && $("#dr-browse").addEventListener("click", () => {
+    const all = drafts();
+    openSaved({title: "Saved ads", noun: "ad", current: draftId,
+      items: Object.entries(all).map(([id, d]) => {
+        const xs = (d.ad.cards || []), first = xs[0] && sailing(xs[0].id);
+        const photo = xs[0] && xs[0].photo && !String(xs[0].photo).startsWith("upload:") ? xs[0].photo : first && first.image;
+        return {id, name: d.name, saved_at: d.saved_at, count: xs.length, thumb: photo ? cropUrl(photo, 120, 90) : "",
+                detail: [...new Set(xs.map(x => (sailing(x.id) || {title: x.id}).title))].join(" · ")};
+      }),
+      onOpen: id => { const d = drafts()[id]; if (!d) return; draftId = id; load(d.ad, `Opened "${d.name}"`); },
+      onCopy: id => {
+        const all = drafts(), d = all[id]; if (!d) return;
+        const nid = "a" + Date.now().toString(36);
+        all[nid] = {...JSON.parse(JSON.stringify(d)), name: `${d.name} (copy)`, saved_at: new Date().toISOString()};
+        if (storeDrafts(all)) { draftId = nid; load(all[nid].ad, `Made a copy: "${all[nid].name}"`); }
+      },
+      onRename: (id, name) => { const all = drafts(); if (!all[id]) return; all[id].name = name; storeDrafts(all); draw(); },
+      onDelete: id => { const all = drafts(); delete all[id]; storeDrafts(all); if (draftId === id) draftId = null; draw(); },
+    });
+  });
   root.querySelectorAll("[data-strip]").forEach(b => b.addEventListener("click", e => {
     e.stopPropagation(); const x = ad.cards[+b.dataset.i];
     setStrip(x, b.dataset.strip, b.getAttribute("aria-pressed") !== "true"); change(true, true);
