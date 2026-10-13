@@ -215,6 +215,17 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-side{display:flex;flex-direction:column;gap:14px}
 .ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
 .ac-block h3{margin:0 0 4px;font-size:15px}
+.ac-vids{margin:0 0 14px}
+.ac-vids ul{list-style:none;margin:0;padding:0}
+.ac-vids li{padding:8px 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:3px}
+.ac-vh{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.ac-vh b{font-size:14px}
+.ac-vs{font-size:13px;color:var(--muted)}
+.ac-vs.err{color:var(--bad)}
+.ac-vf{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px}
+.ac-vf a{font-weight:600;margin-left:4px}
+.ac-vf .linkbtn{margin-left:2px;font-size:12px}
+.ac-vids video{max-width:100%;max-height:420px;background:#000;margin-top:6px;align-self:flex-start}
 .ac-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin:-2px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
 .ac-tab{font:inherit;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0;padding:5px 9px;border:1px solid var(--rule);background:none;color:var(--ink);cursor:pointer}
 .ac-tab b{flex:none;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--rule);font-size:11px}
@@ -1732,7 +1743,8 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./adcreator.js?v=__BUILD__"), getAdkit()]);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
-      await m.mount($("ads"), {state, cabins, adkit: kit, shared});
+      await m.mount($("ads"), {state, cabins, adkit: kit, shared,
+        idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
 

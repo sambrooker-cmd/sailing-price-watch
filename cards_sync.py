@@ -185,14 +185,14 @@ class Store:
             json.loads(info), scopes=["https://www.googleapis.com/auth/devstorage.read_write"])
         self.http = AuthorizedSession(creds)
 
-    def put(self, path, data, filename):
+    def put(self, path, data, filename, content_type="image/jpeg"):
         token = str(uuid.uuid4())
-        meta = {"name": path, "contentType": "image/jpeg", "cacheControl": "private, max-age=86400",
+        meta = {"name": path, "contentType": content_type, "cacheControl": "private, max-age=86400",
                 "contentDisposition": f'attachment; filename="{filename}"',
                 "metadata": {"firebaseStorageDownloadTokens": token}}
         boundary = "pricewatch" + uuid.uuid4().hex
         body = (f"--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{json.dumps(meta)}\r\n"
-                f"--{boundary}\r\nContent-Type: image/jpeg\r\n\r\n").encode() + data + f"\r\n--{boundary}--".encode()
+                f"--{boundary}\r\nContent-Type: {content_type}\r\n\r\n").encode() + data + f"\r\n--{boundary}--".encode()
         r = self.http.post(f"https://storage.googleapis.com/upload/storage/v1/b/{BUCKET}/o?uploadType=multipart",
                            data=body, headers={"Content-Type": f"multipart/related; boundary={boundary}"}, timeout=120)
         if not r.ok:

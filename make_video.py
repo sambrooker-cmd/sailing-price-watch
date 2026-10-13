@@ -177,6 +177,9 @@ def main():
               "In Ads Manager: upload the 9:16 video for Stories and Reels and the 4:5 (or 1:1) for feeds, then add music "
               "from Meta's sound library if you want it. Primary text and button: as in the Ad creator."]
     (out / "summary.md").write_text("\n".join(lines) + "\n")
+    # For video_job.py (videos made from the tracker page's Make video button)
+    (out / "info.json").write_text(json.dumps({"prices": info["prices"], "until": info.get("until") or "",
+                                               "slides": [x["title"] for x in info["slides"]], "files": made}))
     print("\n".join(lines))
 
 

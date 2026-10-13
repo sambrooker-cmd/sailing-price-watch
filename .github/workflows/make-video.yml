@@ -1,7 +1,9 @@
 name: Make video
 
-# Slideshow videos of an Ad creator ad (Sam, 13 Oct 2026): paste the ad's link from the Ad creator
-# ("Make video" copies it), get a zip of MP4s (1:1, 4:5 and 9:16; 6 s and 10 s) on the run page.
+# Slideshow videos of an Ad creator ad (Sam, 13 Oct 2026). Usually started by the tracker page's Make video
+# button through the Firebase function (functions/index.js), which fills in "request": the videos then go
+# to Storage and show in the Ad creator's Videos list (video_job.py). Run by hand, paste the ad's link from
+# the Ad creator ("Copy link") and get a zip of MP4s (1:1, 4:5 and 9:16; 6 s and 10 s) on the run page.
 # Prices are the latest saved check in the repo. Saves nothing to the repo and never touches Meta
 # or any ad account.
 on:
@@ -23,6 +25,11 @@ on:
           - "4x5"
           - "9x16"
           - "4x5,9x16"
+      request:
+        description: "Leave empty (filled in by the tracker page's Make video button)"
+        default: ""
+
+run-name: ${{ inputs.request && format('Make video for the tracker page ({0})', inputs.request) || 'Make video' }}
 
 permissions:
   contents: read
@@ -40,9 +47,16 @@ jobs:
 
       - name: Install the browser and video tools
         run: |
-          pip install playwright==1.56.0 pillow==11.3.0
+          pip install playwright==1.56.0 pillow==11.3.0 google-auth==2.40.3 requests==2.32.3
           python -m playwright install --with-deps chromium
           sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Mark the request as started
+        if: inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py running "$REQUEST"
 
       - name: Make the videos
         env:
@@ -53,8 +67,23 @@ jobs:
           python make_video.py "$LINK" videos --lengths "$LENGTHS" --sizes "$SIZES"
           cat videos/summary.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Save the videos for the tracker page
+        if: inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py done "$REQUEST" videos
+
+      - name: Mark the request as failed
+        if: failure() && inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py failed "$REQUEST"
+
+      # Runs from the tracker page keep their videos in Storage instead (GitHub's artifact space is small)
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && inputs.request == ''
         with:
           name: video-${{ github.run_number }}
           path: videos/
