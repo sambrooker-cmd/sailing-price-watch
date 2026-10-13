@@ -950,7 +950,7 @@ const auth = getAuth(firebaseApp);
   // Promotion T&Cs (Sam, 13 Oct 2026): read from the website's own pages by terms.py, matched to each promotion.
   // The sailing pages' offers carry no terms, so some promotions have none; the general booking terms are linked.
   const termsOf = o => terms && terms.offers ? (terms.offers[o] || []).filter(i => terms.docs[i]) : null;
-  const tcWords = d => /^[a-z:,.£\d]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`;
+  const tcWords = d => /^[a-z:,.£]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`;
   function openTerms(o){
     const all = o === "*", ids = all ? Object.keys(terms.docs).sort((a, b) => terms.docs[a].title.localeCompare(terms.docs[b].title)) : termsOf(o);
     const name = all ? "All terms found on the website" : (offerInfo(o).name || o);

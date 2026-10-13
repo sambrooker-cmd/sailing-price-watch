@@ -78,7 +78,7 @@ function termsText(it){
   const head = [`Offer T&Cs for the email card: ${w.title} (${it.id}), ${w.date}`,
     T ? `Read from ambassadorcruiseline.com ${T.fetched_at.slice(0, 16).replace("T", " ")} UTC. Check the wording on the website before using it.` : "", ""];
   return [...head, ...list.flatMap(x => [x.badge.toUpperCase(), "",
-    ...(x.docs.length ? x.docs.flatMap(d => [(/^[a-z:,.£\d]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`),
+    ...(x.docs.length ? x.docs.flatMap(d => [(/^[a-z:,.£]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`),
                                            `(From ${d.pages[0]}${d.pages.length > 1 ? ` and ${d.pages.length - 1} more page${d.pages.length > 2 ? "s" : ""}` : ""})`, ""])
       : [`No terms for this promotion were found on the website. General booking terms: ${(T && T.general) || "https://www.ambassadorcruiseline.com/information/terms-conditions/"}`, ""]),
     ...(x.byName ? ["(Matched by a word in the promotion's name: check these are the right terms.)", ""] : [])])].join("\n");
@@ -305,7 +305,7 @@ function draw(){
         return `<figure class="ec-card${i === sel ? " on" : ""}" data-i="${i}">
           <div class="ec-pics">${outputs().map(o => `<div class="ec-pic ec-${o.split("-")[0]}${o.endsWith("-card") ? " ec-whole" : ""}"><img data-pic="${i}:${o}" alt="${esc(outLabel(o))} for ${esc(w.title)}"><button type="button" class="linkbtn" data-dl="${i}:${o}">${esc(outLabel(o))} PNG</button></div>`).join("")}</div>
           ${st.kinds.card ? `<div class="ec-copy">` : `<figcaption>`}<b class="ec-t">${esc(w.title)}</b><span>${esc(w.date)}</span><span>${esc(w.nights)}</span><span>${esc(w.ship)}</span>
-            <span class="ec-btn">${esc(w.button)}</span><button type="button" class="linkbtn" data-copy="${i}">Copy text</button>${htmlSizes().map(k => `<button type="button" class="linkbtn" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}${st.kinds.card ? `</div>` : `</figcaption>`}</figure>`;
+            <span class="ec-btn">${esc(w.button)}</span><button type="button" class="linkbtn" data-copy="${i}">Copy text</button>${badgesOf(x).length ? `<button type="button" class="linkbtn" data-copyterms="${i}">Copy offer T&amp;Cs</button>` : ""}${htmlSizes().map(k => `<button type="button" class="linkbtn" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}${st.kinds.card ? `</div>` : `</figcaption>`}</figure>`;
       }).join("")}</div>
     </div></div>`;
   note = "";
@@ -340,6 +340,7 @@ function editor(it){
     <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
     ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${st.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
     ${st.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked. Untick it to choose.</p>` : ""}
+    ${badgesOf(it).length ? `<button type="button" class="btn quiet sm" data-copyterms="${sel}">Copy offer T&amp;Cs</button> <span class="sub">${badgeTerms(it).map(x => `${esc(x.badge)}: ${x.docs.length ? "terms found" : "none on the website"}`).join(" · ")}</span>` : ""}
   </div>`;
 }
 let pass = 0;
@@ -402,6 +403,11 @@ function wire(){
   root.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
     const t = copyText(st.items[+b.dataset.copy]);
     try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; } catch(e) { prompt("Copy the text", t); }
+  }));
+  // Copy the T&Cs of the offers on a card (Sam, 13 Oct 2026), the same text as Download offer T&Cs
+  root.querySelectorAll("[data-copyterms]").forEach(b => b.addEventListener("click", async () => {
+    const t = termsText(st.items[+b.dataset.copyterms]), was = b.textContent;
+    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = was; }, 1500); } catch(e) { prompt("Copy the offer T&Cs", t); }
   }));
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
   $("#ec-zip").addEventListener("click", zip);
