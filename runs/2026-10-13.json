@@ -1,0 +1,77 @@
+{
+ "date": "2026-10-13",
+ "count": 222,
+ "new": [],
+ "removed": [],
+ "returned": [],
+ "drops": [
+  {
+   "id": "A12701",
+   "from": 3499,
+   "to": 2699,
+   "mix": "ocean_view → inside",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (ocean_view → inside), not a price cut",
+    "was": 3499,
+    "now": 2699,
+    "since": "2026-10-13",
+    "held_days": 1
+   },
+   "at": "2026-10-13T02:55:56Z"
+  }
+ ],
+ "rises": [],
+ "eligible": [],
+ "flags": {
+  "A22633": [
+   "feed price £399 differs from cheapest cabin on the page £599"
+  ],
+  "A32652M": [
+   "feed price £1,499 differs from cheapest cabin on the page £1,399"
+  ],
+  "A12630": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12634": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22702": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12706": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22705": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12709": [
+   "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A12712": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A22714BL": [
+   "feed price £2,029 differs from cheapest cabin on the page £1,969"
+  ],
+  "A22726BR": [
+   "feed price £1,489 differs from cheapest cabin on the page £1,369"
+  ],
+  "A22828LV": [
+   "feed price £1,529 differs from cheapest cabin on the page £1,679"
+  ]
+ },
+ "cabin_drops": [],
+ "cabin_rises": [],
+ "cabin_sold_out": [],
+ "cabin_back": [],
+ "cabin_eligible": [],
+ "promo_added": [],
+ "promo_ended": [],
+ "promo_changed": [],
+ "nectar_changes": [],
+ "reported": [],
+ "checks": [
+  "2026-10-13T02:55:56Z"
+ ]
+}

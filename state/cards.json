@@ -1697,6 +1697,43 @@
      "flight_from": null,
      "nights": 45,
      "departure_date": "2027-01-03",
+     "price": 3499,
+     "promos": [
+      "Free Regional Coach Service · ends 31 Oct"
+     ],
+     "nectar": "Collect up to 100,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/ce3e7d32a7/rs38204_bridgetown-2023-01-19-2023-01-19-barbados-selected-editted-ptr_3894.jpg",
+     "fp": "0d5d9e216a00",
+     "made_at": "2026-10-12T22:07:45Z",
+     "reason": "price £3,499 → £2,699",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_1x1.jpg?alt=media&token=ddca158b-8355-440b-883f-fb076d80c923",
+       "path": "pricewatch-cards/A12701/0d5d9e216a00_1x1.jpg",
+       "kb": 263
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_4x5.jpg?alt=media&token=6cfb8ce8-1207-4c5b-8689-1d85d1afbd4c",
+       "path": "pricewatch-cards/A12701/0d5d9e216a00_4x5.jpg",
+       "kb": 296
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_9x16.jpg?alt=media&token=23c472bd-1380-4637-ab88-2b073fbc202a",
+       "path": "pricewatch-cards/A12701/0d5d9e216a00_9x16.jpg",
+       "kb": 377
+      }
+     },
+     "out_of_date_since": "2026-10-13T02:56:46Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Caribbean Sunsets & South American Secrets",
+     "base_title": "Caribbean Sunsets & South American Secrets",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 45,
+     "departure_date": "2027-01-03",
      "price": 2699,
      "promos": [
       "Free Regional Coach Service · ends 31 Oct"
@@ -1809,29 +1846,29 @@
     "flight_from": null,
     "nights": 45,
     "departure_date": "2027-01-03",
-    "price": 3499,
+    "price": 2699,
     "promos": [
      "Free Regional Coach Service · ends 31 Oct"
     ],
     "nectar": "Collect up to 100,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/ce3e7d32a7/rs38204_bridgetown-2023-01-19-2023-01-19-barbados-selected-editted-ptr_3894.jpg",
-    "fp": "0d5d9e216a00",
-    "made_at": "2026-10-12T22:07:45Z",
-    "reason": "price £2,699 → £3,499",
+    "fp": "fb99be9f2108",
+    "made_at": "2026-10-13T02:56:46Z",
+    "reason": "price £3,499 → £2,699",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_1x1.jpg?alt=media&token=ddca158b-8355-440b-883f-fb076d80c923",
-      "path": "pricewatch-cards/A12701/0d5d9e216a00_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2Ffb99be9f2108_1x1.jpg?alt=media&token=0e8b8ce1-6de7-4626-a7be-22200e19f5ee",
+      "path": "pricewatch-cards/A12701/fb99be9f2108_1x1.jpg",
       "kb": 263
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_4x5.jpg?alt=media&token=6cfb8ce8-1207-4c5b-8689-1d85d1afbd4c",
-      "path": "pricewatch-cards/A12701/0d5d9e216a00_4x5.jpg",
-      "kb": 296
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2Ffb99be9f2108_4x5.jpg?alt=media&token=2504d5cb-bd86-4bce-a1ca-92832b63d805",
+      "path": "pricewatch-cards/A12701/fb99be9f2108_4x5.jpg",
+      "kb": 297
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2F0d5d9e216a00_9x16.jpg?alt=media&token=23c472bd-1380-4637-ab88-2b073fbc202a",
-      "path": "pricewatch-cards/A12701/0d5d9e216a00_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12701%2Ffb99be9f2108_9x16.jpg?alt=media&token=150b47b3-f126-47fc-87ae-9430612d73a4",
+      "path": "pricewatch-cards/A12701/fb99be9f2108_9x16.jpg",
       "kb": 377
      }
     }
@@ -10106,5 +10143,5 @@
    }
   }
  },
- "updated_at": "2026-10-12T22:07:45Z"
+ "updated_at": "2026-10-13T02:56:46Z"
 }
