@@ -104,6 +104,8 @@ td .sub{font-size:13px;color:var(--muted)}
 .side .logo svg{width:168px;height:auto;display:block;margin:0 10px}
 .side .app-name{margin:10px 10px 0;font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#F68C4E}
 .side nav{display:flex;flex-direction:column;gap:2px}
+.side nav .grp{margin:18px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.side nav .grp:first-child{margin-top:0}
 .side nav button{font:inherit;font-size:14px;font-weight:600;color:rgba(255,255,255,.78);background:none;border:0;border-radius:8px;
   display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;text-align:left;position:relative;width:100%}
 .side nav button svg{flex:none;width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
@@ -118,7 +120,6 @@ td .sub{font-size:13px;color:var(--muted)}
 .side nav button:focus-visible{outline:2px solid #F68C4E;outline-offset:0}
 .side .foot{margin-top:auto;padding:16px 12px 0;border-top:1px solid rgba(255,255,255,.14);font-size:13px;line-height:1.55;color:rgba(255,255,255,.7)}
 .side .foot b{color:#fff;font-weight:600}
-.side .foot .m-sep{display:none}
 .side{border-right:1px solid rgba(255,255,255,.06)}
 .side .foot .linkbtn{color:#fff}
 .side .foot #who{margin-top:10px;word-break:break-all}
@@ -131,13 +132,15 @@ td .sub{font-size:13px;color:var(--muted)}
   .side nav{flex-direction:row;overflow-x:auto;gap:6px;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
   .side nav button{flex:none;width:auto;padding:7px 12px;font-size:13px;border-radius:999px;background:rgba(255,255,255,.08)}
   .side nav button svg{display:none}
+  .side nav .grp{display:none}
+  .side nav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  .side .foot .m-more,.side .foot .m-who{display:none}
   .side nav button[aria-current="page"]{background:#F68C4E;color:#380843}
   .side nav button[aria-current="page"]::before{display:none}
   .side nav button[aria-current="page"] .n{background:#380843;color:#fff}
   .side .foot{margin:0;padding:6px 0 0;border-top:1px solid rgba(255,255,255,.14);font-size:12px;line-height:1.45}
-  .side .foot br{display:none}
-  .side .foot .m-sep{display:inline}
-  .side .foot #who{margin-top:2px}
+  .side .foot{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .side .foot #who{margin-top:0;white-space:nowrap}
   .shell > .wrap{padding-block:20px 48px}
 }
 input[type=date]{font:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:0}
@@ -447,7 +450,7 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
   </section>
 
   <section aria-labelledby="h-runs">
-    <h2 id="h-runs"><span class="mini"></span>Daily runs</h2>
+    <h2 id="h-runs"><span class="mini"></span>Check history</h2>
     <div id="runs" class="runs"><p class="loading" style="padding:12px 0">No runs recorded yet. Each daily check adds a line here.</p></div>
   </section>
 
@@ -619,7 +622,7 @@ const auth = getAuth(firebaseApp);
     const today = state.updated, rules = state.rules || {};
     const all = Object.entries(state.sailings || {}).map(([id, s]) => ({id, ...s}));
     const active = all.filter(s => !s.removed);
-    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<span class="m-sep"> · </span><br>Checks hourly 9am–5pm UK time · tracking since ${fmtDate(state.tracking_since)}`;
+    $("meta").innerHTML = `Last checked <b>${fmtDate(today)}${state.updated_at ? ", " + fmtTime(state.updated_at) : ""}</b> (UK time)<span class="m-more"><br>Checks hourly 9am–5pm, plus 6am and 10pm · tracking since ${fmtDate(state.tracking_since)}</span>`;
     $("st-count").textContent = active.length;
     const byShip = {}; active.forEach(s => byShip[s.ship] = (byShip[s.ship]||0)+1);
     $("st-ships").textContent = ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
@@ -1617,19 +1620,21 @@ const auth = getAuth(firebaseApp);
     runs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     rules: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8"/>',
   };
+  // Grouped (Sam, 13 Oct 2026: "tidy up the nav"): prices, then making ads, then the checks behind them.
   const VIEWS = [
-    ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"]],
-    ["trends", "Trends", ["h-trends"]],
-    ["cards", "Cards", ["h-cards"]],
-    ["ads", "Ad creator", ["h-ads"]],
-    ["promos", "Live promotions", ["h-promos"]],
-    ["coverage", "Not in ad feed", ["h-coverage"]],
-    ["changes", "What changed", ["h-changes"]],
-    ["runs", "Daily runs", ["h-runs"]],
-    ["rules", "Was/now rules", ["h-rules"]],
-  ].map(([id, label, secs]) => [id, label, secs.map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean)])
+    ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"], "Prices"],
+    ["trends", "Trends", ["h-trends"], "Prices"],
+    ["changes", "What changed", ["h-changes"], "Prices"],
+    ["promos", "Live promotions", ["h-promos"], "Prices"],
+    ["cards", "Cards", ["h-cards"], "Creative"],
+    ["ads", "Ad creator", ["h-ads"], "Creative"],
+    ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
+    ["runs", "Check history", ["h-runs"], "Checks"],
+    ["rules", "Was/now rules", ["h-rules"], "Checks"],
+  ].map(([id, label, secs, grp]) => [id, label, secs.map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
    .filter(v => v[2].length);
-  $("sidenav").innerHTML = VIEWS.map(([id, label]) =>
+  $("sidenav").innerHTML = VIEWS.map(([id, label, , grp], i) =>
+    (i === 0 || VIEWS[i - 1][3] !== grp ? `<p class="grp" aria-hidden="true">${grp}</p>` : "") +
     `<button type="button" data-view="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[id]}</svg><span class="lbl">${label}</span><span class="n" id="nav-${id}"></span></button>`).join("");
   let view = "overview";
   try { const v = localStorage.getItem("spw-view"); if (VIEWS.some(x => x[0] === v)) view = v; } catch(e){}
@@ -1647,13 +1652,10 @@ const auth = getAuth(firebaseApp);
   $("sidenav").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) showView(b.dataset.view); });
   showView(view, false);
   function updateCounts(){
+    // Counts only where the number is worth seeing before opening the page (Sam, 13 Oct 2026)
     const n = {
-      overview: shownRows.length,
-      cards: cardsDoc ? Object.values(cardsDoc.sailings || {}).filter(c => c.current).length : "",
-      promos: document.querySelectorAll("#promos tbody tr").length,
-      coverage: coverage ? (coverage.on_sale_missing || []).length : "",
-      changes: lastChangeCount,
-      runs: "",
+      promos: document.querySelectorAll("#promos tbody tr").length || "",
+      coverage: coverage ? (coverage.on_sale_missing || []).length || "" : "",
     };
     for (const [id] of VIEWS){ const el = $("nav-" + id); if (el) el.textContent = n[id] == null ? "" : String(n[id]); }
   }
@@ -1751,7 +1753,7 @@ const auth = getAuth(firebaseApp);
     render();
     fromHash();
     if (view === "ads") mountAds();
-    $("who").innerHTML = (`${esc(user.email)} · <button type="button" class="linkbtn" id="signout">Sign out</button>`);
+    $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
   });
 })();
