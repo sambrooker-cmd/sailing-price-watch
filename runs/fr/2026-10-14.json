@@ -1,0 +1,138 @@
+{
+ "date": "2026-10-14",
+ "count": 53,
+ "new": [
+  "R261016",
+  "R261031",
+  "R261116",
+  "R261127",
+  "R261207",
+  "R261218",
+  "R261228",
+  "R270110",
+  "R270118",
+  "R270125",
+  "R270208",
+  "R270219",
+  "R270303",
+  "R270312",
+  "R270403",
+  "R270414",
+  "R270425",
+  "R270501",
+  "R270513",
+  "R270522",
+  "R270605",
+  "R270610",
+  "R270623",
+  "R270705",
+  "R270718",
+  "R270726",
+  "R270809",
+  "R270821",
+  "R270829",
+  "R270912B",
+  "R270923",
+  "R270930",
+  "R271006",
+  "R280410",
+  "R280418",
+  "R280428",
+  "R280508",
+  "R280515",
+  "R280528",
+  "R280618",
+  "R280705",
+  "R280716",
+  "R280724",
+  "R280804",
+  "R280814",
+  "R280822",
+  "R280903",
+  "R280911",
+  "R280921",
+  "R280928",
+  "R281004",
+  "R281018",
+  "R281021"
+ ],
+ "removed": [],
+ "returned": [],
+ "drops": [],
+ "rises": [],
+ "eligible": [],
+ "flags": {
+  "R261116": [
+   "the page shows from €789 but booking's cheapest is €989"
+  ],
+  "R261207": [
+   "the page shows from €789 but booking's cheapest is €909"
+  ],
+  "R280508": [
+   "the page shows from €569 but booking's cheapest is €699"
+  ],
+  "R280528": [
+   "the page shows from €1,159 but booking's cheapest is €1,739"
+  ],
+  "R280724": [
+   "the page shows from €1,099 but booking's cheapest is €1,649"
+  ],
+  "R280804": [
+   "the page shows from €919 but booking's cheapest is €1,079"
+  ]
+ },
+ "cabin_drops": [],
+ "cabin_rises": [],
+ "cabin_sold_out": [],
+ "cabin_back": [],
+ "cabin_eligible": [],
+ "promo_added": [],
+ "promo_ended": [],
+ "promo_changed": [],
+ "nectar_changes": [],
+ "feed_gap_new": [
+  {
+   "id": "R261116",
+   "feed": 789,
+   "page": 989,
+   "at": "2026-10-14T16:07:39Z"
+  },
+  {
+   "id": "R261207",
+   "feed": 789,
+   "page": 909,
+   "at": "2026-10-14T16:07:39Z"
+  },
+  {
+   "id": "R280508",
+   "feed": 569,
+   "page": 699,
+   "at": "2026-10-14T16:07:39Z"
+  },
+  {
+   "id": "R280528",
+   "feed": 1159,
+   "page": 1739,
+   "at": "2026-10-14T16:07:39Z"
+  },
+  {
+   "id": "R280724",
+   "feed": 1099,
+   "page": 1649,
+   "at": "2026-10-14T16:07:39Z"
+  },
+  {
+   "id": "R280804",
+   "feed": 919,
+   "page": 1079,
+   "at": "2026-10-14T16:07:39Z"
+  }
+ ],
+ "feed_gap_fixed": [],
+ "promo_tracking_started": true,
+ "lead_source_switch": [],
+ "reported": [],
+ "checks": [
+  "2026-10-14T16:07:39Z"
+ ]
+}

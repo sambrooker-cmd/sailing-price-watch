@@ -1,0 +1,2106 @@
+{
+ "design": "2026-10-12",
+ "sailings": {
+  "R261016": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Saveurs de l'Atlantique",
+    "base_title": "Saveurs de l'Atlantique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2026-10-16",
+    "price": 1449,
+    "promos": [
+     "Formule Plus",
+     "Dernière chance"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/6ee3e7e0-62e4-43ca-9be4-6f997428946f?width=2000&format=jpg&quality=85",
+    "fp": "db567c889cce",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fdb567c889cce_1x1.jpg?alt=media&token=66f89006-cf4c-4d61-a547-c1bf4e45a826",
+      "path": "pricewatch-cards/fr/R261016/db567c889cce_1x1.jpg",
+      "kb": 297
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fdb567c889cce_4x5.jpg?alt=media&token=cac24ea4-bc76-4aa2-8ec2-c37e2b1ad609",
+      "path": "pricewatch-cards/fr/R261016/db567c889cce_4x5.jpg",
+      "kb": 350
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fdb567c889cce_9x16.jpg?alt=media&token=d99de33c-bcdd-410d-9d80-7412f15fe160",
+      "path": "pricewatch-cards/fr/R261016/db567c889cce_9x16.jpg",
+      "kb": 419
+     }
+    }
+   }
+  },
+  "R261031": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Odyssée Tropicale",
+    "base_title": "Odyssée Tropicale",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 16,
+    "departure_date": "2026-10-31",
+    "price": 1019,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/53926b60-a4e7-4743-8947-0c47de8e1a55?width=2000&format=jpg&quality=85",
+    "fp": "333bd8fbfffe",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261031%2F333bd8fbfffe_1x1.jpg?alt=media&token=c8543777-05c5-4911-bdaa-6a30793a8c68",
+      "path": "pricewatch-cards/fr/R261031/333bd8fbfffe_1x1.jpg",
+      "kb": 244
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261031%2F333bd8fbfffe_4x5.jpg?alt=media&token=f13757f6-adfd-4404-b3d8-b409219714e0",
+      "path": "pricewatch-cards/fr/R261031/333bd8fbfffe_4x5.jpg",
+      "kb": 306
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261031%2F333bd8fbfffe_9x16.jpg?alt=media&token=033bfecf-a877-4631-840f-5d8b2472f4a5",
+      "path": "pricewatch-cards/fr/R261031/333bd8fbfffe_9x16.jpg",
+      "kb": 345
+     }
+    }
+   }
+  },
+  "R261116": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Horizons Tropicaux",
+    "base_title": "Horizons Tropicaux",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2026-11-16",
+    "price": 989,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/9e782305-b16b-4076-abeb-d53a553055d6?width=2000&format=jpg&quality=85",
+    "fp": "01fbd6202f50",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261116%2F01fbd6202f50_1x1.jpg?alt=media&token=353ac867-4241-452e-bc17-9cbb29017881",
+      "path": "pricewatch-cards/fr/R261116/01fbd6202f50_1x1.jpg",
+      "kb": 203
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261116%2F01fbd6202f50_4x5.jpg?alt=media&token=df488797-43b4-4de3-be09-fc331ec03370",
+      "path": "pricewatch-cards/fr/R261116/01fbd6202f50_4x5.jpg",
+      "kb": 236
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261116%2F01fbd6202f50_9x16.jpg?alt=media&token=b96081e2-704c-4865-af89-ebcd2ead4d00",
+      "path": "pricewatch-cards/fr/R261116/01fbd6202f50_9x16.jpg",
+      "kb": 289
+     }
+    }
+   }
+  },
+  "R261127": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Secrets des Caraïbes",
+    "base_title": "Secrets des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2026-11-27",
+    "price": 829,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/ca8d56f4-d8ea-4658-a866-6cff097ad85d?width=2000&format=jpg&quality=85",
+    "fp": "ae53a519dae4",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261127%2Fae53a519dae4_1x1.jpg?alt=media&token=e301938a-723d-4f14-999b-30b0efc7d76e",
+      "path": "pricewatch-cards/fr/R261127/ae53a519dae4_1x1.jpg",
+      "kb": 243
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261127%2Fae53a519dae4_4x5.jpg?alt=media&token=1af9bd8a-4e51-452e-972a-2ea8f2a614dd",
+      "path": "pricewatch-cards/fr/R261127/ae53a519dae4_4x5.jpg",
+      "kb": 270
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261127%2Fae53a519dae4_9x16.jpg?alt=media&token=5b35ba6a-9220-4bd3-8a9f-df47ed34ee5f",
+      "path": "pricewatch-cards/fr/R261127/ae53a519dae4_9x16.jpg",
+      "kb": 337
+     }
+    }
+   }
+  },
+  "R261207": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Parfums des Caraïbes",
+    "base_title": "Parfums des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2026-12-07",
+    "price": 909,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/b79960e2-81c7-431a-906a-82374ad96206?width=2000&format=jpg&quality=85",
+    "fp": "28ba4fcf121b",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_1x1.jpg?alt=media&token=11af7d98-5b2c-47d2-ae78-7b22faec8240",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_1x1.jpg",
+      "kb": 232
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_4x5.jpg?alt=media&token=da27d4f3-7bbc-463c-9477-7cb24132f95c",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_4x5.jpg",
+      "kb": 271
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_9x16.jpg?alt=media&token=4c2c3c5c-e184-4dd6-932f-c9638b72484e",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_9x16.jpg",
+      "kb": 329
+     }
+    }
+   }
+  },
+  "R261218": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Noël au rythme des Caraïbes",
+    "base_title": "Noël au rythme des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2026-12-18",
+    "price": 1199,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/a890e1a5-d44f-4836-9ee2-c16bae0e5b61?width=2000&format=jpg&quality=85",
+    "fp": "16d7cbef2d35",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261218%2F16d7cbef2d35_1x1.jpg?alt=media&token=c38ca3b9-defd-4dda-9ca2-144473664b56",
+      "path": "pricewatch-cards/fr/R261218/16d7cbef2d35_1x1.jpg",
+      "kb": 176
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261218%2F16d7cbef2d35_4x5.jpg?alt=media&token=54d9c5d6-ab5f-4fe2-b28c-e0a9ce9a49b7",
+      "path": "pricewatch-cards/fr/R261218/16d7cbef2d35_4x5.jpg",
+      "kb": 201
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261218%2F16d7cbef2d35_9x16.jpg?alt=media&token=a2736dcd-d4e9-4772-a1ab-dbac98ec58b0",
+      "path": "pricewatch-cards/fr/R261218/16d7cbef2d35_9x16.jpg",
+      "kb": 247
+     }
+    }
+   }
+  },
+  "R261228": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Nouvel An dans les Antilles",
+    "base_title": "Nouvel An dans les Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 13,
+    "departure_date": "2026-12-28",
+    "price": 1339,
+    "promos": [
+     "Formule Plus -50%",
+     "Supplément Solo offert"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/0e4aa0ee-01f4-46de-b285-39f5a7025a38?width=2000&format=jpg&quality=85",
+    "fp": "1ee276bcd28f",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261228%2F1ee276bcd28f_1x1.jpg?alt=media&token=a178b3e0-d245-4500-8cc0-71d555e77136",
+      "path": "pricewatch-cards/fr/R261228/1ee276bcd28f_1x1.jpg",
+      "kb": 167
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261228%2F1ee276bcd28f_4x5.jpg?alt=media&token=a053b472-89bb-4b15-9fa5-133a234a83a3",
+      "path": "pricewatch-cards/fr/R261228/1ee276bcd28f_4x5.jpg",
+      "kb": 193
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261228%2F1ee276bcd28f_9x16.jpg?alt=media&token=ef0d48ed-7a1a-4f9f-a4d0-4acc328fd12e",
+      "path": "pricewatch-cards/fr/R261228/1ee276bcd28f_9x16.jpg",
+      "kb": 214
+     }
+    }
+   }
+  },
+  "R270110": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Evasion Tropicale",
+    "base_title": "Evasion Tropicale",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2027-01-10",
+    "price": 579,
+    "promos": [
+     "Supplément Solo offert",
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/ec45b53b-6f23-47cc-a6b6-bf7ccaad6f49?width=2000&format=jpg&quality=85",
+    "fp": "eddaf8306af2",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270110%2Feddaf8306af2_1x1.jpg?alt=media&token=0b7d9466-f94b-4a09-8312-3372cb450828",
+      "path": "pricewatch-cards/fr/R270110/eddaf8306af2_1x1.jpg",
+      "kb": 204
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270110%2Feddaf8306af2_4x5.jpg?alt=media&token=a6d14db9-6d39-477b-aa67-b102f317d40c",
+      "path": "pricewatch-cards/fr/R270110/eddaf8306af2_4x5.jpg",
+      "kb": 241
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270110%2Feddaf8306af2_9x16.jpg?alt=media&token=b78e6403-daa6-44ae-bcf9-af1855563c2d",
+      "path": "pricewatch-cards/fr/R270110/eddaf8306af2_9x16.jpg",
+      "kb": 275
+     }
+    }
+   }
+  },
+  "R270118": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Le Meilleur des Antilles",
+    "base_title": "Le Meilleur des Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2027-01-18",
+    "price": 509,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/23b4aa2f-bec6-4f35-87ea-826752720edd?width=2000&format=jpg&quality=85",
+    "fp": "462aefe0c91e",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270118%2F462aefe0c91e_1x1.jpg?alt=media&token=54cafba9-71e4-4147-aa9e-4e5f282ae94c",
+      "path": "pricewatch-cards/fr/R270118/462aefe0c91e_1x1.jpg",
+      "kb": 199
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270118%2F462aefe0c91e_4x5.jpg?alt=media&token=b2f7ff5d-d6d3-4f69-b51f-9a258f266d6c",
+      "path": "pricewatch-cards/fr/R270118/462aefe0c91e_4x5.jpg",
+      "kb": 230
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270118%2F462aefe0c91e_9x16.jpg?alt=media&token=b17bcbd7-6f50-483d-9894-7e39b694dad4",
+      "path": "pricewatch-cards/fr/R270118/462aefe0c91e_9x16.jpg",
+      "kb": 260
+     }
+    }
+   }
+  },
+  "R270125": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Culture et Traditions des Caraïbes",
+    "base_title": "Culture et Traditions des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2027-01-25",
+    "price": 1499,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/e81e7d1a-ab5d-47b8-baad-0e5094280b0c?width=2000&format=jpg&quality=85",
+    "fp": "bcdc24e0541c",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270125%2Fbcdc24e0541c_1x1.jpg?alt=media&token=ea73f019-ddd8-4b14-8364-d7e168d72a47",
+      "path": "pricewatch-cards/fr/R270125/bcdc24e0541c_1x1.jpg",
+      "kb": 267
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270125%2Fbcdc24e0541c_4x5.jpg?alt=media&token=6afdd9d0-c39c-49ab-9384-48291bd119f5",
+      "path": "pricewatch-cards/fr/R270125/bcdc24e0541c_4x5.jpg",
+      "kb": 309
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270125%2Fbcdc24e0541c_9x16.jpg?alt=media&token=96edad92-56cc-458e-9dac-c5b6d3c47a4e",
+      "path": "pricewatch-cards/fr/R270125/bcdc24e0541c_9x16.jpg",
+      "kb": 372
+     }
+    }
+   }
+  },
+  "R270208": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Carnaval et Saveurs des Antilles",
+    "base_title": "Carnaval et Saveurs des Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-02-08",
+    "price": 929,
+    "promos": [
+     "Supplément Solo offert",
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/b6e53db4-c6dc-4d82-9dbc-c39c775e044a?width=2000&format=jpg&quality=85",
+    "fp": "5e065b1fa1f5",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270208%2F5e065b1fa1f5_1x1.jpg?alt=media&token=3bc271df-c72a-48d1-b427-b8385683f554",
+      "path": "pricewatch-cards/fr/R270208/5e065b1fa1f5_1x1.jpg",
+      "kb": 257
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270208%2F5e065b1fa1f5_4x5.jpg?alt=media&token=cfd6911a-2905-4109-8cfc-cbbb6536e5e7",
+      "path": "pricewatch-cards/fr/R270208/5e065b1fa1f5_4x5.jpg",
+      "kb": 300
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270208%2F5e065b1fa1f5_9x16.jpg?alt=media&token=72f2192b-8c1e-4456-aca3-3fd9fd851ce4",
+      "path": "pricewatch-cards/fr/R270208/5e065b1fa1f5_9x16.jpg",
+      "kb": 358
+     }
+    }
+   }
+  },
+  "R270219": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Plages de rêve et Culture Créole",
+    "base_title": "Plages de rêve et Culture Créole",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2027-02-19",
+    "price": 1009,
+    "promos": [
+     "Supplément Solo offert",
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/d16d8082-8f98-4e3a-896e-19e0ea59397f?width=2000&format=jpg&quality=85",
+    "fp": "08bd94e42c7c",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270219%2F08bd94e42c7c_1x1.jpg?alt=media&token=0b594911-1090-4fb8-a6f4-a2b71a3b1f73",
+      "path": "pricewatch-cards/fr/R270219/08bd94e42c7c_1x1.jpg",
+      "kb": 205
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270219%2F08bd94e42c7c_4x5.jpg?alt=media&token=fcaabd73-1a4b-4ee1-884f-b6910dd3d5d2",
+      "path": "pricewatch-cards/fr/R270219/08bd94e42c7c_4x5.jpg",
+      "kb": 240
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270219%2F08bd94e42c7c_9x16.jpg?alt=media&token=65b8b16b-9564-4815-af07-40e102fd8c8a",
+      "path": "pricewatch-cards/fr/R270219/08bd94e42c7c_9x16.jpg",
+      "kb": 279
+     }
+    }
+   }
+  },
+  "R270303": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors Exotiques",
+    "base_title": "Trésors Exotiques",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 9,
+    "departure_date": "2027-03-03",
+    "price": 1199,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/66bf77b9-1a3a-4ed0-bff3-3dce87a740a6?width=2000&format=jpg&quality=85",
+    "fp": "cc75c9b3e565",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270303%2Fcc75c9b3e565_1x1.jpg?alt=media&token=3490bf60-6d44-4281-a0bc-f88ffd1f6f8e",
+      "path": "pricewatch-cards/fr/R270303/cc75c9b3e565_1x1.jpg",
+      "kb": 208
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270303%2Fcc75c9b3e565_4x5.jpg?alt=media&token=6455f339-28e8-42fc-834e-41132fc48380",
+      "path": "pricewatch-cards/fr/R270303/cc75c9b3e565_4x5.jpg",
+      "kb": 248
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270303%2Fcc75c9b3e565_9x16.jpg?alt=media&token=0763479e-50f0-49f7-89f5-e90bcb662df3",
+      "path": "pricewatch-cards/fr/R270303/cc75c9b3e565_9x16.jpg",
+      "kb": 261
+     }
+    }
+   }
+  },
+  "R270312": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Paradis insulaires et transatlantiques",
+    "base_title": "Paradis insulaires et transatlantiques",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 22,
+    "departure_date": "2027-03-12",
+    "price": 2109,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/375fa623-3cf7-4e29-8a6f-0920afd58a7e?width=2000&format=jpg&quality=85",
+    "fp": "f4b92752eba7",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270312%2Ff4b92752eba7_1x1.jpg?alt=media&token=81c28ceb-e6fd-4799-9a90-d1c93425b6a0",
+      "path": "pricewatch-cards/fr/R270312/f4b92752eba7_1x1.jpg",
+      "kb": 234
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270312%2Ff4b92752eba7_4x5.jpg?alt=media&token=cb1363bb-4026-4c3b-8d46-9f5e4bea20e0",
+      "path": "pricewatch-cards/fr/R270312/f4b92752eba7_4x5.jpg",
+      "kb": 292
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270312%2Ff4b92752eba7_9x16.jpg?alt=media&token=b4ea4e77-96d6-4994-b395-137565862e95",
+      "path": "pricewatch-cards/fr/R270312/f4b92752eba7_9x16.jpg",
+      "kb": 350
+     }
+    }
+   }
+  },
+  "R270403": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Rivages de l'Atlantique",
+    "base_title": "Rivages de l'Atlantique",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-04-03",
+    "price": 739,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/59a7842b-2d7e-4127-aaf3-9967889b17ed?width=2000&format=jpg&quality=85",
+    "fp": "611da52b978c",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_1x1.jpg?alt=media&token=c56d92dd-2ba5-470e-9591-677f364676f6",
+      "path": "pricewatch-cards/fr/R270403/611da52b978c_1x1.jpg",
+      "kb": 213
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_4x5.jpg?alt=media&token=7689e2c2-4ffb-4fcd-8fdb-95ab273d5bc7",
+      "path": "pricewatch-cards/fr/R270403/611da52b978c_4x5.jpg",
+      "kb": 242
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_9x16.jpg?alt=media&token=ab670416-30d7-4623-8767-d848baabe577",
+      "path": "pricewatch-cards/fr/R270403/611da52b978c_9x16.jpg",
+      "kb": 287
+     }
+    }
+   }
+  },
+  "R270414": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Secrets Helléniques",
+    "base_title": "Secrets Helléniques",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-04-14",
+    "price": 1509,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/1f140d71-4134-4490-93f5-bea7ed62d24c?width=2000&format=jpg&quality=85",
+    "fp": "4efcc2c324cd",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270414%2F4efcc2c324cd_1x1.jpg?alt=media&token=c49a0b93-2800-4fa1-b9ee-d282d3bed786",
+      "path": "pricewatch-cards/fr/R270414/4efcc2c324cd_1x1.jpg",
+      "kb": 283
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270414%2F4efcc2c324cd_4x5.jpg?alt=media&token=e2b4e483-5776-468b-89e0-ba2fdc9f23d4",
+      "path": "pricewatch-cards/fr/R270414/4efcc2c324cd_4x5.jpg",
+      "kb": 339
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270414%2F4efcc2c324cd_9x16.jpg?alt=media&token=883e63ba-7463-41f6-943f-3fb7f0a82ef8",
+      "path": "pricewatch-cards/fr/R270414/4efcc2c324cd_9x16.jpg",
+      "kb": 396
+     }
+    }
+   }
+  },
+  "R270425": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Lumières d'Espagne",
+    "base_title": "Lumières d'Espagne",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 6,
+    "departure_date": "2027-04-25",
+    "price": 599,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/e8e3f142-4f21-416b-bbfd-7e956cf08658?width=2000&format=jpg&quality=85",
+    "fp": "7a13d4173492",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270425%2F7a13d4173492_1x1.jpg?alt=media&token=bc1ea87c-2b6f-4e76-ac4d-4be28611b3b4",
+      "path": "pricewatch-cards/fr/R270425/7a13d4173492_1x1.jpg",
+      "kb": 294
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270425%2F7a13d4173492_4x5.jpg?alt=media&token=dc607f2d-7ae0-4af7-8aea-7209de3ea818",
+      "path": "pricewatch-cards/fr/R270425/7a13d4173492_4x5.jpg",
+      "kb": 350
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270425%2F7a13d4173492_9x16.jpg?alt=media&token=1e740ab6-09a5-4192-a4d7-e7b2c43d36f2",
+      "path": "pricewatch-cards/fr/R270425/7a13d4173492_9x16.jpg",
+      "kb": 413
+     }
+    }
+   }
+  },
+  "R270501": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Odyssée Hellénique",
+    "base_title": "Odyssée Hellénique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2027-05-01",
+    "price": 1919,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/8d09e138-6e65-4c9f-b5f3-b22288786360?width=2000&format=jpg&quality=85",
+    "fp": "a7a0d9f5a14f",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_1x1.jpg?alt=media&token=730bbe14-5137-424b-923d-0de00749f8ef",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_1x1.jpg",
+      "kb": 244
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_4x5.jpg?alt=media&token=1df82593-0b7a-442e-8363-60f62444a24b",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_4x5.jpg",
+      "kb": 281
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_9x16.jpg?alt=media&token=ac3ec4c3-c39d-4947-b08f-dbfbf6851ea7",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_9x16.jpg",
+      "kb": 337
+     }
+    }
+   }
+  },
+  "R270513": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Héritage des Empires",
+    "base_title": "Héritage des Empires",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 9,
+    "departure_date": "2027-05-13",
+    "price": 829,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/518e5f64-c52d-4231-911a-2c458d481055?width=2000&format=jpg&quality=85",
+    "fp": "9d1e976be4de",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270513%2F9d1e976be4de_1x1.jpg?alt=media&token=791affa5-5270-42a2-94c3-e33e4fbfa474",
+      "path": "pricewatch-cards/fr/R270513/9d1e976be4de_1x1.jpg",
+      "kb": 290
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270513%2F9d1e976be4de_4x5.jpg?alt=media&token=3d4ddca1-a98b-447a-8b0f-975d760380b9",
+      "path": "pricewatch-cards/fr/R270513/9d1e976be4de_4x5.jpg",
+      "kb": 339
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270513%2F9d1e976be4de_9x16.jpg?alt=media&token=fa0edf27-4bfa-4ce4-99cc-1daab1c3fc4b",
+      "path": "pricewatch-cards/fr/R270513/9d1e976be4de_9x16.jpg",
+      "kb": 436
+     }
+    }
+   }
+  },
+  "R270522": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Joyaux de l'Adriatique",
+    "base_title": "Joyaux de l'Adriatique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2027-05-22",
+    "price": 2229,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/2db57927-e952-460c-bc68-7958eefbefac?width=2000&format=jpg&quality=85",
+    "fp": "481b2f616d1d",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270522%2F481b2f616d1d_1x1.jpg?alt=media&token=56a40b30-9d06-4c14-a50b-3f715d96ca9b",
+      "path": "pricewatch-cards/fr/R270522/481b2f616d1d_1x1.jpg",
+      "kb": 281
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270522%2F481b2f616d1d_4x5.jpg?alt=media&token=03c23c04-a158-4f06-b1a2-f22db555f312",
+      "path": "pricewatch-cards/fr/R270522/481b2f616d1d_4x5.jpg",
+      "kb": 335
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270522%2F481b2f616d1d_9x16.jpg?alt=media&token=1747442e-7644-4837-aa90-9a27d825666f",
+      "path": "pricewatch-cards/fr/R270522/481b2f616d1d_9x16.jpg",
+      "kb": 406
+     }
+    }
+   }
+  },
+  "R270605": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Escapade Impériale",
+    "base_title": "Escapade Impériale",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 5,
+    "departure_date": "2027-06-05",
+    "price": 699,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/e659f22b-ef56-4001-aba2-02c5059a0aac?width=2000&format=jpg&quality=85",
+    "fp": "96ccd029ce2e",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270605%2F96ccd029ce2e_1x1.jpg?alt=media&token=ca5af3a6-4066-40ae-b208-4eeb9efcb591",
+      "path": "pricewatch-cards/fr/R270605/96ccd029ce2e_1x1.jpg",
+      "kb": 234
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270605%2F96ccd029ce2e_4x5.jpg?alt=media&token=a4604066-9ff3-4000-bf55-b114f661b2a4",
+      "path": "pricewatch-cards/fr/R270605/96ccd029ce2e_4x5.jpg",
+      "kb": 254
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270605%2F96ccd029ce2e_9x16.jpg?alt=media&token=75753a1f-8196-45ee-99b8-43172f9be2ff",
+      "path": "pricewatch-cards/fr/R270605/96ccd029ce2e_9x16.jpg",
+      "kb": 288
+     }
+    }
+   }
+  },
+  "R270610": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Couleurs des Canaries",
+    "base_title": "Couleurs des Canaries",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 13,
+    "departure_date": "2027-06-10",
+    "price": 1799,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/628d8098-f6cb-4e53-baa7-52751d5ca699?width=2000&format=jpg&quality=85",
+    "fp": "027386770db6",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270610%2F027386770db6_1x1.jpg?alt=media&token=276949e7-d514-462e-8a65-6e2c73be0d8c",
+      "path": "pricewatch-cards/fr/R270610/027386770db6_1x1.jpg",
+      "kb": 249
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270610%2F027386770db6_4x5.jpg?alt=media&token=d4350dde-6c2d-4edf-966c-1677a035c8f1",
+      "path": "pricewatch-cards/fr/R270610/027386770db6_4x5.jpg",
+      "kb": 283
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270610%2F027386770db6_9x16.jpg?alt=media&token=40831142-1499-427a-82b4-fce99da1aaa8",
+      "path": "pricewatch-cards/fr/R270610/027386770db6_9x16.jpg",
+      "kb": 340
+     }
+    }
+   }
+  },
+  "R270623": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors de l'Atlantique",
+    "base_title": "Trésors de l'Atlantique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2027-06-23",
+    "price": 829,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/c4615108-6957-4d80-97fd-1f906c4f27e6?width=2000&format=jpg&quality=85",
+    "fp": "dff03395220c",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_1x1.jpg?alt=media&token=840f3930-cd09-47f3-a698-75f198af1c9e",
+      "path": "pricewatch-cards/fr/R270623/dff03395220c_1x1.jpg",
+      "kb": 259
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_4x5.jpg?alt=media&token=67fd7c9b-6f59-4880-a7a9-306984f843a5",
+      "path": "pricewatch-cards/fr/R270623/dff03395220c_4x5.jpg",
+      "kb": 309
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_9x16.jpg?alt=media&token=349ed6f1-aec6-4b4d-b378-11660c550f13",
+      "path": "pricewatch-cards/fr/R270623/dff03395220c_9x16.jpg",
+      "kb": 365
+     }
+    }
+   }
+  },
+  "R270705": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Islande, terre de feu et de geysers",
+    "base_title": "Islande, terre de feu et de geysers",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 13,
+    "departure_date": "2027-07-05",
+    "price": 2179,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/58ea34bb-5980-4a97-837f-2474586ee25f?width=2000&format=jpg&quality=85",
+    "fp": "014d23f511ec",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270705%2F014d23f511ec_1x1.jpg?alt=media&token=9e99ce42-336e-4dce-ad0c-d2e248cefde9",
+      "path": "pricewatch-cards/fr/R270705/014d23f511ec_1x1.jpg",
+      "kb": 275
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270705%2F014d23f511ec_4x5.jpg?alt=media&token=b2d1e734-91e2-4100-ad3b-366b2407b34c",
+      "path": "pricewatch-cards/fr/R270705/014d23f511ec_4x5.jpg",
+      "kb": 331
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270705%2F014d23f511ec_9x16.jpg?alt=media&token=e4c8b92c-1c7b-4255-aab8-5ba91d492259",
+      "path": "pricewatch-cards/fr/R270705/014d23f511ec_9x16.jpg",
+      "kb": 403
+     }
+    }
+   }
+  },
+  "R270718": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Écosse et joyaux insulaires",
+    "base_title": "Écosse et joyaux insulaires",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2027-07-18",
+    "price": 1269,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/082c5827-ea77-4408-84ce-d061434f8d85?width=2000&format=jpg&quality=85",
+    "fp": "6534ba8ec44f",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270718%2F6534ba8ec44f_1x1.jpg?alt=media&token=86301433-4d10-443a-8f0c-efebcc0838cf",
+      "path": "pricewatch-cards/fr/R270718/6534ba8ec44f_1x1.jpg",
+      "kb": 215
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270718%2F6534ba8ec44f_4x5.jpg?alt=media&token=67eaf9cc-7fb4-48e5-b99b-8844cc572776",
+      "path": "pricewatch-cards/fr/R270718/6534ba8ec44f_4x5.jpg",
+      "kb": 249
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270718%2F6534ba8ec44f_9x16.jpg?alt=media&token=37da7691-0239-486e-8e8c-375e7e0e9f74",
+      "path": "pricewatch-cards/fr/R270718/6534ba8ec44f_9x16.jpg",
+      "kb": 288
+     }
+    }
+   }
+  },
+  "R270726": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Soleil de Minuit et fjords de Norvège",
+    "base_title": "Soleil de Minuit et fjords de Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2027-07-26",
+    "price": 2699,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/32d84b2e-f391-4ac6-bbc4-e06ac5d785da?width=2000&format=jpg&quality=85",
+    "fp": "db8161194297",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_1x1.jpg?alt=media&token=d34371d1-dab9-4ea2-9a8b-d9f063e16c61",
+      "path": "pricewatch-cards/fr/R270726/db8161194297_1x1.jpg",
+      "kb": 221
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_4x5.jpg?alt=media&token=b73826d2-2d92-4a53-ab1f-109c0a761b4f",
+      "path": "pricewatch-cards/fr/R270726/db8161194297_4x5.jpg",
+      "kb": 274
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_9x16.jpg?alt=media&token=2fe9b776-3b9d-4d36-8e13-d4c2c3873cbb",
+      "path": "pricewatch-cards/fr/R270726/db8161194297_9x16.jpg",
+      "kb": 312
+     }
+    }
+   }
+  },
+  "R270809": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors d'Islande et des Îles Féroé",
+    "base_title": "Trésors d'Islande et des Îles Féroé",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2027-08-09",
+    "price": 2009,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/d39fab11-9ac0-4c31-a810-e8f6ec10efd9?width=2000&format=jpg&quality=85",
+    "fp": "000a7dbc51e2",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270809%2F000a7dbc51e2_1x1.jpg?alt=media&token=8867bcf4-92b4-40f5-882a-a13066122fa6",
+      "path": "pricewatch-cards/fr/R270809/000a7dbc51e2_1x1.jpg",
+      "kb": 219
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270809%2F000a7dbc51e2_4x5.jpg?alt=media&token=0d663933-261c-460e-844a-739431671c23",
+      "path": "pricewatch-cards/fr/R270809/000a7dbc51e2_4x5.jpg",
+      "kb": 264
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270809%2F000a7dbc51e2_9x16.jpg?alt=media&token=fe4c91ca-dc9d-4257-b1c6-5d27f46f1689",
+      "path": "pricewatch-cards/fr/R270809/000a7dbc51e2_9x16.jpg",
+      "kb": 292
+     }
+    }
+   }
+  },
+  "R270821": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Fjords de Norvège",
+    "base_title": "Fjords de Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2027-08-21",
+    "price": 1549,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/a71caf81-feb0-4498-ab6d-08b02a85ce11?width=2000&format=jpg&quality=85",
+    "fp": "b53377b56734",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270821%2Fb53377b56734_1x1.jpg?alt=media&token=8d667b40-26da-4920-8a87-bcd489dd2d85",
+      "path": "pricewatch-cards/fr/R270821/b53377b56734_1x1.jpg",
+      "kb": 322
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270821%2Fb53377b56734_4x5.jpg?alt=media&token=b967fd47-61a2-4ffe-a297-8ceffcec8db5",
+      "path": "pricewatch-cards/fr/R270821/b53377b56734_4x5.jpg",
+      "kb": 383
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270821%2Fb53377b56734_9x16.jpg?alt=media&token=1756da59-52a0-4401-ae2a-7d5e9a6ce150",
+      "path": "pricewatch-cards/fr/R270821/b53377b56734_9x16.jpg",
+      "kb": 452
+     }
+    }
+   }
+  },
+  "R270829": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Baltique et Capitales Nordiques",
+    "base_title": "Baltique et Capitales Nordiques",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2027-08-29",
+    "price": 1609,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/22691b27-b361-4d96-baa1-e369369130e4?width=2000&format=jpg&quality=85",
+    "fp": "9224ec2b056b",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270829%2F9224ec2b056b_1x1.jpg?alt=media&token=e7bb97e7-e7fd-4a28-bd87-ff7373d42fb2",
+      "path": "pricewatch-cards/fr/R270829/9224ec2b056b_1x1.jpg",
+      "kb": 223
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270829%2F9224ec2b056b_4x5.jpg?alt=media&token=c9a59a83-91b5-48e6-b141-26807e3ede8c",
+      "path": "pricewatch-cards/fr/R270829/9224ec2b056b_4x5.jpg",
+      "kb": 244
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270829%2F9224ec2b056b_9x16.jpg?alt=media&token=ff8fc6a6-4fb0-4f7f-991b-7926f698bcdd",
+      "path": "pricewatch-cards/fr/R270829/9224ec2b056b_9x16.jpg",
+      "kb": 292
+     }
+    }
+   }
+  },
+  "R270912B": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Joyaux de la Norvège",
+    "base_title": "Joyaux de la Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-09-12",
+    "price": 1379,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/764d4361-9e0f-4359-a2bb-736b2cf1418a?width=2000&format=jpg&quality=85",
+    "fp": "862a744fbcc6",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_1x1.jpg?alt=media&token=1d8eb619-ec2b-4df6-b543-db35b835b645",
+      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_1x1.jpg",
+      "kb": 251
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_4x5.jpg?alt=media&token=2d41d549-787f-4b69-8b58-17355e25084e",
+      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_4x5.jpg",
+      "kb": 294
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_9x16.jpg?alt=media&token=0e456ab6-3bf0-4ceb-9c6d-fb037c7e8ba1",
+      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_9x16.jpg",
+      "kb": 373
+     }
+    }
+   }
+  },
+  "R270923": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Le meilleur de la Norvège",
+    "base_title": "Le meilleur de la Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2027-09-23",
+    "price": 1319,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/74ab993a-af57-411c-bbe2-c908dda94cb0?width=2000&format=jpg&quality=85",
+    "fp": "6eb21b2495b6",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270923%2F6eb21b2495b6_1x1.jpg?alt=media&token=9be2b617-a895-46b1-a1d7-850a17ac7d92",
+      "path": "pricewatch-cards/fr/R270923/6eb21b2495b6_1x1.jpg",
+      "kb": 234
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270923%2F6eb21b2495b6_4x5.jpg?alt=media&token=ac3ab06f-06f4-4fe9-8c22-f834000de4df",
+      "path": "pricewatch-cards/fr/R270923/6eb21b2495b6_4x5.jpg",
+      "kb": 275
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270923%2F6eb21b2495b6_9x16.jpg?alt=media&token=0b47ca87-0706-4cc4-b65d-a15d404dc0ae",
+      "path": "pricewatch-cards/fr/R270923/6eb21b2495b6_9x16.jpg",
+      "kb": 327
+     }
+    }
+   }
+  },
+  "R270930": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Escapade Scandinave",
+    "base_title": "Escapade Scandinave",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 6,
+    "departure_date": "2027-09-30",
+    "price": 649,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/cd646133-4188-40d3-8c3f-09028ef08cd2?width=2000&format=jpg&quality=85",
+    "fp": "0877ce063b7c",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270930%2F0877ce063b7c_1x1.jpg?alt=media&token=e118e662-09f8-44e3-833d-e0b0ef3362c8",
+      "path": "pricewatch-cards/fr/R270930/0877ce063b7c_1x1.jpg",
+      "kb": 266
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270930%2F0877ce063b7c_4x5.jpg?alt=media&token=36a3b445-0369-42af-9044-9b47c9c0ab22",
+      "path": "pricewatch-cards/fr/R270930/0877ce063b7c_4x5.jpg",
+      "kb": 305
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270930%2F0877ce063b7c_9x16.jpg?alt=media&token=3eba153e-f37a-43bc-9901-24842a69b73c",
+      "path": "pricewatch-cards/fr/R270930/0877ce063b7c_9x16.jpg",
+      "kb": 345
+     }
+    }
+   }
+  },
+  "R271006": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Escapade Royale",
+    "base_title": "Escapade Royale",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 4,
+    "departure_date": "2027-10-06",
+    "price": 459,
+    "promos": [
+     "Formule Plus",
+     "Larguez les amarres"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/624196db-ac46-4379-a324-ed815734a880?width=2000&format=jpg&quality=85",
+    "fp": "315c14b542fa",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271006%2F315c14b542fa_1x1.jpg?alt=media&token=354c374b-1732-4b37-9cb6-008d3cfee3ca",
+      "path": "pricewatch-cards/fr/R271006/315c14b542fa_1x1.jpg",
+      "kb": 291
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271006%2F315c14b542fa_4x5.jpg?alt=media&token=0e295fcb-8271-47fc-838b-fa769cb8f3f7",
+      "path": "pricewatch-cards/fr/R271006/315c14b542fa_4x5.jpg",
+      "kb": 345
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271006%2F315c14b542fa_9x16.jpg?alt=media&token=c87a3136-f90f-48ed-bd31-7645fff5ef30",
+      "path": "pricewatch-cards/fr/R271006/315c14b542fa_9x16.jpg",
+      "kb": 400
+     }
+    }
+   }
+  },
+  "R280410": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Capitales Scandinaves",
+    "base_title": "Capitales Scandinaves",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2028-04-10",
+    "price": 709,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/c5de268d-3c07-4451-bc59-6f2e1ee3c6b7?width=2000&format=jpg&quality=85",
+    "fp": "05d90f190034",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280410%2F05d90f190034_1x1.jpg?alt=media&token=4770a573-6704-4db9-93ee-909b4a9947bd",
+      "path": "pricewatch-cards/fr/R280410/05d90f190034_1x1.jpg",
+      "kb": 278
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280410%2F05d90f190034_4x5.jpg?alt=media&token=e35087f6-4008-4f33-88ca-09764373b428",
+      "path": "pricewatch-cards/fr/R280410/05d90f190034_4x5.jpg",
+      "kb": 331
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280410%2F05d90f190034_9x16.jpg?alt=media&token=353d9454-d5d5-4631-b787-565da77f8c68",
+      "path": "pricewatch-cards/fr/R280410/05d90f190034_9x16.jpg",
+      "kb": 395
+     }
+    }
+   }
+  },
+  "R280418": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Perles de la mer Baltique",
+    "base_title": "Perles de la mer Baltique",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-04-18",
+    "price": 859,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/81c37b96-717f-4fc3-a8c0-e12dd11492cb?width=2000&format=jpg&quality=85",
+    "fp": "1ace6e70ba4e",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280418%2F1ace6e70ba4e_1x1.jpg?alt=media&token=e78b6b4b-bfd8-4e8c-ae82-4486cf2342db",
+      "path": "pricewatch-cards/fr/R280418/1ace6e70ba4e_1x1.jpg",
+      "kb": 253
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280418%2F1ace6e70ba4e_4x5.jpg?alt=media&token=05edd52e-48fa-4889-94eb-34e64ad501e8",
+      "path": "pricewatch-cards/fr/R280418/1ace6e70ba4e_4x5.jpg",
+      "kb": 307
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280418%2F1ace6e70ba4e_9x16.jpg?alt=media&token=d76bb506-6a88-41d5-b61d-4bfd4ed9309e",
+      "path": "pricewatch-cards/fr/R280418/1ace6e70ba4e_9x16.jpg",
+      "kb": 381
+     }
+    }
+   }
+  },
+  "R280428": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Splendeurs Ibériques",
+    "base_title": "Splendeurs Ibériques",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-04-28",
+    "price": 549,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/737d153a-9017-4b76-9483-9570b4f4ef10?width=2000&format=jpg&quality=85",
+    "fp": "c90f231d4226",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280428%2Fc90f231d4226_1x1.jpg?alt=media&token=c09461c9-65a5-4990-8d35-8ae0e9280835",
+      "path": "pricewatch-cards/fr/R280428/c90f231d4226_1x1.jpg",
+      "kb": 244
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280428%2Fc90f231d4226_4x5.jpg?alt=media&token=dd18ad87-ba8e-44aa-82fb-68721f3ffb76",
+      "path": "pricewatch-cards/fr/R280428/c90f231d4226_4x5.jpg",
+      "kb": 286
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280428%2Fc90f231d4226_9x16.jpg?alt=media&token=19d7cf64-b12a-479d-bec9-804e6b02cb8d",
+      "path": "pricewatch-cards/fr/R280428/c90f231d4226_9x16.jpg",
+      "kb": 338
+     }
+    }
+   }
+  },
+  "R280508": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Traditions Corses et Sardes",
+    "base_title": "Traditions Corses et Sardes",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2028-05-08",
+    "price": 699,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/8cf11dba-7763-41b9-a238-47eb6e8c1cbb?width=2000&format=jpg&quality=85",
+    "fp": "aa3ebc097c85",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280508%2Faa3ebc097c85_1x1.jpg?alt=media&token=33f0734b-3ef3-4d7d-9b20-8e9e5a443f8a",
+      "path": "pricewatch-cards/fr/R280508/aa3ebc097c85_1x1.jpg",
+      "kb": 296
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280508%2Faa3ebc097c85_4x5.jpg?alt=media&token=eb85d990-8b74-41cb-9707-caa8f2e88a96",
+      "path": "pricewatch-cards/fr/R280508/aa3ebc097c85_4x5.jpg",
+      "kb": 350
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280508%2Faa3ebc097c85_9x16.jpg?alt=media&token=bda0538f-8a5b-4137-8701-6413089caf01",
+      "path": "pricewatch-cards/fr/R280508/aa3ebc097c85_9x16.jpg",
+      "kb": 418
+     }
+    }
+   }
+  },
+  "R280515": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors de la Grèce Antique",
+    "base_title": "Trésors de la Grèce Antique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 13,
+    "departure_date": "2028-05-15",
+    "price": 1059,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/8455d478-7b1c-4ebb-9232-0ca24300812a?width=2000&format=jpg&quality=85",
+    "fp": "4487f994cb47",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280515%2F4487f994cb47_1x1.jpg?alt=media&token=fd1fb3b6-2360-4e6b-a07b-66babbb2dafd",
+      "path": "pricewatch-cards/fr/R280515/4487f994cb47_1x1.jpg",
+      "kb": 248
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280515%2F4487f994cb47_4x5.jpg?alt=media&token=2c406c82-c7f3-4481-a9ef-7d0afb9fd083",
+      "path": "pricewatch-cards/fr/R280515/4487f994cb47_4x5.jpg",
+      "kb": 293
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280515%2F4487f994cb47_9x16.jpg?alt=media&token=b7b2c962-a70b-41a0-baf6-1165bbf5f68a",
+      "path": "pricewatch-cards/fr/R280515/4487f994cb47_9x16.jpg",
+      "kb": 348
+     }
+    }
+   }
+  },
+  "R280528": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Egypte et Civilisations Antiques",
+    "base_title": "Egypte et Civilisations Antiques",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2028-05-28",
+    "price": 1739,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/e9ecc936-a37e-465b-b977-984ce7968381?width=2000&format=jpg&quality=85",
+    "fp": "f260c0b9e5e6",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280528%2Ff260c0b9e5e6_1x1.jpg?alt=media&token=236876fb-a2dd-4439-bdfd-b8b72444ac86",
+      "path": "pricewatch-cards/fr/R280528/f260c0b9e5e6_1x1.jpg",
+      "kb": 173
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280528%2Ff260c0b9e5e6_4x5.jpg?alt=media&token=93d86f76-1375-4522-976e-3b78b31ed69f",
+      "path": "pricewatch-cards/fr/R280528/f260c0b9e5e6_4x5.jpg",
+      "kb": 207
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280528%2Ff260c0b9e5e6_9x16.jpg?alt=media&token=c74bfb28-d39f-4be4-8432-9c44f5fafaa0",
+      "path": "pricewatch-cards/fr/R280528/f260c0b9e5e6_9x16.jpg",
+      "kb": 229
+     }
+    }
+   }
+  },
+  "R280618": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Splendeurs de l'Adriatique",
+    "base_title": "Splendeurs de l'Adriatique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 13,
+    "departure_date": "2028-06-18",
+    "price": 1119,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/cd0406b2-97fb-427f-ad8d-3aba167956cd?width=2000&format=jpg&quality=85",
+    "fp": "eb1d0349e15e",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280618%2Feb1d0349e15e_1x1.jpg?alt=media&token=3909e7aa-3791-4a61-9b60-41573384120e",
+      "path": "pricewatch-cards/fr/R280618/eb1d0349e15e_1x1.jpg",
+      "kb": 300
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280618%2Feb1d0349e15e_4x5.jpg?alt=media&token=a0180fc6-609a-4545-8b9b-fb8f3033baf6",
+      "path": "pricewatch-cards/fr/R280618/eb1d0349e15e_4x5.jpg",
+      "kb": 354
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280618%2Feb1d0349e15e_9x16.jpg?alt=media&token=e5cc0871-8329-4cdd-995f-30c02003678a",
+      "path": "pricewatch-cards/fr/R280618/eb1d0349e15e_9x16.jpg",
+      "kb": 405
+     }
+    }
+   }
+  },
+  "R280705": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Rivages de l'Atlantique",
+    "base_title": "Rivages de l'Atlantique",
+    "ship": "Renaissance",
+    "port": "Marseille",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-07-05",
+    "price": 709,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/b9e57351-bf44-429d-acf8-a08b6c5d6e38?width=2000&format=jpg&quality=85",
+    "fp": "4497b0f69821",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280705%2F4497b0f69821_1x1.jpg?alt=media&token=faea3612-5270-4c87-8b56-883c9a894e88",
+      "path": "pricewatch-cards/fr/R280705/4497b0f69821_1x1.jpg",
+      "kb": 302
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280705%2F4497b0f69821_4x5.jpg?alt=media&token=da9dbc94-e417-4569-9f57-1b0247fe8faa",
+      "path": "pricewatch-cards/fr/R280705/4497b0f69821_4x5.jpg",
+      "kb": 338
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280705%2F4497b0f69821_9x16.jpg?alt=media&token=ad59de86-a2a4-4893-bb90-73468af4e3d6",
+      "path": "pricewatch-cards/fr/R280705/4497b0f69821_9x16.jpg",
+      "kb": 401
+     }
+    }
+   }
+  },
+  "R280716": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Irlande et côtes britanniques",
+    "base_title": "Irlande et côtes britanniques",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2028-07-16",
+    "price": 769,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/c44b416b-e99e-4b63-b4dd-24df4872dddb?width=2000&format=jpg&quality=85",
+    "fp": "befe590d1476",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280716%2Fbefe590d1476_1x1.jpg?alt=media&token=46e322a4-6fbc-44b8-9370-875d4dc63712",
+      "path": "pricewatch-cards/fr/R280716/befe590d1476_1x1.jpg",
+      "kb": 222
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280716%2Fbefe590d1476_4x5.jpg?alt=media&token=2fa99fae-98c1-4295-ab0e-4265e1e13f62",
+      "path": "pricewatch-cards/fr/R280716/befe590d1476_4x5.jpg",
+      "kb": 266
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280716%2Fbefe590d1476_9x16.jpg?alt=media&token=606141d6-04b4-4273-801a-40dfbc821f4e",
+      "path": "pricewatch-cards/fr/R280716/befe590d1476_9x16.jpg",
+      "kb": 336
+     }
+    }
+   }
+  },
+  "R280724": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Fjords de Norvège",
+    "base_title": "Fjords de Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-07-24",
+    "price": 1649,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/98abc32c-0d49-4deb-a336-9b9fe950ef37?width=2000&format=jpg&quality=85",
+    "fp": "8a0c1754fe50",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280724%2F8a0c1754fe50_1x1.jpg?alt=media&token=3b638268-d85f-485f-bde8-45623f01dad2",
+      "path": "pricewatch-cards/fr/R280724/8a0c1754fe50_1x1.jpg",
+      "kb": 253
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280724%2F8a0c1754fe50_4x5.jpg?alt=media&token=ebb5674c-90a7-4007-bbb4-ec4377c1c1ee",
+      "path": "pricewatch-cards/fr/R280724/8a0c1754fe50_4x5.jpg",
+      "kb": 292
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280724%2F8a0c1754fe50_9x16.jpg?alt=media&token=84327463-f56a-497a-960b-ac113ce29b2d",
+      "path": "pricewatch-cards/fr/R280724/8a0c1754fe50_9x16.jpg",
+      "kb": 352
+     }
+    }
+   }
+  },
+  "R280804": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Highlands écossais et îles du Nord",
+    "base_title": "Highlands écossais et îles du Nord",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-08-04",
+    "price": 1079,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/4a34e1c3-f51d-4ce0-a759-bf680304cc8c?width=2000&format=jpg&quality=85",
+    "fp": "564e604cf1a6",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280804%2F564e604cf1a6_1x1.jpg?alt=media&token=e311d0e8-056a-4108-becf-7bc686d02a32",
+      "path": "pricewatch-cards/fr/R280804/564e604cf1a6_1x1.jpg",
+      "kb": 301
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280804%2F564e604cf1a6_4x5.jpg?alt=media&token=ffd68edb-ded0-4232-ad8a-533e026f7a4f",
+      "path": "pricewatch-cards/fr/R280804/564e604cf1a6_4x5.jpg",
+      "kb": 359
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280804%2F564e604cf1a6_9x16.jpg?alt=media&token=e83ac63d-c8de-4023-b48a-093d436d0de6",
+      "path": "pricewatch-cards/fr/R280804/564e604cf1a6_9x16.jpg",
+      "kb": 420
+     }
+    }
+   }
+  },
+  "R280814": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Le Meilleur de la Norvège",
+    "base_title": "Le Meilleur de la Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2028-08-14",
+    "price": 989,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/539eaa92-56b2-42f0-a01d-f8773fdf252e?width=2000&format=jpg&quality=85",
+    "fp": "d012536374f3",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280814%2Fd012536374f3_1x1.jpg?alt=media&token=d60c5c64-b7dd-437d-87bb-9b72b42f7592",
+      "path": "pricewatch-cards/fr/R280814/d012536374f3_1x1.jpg",
+      "kb": 317
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280814%2Fd012536374f3_4x5.jpg?alt=media&token=5b22410b-9572-484e-aaab-b232d37b790b",
+      "path": "pricewatch-cards/fr/R280814/d012536374f3_4x5.jpg",
+      "kb": 383
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280814%2Fd012536374f3_9x16.jpg?alt=media&token=fd40f298-d3bd-4a47-a96a-d0e063a17bd4",
+      "path": "pricewatch-cards/fr/R280814/d012536374f3_9x16.jpg",
+      "kb": 432
+     }
+    }
+   }
+  },
+  "R280822": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors d'Islande et îles Féroé",
+    "base_title": "Trésors d'Islande et îles Féroé",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 12,
+    "departure_date": "2028-08-22",
+    "price": 1399,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/e4771f99-27f1-491f-bdc0-dbb695eda4ae?width=2000&format=jpg&quality=85",
+    "fp": "87c10c861bea",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280822%2F87c10c861bea_1x1.jpg?alt=media&token=8af71d27-ef51-4ca0-ac69-e2d3599b9496",
+      "path": "pricewatch-cards/fr/R280822/87c10c861bea_1x1.jpg",
+      "kb": 225
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280822%2F87c10c861bea_4x5.jpg?alt=media&token=2121d39d-48f1-45ec-8389-0738bce0b673",
+      "path": "pricewatch-cards/fr/R280822/87c10c861bea_4x5.jpg",
+      "kb": 262
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280822%2F87c10c861bea_9x16.jpg?alt=media&token=63fb3735-4d68-4b5b-93bb-7646bc2ee79d",
+      "path": "pricewatch-cards/fr/R280822/87c10c861bea_9x16.jpg",
+      "kb": 293
+     }
+    }
+   }
+  },
+  "R280903": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Capitales Scandinaves",
+    "base_title": "Capitales Scandinaves",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2028-09-03",
+    "price": 729,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/4b2a2a67-5714-4df9-a76f-97bdbbfa9073?width=2000&format=jpg&quality=85",
+    "fp": "63fb9ca63bb5",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280903%2F63fb9ca63bb5_1x1.jpg?alt=media&token=1500b562-4738-4f55-8657-7301d278fdec",
+      "path": "pricewatch-cards/fr/R280903/63fb9ca63bb5_1x1.jpg",
+      "kb": 271
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280903%2F63fb9ca63bb5_4x5.jpg?alt=media&token=ed4418d7-2ac3-4b51-b131-d128d6414c7f",
+      "path": "pricewatch-cards/fr/R280903/63fb9ca63bb5_4x5.jpg",
+      "kb": 325
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280903%2F63fb9ca63bb5_9x16.jpg?alt=media&token=f69d44bc-b6eb-4782-9dbc-e165648ec2f8",
+      "path": "pricewatch-cards/fr/R280903/63fb9ca63bb5_9x16.jpg",
+      "kb": 384
+     }
+    }
+   }
+  },
+  "R280911": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Joyaux de la Norvège",
+    "base_title": "Joyaux de la Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-09-11",
+    "price": 939,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/682379ea-a0e4-4cdf-830e-0c3cf8ea97bd?width=2000&format=jpg&quality=85",
+    "fp": "ca1bd442dfca",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280911%2Fca1bd442dfca_1x1.jpg?alt=media&token=b266285a-0fe7-4d63-8c6e-aae0e5b58081",
+      "path": "pricewatch-cards/fr/R280911/ca1bd442dfca_1x1.jpg",
+      "kb": 228
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280911%2Fca1bd442dfca_4x5.jpg?alt=media&token=d4dea78d-183d-40b5-a9cb-1a73f51f61de",
+      "path": "pricewatch-cards/fr/R280911/ca1bd442dfca_4x5.jpg",
+      "kb": 257
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280911%2Fca1bd442dfca_9x16.jpg?alt=media&token=ec7e787b-2242-40a8-b8f1-e2ea47cab997",
+      "path": "pricewatch-cards/fr/R280911/ca1bd442dfca_9x16.jpg",
+      "kb": 325
+     }
+    }
+   }
+  },
+  "R280921": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Évasion au pays des fjords",
+    "base_title": "Évasion au pays des fjords",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2028-09-21",
+    "price": 659,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/45b44d22-2124-482e-a796-6dcd97956ce5?width=2000&format=jpg&quality=85",
+    "fp": "5e792976f0f8",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280921%2F5e792976f0f8_1x1.jpg?alt=media&token=572dd27e-48f4-4f09-8e6a-bc0ce2f02114",
+      "path": "pricewatch-cards/fr/R280921/5e792976f0f8_1x1.jpg",
+      "kb": 225
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280921%2F5e792976f0f8_4x5.jpg?alt=media&token=a0dacfb1-5e4b-4f6f-8dec-d81009410d58",
+      "path": "pricewatch-cards/fr/R280921/5e792976f0f8_4x5.jpg",
+      "kb": 260
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280921%2F5e792976f0f8_9x16.jpg?alt=media&token=7fd559fe-a089-4d80-983d-e52513fc3ec5",
+      "path": "pricewatch-cards/fr/R280921/5e792976f0f8_9x16.jpg",
+      "kb": 317
+     }
+    }
+   }
+  },
+  "R280928": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Légendes Vikings",
+    "base_title": "Légendes Vikings",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 6,
+    "departure_date": "2028-09-28",
+    "price": 569,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/07aed853-c21e-45d8-a4c8-387023feff49?width=2000&format=jpg&quality=85",
+    "fp": "53bf013d64df",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280928%2F53bf013d64df_1x1.jpg?alt=media&token=87a5106b-d42b-4b58-bec8-033d3b1006cb",
+      "path": "pricewatch-cards/fr/R280928/53bf013d64df_1x1.jpg",
+      "kb": 242
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280928%2F53bf013d64df_4x5.jpg?alt=media&token=0a83883e-6f0b-471b-9c57-b1f3ac8e4571",
+      "path": "pricewatch-cards/fr/R280928/53bf013d64df_4x5.jpg",
+      "kb": 281
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280928%2F53bf013d64df_9x16.jpg?alt=media&token=d1fbee50-bdde-46b9-bc59-23030403a9b6",
+      "path": "pricewatch-cards/fr/R280928/53bf013d64df_9x16.jpg",
+      "kb": 341
+     }
+    }
+   }
+  },
+  "R281004": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Lumières Arctiques",
+    "base_title": "Lumières Arctiques",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 14,
+    "departure_date": "2028-10-04",
+    "price": 1909,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/35d04805-6b3c-44d0-8854-ed44ee3eb9df?width=2000&format=jpg&quality=85",
+    "fp": "47b335a73663",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281004%2F47b335a73663_1x1.jpg?alt=media&token=d5b8104e-15ca-40fe-ba63-1d7761431680",
+      "path": "pricewatch-cards/fr/R281004/47b335a73663_1x1.jpg",
+      "kb": 159
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281004%2F47b335a73663_4x5.jpg?alt=media&token=1ec25db5-8f09-403d-8248-601328c8a65f",
+      "path": "pricewatch-cards/fr/R281004/47b335a73663_4x5.jpg",
+      "kb": 205
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281004%2F47b335a73663_9x16.jpg?alt=media&token=9eeca7b8-099a-4a30-9b6c-323b2222810c",
+      "path": "pricewatch-cards/fr/R281004/47b335a73663_9x16.jpg",
+      "kb": 215
+     }
+    }
+   }
+  },
+  "R281018": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Les Venise du Nord",
+    "base_title": "Les Venise du Nord",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 3,
+    "departure_date": "2028-10-18",
+    "price": 209,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/835f3524-d43d-4ebf-81dc-a526c3734e17?width=2000&format=jpg&quality=85",
+    "fp": "dbb012cf5cea",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281018%2Fdbb012cf5cea_1x1.jpg?alt=media&token=12990dae-dd81-43f1-8ef9-fa7977cda3be",
+      "path": "pricewatch-cards/fr/R281018/dbb012cf5cea_1x1.jpg",
+      "kb": 247
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281018%2Fdbb012cf5cea_4x5.jpg?alt=media&token=48e4cb16-2b37-4e55-b2c6-46ffcde4c46c",
+      "path": "pricewatch-cards/fr/R281018/dbb012cf5cea_4x5.jpg",
+      "kb": 291
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281018%2Fdbb012cf5cea_9x16.jpg?alt=media&token=14e43f85-b778-4396-b72f-8f2790aa1c90",
+      "path": "pricewatch-cards/fr/R281018/dbb012cf5cea_9x16.jpg",
+      "kb": 343
+     }
+    }
+   }
+  },
+  "R281021": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Le Meilleur de la Norvège",
+    "base_title": "Le Meilleur de la Norvège",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2028-10-21",
+    "price": 699,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/b640f4c1-15de-48b8-9924-3ac7c404467a?width=2000&format=jpg&quality=85",
+    "fp": "cc63c90271e9",
+    "made_at": "2026-10-14T16:09:26Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281021%2Fcc63c90271e9_1x1.jpg?alt=media&token=58e58b4e-a81d-4d31-ac37-c66309d9a774",
+      "path": "pricewatch-cards/fr/R281021/cc63c90271e9_1x1.jpg",
+      "kb": 313
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281021%2Fcc63c90271e9_4x5.jpg?alt=media&token=4c3eb14f-292a-40e9-a4f8-0e9715616747",
+      "path": "pricewatch-cards/fr/R281021/cc63c90271e9_4x5.jpg",
+      "kb": 359
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR281021%2Fcc63c90271e9_9x16.jpg?alt=media&token=75d42e8c-b0da-44c4-b83b-255d4e4d2c89",
+      "path": "pricewatch-cards/fr/R281021/cc63c90271e9_9x16.jpg",
+      "kb": 424
+     }
+    }
+   }
+  }
+ },
+ "updated_at": "2026-10-14T16:09:26Z"
+}
