@@ -88,7 +88,7 @@ exports.makeVideo = onRequest({
       const late = v.status === "queued" && v.at.toMillis() < stuck;
       return {id: d.id, by: v.by, at: iso(v.at), title: v.title || "", cards: v.cards || 0,
               status: late ? "failed" : v.status, error: late ? "It didn't start on GitHub. Try again." : (v.error || ""),
-              files: v.files || [], prices: v.prices || "", until: v.until || "", run: v.run || ""};
+              files: v.files || [], prices: v.prices || "", until: v.until || "", run: v.run || "", codes: v.codes || []};
     }), limit: DAY_LIMIT});
   }
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
@@ -106,7 +106,9 @@ exports.makeVideo = onRequest({
 
   const ref = db.collection(COL).doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued",
-                 title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0))});
+                 title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0)),
+                 // the ad's cruise codes, so the Ad creator lists only this ad's videos (Sam, 14 Oct 2026)
+                 codes: (Array.isArray(b.codes) ? b.codes : []).map(String).filter(c => /^[A-Za-z0-9]{3,20}$/.test(c)).slice(0, 12)});
   const started = await dispatch(ref, WORKFLOW, {link: code, request: ref.id}, "video");
   if (started !== true) return res.status(502).json({error: started});
   return res.json({id: ref.id});
