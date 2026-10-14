@@ -50,7 +50,11 @@ Draft facts; next day the inside price rose → lead cards withdrawn "Do not use
 Fixed: a draft ad/email left open in the browser now says what normalise() changed ("Since this ad was last
 open: …"; it was silent); the withdrawn issue names the cards (grade, was → now); `card_review.py` tells Claude the
 lead price's own grade. Not covered: real Storage upload and GitHub issue creation (same code paths as every hourly
-check). Email cards have no was/now design (prices are "From" only).
+check). Email cards have no was/now design (prices are "From" only). Ad creator (Sam, 14 Oct 2026): a card's Meta description defaults to "Now £Ypp, was £X" on was/now cards
+(`descFor`, figures from the claim) and "From £Xpp" otherwise; an automatic description (`autoDesc`) follows the design
+and is refreshed with the latest price whenever the ad is opened (saved ads kept old prices before); typed wording is
+never changed. Email cards was/now: mocked up for Sam (A: "Balcony cabins: was ~~£1,899~~" above a "Now £1,739pp"
+button, as the Email creator; B: A plus an orange "Price reduction" badge), waiting on his choice.
 
 ## Usability round (13 Oct 2026, Sam picked from the QA suggestions)
 - **Find a sailing** in the sidebar (`#gq`, "/" focuses it): name, port, ship, airport or code → its detail view (on-sale first).

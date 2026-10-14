@@ -74,6 +74,7 @@ function normalise(d){
     // Only the sailing's own photos (or an upload): a saved or shared ad can't point a card at anything else (QA, 13 Oct 2026)
     if (c.photo && !c.photo.startsWith("upload:") && !sailing(c.id).photos.includes(c.photo)) c.photo = null;
     if (c.trustpilot && TP && typeof c.trustpilot === "string" && !TP.images.some(x => x.file === c.trustpilot)) c.trustpilot = TP.images[0].file;
+    if (autoDesc(c.description)) c.description = descFor(c.id, c.design || "standard");   // prices move: keep it current
     return c;
   });
   if (ended) msgs.push(`${ended} was/now card${ended === 1 ? "" : "s"} switched to standard because the price-reduction claim has ended`);
@@ -239,10 +240,18 @@ function claims(id){
   return out;
 }
 
+// The Meta description written for a card unless someone has typed their own (Sam, 14 Oct 2026: was/now cards say
+// "Now £Ypp, was £X", from the claim). An automatic one is refreshed with the latest price whenever the ad is opened.
+function descFor(id, design){
+  const s = sailing(id), cl = design && design.startsWith("wasnow:") ? claims(id).find(x => "wasnow:" + x.key === design) : null;
+  return cl ? `Now ${money(cl.now)}pp, was ${money(cl.was)}` : `From ${money(s.price)}pp`;
+}
+const autoDesc = d => !d || /^From £[\d,]+pp$/.test(d) || /^Now £[\d,]+pp, was £[\d,]+$/.test(d);
+
 function newCard(id){
   const s = sailing(id);
   return {id, design: "standard", photo: s.image, words: null, promos: (s.k.promos || []).slice(0, s.k.nectar ? 1 : 2),
-          nectar: !!s.k.nectar, headline: s.title.slice(0, LIMITS.headline), description: `From ${money(s.price)}pp`, link: s.r.link || ""};
+          nectar: !!s.k.nectar, headline: s.title.slice(0, LIMITS.headline), description: descFor(id, "standard"), link: s.r.link || ""};
 }
 
 // Everything the card design needs, from the saved data plus this card's choices.
@@ -633,7 +642,7 @@ function wire(){
   // Safety net: trimToMax() already ran (and said so) when a brand card was switched on
   if (ad.cards.length > maxSailings()) { trimToMax(); save(); }
   if (!c) return;
-  $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; change(true, true); });
+  $("#ac-design").addEventListener("change", e => { c.design = e.target.value; c.words = null; if (autoDesc(c.description)) c.description = descFor(c.id, c.design); change(true, true); });
   root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { c.photo = b.dataset.photo; delete c.uploadLost; change(true, true); }));
   $("#ac-upload").addEventListener("change", e => {
     const f = e.target.files[0]; if (!f) return;
