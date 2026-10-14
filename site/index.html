@@ -219,6 +219,19 @@ dialog.detail::backdrop{background:rgba(20,5,25,.55)}
 .ac-side{display:flex;flex-direction:column;gap:14px}
 .ac-block{border:1px solid var(--rule);padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
 .ac-block h3{margin:0 0 4px;font-size:15px}
+/* Collapsible sections in the creators (sections.js, Sam 14 Oct 2026): title, and a summary while closed */
+details.ac-block.cs{display:block;padding:0}
+details.cs>summary{list-style:none;cursor:pointer;padding:14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+details.cs>summary::-webkit-details-marker{display:none}
+details.cs>summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--allium);border-bottom:2px solid var(--allium);transform:rotate(-45deg);margin:0 4px 0 2px;transition:transform .15s;align-self:center}
+details.cs[open]>summary::before{transform:rotate(45deg)}
+details.cs>summary h3{margin:0}
+details.cs>summary:hover h3{color:var(--allium)}
+details.cs>summary:focus-visible{outline:2px solid var(--allium);outline-offset:-2px}
+.cs-sum{font-size:13px;color:var(--muted);flex-basis:100%;padding-left:21px}
+details.cs[open]>summary .cs-sum{display:none}
+.cs-b{display:flex;flex-direction:column;gap:6px;padding:0 14px 14px}
+.cs-more{align-self:flex-start;font-size:13px}
 /* Email preview: the right-hand column stays in view and the preview fills the rest of the screen,
    scrolling inside itself (Sam, 13 Oct 2026: it overlapped its box and didn't fit the screen) */
 .em-main{height:calc(100vh - 24px)}

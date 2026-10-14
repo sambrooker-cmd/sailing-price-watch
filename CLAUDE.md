@@ -40,6 +40,17 @@ carousels trimmed (with a note) when an opening/closing card is switched on; mal
 in the brand colour; on phones What changed stacks each change, Feed vs website and Not in ad feed drop their least
 useful columns.
 
+## Creator layout (14 Oct 2026, Sam: "lots of options and it's not always clear"; no numbers)
+`site/sections.js`: the creators' option columns are collapsible sections with clear titles and, while closed, a one-line
+summary of what's set (refreshed when a section is closed); open/closed remembered per browser (localStorage
+`spw-sections`); the selected card/sailing's own options are never folded. Photo grids show two rows with "Show all N
+photos" (the chosen one always stays in view). Order: **Ad creator** saved bar · Sailings in order (format, size, add,
+list) · the selected card · Opening and closing cards (closed by default) · Ad text (primary text, button, suggestions
+closed by default, Draft with Claude). **Email creator** saved bar · Sailings in order · the selected sailing · Header ·
+Words (subject, preview text, intro, suggestions, Draft with Claude, button) · Nectar and Trustpilot (closed) · Small
+print (closed). **Email cards** Sailings · Sizes and downloads (closed) · the selected card (file name moved below photo,
+caption and badges). The 13 Oct "no folding sections" was for the main tracker pages, which are unchanged.
+
 ## Was/now rehearsal (14 Oct 2026)
 End-to-end rehearsal on a scratch copy (test prices only, nothing committed, uploaded or published): A12702 given a
 fake £1,129 inside / £1,899 balcony history from 1 Sep, then the real 14 Oct snapshot (£1,029 / £1,739). Worked: both

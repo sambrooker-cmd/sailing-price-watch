@@ -12,6 +12,7 @@
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
+import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -413,8 +414,10 @@ function suggestionsFor(){
       .replace(/Swipe to see all (\w+) sailings/, "Here are all $1 sailings")}));
 }
 let sugg = [];
-function photoPicker(cur, attr, list){
-  return `<div class="ac-photos">${list.map(u => `<button type="button" class="ac-ph${cur === u ? " on" : ""}" ${attr}="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>`;
+const photoButton = (u, cur, attr) => `<button type="button" class="ac-ph${cur === u ? " on" : ""}" ${attr}="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`;
+function photoPicker(cur, attr, list, key){   // two rows, "Show all N photos" for more (sections.js)
+  const g = cs.photoGrid(key, list.map(u => photoButton(u, cur, attr)), list.indexOf(cur));
+  return `<div class="ac-photos">${g.grid}</div>${g.more}`;
 }
 function itemEditor(){
   const it = em.items[sel]; if (!it) return "";
@@ -431,7 +434,7 @@ function itemEditor(){
     <select id="em-design"><option value="standard">${it.design === "standard" ? esc(fareOf(it).label) : `From ${money(s.price)}pp`}</option>${cl.map(c => `<option value="wasnow:${c.key}"${it.design === "wasnow:" + c.key ? " selected" : ""}>Was/now: ${esc(c.label)}, was ${money(c.was)} now ${money(c.now)} (send by ${shortDate(c.ends)})</option>`).join("")}</select>
     ${cl.length ? "" : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
     ${it.design === "standard" ? fareBlock(it) : ""}
-    <span class="ac-lab">Photo</span>${photoPicker(it.photo, "data-photo", s.photos)}
+    <span class="ac-lab">Photo</span>${photoPicker(it.photo, "data-photo", s.photos, "em-item")}
     <label class="ac-lab" for="em-caption">Location caption <span class="sub">(optional: check it matches the photo)</span></label>
     <input id="em-caption" value="${esc(it.caption)}" placeholder="e.g. Bridgetown, Barbados" maxlength="40">
     ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="em-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
@@ -460,36 +463,29 @@ function draw(){
   root.innerHTML = `<div class="ac">
     <div class="ac-side">
       ${draftsBlock()}
-      <div class="ac-block">
-        <h3>Email</h3>
-        <label class="ac-lab" for="em-subject">Subject line <span class="sub" id="em-n-subject"></span></label>
-        <input id="em-subject" value="${esc(em.subject)}" placeholder="e.g. Winter sunshine from ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "£399"}pp">
-        <label class="ac-lab" for="em-pre">Preview text <span class="sub">(shown after the subject in the inbox)</span></label>
-        <input id="em-pre" value="${esc(em.preheader)}" placeholder="One line that adds to the subject">
-      </div>
-      <div class="ac-block">
+      ${cs.section("em-sailings", "Sailings in order", it.length ? `${it.length} sailing${it.length === 1 ? "" : "s"}: ${it.filter(x => x.layout !== "wide").length} tile${it.filter(x => x.layout !== "wide").length === 1 ? "" : "s"}, ${it.filter(x => x.layout === "wide").length} full width` : "none added yet", `
         <label class="ac-lab" for="em-find">Add a sailing</label>
         <input id="em-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
         <div id="em-results" class="ac-results"></div>
-      </div>
-      <div class="ac-block">
-        <h3>Sailings in order (${it.length} of ${MAX})</h3>
+        <p class="sub" style="margin:4px 0 0">${it.length} of ${MAX} sailings</p>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
           <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${x.layout === "wide" ? "full width" : "tile"}${x.design !== "standard" ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
           <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this sailing (e.g. full width with another photo)"${it.length < MAX ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
           <label class="ac-check"><input type="checkbox" id="em-allbadges"${em.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
-          <p class="sub">Tiles go 3 across (on phones they stack); a full-width sailing starts a new row.</p>` : `<p class="sub">Search above and add the sailings for this email.</p>`}
-      </div>
-      <div class="ac-block">
-        <h3>Header picture</h3>
-        ${heroPhotos.length ? photoPicker(em.hero.photo, "data-hero", heroPhotos) : `<p class="sub">Add a sailing to choose from its photos.</p>`}
+          <p class="sub">Tiles go 3 across (on phones they stack); a full-width sailing starts a new row.</p>` : `<p class="sub">Search above and add the sailings for this email.</p>`}`)}
+      ${itemEditor()}
+      ${cs.section("em-header", "Header", [em.hero.photo ? "Picture chosen" : "No picture", em.hero.headline.trim() ? `"${esc(em.hero.headline.trim())}"` : "no headline"].join(" · "), `
+        ${heroPhotos.length ? (() => { const g = cs.photoGrid("em-hero", heroPhotos.map(u => photoButton(u, em.hero.photo, "data-hero")), heroPhotos.indexOf(em.hero.photo)); return `<div class="ac-photos">${g.grid}</div>${g.more}`; })() : `<p class="sub">Add a sailing to choose from its photos.</p>`}
         ${em.hero.photo ? `<button type="button" class="linkbtn" id="em-nohero">No header picture</button>` : ""}
         <input id="em-headline" value="${esc(em.hero.headline)}" placeholder="Headline, e.g. The weekly cruise round-up" maxlength="28" aria-label="Header headline">
-        <input id="em-sub" value="${esc(em.hero.sub)}" placeholder="Second line (optional)" maxlength="70" aria-label="Header second line">
-      </div>
-      <div class="ac-block">
-        <h3>Intro</h3>
+        <input id="em-sub" value="${esc(em.hero.sub)}" placeholder="Second line (optional)" maxlength="70" aria-label="Header second line">`)}
+      ${cs.section("em-words", "Words", em.subject.trim() ? `Subject: "${esc(em.subject.trim().slice(0, 50))}${em.subject.trim().length > 50 ? "…" : ""}"${em.intro.trim() ? "" : " · no intro yet"}` : "No subject line yet", `
+        <label class="ac-lab" for="em-subject">Subject line <span class="sub" id="em-n-subject"></span></label>
+        <input id="em-subject" value="${esc(em.subject)}" placeholder="e.g. Winter sunshine from ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "£399"}pp">
+        <label class="ac-lab" for="em-pre">Preview text <span class="sub">(shown after the subject in the inbox)</span></label>
+        <input id="em-pre" value="${esc(em.preheader)}" placeholder="One line that adds to the subject">
+        <label class="ac-lab" for="em-intro">Intro</label>
         <textarea id="em-intro" rows="5" placeholder="A few lines introducing these sailings">${esc(em.intro)}</textarea>
         ${sugg.length ? `<details class="ac-sugg"><summary>Suggested intros (${sugg.length})</summary>
           <p class="sub">Built from these sailings' own facts in Ambassador's tone of voice.</p>
@@ -497,19 +493,14 @@ function draw(){
         ${claude.block("email", it.length ? "" : "Add at least one sailing to the email first, then Claude can draft the text.")}
         <label class="ac-lab" for="em-cta">Button under the intro <span class="sub">(blank = no button)</span></label>
         <input id="em-cta" value="${esc(em.cta)}">
-        <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">
-      </div>
-      ${itemEditor()}
-      <div class="ac-block">
-        <h3>Nectar and Trustpilot</h3>
+        <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">`)}
+      ${cs.section("em-strips", "Nectar and Trustpilot", [em.nectar.on && NECTAR ? `Nectar banner ${PLACES[em.nectar.pos].toLowerCase()}` : "Nectar banner off", em.tp.on ? `Trustpilot ${PLACES[em.tp.pos].toLowerCase()}` : "Trustpilot off"].join(" · "), `
         <label class="ac-check"><input type="checkbox" id="em-nectar"${em.nectar.on && NECTAR ? " checked" : ""}${NECTAR ? "" : " disabled"}> Nectar banner ${NECTAR ? "" : `<span class="sub">(waiting for the Nectar banner artwork)</span>`}</label>
         ${NECTAR && em.nectar.on ? `${NECTAR.images.length > 1 ? `<div class="ac-photos em-banners" role="group" aria-label="Nectar banner">${NECTAR.images.map((x, i) => `<button type="button" class="ac-ph${x.file === (em.nectar.file || NECTAR.images[0].file) ? " on" : ""}" data-nectar="${esc(x.file)}" title="${esc(x.label)}" aria-label="${esc(x.label)}"><img src="email/${esc(x.file)}" alt=""></button>`).join("")}</div>` : ""}
           <select id="em-nectar-pos" aria-label="Where the Nectar banner goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.nectar.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
         <label class="ac-check"><input type="checkbox" id="em-tp"${em.tp.on ? " checked" : ""}> Trustpilot widget <span class="sub">(Trustpilot's own, always shows the current score)</span></label>
-        ${em.tp.on ? `<select id="em-tp-pos" aria-label="Where the Trustpilot widget goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.tp.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
-      </div>
-      <div class="ac-block">
-        <h3>Small print</h3>
+        ${em.tp.on ? `<select id="em-tp-pos" aria-label="Where the Trustpilot widget goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.tp.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}`, false)}
+      ${cs.section("em-small", "Small print", [safeUrl(em.terms) ? "Offer T&amp;Cs link set" : "No offer T&amp;Cs link", safeUrl(em.unsub) ? "unsubscribe link set" : "no unsubscribe link yet"].join(" · "), `
         <label class="ac-lab" for="em-terms">Offer T&amp;Cs link <span class="sub">(blank = leave out)</span></label>
         <input id="em-terms" value="${esc(em.terms)}">
         <label class="ac-lab" for="em-legal">Footer text <span class="sub">(one paragraph per line)</span></label>
@@ -517,8 +508,7 @@ function draw(){
         <label class="ac-lab" for="em-unsub">Unsubscribe / preferences link</label>
         <input id="em-unsub" value="${esc(em.unsub)}" placeholder="Your email platform's link (for now the email says UNSUBSCRIBE_LINK)">
         <label class="ac-lab" for="em-phone">Phone number in the header</label>
-        <input id="em-phone" value="${esc(em.phone)}">
-      </div>
+        <input id="em-phone" value="${esc(em.phone)}">`, false)}
     </div>
     <div class="ac-main em-main">
       <div class="ac-actions">
@@ -568,6 +558,7 @@ let typing;
 function change(redraw){ made = null; save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(preview, 400); } }
 function wire(){
   const $ = s => root.querySelector(s);
+  cs.wire(root, draw);
   const bind = (id, set) => { const el = $(id); el && el.addEventListener("input", () => { set(el.value); change(false); }); };
   bind("#em-subject", v => em.subject = v); bind("#em-pre", v => em.preheader = v);
   bind("#em-headline", v => em.hero.headline = v); bind("#em-sub", v => em.hero.sub = v);

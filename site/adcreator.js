@@ -7,6 +7,7 @@
 import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
+import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -300,8 +301,7 @@ function slides(){
 function brandEditor(){
   if (ad.format !== "carousel") return "";
   const I = ad.intro, E = ad.end;
-  return `<div class="ac-block">
-    <h3>Opening and closing cards</h3>
+  return cs.section("ad-brand", "Opening and closing cards", `Opening card ${I.on ? "on" : "off"} · closing card ${E.on ? "on" : "off"}`, `
     <label class="ac-check"><input type="checkbox" id="in-on"${I.on ? " checked" : ""}> Opening card</label>
     ${I.on ? `<input id="in-eyebrow" value="${esc(I.eyebrow)}" placeholder="${esc(autoEyebrow() || "Small line above the headline")}" aria-label="Small line above the headline">
       <input id="in-headline" value="${esc(I.headline)}" placeholder="Headline" aria-label="Opening headline">
@@ -318,8 +318,7 @@ function brandEditor(){
       <label class="ac-lab sm" for="en-mh">Under the card on Meta: headline</label><input id="en-mh" value="${esc(E.mHeadline)}">
       <label class="ac-lab sm" for="en-md">Description</label><input id="en-md" value="${esc(E.mDesc)}">
       <label class="ac-lab sm" for="en-link">Link</label><input id="en-link" value="${esc(E.link)}" inputmode="url">` : ""}
-    <p class="sub">Allium with the brand's 20° pattern, as in the design system. Each counts towards Meta's 10-card limit.</p>
-  </div>`;
+    <p class="sub">Allium with the brand's 20° pattern, as in the design system. Each counts towards Meta's 10-card limit.</p>`, false);
 }
 
 // Nectar line and Trustpilot widget, per card or for every card at once (Sam, 13 Oct 2026).
@@ -363,7 +362,8 @@ function draw(){
   <div class="ac">
     <div class="ac-side">
       ${draftsBlock()}
-      <div class="ac-block">
+      ${cs.section("ad-sailings", ad.format === "carousel" ? "Sailings in order" : "Sailing",
+        `${ad.format === "carousel" ? `Carousel, ${ad.size.replace("x", ":")}` : "Single image"} · ${ad.cards.length ? `${ad.cards.length} sailing${ad.cards.length === 1 ? "" : "s"}` : "none added yet"}`, `
         <div class="ac-row" role="group" aria-label="Ad format">
           <button type="button" class="ac-seg" data-format="carousel" aria-pressed="${ad.format === "carousel"}">Carousel</button>
           <button type="button" class="ac-seg" data-format="single" aria-pressed="${ad.format === "single"}">Single image</button>
@@ -372,9 +372,7 @@ function draw(){
         <label class="ac-lab" for="ac-find">Add a sailing</label>
         <input id="ac-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
         <div id="ac-results" class="ac-results"></div>
-      </div>
-      <div class="ac-block">
-        <h3>${ad.format === "carousel" ? `Sailings in order (${ad.cards.length} of ${maxSailings()})` : "Sailing"}</h3>
+        ${ad.format === "carousel" ? `<p class="sub" style="margin:4px 0 0">${ad.cards.length} of ${maxSailings()} sailings</p>` : ""}
         ${ad.cards.length ? `<div class="ac-row ac-bulk" role="group" aria-label="Strips on every card"><span class="sub">Every card:</span>
           <span class="ac-pair"><span>Nectar</span><button type="button" class="ac-chip" data-all="nectar:1" aria-label="Nectar on every card">On</button><button type="button" class="ac-chip" data-all="nectar:0" aria-label="Nectar off every card">Off</button></span>
           <span class="ac-pair"><span>Trustpilot</span><button type="button" class="ac-chip" data-all="tp:1" aria-label="Trustpilot on every card"${TP ? "" : " disabled"}>On</button><button type="button" class="ac-chip" data-all="tp:0" aria-label="Trustpilot off every card"${TP ? "" : " disabled"}>Off</button></span></div>` : ""}
@@ -384,19 +382,16 @@ function draw(){
             <span class="ac-strips">${["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
               return `<button type="button" class="ac-chip" data-strip="${k}" data-i="${i}" aria-pressed="${!why && on}"${why ? ` disabled title="${esc(why)}"` : ""}>${k === "nectar" ? "Nectar" : "Trustpilot"}</button>`; }).join("")}</span>
             <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this card"${ad.cards.length < maxSailings() ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
-          </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}
-      </div>
-      ${brandEditor()}
+          </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}`)}
       ${c ? editor(c) : ""}
-      <div class="ac-block">
-        <h3>Ad text</h3>
+      ${brandEditor()}
+      ${cs.section("ad-text", "Ad text", `${ad.primary.trim() ? `Primary text: ${ad.primary.trim().length} characters` : "No primary text yet"} · button "${esc(ad.cta)}"`, `
         <label class="ac-lab" for="ac-primary">Primary text <span class="sub" id="cnt-primary"></span></label>
         <textarea id="ac-primary" rows="4" placeholder="The words above the ${ad.format === "carousel" ? "carousel" : "image"}">${esc(ad.primary)}</textarea>
         <label class="ac-lab" for="ac-cta">Button</label>
         <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
         ${suggestions()}
-        ${claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}
-      </div>
+        ${claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}`)}
     </div>
     <div class="ac-main">
       <div class="ac-actions">
@@ -425,7 +420,7 @@ function suggestions(){
     return {title: d.title, ship: d.ship, port: d.port, fly: d.fly, nights: d.nights, departure_date: d.departure_date, price: d.price,
             promos: s.k.promos || [], nectarPts: n, wasnow: d.wasnow};
   }), ad.format);
-  return `<details class="ac-sugg" open><summary>Suggested primary text (${sugg.length})</summary>
+  return `<details class="ac-sugg"><summary>Suggested primary text (${sugg.length})</summary>
     <p class="sub">Built from these sailings' prices, dates, ports, promotions and Nectar points, in Ambassador's tone of voice. The first ${LIMITS.primary} characters (in bold) show before "See more".</p>
     ${sugg.map((o, i) => { const cut = o.text.length <= LIMITS.primary ? o.text.length : o.text.lastIndexOf(" ", LIMITS.primary);
       return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
@@ -460,9 +455,11 @@ function editor(c){
     <select id="ac-design"><option value="standard">Standard</option>${cl.map(x => `<option value="wasnow:${x.key}"${c.design === "wasnow:" + x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (until ${fmtDate(x.ends)})</option>`).join("")}</select>
     ${cl.length ? `<p class="sub">Was/now figures come from the tracker's claim and can only be used until the date shown.</p>` : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
     <span class="ac-lab">Image</span>
-    <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(c.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy" crossorigin="anonymous"></button>`).join("")}
-      ${Object.keys(uploads).map(k => `<button type="button" class="ac-ph${c.photo === k ? " on" : ""}" data-photo="${k}" aria-label="Use uploaded image"><img src="${uploads[k]}" alt=""></button>`).join("")}
-      <label class="ac-up">Upload<input type="file" id="ac-upload" accept="image/jpeg,image/png,image/webp" hidden></label></div>
+    ${(() => { const g = cs.photoGrid("ad-card", s.photos.map(u => `<button type="button" class="ac-ph${(c.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy" crossorigin="anonymous"></button>`),
+        s.photos.indexOf(c.photo || s.image),
+        Object.keys(uploads).map(k => `<button type="button" class="ac-ph${c.photo === k ? " on" : ""}" data-photo="${k}" aria-label="Use uploaded image"><img src="${uploads[k]}" alt=""></button>`).join("") +
+        `<label class="ac-up">Upload<input type="file" id="ac-upload" accept="image/jpeg,image/png,image/webp" hidden></label>`);
+      return `<div class="ac-photos">${g.grid}</div>${g.more}`; })()}
     <p class="sub">First is the feed image${s.k.campaign ? " (campaign artwork: shown whole)" : ""}; the others are photos from the sailing's page.</p>
     ${c.uploadLost ? `<p class="ac-note">This card used an uploaded photo, which can't travel in a saved ad or link. Upload it again, or pick a photo above.</p>` : ""}
     <span class="ac-lab">Words on the card</span>
@@ -536,6 +533,7 @@ function counts(){
 function wire(){
   const $ = s => root.querySelector(s), c = ad.cards[sel];
   const change = (repaint = true, redraw = false) => { save(); if (redraw) draw(); else { if (repaint) paintCards(); refreshText(); counts(); } };
+  cs.wire(root, draw);
   root.querySelectorAll("[data-format]").forEach(b => b.addEventListener("click", () => { ad.format = b.dataset.format; change(true, true); }));
   $("#ac-size") && $("#ac-size").addEventListener("change", e => { ad.size = e.target.value; change(true, true); });
   const find = $("#ac-find"), res = $("#ac-results");
