@@ -15,7 +15,7 @@ no sound (add music from Meta's sound library in Ads Manager).
 Lengths are the whole video (6 s and 10 s by default), shared equally between the cards.
 Writes OUTDIR/<name>_<size>_<length>s.mp4 and OUTDIR/summary.md. Nothing is sent to Meta.
 """
-import argparse, base64, io, json, mimetypes, re, subprocess, sys
+import argparse, base64, io, json, mimetypes, re, subprocess, sys, zlib
 from pathlib import Path
 from PIL import Image
 
@@ -42,10 +42,19 @@ FIREBASE = {  # stand-ins for the Firebase modules: the page reads the documents
 
 
 def ad_code(link):
-    m = re.search(r"(?:#|^)ad=([A-Za-z0-9_-]+)", link.strip()) or re.fullmatch(r"([A-Za-z0-9_-]{20,})", link.strip())
+    m = re.search(r"(?:#|^)ad(?:fr)?=([A-Za-z0-9_-]+)", link.strip()) or re.fullmatch(r"([A-Za-z0-9_-]{20,})", link.strip())
     if not m:
         raise SystemExit("That doesn't look like an Ad creator link: copy it with \"Make video\" or \"Copy link\".")
     return m.group(1)
+
+
+def market(code):
+    """The ad's market ("fr" for a French ad), read from the link's own packed ad (deflate-raw, base64url)."""
+    try:
+        d = json.loads(zlib.decompress(base64.urlsafe_b64decode(code + "=" * (-len(code) % 4)), -15))
+        return (d.get("ad") or d).get("market") or "uk"
+    except Exception:  # noqa
+        return "uk"
 
 
 def capture(code, sizes):
@@ -71,9 +80,16 @@ def capture(code, sizes):
         pg.route("**/firebasejs/**", lambda r: r.fulfill(status=200, content_type="text/javascript", body=FIREBASE[r.request.url.rsplit('/', 1)[1]]))
         pg.route("**/fonts.googleapis.com/**", lambda r: r.abort())
         pg.route("http://ad.local/**", site)
+        # France's photos are the tracker's copies in Storage, whose CORS rule names only the hosting site: let this
+        # stand-in page (http://ad.local) read them too, so the cards can be drawn
+        def storage(route):
+            r = route.fetch()
+            route.fulfill(response=r, headers={**r.headers, "access-control-allow-origin": "*"})
+        pg.route("https://firebasestorage.googleapis.com/**", storage)
         # The Ad creator asks the cloud functions for saved ads and videos: not needed here, answer "unavailable"
         pg.route("https://*.cloudfunctions.net/**", lambda r: r.fulfill(status=503, content_type="application/json", body="{}"))
-        pg.goto(f"http://ad.local/#ad={code}")
+        # A French ad (adcreator.js "market": "fr") opens in the France market, with the French prices
+        pg.goto(f"http://ad.local/?m=fr#adfr={code}" if market(code) == "fr" else f"http://ad.local/#ad={code}")
         pg.wait_for_function("window.__spwVideo && document.querySelectorAll('.ac-list .ac-pick').length > 0", timeout=60000)
         info = pg.evaluate("window.__spwVideo.info()")
         note = pg.locator(".ac-note").all_inner_texts()

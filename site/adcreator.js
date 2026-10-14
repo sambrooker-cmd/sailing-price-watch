@@ -4,40 +4,58 @@
 // Nothing is sent to Meta. Prices, dates and was/now figures always come from the tracker's
 // saved data (state/current, state/cabins) and can't be typed in. "Lower fares" offers never
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
-import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
-import {suggest} from "./adcopy.js?v=__BUILD__";
+import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES, frMoney} from "./adcards.js?v=__BUILD__";
+import {suggest as suggestUK} from "./adcopy.js?v=__BUILD__";
+import {suggest as suggestFR} from "./adcopy_fr.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
 import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+// France (Sam, 14 Oct 2026, stage 2): mount(…, {market: "fr"}) makes French ads for Ambassador Croisières: French card
+// designs, euros, French opening/closing cards and suggestions, "Ambassador Croisières" in the feed preview. No was/now,
+// Nectar or Trustpilot. French ads are kept apart: their own draft in this browser, "market": "fr" in the shared saved
+// list (each market lists only its own), and #adfr= links.
+let FR = false;
+const money = v => FR ? frMoney(v) : "£" + Math.round(v).toLocaleString("en-GB");
 const fmtDate = iso => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"}) : "–";
 const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
 const CTAS = ["Learn more", "Book now", "See more", "Get offer"];
+// Meta shows the button in the viewer's language: what French viewers see (the preview only; Ads Manager keeps the English name)
+const CTA_FR = {"Learn more": "En savoir plus", "Book now": "Réserver", "See more": "Voir plus", "Get offer": "Profiter de l'offre"};
+const ctaShown = () => FR ? CTA_FR[ad.cta] || ad.cta : ad.cta;
 const LIMITS = {primary: 125, headline: 40, description: 30};   // roughly where Meta cuts text off in the feed
 const MAX_CARDS = 10;
-const KEY = "spw-ad-draft";          // the ad being worked on (this browser)
-const DRAFTS = "spw-ad-drafts";      // named saved ads from before the shared list (this browser): {id: {name, saved_at, ad}}
+let KEY = "spw-ad-draft";            // the ad being worked on (this browser; "-fr" for France)
+let DRAFTS = "spw-ad-drafts";        // named saved ads from before the shared list (this browser): {id: {name, saved_at, ad}}
 let store = null;                    // saved ads, shared by the team (saved.js sharedStore, Sam 13 Oct 2026)
 
 let S, CAB, KIT, LOGO, TP = null, root, today, ID = null;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
 const SITE = "https://www.ambassadorcruiseline.com/";
-const INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta: "Swipe to explore ›", useA: true,
+let INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta: "Swipe to explore ›", useA: true,
                mHeadline: "Where will you sail next?", mDesc: "", link: SITE};
-const END = {on: true, headline: "The warmest welcome at sea", cta: "Book your sailing", url: "ambassadorcruiseline.com", useA: true,
+let END = {on: true, headline: "The warmest welcome at sea", cta: "Book your sailing", url: "ambassadorcruiseline.com", useA: true,
              mHeadline: "Book your sailing", mDesc: "", link: SITE};
+// French opening and closing cards (the words can be changed per ad)
+const SITE_FR = "https://www.ambassadorcroisieres.fr/";
+// (no Ambassador A on the opening card by default: its only A is inside "naviguerez", which then breaks across lines)
+const INTRO_FR = {on: true, eyebrow: "", headline: "Où naviguerez-vous ensuite\u202f?", cta: "Faites défiler pour découvrir ›", useA: false,
+                  mHeadline: "Où naviguerez-vous ensuite\u202f?", mDesc: "", link: SITE_FR};
+const END_FR = {on: true, headline: "L'accueil le plus chaleureux en mer", cta: "Réservez votre croisière", url: "ambassadorcroisieres.fr", useA: true,
+                mHeadline: "Réservez votre croisière", mDesc: "", link: SITE_FR};
 let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}};
 let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
   root = el; S = ctx.state; ID = ctx.idToken || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
   today = S.updated;
-  LOGO = await (await fetch("logo-white.svg")).text();
+  FR = ctx.market === "fr";
+  if (FR) { KEY = "spw-ad-draft-fr"; DRAFTS = "spw-ad-drafts-fr"; INTRO = INTRO_FR; END = END_FR; ad = fresh(); }
+  LOGO = await (await fetch(FR ? "logo-fr-white.svg" : "logo-white.svg")).text();
   // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
-  // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
-  try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
+  // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off. (Not for France.)
+  if (!FR) try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   store = await sharedStore({kind: "ad", localKey: DRAFTS, field: "ad", idToken: ID}).load();
   // The ad left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026: a card whose
   // claim had ended was switched to standard without a word)
@@ -93,9 +111,10 @@ function load(d, msg){
 }
 
 // ---------- saved ads (shared list; this browser only if it can't be reached) ----------
-const drafts = () => store ? store.all() : {};
+const drafts = () => store ? Object.fromEntries(Object.entries(store.all()).filter(([, d]) => ((d.ad || {}).market === "fr") === FR)) : {};
 // Uploads are left out of saved drafts and links (too big); normalise() flags them when the ad is opened.
-const portable = () => JSON.parse(JSON.stringify({...ad, cards: ad.cards.map(c => ({...c, uploadLost: undefined}))}));
+const portable = () => JSON.parse(JSON.stringify({...ad, ...(FR ? {market: "fr"} : {}), cards: ad.cards.map(c => ({...c, uploadLost: undefined}))}));
+const HASH = () => FR ? "adfr" : "ad";   // France's links open in the France market (index.html fromHash)
 async function saveDraft(asNew){
   const all = drafts();
   let id = asNew || (draftId && !store.mine(draftId)) ? null : draftId;   // someone else's: save your own copy
@@ -210,7 +229,7 @@ async function makeVideo(){
   loadVideos();
 }
 async function makeVideoOnGitHub(){
-  const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
+  const url = `${location.origin}${location.pathname}#${HASH()}=${await pack({v: 1, ad: portable()})}`;
   let copied = true;   // copy before the new tab takes the focus, or the browser refuses the copy
   try { await navigator.clipboard.writeText(url); } catch(e) { copied = false; prompt("Copy this link", url); }
   window.open(VIDEO_WORKFLOW, "_blank", "noopener");
@@ -220,7 +239,7 @@ async function makeVideoOnGitHub(){
   draw();
 }
 async function copyLink(){
-  const url = `${location.origin}${location.pathname}#ad=${await pack({v: 1, ad: portable()})}`;
+  const url = `${location.origin}${location.pathname}#${HASH()}=${await pack({v: 1, ad: portable()})}`;
   try { await navigator.clipboard.writeText(url); note = "Link copied. Anyone on the tracker's allowlist can open it in their own Ad creator; prices on the cards are always the latest."; }
   catch(e) { prompt("Copy this link", url); note = ""; }
   draw();
@@ -229,6 +248,7 @@ export async function openShared(s){
   try {
     const d = await unpack(s);
     history.replaceState(null, "", location.pathname + location.search);
+    if ((d.ad || d).market) delete (d.ad || d).market;
     draftId = null;
     load(d.ad || d, "Opened a shared ad. It's now your own copy: changes don't affect the sender's");
   } catch(e) { note = "That ad link couldn't be read. It may have been cut short when it was copied."; draw(); }
@@ -260,9 +280,10 @@ function claims(id){
 // "Now £Ypp, was £X", from the claim). An automatic one is refreshed with the latest price whenever the ad is opened.
 function descFor(id, design){
   const s = sailing(id), cl = design && design.startsWith("wasnow:") ? claims(id).find(x => "wasnow:" + x.key === design) : null;
+  if (FR) return `À partir de ${money(s.price)}/pers.`;
   return cl ? `Now ${money(cl.now)}pp, was ${money(cl.was)}` : `From ${money(s.price)}pp`;
 }
-const autoDesc = d => !d || /^From £[\d,]+pp$/.test(d) || /^Now £[\d,]+pp, was £[\d,]+$/.test(d);
+const autoDesc = d => !d || /^From £[\d,]+pp$/.test(d) || /^Now £[\d,]+pp, was £[\d,]+$/.test(d) || /^À partir de [\d\u202f]+\u00a0€\/pers\.$/.test(d);
 
 function newCard(id){
   const s = sailing(id);
@@ -278,7 +299,7 @@ function cardData(c){
   const s = sailing(c.id), r = s.r, cl = c.design.startsWith("wasnow:") ? claims(c.id).find(x => x.key === c.design.slice(7)) : null;
   const photo = c.photo && c.photo.startsWith("upload:") ? uploads[c.photo] : (c.photo || s.image);
   const campaign = !!s.k.campaign && photo === s.image && !(c.photo || "").startsWith("upload:");
-  return {id: c.id, title: s.title, ship: r.ship, port: r.port, fly: s.fly, nights: r.nights, departure_date: r.departure_date,
+  return {id: c.id, fr: FR, title: s.title, ship: r.ship, port: r.port, fly: s.fly, nights: r.nights, departure_date: r.departure_date,
           price: s.price, promos: c.promos || [], nectar: c.nectar ? s.k.nectar : "", photo, campaign, words: c.words || null,
           trustpilot: c.trustpilot && TP ? `${location.origin}/trustpilot/${tpFile(c)}` : "",
           wasnow: cl ? {was: cl.was, now: cl.now, grade: cl.grade} : null};
@@ -288,6 +309,11 @@ function cardData(c){
 function autoEyebrow(){
   const ss = ad.cards.map(c => sailing(c.id)).filter(Boolean);
   if (!ss.length) return "";
+  if (FR) {   // "Au départ de Marseille", "Au départ de Dunkerque et Marseille", or the ship when there are many ports
+    const ports = [...new Set(ss.map(s => String(s.r.port || "").split(",")[0].trim()))];
+    const de = w => /^[aeiouéèh]/i.test(w) ? `d'${w}` : `de ${w}`;
+    return ports.length <= 3 ? `Au départ ${de(ports.length === 1 ? ports[0] : `${ports.slice(0, -1).join(", ")} et ${ports[ports.length - 1]}`)}` : "Croisières à bord du Renaissance";
+  }
   return ss.every(s => !s.fly) ? "No-fly cruises from UK ports" : ss.every(s => s.fly) ? "Fly-cruises from UK airports" : "Cruises from the UK";
 }
 const extras = () => ad.format === "carousel" ? (ad.intro.on ? 1 : 0) + (ad.end.on ? 1 : 0) : 0;
@@ -339,6 +365,7 @@ function brandEditor(){
 // Nectar line and Trustpilot widget, per card or for every card at once (Sam, 13 Oct 2026).
 // Why a strip can't go on this card ("" when it can): standard design only, and only when there's something to show.
 function stripBlock(c, k){
+  if (FR) return "Not for France";
   if (c.design !== "standard") return "Not on was/now cards";
   if (k === "nectar" && !sailing(c.id).k.nectar) return "This sailing has no Nectar points";
   if (k === "tp" && !TP) return "Waiting for the Trustpilot image";
@@ -388,13 +415,13 @@ function draw(){
         <input id="ac-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
         <div id="ac-results" class="ac-results"></div>
         ${ad.format === "carousel" ? `<p class="sub" style="margin:4px 0 0">${ad.cards.length} of ${maxSailings()} sailings</p>` : ""}
-        ${ad.cards.length ? `<div class="ac-row ac-bulk" role="group" aria-label="Strips on every card"><span class="sub">Every card:</span>
+        ${ad.cards.length && !FR ? `<div class="ac-row ac-bulk" role="group" aria-label="Strips on every card"><span class="sub">Every card:</span>
           <span class="ac-pair"><span>Nectar</span><button type="button" class="ac-chip" data-all="nectar:1" aria-label="Nectar on every card">On</button><button type="button" class="ac-chip" data-all="nectar:0" aria-label="Nectar off every card">Off</button></span>
           <span class="ac-pair"><span>Trustpilot</span><button type="button" class="ac-chip" data-all="tp:1" aria-label="Trustpilot on every card"${TP ? "" : " disabled"}>On</button><button type="button" class="ac-chip" data-all="tp:0" aria-label="Trustpilot off every card"${TP ? "" : " disabled"}>Off</button></span></div>` : ""}
         ${ad.cards.length ? `<ol class="ac-list">${ad.cards.map((x, i) => { const s = sailing(x.id); return `
           <li class="${i === sel ? "on" : ""}" draggable="true" data-i="${i}">
             <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${fmtDate(s.r.departure_date)}${x.design !== "standard" ? " · was/now" : ""}</span></button>
-            <span class="ac-strips">${["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
+            <span class="ac-strips">${FR ? "" : ["nectar", "tp"].map(k => { const why = stripBlock(x, k); const on = k === "nectar" ? !!x.nectar : !!x.trustpilot;
               return `<button type="button" class="ac-chip" data-strip="${k}" data-i="${i}" aria-pressed="${!why && on}"${why ? ` disabled title="${esc(why)}"` : ""}>${k === "nectar" ? "Nectar" : "Trustpilot"}</button>`; }).join("")}</span>
             <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < ad.cards.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-dup="${i}" aria-label="Duplicate" title="Duplicate this card"${ad.cards.length < maxSailings() ? "" : " disabled"}>⧉</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span>
           </li>`; }).join("")}</ol>` : `<p class="sub">Search above and add ${ad.format === "carousel" ? "2 to 10 sailings" : "a sailing"}.</p>`}`)}
@@ -404,9 +431,9 @@ function draw(){
         <label class="ac-lab" for="ac-primary">Primary text <span class="sub" id="cnt-primary"></span></label>
         <textarea id="ac-primary" rows="4" placeholder="The words above the ${ad.format === "carousel" ? "carousel" : "image"}">${esc(ad.primary)}</textarea>
         <label class="ac-lab" for="ac-cta">Button</label>
-        <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
+        <select id="ac-cta">${CTAS.map(x => `<option value="${x}"${x === ad.cta ? " selected" : ""}>${x}${FR ? ` (shows as "${CTA_FR[x]}")` : ""}</option>`).join("")}</select>
         ${suggestions()}
-        ${claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}`)}
+        ${FR ? "" : claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}`)}
     </div>
     <div class="ac-main">
       <div class="ac-actions">
@@ -430,13 +457,13 @@ const textReady = () => ad.format === "carousel" ? ad.cards.length >= 2 : ad.car
 let sugg = [];
 function suggestions(){
   if (!textReady()) return "";
-  sugg = suggest(ad.cards.map(c => {
+  sugg = (FR ? suggestFR : suggestUK)(ad.cards.map(c => {
     const d = cardData(c), s = sailing(c.id), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
     return {title: d.title, ship: d.ship, port: d.port, fly: d.fly, nights: d.nights, departure_date: d.departure_date, price: d.price,
             promos: s.k.promos || [], nectarPts: n, wasnow: d.wasnow};
   }), ad.format);
   return `<details class="ac-sugg"><summary>Suggested primary text (${sugg.length})</summary>
-    <p class="sub">Built from these sailings' prices, dates, ports, promotions and Nectar points, in Ambassador's tone of voice. The first ${LIMITS.primary} characters (in bold) show before "See more".</p>
+    <p class="sub">${FR ? "In French, built from these sailings' prices, dates, ports and offers. Have a French speaker read them before use." : "Built from these sailings' prices, dates, ports, promotions and Nectar points, in Ambassador's tone of voice."} The first ${LIMITS.primary} characters (in bold) show before "See more".</p>
     ${sugg.map((o, i) => { const cut = o.text.length <= LIMITS.primary ? o.text.length : o.text.lastIndexOf(" ", LIMITS.primary);
       return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
       <p><b>${esc(o.text.slice(0, cut))}</b>${esc(o.text.slice(cut))}</p>
@@ -468,14 +495,14 @@ function editor(c){
     <h3>Card ${sel + 1}: ${esc(s.title)}</h3>
     <label class="ac-lab" for="ac-design">Design</label>
     <select id="ac-design"><option value="standard">Standard</option>${cl.map(x => `<option value="wasnow:${x.key}"${c.design === "wasnow:" + x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (until ${fmtDate(x.ends)})</option>`).join("")}</select>
-    ${cl.length ? `<p class="sub">Was/now figures come from the tracker's claim and can only be used until the date shown.</p>` : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
+    ${FR ? `<p class="sub">No was/now for France: French cards show the "from" price.</p>` : cl.length ? `<p class="sub">Was/now figures come from the tracker's claim and can only be used until the date shown.</p>` : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
     <span class="ac-lab">Image</span>
-    ${(() => { const g = cs.photoGrid("ad-card", s.photos.map(u => `<button type="button" class="ac-ph${(c.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy" crossorigin="anonymous"></button>`),
+    ${(() => { const g = cs.photoGrid("ad-card", s.photos.map(u => `<button type="button" class="ac-ph${(c.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo${(s.k.captions || {})[u] ? ": " + esc(s.k.captions[u]) : ""}"${(s.k.captions || {})[u] ? ` title="${esc(s.k.captions[u])}"` : ""}><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy" crossorigin="anonymous"></button>`),
         s.photos.indexOf(c.photo || s.image),
         Object.keys(uploads).map(k => `<button type="button" class="ac-ph${c.photo === k ? " on" : ""}" data-photo="${k}" aria-label="Use uploaded image"><img src="${uploads[k]}" alt=""></button>`).join("") +
         `<label class="ac-up">Upload<input type="file" id="ac-upload" accept="image/jpeg,image/png,image/webp" hidden></label>`);
       return `<div class="ac-photos">${g.grid}</div>${g.more}`; })()}
-    <p class="sub">First is the feed image${s.k.campaign ? " (campaign artwork: shown whole)" : ""}; the others are photos from the sailing's page.</p>
+    <p class="sub">${FR ? `Photos from the sailing's page on ambassadorcroisieres.fr${(s.k.captions || {})[c.photo || s.image] ? ` · this one: ${esc(s.k.captions[c.photo || s.image])}` : ""}.` : `First is the feed image${s.k.campaign ? " (campaign artwork: shown whole)" : ""}; the others are photos from the sailing's page.`}</p>
     ${c.uploadLost ? `<p class="ac-note">This card used an uploaded photo, which can't travel in a saved ad or link. Upload it again, or pick a photo above.</p>` : ""}
     <span class="ac-lab">Words on the card</span>
     ${wasnow ? `<input id="w-title" value="${esc(w.title ?? s.title)}" aria-label="Sailing name">` : `
@@ -483,7 +510,9 @@ function editor(c){
       <input id="w-headline" value="${esc(w.headline ?? dw.headline)}" placeholder="Headline" aria-label="Headline">
       <input id="w-sub" value="${esc(w.sub ?? dw.sub)}" placeholder="Second line (optional)" aria-label="Second line">`}
     <button type="button" class="linkbtn" id="w-reset">Back to the sailing's own name</button>
-    ${wasnow ? "" : `<span class="ac-lab">Strips</span>
+    ${wasnow ? "" : FR ? `<span class="ac-lab">Offers</span>
+      ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-promo="${i}"${(c.promos || []).includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
+      <p class="sub">Up to 2 offers. "1 acheté = 1 offert" is never offered: the site shows it with a struck-through price, a price-reduction claim.</p>` : `<span class="ac-lab">Strips</span>
       ${s.k.nectar ? `<label class="ac-check"><input type="checkbox" id="ac-nectar"${c.nectar ? " checked" : ""}> ${esc(s.k.nectar)}</label>` : ""}
       <label class="ac-check"><input type="checkbox" id="ac-tp"${c.trustpilot && TP ? " checked" : ""}${TP ? "" : " disabled"}> Trustpilot widget ${TP ? `<span class="sub">(score as of ${fmtDate(TP.as_of)}: check it's still current)</span>` : `<span class="sub">(waiting for the Trustpilot image)</span>`}</label>
       ${c.trustpilot && TP ? `<select id="ac-tp-style" aria-label="Trustpilot layout">${TP.images.map(x => `<option value="${esc(x.file)}"${tpFile(c) === x.file ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select>` : ""}
@@ -503,9 +532,9 @@ function preview(){
   const more = ad.primary.length > LIMITS.primary;
   const text = esc(more ? ad.primary.slice(0, LIMITS.primary).trimEnd() : ad.primary);
   // Profile picture: Ambassador's own Facebook page picture (white A on Allium), saved as site/meta-profile.jpg (Sam, 13 Oct 2026)
-  const head = `<div class="mp-head"><img class="mp-av" src="meta-profile.jpg" alt=""><div><b>Ambassador Cruise Line</b><span class="sub">Sponsored · <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" fill="none" stroke="currentColor"/></svg></span></div></div>
-    <p class="mp-text">${text || `<span class="sub">Primary text appears here.</span>`}${more ? `… <span class="sub">See more</span>` : ""}</p>`;
-  const foot = c => `<div class="mp-foot"><div><b>${esc(c.headline || "")}</b><span>${esc(c.description || "")}</span></div><span class="mp-cta">${esc(ad.cta)}</span></div>`;
+  const head = `<div class="mp-head"><img class="mp-av" src="meta-profile.jpg" alt=""><div><b>${FR ? "Ambassador Croisières" : "Ambassador Cruise Line"}</b><span class="sub">${FR ? "Sponsorisé" : "Sponsored"} · <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" fill="none" stroke="currentColor"/></svg></span></div></div>
+    <p class="mp-text">${text || `<span class="sub">Primary text appears here.</span>`}${more ? `… <span class="sub">${FR ? "Voir plus" : "See more"}</span>` : ""}</p>`;
+  const foot = c => `<div class="mp-foot"><div><b>${esc(c.headline || "")}</b><span>${esc(c.description || "")}</span></div><span class="mp-cta">${esc(ctaShown())}</span></div>`;
   if (!ad.cards.length) return `<div class="mp"><div class="mp-post">${head}<div class="mp-empty">Add sailings to see the ad.</div></div></div>`;
   if (ad.format === "carousel"){
     const [w, h] = SIZES[ad.size];
@@ -517,7 +546,7 @@ function preview(){
       <div class="mp-frame" style="aspect-ratio:1080/1350"><iframe data-card="0" data-size="4x5" title="Feed image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
     <div><p class="sub">Feed (1:1)</p><div class="mp-post">${head}<div class="mp-frame" style="aspect-ratio:1"><iframe data-card="0" data-size="1x1" title="Square image" tabindex="-1"></iframe></div>${foot(c)}</div></div>
     <div><p class="sub">Stories and Reels (9:16)</p><div class="mp-story"><div class="mp-frame" style="aspect-ratio:1080/1920"><iframe data-card="0" data-size="9x16" title="Story image" tabindex="-1"></iframe></div>
-      <div class="mp-story-top"><img class="mp-av" src="meta-profile.jpg" alt=""> Ambassador Cruise Line <span class="sub">Sponsored</span></div><div class="mp-story-cta">${esc(ad.cta)}</div></div></div></div>`;
+      <div class="mp-story-top"><img class="mp-av" src="meta-profile.jpg" alt=""> ${FR ? "Ambassador Croisières" : "Ambassador Cruise Line"} <span class="sub">${FR ? "Sponsorisé" : "Sponsored"}</span></div><div class="mp-story-cta">${esc(ctaShown())}</div></div></div></div>`;
 }
 
 // Live card previews: each iframe renders the full-size card and is scaled to fit its box.
@@ -691,7 +720,7 @@ function refreshText(){
   const tmp = document.createElement("div"); tmp.innerHTML = preview();
   pv.querySelectorAll(".mp-text").forEach((e, i) => e.innerHTML = tmp.querySelectorAll(".mp-text")[i].innerHTML);
   pv.querySelectorAll(".mp-foot").forEach((e, i) => { const t = tmp.querySelectorAll(".mp-foot")[i]; if (t) e.innerHTML = t.innerHTML; });
-  const cta = pv.querySelector(".mp-story-cta"); if (cta) cta.textContent = ad.cta;
+  const cta = pv.querySelector(".mp-story-cta"); if (cta) cta.textContent = ctaShown();
 }
 
 // ---------- video layers (used by the GitHub "Make video" job, make_video.py) ----------
@@ -757,7 +786,7 @@ async function download(){
     const blob = await zip.generateAsync({type: "blob"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `ad_${ad.format}_${ad.cards.map(c => c.id).slice(0, 3).join("-")}${ad.cards.length > 3 ? "-etc" : ""}_${today}.zip`;
+    a.download = `ad_${FR ? "fr_" : ""}${ad.format}_${ad.cards.map(c => c.id).slice(0, 3).join("-")}${ad.cards.length > 3 ? "-etc" : ""}_${today}.zip`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     st.textContent = `Downloaded. Prices as checked ${fmtDate(today)}.`;
@@ -772,8 +801,8 @@ const validUntil = () => {
 };
 
 function adText(files){
-  const L = [`Ambassador Cruise Line ${ad.format === "carousel" ? "carousel" : "single image"} ad`, `Prices as checked ${fmtDate(today)}.`, "",
-             "PRIMARY TEXT", ad.primary || "(none yet)", "", "CALL TO ACTION BUTTON", ad.cta, ""];
+  const L = [`${FR ? "Ambassador Croisières (France)" : "Ambassador Cruise Line"} ${ad.format === "carousel" ? "carousel" : "single image"} ad`, `Prices as checked ${fmtDate(today)}.`, "",
+             "PRIMARY TEXT", ad.primary || "(none yet)", "", "CALL TO ACTION BUTTON", ad.cta + (FR ? ` (French viewers see "${CTA_FR[ad.cta]}")` : ""), ""];
   slides().forEach((x, i) => {
     L.push(`CARD ${i + 1}: ${x.title}`, `Image: ${files.filter(f => f[0] === i).map(f => f[1]).join(", ")}`,
            `Headline: ${x.headline}`, `Description: ${x.description}`, `Website URL: ${x.link}`, "");
@@ -799,6 +828,7 @@ function howTo(files){
   return [`# How to upload this ${carousel ? "carousel" : "single image"} ad`, "",
     `Made in the Sailing price watch ad creator. Prices are as checked on ${fmtDate(today)}: check the tracker before`,
     `the ad goes live, and pause it if a price on a card changes.${until ? ` **Was/now cards in this ad must stop running by ${fmtDate(until)}.**` : ""}`, "",
+    ...(FR ? ["**France:** use the Ambassador Croisières Facebook page and ad account, with a campaign aimed at France. The cards, text and links are in French.", ""] : []),
     "Nothing has been sent to Meta. Follow these steps in Meta Ads Manager:", "",
     "1. Open your campaign and ad set, then click **+ Create** (or edit an existing ad).",
     `2. Under **Ad setup**, choose **Create ad** and format **${carousel ? "Carousel" : "Single image or video"}**.`,

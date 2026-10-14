@@ -157,7 +157,7 @@ def sailing_urls():
 
 
 def read(code, url, today):
-    s = {"id": code, "link": url, "ship": SHIP, "currency": "EUR", "flags": []}
+    s = {"id": code, "market": "fr", "link": url, "ship": SHIP, "currency": "EUR", "flags": []}
     try:
         page = get(url)
     except Exception as e:  # noqa

@@ -26,8 +26,16 @@ They are made once, on the claim's first day (only new claims get cards). When a
 stops being in run.json (28-day limit, price back up, departing within 7 days, left the
 feed) its cards move to "old" with do_not_use and the reason, and are deleted after
 KEEP_DAYS like other old cards (Sam chose to keep them 30 days marked "Do not use").
+
+France (Sam, 14 Oct 2026, stage 2): `python cards_sync.py plan|run --market fr` does the same for the French sailings
+(data/fr snapshots, render_cards.py's French design): manifest state/fr/cards.json, files under pricewatch-cards/fr/,
+ad kit state/fr/adkit.json, summary in out/fr. No was/now cards for France.
+The French site's photo host (cms.ambassadorcroisieres.fr) only lets ambassadorcroisieres.fr read its pictures from
+a browser, so the Ad creator couldn't draw them: `run` keeps a copy of every French sailing photo in the same bucket
+(pricewatch-cards/fr/photos/<asset id>.jpg, 2400 px JPEG, listed in state/fr/photos.json; the bucket's CORS rule lets
+the tracker read them) and the ad kit points at the copies. Photos are never deleted (about 100 MB on 14 Oct 2026).
 """
-import datetime as dt, glob, hashlib, json, os, sys, uuid
+import datetime as dt, glob, hashlib, json, os, re, sys, urllib.request, uuid
 from pathlib import Path
 from urllib.parse import quote
 
@@ -46,8 +54,23 @@ def now_utc():
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+MARKET, SUB = "uk", ""
+
+
+def use_market(m):
+    """Point the module at one market's files (France: state/fr, data/fr, out/fr, pricewatch-cards/fr)."""
+    global MARKET, SUB, MANIFEST, PREFIX
+    MARKET, SUB = m, ("fr" if m == "fr" else "")
+    MANIFEST = ROOT / "state" / SUB / "cards.json"
+    PREFIX = "pricewatch-cards/fr" if m == "fr" else "pricewatch-cards"
+
+
+def money(v):
+    return rc.fr_money(v) if MARKET == "fr" else f"£{v:,}"
+
+
 def latest_snapshot():
-    snaps = sorted(glob.glob(str(ROOT / "data" / "snapshot_*.json")), key=os.path.getmtime)
+    snaps = sorted(glob.glob(str(ROOT / "data" / SUB / "snapshot_*.json")), key=os.path.getmtime)
     if not snaps:
         raise SystemExit("No snapshot in data/: run daily.py first")
     return snaps[-1], json.loads(Path(snaps[-1]).read_text())
@@ -89,7 +112,7 @@ def why(old, new):
         return "new"
     out = []
     if old.get("price") != new["price"]:
-        out.append(f"price £{old.get('price'):,} → £{new['price']:,}")
+        out.append(f"price {money(old.get('price'))} → {money(new['price'])}")
     if old.get("promos") != new["promos"]:
         out.append("promotions changed")
     if old.get("nectar") != new["nectar"]:
@@ -242,6 +265,32 @@ def render_all(snap_path, by, ids, claims=()):
     return out, errs
 
 
+PHOTOS = ROOT / "state" / "fr" / "photos.json"
+CMS_ID = re.compile(r"cms\.ambassadorcroisieres\.fr/assets/([0-9a-f-]{36})")
+
+
+def photo_map():
+    return json.loads(PHOTOS.read_text()) if PHOTOS.exists() else {}
+
+
+def fr_photos_missing(snap, today):
+    """French photo asset ids the ad kit needs that have no copy in Storage yet."""
+    have, need = photo_map(), []
+    for s in snap["sailings"]:
+        if cardable(s, today):
+            for u in [s.get("image_link")] + (s.get("photos") or []):
+                m = CMS_ID.search(u or "")
+                if m and m.group(1) not in have and m.group(1) not in need:
+                    need.append(m.group(1))
+    return need
+
+
+def mirror(url, pm):
+    """The tracker's own copy of a French CMS photo (None until it has been copied)."""
+    m = CMS_ID.search(url or "")
+    return (pm.get(m.group(1)) or {}).get("url") if m else url
+
+
 def write_adkit(snap, today, at):
     """state/adkit.json: what the tracker's Ad creator needs per sailing on sale that the saved
     state doesn't hold (Sam, 12 Oct 2026): every promotion line that may go on a card (best
@@ -249,16 +298,25 @@ def write_adkit(snap, today, at):
     image is campaign artwork, and the photos on the sailing's page. Prices are not in here:
     the page takes them from the saved state, like everything else."""
     kit = {}
+    pm = photo_map() if MARKET == "fr" else None
     for s in snap["sailings"]:
         if not cardable(s, today):
             continue
+        if pm is not None:   # France: the copies in Storage (photos not copied yet are left out until they are)
+            caps = s.get("photo_captions") or {}
+            photos = [mirror(u, pm) for u in s.get("photos") or []]
+            s = {**s, "image_link": mirror(s.get("image_link"), pm) or next((u for u in photos if u), None),
+                 "photos": [u for u in photos if u],
+                 "photo_captions": {mirror(u, pm): c for u, c in caps.items() if mirror(u, pm)}}
         kit[s["id"]] = {k: v for k, v in {
             "promos": rc.promo_lines(s, limit=0), "nectar": rc.nectar_line(s), "lead_grade": rc.lead_grade(s),
             "campaign": rc.is_campaign(s), "image": rc.OVERRIDES.get(s["id"], s.get("image_link")),
             # plus a photo of the sailing's own ship, hosted with the tracker page (site/ships/, Sam 13 Oct 2026)
-            "photos": (s.get("photos") or []) + ([f"/ships/{s['ship'].lower()}.jpg"] if s.get("ship") else [])}.items() if v}
-    path = ROOT / "state" / "adkit.json"
-    path.parent.mkdir(exist_ok=True)
+            "photos": (s.get("photos") or []) + ([f"/ships/{s['ship'].lower()}.jpg"] if s.get("ship") else []),
+            # France: the photos' own captions from the cruise page ("Bastia, Corse, France")
+            "captions": s.get("photo_captions")}.items() if v}
+    path = ROOT / "state" / SUB / "adkit.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"updated_at": at, "date": today, "sailings": kit}, ensure_ascii=False, separators=(",", ":")))
 
 
@@ -271,7 +329,11 @@ def gh_output(**kv):
 
 
 def main():
-    cmd = (sys.argv[1:] or ["plan"])[0]
+    args = sys.argv[1:]
+    if "--market" in args:
+        i = args.index("--market"); use_market(args[i + 1]); args = args[:i] + args[i + 2:]
+    out = ROOT / "out" / SUB
+    cmd = (args or ["plan"])[0]
     snap_path, snap = latest_snapshot()
     today = snap["date"]
     at = now_utc()
@@ -279,20 +341,42 @@ def main():
     if cmd == "plan":
         write_adkit(snap, today, at)
     render, retire, expire = plan(snap, man, today, at)
-    run_p, state_p = ROOT / "out" / "run.json", ROOT / "state" / "current.json"
+    run_p, state_p = out / "run.json", ROOT / "state" / SUB / "current.json"
     run = json.loads(run_p.read_text()) if run_p.exists() and json.loads(run_p.read_text()).get("date") == today else None
+    if MARKET == "fr":
+        run = None   # no was/now for France
     state = json.loads(state_p.read_text()) if state_p.exists() else None
     wn_render, wn_end = plan_wasnow(snap, man, run, today, state) if run else ([], [])
     print(f"Cards: {len(render)} sailing(s) to make, {len(retire)} to withdraw, {len(expire)} old version(s) to delete")
     print(f"Was/now cards: {len(wn_render)} new claim(s) to make cards for, {len(wn_end)} ended claim(s) to withdraw")
     if cmd == "plan":
         todo = len(render) + len(wn_render)
-        gh_output(todo=todo, work=todo + len(retire) + len(expire) + len(wn_end))
+        photos = fr_photos_missing(snap, today) if MARKET == "fr" else []
+        if photos:
+            print(f"French photos to copy into Storage: {len(photos)}")
+        gh_output(todo=todo, work=todo + len(retire) + len(expire) + len(wn_end) + len(photos))
         return 0
 
     by = {s["id"]: s for s in snap["sailings"]}
     store = Store()
     lines, problems = [], []
+    if MARKET == "fr":   # copies of the French photos for the browser (see the module docstring)
+        pm, copied = photo_map(), 0
+        for aid in fr_photos_missing(snap, today):
+            try:
+                req = urllib.request.Request(
+                    f"https://cms.ambassadorcroisieres.fr/assets/{aid}?width=2400&format=jpg&quality=82", headers={"User-Agent": "Mozilla/5.0"})
+                data = urllib.request.urlopen(req, timeout=60).read()
+                pm[aid] = {"url": store.put(f"{PREFIX}/photos/{aid}.jpg", data, f"{aid}.jpg"), "path": f"{PREFIX}/photos/{aid}.jpg",
+                           "kb": round(len(data) / 1024), "at": at}
+                copied += 1
+            except Exception as x:  # noqa
+                problems.append(f"photo {aid}: couldn't copy ({str(x)[:150]})")
+        PHOTOS.parent.mkdir(parents=True, exist_ok=True)
+        PHOTOS.write_text(json.dumps(pm, indent=1))
+        if copied:
+            lines.append(f"copied {copied} French photo(s) into Storage for the Ad creator")
+        write_adkit(snap, today, at)
     imgs, errs = render_all(snap_path, by, render, wn_render) if render or wn_render else ({}, {})
     problems += [f"{sid if isinstance(sid, str) else ' '.join(sid)}: card failed ({e})" for sid, e in errs.items()]
     wn_lines = []
@@ -360,10 +444,10 @@ def main():
         del man["sailings"][sid]
     man["design"] = DESIGN
     man["updated_at"] = at
-    MANIFEST.parent.mkdir(exist_ok=True)
+    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))
 
-    summary = [f"## Cards ({at[11:16]} UTC)", ""]
+    summary = [f"## {'France cards' if MARKET == 'fr' else 'Cards'} ({at[11:16]} UTC)", ""]
     if lines:
         summary.append(f"Made or withdrew cards for {len(lines)} sailing(s):")
         summary += [f"- {l}" for l in lines[:60]] + ([f"- …and {len(lines) - 60} more"] if len(lines) > 60 else [])
@@ -376,21 +460,21 @@ def main():
     text = "\n".join(summary) + "\n"
     ended = [l for l in wn_lines if "DO NOT USE" in l]
     if ended:
-        (ROOT / "out" / "wasnow_ended.md").write_text(
+        (out / "wasnow_ended.md").write_text(
             "These was/now claims have ended, so their cards must not be used any more. If any are live in an ad, "
             "swap them for the standard cards. The tracker keeps them 30 days marked \"Do not use\".\n\n" +
             "\n".join(f"- {l}" for l in ended) + "\n")
         gh_output(wasnow_ended=len(ended))
-    if [l for l in wn_lines if "DO NOT USE" not in l] and (ROOT / "out" / "issue.md").exists():
+    if [l for l in wn_lines if "DO NOT USE" not in l] and (out / "issue.md").exists():
         site = os.environ.get("HOSTING_SITE")
         link = lambda sid: f"[{sid}](https://{site}.web.app/#{sid})" if site else sid
-        with open(ROOT / "out" / "issue.md", "a") as f:
+        with open(out / "issue.md", "a") as f:
             f.write("\n## Was/now cards\n\n" + "\n".join(
                 f"- {link(l.split(':', 1)[0])}:{l.split(':', 1)[1]}" for l in wn_lines) +
                 "\n\nSee and download them on the tracker page (Cards). Nothing has been sent to Meta or Google.\n")
     print(text)
-    (ROOT / "out").mkdir(exist_ok=True)
-    with open(ROOT / "out" / "summary.md", "a") as f:
+    out.mkdir(parents=True, exist_ok=True)
+    with open(out / "summary.md", "a") as f:
         f.write("\n" + text)
     return 1 if problems else 0
 

@@ -17,6 +17,10 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const niceDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS_LONG[m - 1]} ${y}`; };
+// France (Sam, 14 Oct 2026; d.fr): French words, euros (1 029 €) and French dates, as render_cards.py fr_money / fr_date
+const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+export const frMoney = v => Math.round(v).toLocaleString("en-GB").replace(/,/g, "\u202f") + "\u00a0€";
+export const frDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d === 1 ? "1er" : d} ${MOIS[m - 1]} ${y}`; };
 
 const SHIP_ICON = '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14h18l-2.5 5h-13z"/><path d="M6 14V9h12v5"/><path d="M10 9V5.5h4V9"/><path d="M2 21.5c1.5 0 1.5-.8 3-.8s1.5.8 3 .8 1.5-.8 3-.8 1.5.8 3 .8 1.5-.8 3-.8 1.5.8 3 .8"/></svg>';
 const PLANE_ICON = '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.3c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>';
@@ -27,7 +31,8 @@ export const PR_CABIN = {inside: "Inside cabin", ocean_view: "Ocean view cabin",
 const FONT_CSS = [400, 500, 600, 700].map(w =>
   `@font-face{font-family:'Quicksand';font-weight:${w};src:url(${ORIGIN}/fonts/quicksand-latin-${w}-normal.woff2) format('woff2')}`).join("\n");
 
-// Storyblok image service, as render_cards.py photo() / photo_whole(). Uploaded images (data URLs) as they are.
+// Storyblok image service, as render_cards.py photo() / photo_whole(). Uploaded images (data URLs) and France's photos
+// (copies in the tracker's Storage, cards_sync.py) as they are: the card's CSS crops them.
 const isAsset = u => /^https:\/\/assets\.ambassadorcruiseline\.com\//.test(u || "");
 export const cropUrl = (u, w, h) => isAsset(u) ? `${u}/m/${w}x${h}/smart/filters:quality(88):format(jpeg)` : u;
 export const wholeUrl = (u, w) => isAsset(u) ? `${u}/m/${w}x0/filters:quality(88):format(jpeg)` : u;
@@ -99,9 +104,11 @@ function paintEdges(split){
 function standard(d, w, h, LOGO){
   const story = h / w >= 1.7, top = story ? Math.round(h * 0.14) : 0, bottom = story ? Math.round(h * 0.20) + 24 : 64;
   const fly = d.fly, words = {...defaultWords(d.title), ...(d.words || {})};
-  const [badgeIcon, b1, b2] = fly ? [PLANE_ICON, `Fly-cruise on ${d.ship}`, `Flights from ${fly}`] : [SHIP_ICON, `No-fly on ${d.ship}`, `from ${d.port}`];
-  const date = d.departure_date ? niceDate(d.departure_date) : "";
-  const fare = `<div class="fare-row"><span class="from">From</span><span class="big">${money(d.price)}</span><span class="pp">pp</span></div>`;
+  const [badgeIcon, b1, b2] = d.fr ? [SHIP_ICON, `À bord du ${d.ship}`, `Départ de ${String(d.port || "").split(",")[0].trim()}`]
+    : fly ? [PLANE_ICON, `Fly-cruise on ${d.ship}`, `Flights from ${fly}`] : [SHIP_ICON, `No-fly on ${d.ship}`, `from ${d.port}`];
+  const date = d.departure_date ? (d.fr ? frDate(d.departure_date) : niceDate(d.departure_date)) : "";
+  const fare = d.fr ? `<div class="fare-row"><span class="from">À partir de</span><span class="big">${frMoney(d.price)}</span><span class="pp">/pers.</span></div>`
+    : `<div class="fare-row"><span class="from">From</span><span class="big">${money(d.price)}</span><span class="pp">pp</span></div>`;
   // Campaign artwork whole, on plain colours from its own top and bottom edges (render_cards.py matched_css, 13 Oct 2026).
   const art = d.campaign
     ? `<div class="artbg" id="artbg"></div><img class="art" id="art" crossorigin="anonymous" src="${esc(wholeUrl(d.photo, w))}" alt="">`
@@ -150,7 +157,7 @@ ${art}
   ${kicker}
   <div class="strip headline"><h1 class="fit" data-max="70">${esc(words.headline)}</h1></div>
   ${words.sub ? `<div class="strip kicker"><span class="fit" data-max="40">${esc(words.sub)}</span></div>` : ""}
-  <div class="strip fare"><div class="when"><span>${esc(d.nights + " nights")}</span><span>${esc(date)}</span></div><div class="rule"></div>${fare}</div>
+  <div class="strip fare"><div class="when"><span>${esc(d.nights + (d.fr ? " nuits" : " nights"))}</span><span>${esc(date)}</span></div><div class="rule"></div>${fare}</div>
   ${nectar}
   ${trust}
   ${offers}
