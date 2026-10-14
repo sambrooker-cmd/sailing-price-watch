@@ -1,0 +1,519 @@
+{
+ "date": "2026-10-14",
+ "changes": [
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381735",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:409527",
+   "title": "Spain, Portugal and Cape Verde cruise from Southampton, 3 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381739",
+   "title": "Caribbean Grand Voyage cruise from Southampton, 4 January 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381740",
+   "title": "Western Europe cruise from Southampton, 8 February 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381744",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 13 March 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:453816",
+   "title": "Spain, France and Norwegian Fjords cruise from Southampton, 2 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402352",
+   "title": "Norwegian Fjords cruise from Southampton, 1 May 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402387",
+   "title": "Southern cruise from Southampton, 12 June 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402398",
+   "title": "Southern cruise from Southampton, 10 July 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402418",
+   "title": "Baltic Cities cruise from Southampton, 27 August 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402371",
+   "title": "Norwegian Fjords cruise from Southampton, 11 September 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402374",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 2 October 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:425987",
+   "title": "Mediterranean Adventurer cruise from Southampton, 29 March 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408178",
+   "title": "Canary Islands cruise from Southampton, 12 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408189",
+   "title": "Iceland and Norway cruise from Southampton, 26 June 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408197",
+   "title": "Mediterranean Adventurer cruise from Southampton, 7 August 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408202",
+   "title": "Mediterranean Marvel cruise from Southampton, 25 September 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:471136",
+   "title": "Portugal, Spain & Transatlantic from Southampton to Ft. Lauderdale with Miami Beach Stay, 26 October 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:459929",
+   "title": "Western Europe Passage from Ft. Lauderdale to Southampton with Miami Beach Stay, 10 March 2028"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:459355",
+   "title": "Mediterranean Adventurer cruise from Southampton, 22 April 2028"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:356714",
+   "title": "Short break to Rotterdam cruise from Southampton, 6 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:401058",
+   "title": "Le Havre, Rotterdam and Zeebrugge cruise from Southampton, 5 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:379985",
+   "title": "Spain and Portugal cruise from Southampton, 14 February 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:379990",
+   "title": "Norway and Northern Lights cruise from Southampton, 14 March 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397689",
+   "title": "Short break to Zeebrugge cruise from Southampton, 9 May 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397702",
+   "title": "Transatlantic crossing cruise from Southampton, 7 June 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397716",
+   "title": "Transatlantic crossing cruise from Southampton, 16 July 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397721",
+   "title": "Transatlantic crossing, Iceland and Canada cruise from Southampton, 13 August 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397726",
+   "title": "Spain and Portugal cruise from Southampton, 3 September 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397743",
+   "title": "Zeebrugge and Hamburg cruise from Southampton, 8 October 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397753",
+   "title": "Transatlantic crossing and Eastern Caribbean cruise from Southampton, 12 November 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415124",
+   "title": "Autumn Sunrise from Limassol, 4 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415297",
+   "title": "Island Explorer from Tenerife, 1 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415314",
+   "title": "Canarian Flavours from Tenerife, 19 January 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415315",
+   "title": "Canarian Flavours from Tenerife, 2 February 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415300",
+   "title": "Island Explorer from Tenerife, 8 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415304",
+   "title": "A New Year's Dream from Tenerife, 29 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:429742",
+   "title": "Spirit of Spain from Malaga, 12 May 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:429745",
+   "title": "Spirit of Spain from Malaga, 7 July 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:430095",
+   "title": "Mediterranean Medley from Majorca, 21 September 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:453017",
+   "title": "Spain, France cruise from Southampton to Barcelona, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:485183",
+   "title": "Iguazu Falls & Grand Voyage from Rio de Janeiro to Barcelona with Stays, 29 March 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:485181",
+   "title": "Grand Voyage from Rio de Janeiro to Barcelona with a 2 night pre cruise stay, 1 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:453023",
+   "title": "No Fly Spain & France from Southampton with Barcelona and Paris Stays, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:485182",
+   "title": "Grand Voyage with 2 night pre and post cruise stays in Rio de Janeiro and Barcelona, 1 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:453024",
+   "title": "Spain & France from Southampton with Barcelona Stay, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:454903",
+   "title": "Spain cruise from Southampton to Malaga, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:454904",
+   "title": "Spain and France cruise from Southampton to Marseille (Provence), 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:454953",
+   "title": "No Fly Spain & France from Southampton to Marseille with Provence and Paris Stays, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:454954",
+   "title": "Spain from Southampton to Malaga with Stay, 7 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:438259",
+   "title": "Grand Voyage from Barcelona to Rio de Janeiro, 14 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "celebrity",
+   "id": "pc:418709",
+   "title": "Spain & Morocco Transatlantic with San Juan and Barcelona Stays, 1 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:380173",
+   "title": "Delights of Western France & Spain Explorer cruise from Bristol, 2 November 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:380177",
+   "title": "Discover Germany, Holland & Belgium's Festive Delights cruise from Tilbury, 1 December 2026"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:380125",
+   "title": "Caribbean Adventure including Colombia cruise from London Tilbury, 3 January 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:432920",
+   "title": "Tropical Horizons - A Carribean Adventure cruise from Barbados | London Heathrow Flights Included, 14 February 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:380127",
+   "title": "Norway's Land of the Northern Lights cruise from London Tilbury, 1 March 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410208",
+   "title": "A Tribute to the 90's cruise from Tilbury, 7 April 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410246",
+   "title": "Springtime Shores: Hebrides & Isle of Man Discovery cruise from Belfast, 5 June 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410288",
+   "title": "Norway's Coastal Charms & Fjordland cruise from Tilbury, 3 July 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410292",
+   "title": "Scandinavian Cities & Baltic Discoveries cruise from Tilbury, 7 August 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410258",
+   "title": "Bordeaux & Beyond: A Journey Through Western France cruise from Newcastle, 8 September 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "ambassador",
+   "id": "pc:410297",
+   "title": "Scenic Isles of the Azores & Portugal cruise from Tilbury, 8 October 2027"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:l2704",
+   "title": "Colours & Cultures of Morocco"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:l2721",
+   "title": "France with Bordeaux & the River Seine"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:s2804",
+   "title": "Scenic Norwegian Fjords"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:t2708",
+   "title": "Cosy Capitals of Scandinavia at Easter"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:t2723",
+   "title": "Scenic Fjords & Mountains of Norway"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "new",
+   "line": "fredolsen",
+   "id": "fo:t2805",
+   "title": "In Search of the Northern Lights"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "offer_added",
+   "line": "fredolsen",
+   "offer": "Make the most of your Bank Holidays"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "offer_added",
+   "line": "fredolsen",
+   "offer": "Door to door travel"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "offer_added",
+   "line": "fredolsen",
+   "offer": "Solo Cruise Offers"
+  },
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "kind": "offer_added",
+   "line": "fredolsen",
+   "offer": "Last-Minute Cruise Deals"
+  }
+ ],
+ "checks": [
+  {
+   "at": "2026-10-14T20:14:42Z",
+   "pages": 129,
+   "problems": []
+  }
+ ]
+}
