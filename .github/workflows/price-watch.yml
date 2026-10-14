@@ -61,6 +61,13 @@ jobs:
         continue-on-error: true   # a terms problem must never stop prices or cards being saved
         run: python terms.py
 
+      # French offer T&Cs (14 Oct 2026): the "Conditions de l'offre …" blocks on ambassadorcroisieres.fr's /offres pages,
+      # matched to the French promotions. state/fr/terms.json. See terms.py.
+      - name: French promotion terms
+        if: always() && steps.fr.outcome == 'success'
+        continue-on-error: true
+        run: python terms.py --market fr
+
       # Standard cards for every sailing on sale (Sam, 12 Oct 2026; was/now cards stay paused):
       # only sailings whose card content changed are remade. See cards_sync.py.
       - name: Which cards need making
@@ -113,11 +120,13 @@ jobs:
         id: review
         # On since 14 Oct 2026 (Sam; first pass from Sat 17 Oct, see card_review.py START). To pause it, add the repo
         # variable CARD_CHECK = off (Settings → Secrets and variables → Actions → Variables).
-        if: always() && steps.cards.outcome == 'success' && vars.CARD_CHECK != 'off'
+        # French cards (14 Oct 2026) queue after the UK's in the same batches; CARD_CHECK_FR = off leaves them out.
+        if: always() && (steps.cards.outcome == 'success' || steps.frcards.outcome == 'success') && vars.CARD_CHECK != 'off'
         continue-on-error: true   # a check problem must never stop prices or cards being saved
         timeout-minutes: 30
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          FR_OFF: ${{ vars.CARD_CHECK_FR }}
         run: |
           if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then echo "No CLAUDE_CODE_OAUTH_TOKEN secret: card check skipped."; exit 0; fi
           # A token copied out of a terminal often picks up line breaks or spaces: drop them.

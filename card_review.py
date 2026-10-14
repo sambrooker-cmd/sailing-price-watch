@@ -21,7 +21,10 @@ the few cards remade each day are checked at the next hourly check.
 
 The result goes into state/cards.json (current["review"], tied to the card fingerprint, so
 remade cards are checked again) and, for cards with problems, into out/review.md for the
-"Cards to check" issue. It only reads cards: it never changes or deletes one, never touches
+"Cards to check" issue. French cards (state/fr/cards.json; 14 Oct 2026, Sam: "build the things not built
+yet") join the same queue after every UK card, in the same batches and windows (nothing about the batching
+changed), checked against a French description of the design; the repo variable CARD_CHECK_FR = off leaves
+them out (FR_OFF). It only reads cards: it never changes or deletes one, never touches
 prices, and never touches Meta or any ad account. A person always decides.
 """
 import datetime as dt, json, math, os, subprocess, sys, tempfile
@@ -29,6 +32,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "state" / "cards.json"
+MANIFEST_FR = ROOT / "state" / "fr" / "cards.json"
 MODEL = "claude-opus-5-5"
 BATCH = 32          # first pass over the weekend of 17–18 Oct 2026 (Sam): ~223 sailings in up to 8 batches
 SMALL = 15          # with this many or fewer waiting, check them all straight away
@@ -91,6 +95,14 @@ Don't comment on taste, design choices, colours, fonts, or marketing wording, an
 improvements. If all three cards are fine, return ok true with no issues."""
 
 
+GUIDE_FR = """These cards are for France (Ambassador Croisières): all their words are French and prices are in euros.
+The logo top left is the white "Ambassador Croisières" logo. The badge top right reads "À bord du <ship>" /
+"Départ de <town>". The orange panel has the date written out in French ("8 mai 2028", "1er juin 2027") and
+"<N> nuits", then "À partir de 679 €/pers." (a space before €, a thin space for thousands: "1 029 €").
+There is no Nectar strip and there are no was/now cards. French typography (a space before ! ? : and the
+euro sign, « » quotes) is by design. Report English words on a French card as a problem."""
+
+
 def hours_between(a, b):
     p = lambda x: dt.datetime.fromisoformat(x.replace("Z", "+00:00"))
     return (p(b) - p(a)).total_seconds() / 3600
@@ -98,6 +110,24 @@ def hours_between(a, b):
 
 def now_utc():
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def fr_date(iso):
+    MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+    y, m, d = (int(x) for x in iso.split("-"))
+    return f"{'1er' if d == 1 else d} {MOIS[m - 1]} {y}"
+
+
+def expected_fr(sid, c):
+    return "\n".join([
+        "Market: France (French words, euros)", f"Cruise code: {sid}", f"Sailing name: {c.get('title')}",
+        f"Ship: {c.get('ship')} (badge \"À bord du {c.get('ship')}\")",
+        f"Sails from: {c.get('port')} (badge \"Départ de {(c.get('port') or '').split(',')[0].strip()}\")",
+        f"Departs: {c.get('departure_date')} (printed \"{fr_date(c['departure_date'])}\")" if c.get("departure_date") else "Departs: ?",
+        f"Nights: {c.get('nights')} (printed \"{c.get('nights')} nuits\")",
+        f"From price: printed \"À partir de {c.get('price'):,} €/pers.\"".replace(",", " "),
+        f"Promotion strips: {' | '.join(c.get('promos') or []) or 'none'}",
+        f"Campaign artwork shown whole: {'yes' if (c.get('layout') or '').startswith('campaign') else 'no'}"])
 
 
 def expected(sid, c, s=None):
@@ -160,7 +190,7 @@ def run_claude(prompt, cwd):
     return out["structured_output"]
 
 
-def review(sid, c, http, s=None):
+def review(sid, c, http, s=None, fr=False):
     with tempfile.TemporaryDirectory() as d:
         names = []
         for tag in SIZES:
@@ -171,8 +201,8 @@ def review(sid, c, http, s=None):
             r.raise_for_status()
             Path(d, f"card_{tag}.jpg").write_bytes(r.content)
             names.append(f"card_{tag}.jpg ({tag})")
-        prompt = (GUIDE + "\n\nLook at each of these images with the Read tool: " + ", ".join(names) +
-                  ".\n\nExpected details:\n" + expected(sid, c, s) +
+        prompt = (GUIDE + ("\n\n" + GUIDE_FR if fr else "") + "\n\nLook at each of these images with the Read tool: " + ", ".join(names) +
+                  ".\n\nExpected details:\n" + (expected_fr(sid, c) if fr else expected(sid, c, s)) +
                   "\n\nAnswer only with the structured result.")
         out = run_claude(prompt, d)
     out["ok"] = bool(out.get("ok")) and not out.get("issues")
@@ -192,7 +222,9 @@ def main():
         print(f"Card check: starts {START[:16].replace('T', ' ')} UK time (Sam: first pass over the weekend).")
         return 0
     man = json.loads(MANIFEST.read_text())
-    queue = todo(man)
+    # France after every UK card, in the same batches (the batch time is kept in the UK manifest)
+    man_fr = json.loads(MANIFEST_FR.read_text()) if MANIFEST_FR.exists() and os.environ.get("FR_OFF") != "off" else None
+    queue = [("", sid, c) for sid, c in todo(man)] + ([("fr", sid, c) for sid, c in todo(man_fr)] if man_fr else [])
     if len(queue) > SMALL:
         last = man.get("review_batch_at")
         if last and hours_between(last, at) < WINDOW_HOURS:
@@ -211,10 +243,15 @@ def main():
     http = requests.Session()
     st = ROOT / "state" / "current.json"
     sailings = json.loads(st.read_text()).get("sailings", {}) if st.exists() else {}
+
+    def save():
+        MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))
+        if man_fr is not None:
+            MANIFEST_FR.write_text(json.dumps(man_fr, ensure_ascii=False, indent=1))
     flagged, errors, signin = [], [], None
-    for sid, c in batch:
+    for mkt, sid, c in batch:
         try:
-            res = review(sid, c, http, sailings.get(sid))
+            res = review(sid, c, http, sailings.get(sid), fr=mkt == "fr")
         except SignInFailed as e:   # every other sailing would fail the same way: stop and say so
             signin = str(e)
             errors.append(f"{sid}: {signin}")
@@ -228,12 +265,12 @@ def main():
             continue
         c["review"] = {"fp": c.get("fp"), "at": now_utc(), "ok": res["ok"], "issues": res["issues"], "model": MODEL}
         if not res["ok"]:
-            flagged.append((sid, c))
-        MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))  # after each, so a crash loses little
+            flagged.append((mkt, sid, c))
+        save()  # after each, so a crash loses little
 
     if (signin or (batch and len(errors) == len(batch))) and man.get("review_batch_at") == at:
         man.pop("review_batch_at")  # nothing got checked, so don't hold the next batch back
-    MANIFEST.write_text(json.dumps(man, ensure_ascii=False, indent=1))
+    save()
     if signin:
         (ROOT / "out").mkdir(exist_ok=True)
         (ROOT / "out" / "review_signin.md").write_text(
@@ -253,11 +290,11 @@ def main():
     if flagged:
         lines += [f"Claude checked {len(batch) - len(errors)} sailing(s) with new or remade cards; "
                   f"{len(flagged)} need a look before they're used:", ""]
-        for sid, c in flagged:
-            lines.append(f"- **{sid}** {c.get('title')} ({'WAS/NOW cards' if c.get('kind') == 'wasnow' else c.get('reason')})")
+        for mkt, sid, c in flagged:
+            lines.append(f"- {'France · ' if mkt == 'fr' else ''}**{sid}** {c.get('title')} ({'WAS/NOW cards' if c.get('kind') == 'wasnow' else c.get('reason')})")
             lines += [f"  - {i['size'].replace('x', ':') if i['size'] != 'all' else 'All sizes'}"
                       f"{' (fix)' if i['severity'] == 'fix' else ''}: {i['problem']}" for i in c["review"]["issues"]]
-        lines += ["", "Open the sailing on the tracker page's Cards page to see them. Claude can be wrong: "
+        lines += ["", "Open the sailing on the tracker page's Cards page to see them (French ones: switch the tracker to France). Claude can be wrong: "
                   "you decide. Nothing has been changed or sent anywhere."]
     if errors:
         lines += ["", f"Couldn't check {len(errors)} (tried again next check):", *[f"- {e}" for e in errors]]
