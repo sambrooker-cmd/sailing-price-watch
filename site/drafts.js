@@ -4,7 +4,7 @@
 // page, and throws away any draft quoting a figure that isn't in them. This page asks every few seconds until the
 // options are ready (usually 1 to 2 minutes). Nothing is used until someone presses "Use this".
 //
-// block(kind, ready) → HTML; wire(root, kind, {ID, body: () => request, use: option => void, redraw: () => void}).
+// block(kind, notReady) → HTML (notReady: why it can't draft yet, said when the button is pressed, or ""); wire(root, kind, {ID, body: () => request, use: option => void, redraw: () => void}).
 // kind "ad": options {label, text}; kind "email": options {label, subject, preheader, headline, sub, intro}.
 
 const FN = "https://us-central1-promotions-planner.cloudfunctions.net/drafts";
@@ -45,14 +45,14 @@ function option(kind, o, i){
     <button type="button" class="btn quiet" data-cuse="${i}">Use this</button></div>`;
 }
 
-export function block(kind, ready){
+export function block(kind, notReady){
   const s = st[kind], what = kind === "ad" ? "primary text" : "subject line, preview text, header words and intro";
   return `<div class="ac-sugg ac-claude" id="cl-${kind}">
     <p class="ac-lab" style="margin:0">Draft with Claude</p>
     <p class="sub">Claude writes new ${what} options from these sailings' prices, dates, offers and Nectar points, in Ambassador's tone of voice. Read them before using them: Claude can get things wrong.</p>
     <input id="cl-brief-${kind}" maxlength="300" value="${esc(s.brief || "")}" placeholder="Anything to steer it? (optional) e.g. lead on the Christmas markets, keep it short">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
-      <button type="button" class="btn quiet" id="cl-go-${kind}"${ready && !s.busy ? "" : " disabled"}>${s.options ? "Draft again" : "Draft with Claude"}</button>
+      <button type="button" class="btn quiet" id="cl-go-${kind}"${s.busy ? " disabled" : ""} data-why="${esc(notReady || "")}">${s.options ? "Draft again" : "Draft with Claude"}</button>
       <span class="sub" id="cl-st-${kind}" aria-live="polite">${status(s)}</span>
     </div>
     ${s.options ? `${s.forWhat ? `<p class="sub" style="margin:8px 0 0">For: ${esc(s.forWhat)}${s.prices ? ` · prices as checked ${esc(ukDate(s.prices))}` : ""}</p>` : ""}
@@ -68,6 +68,8 @@ export function wire(root, kind, {ID, body, use, redraw, forWhat}){
   brief.addEventListener("input", () => { s.brief = brief.value; });
   box.querySelectorAll("[data-cuse]").forEach(b => b.addEventListener("click", () => use(s.options[+b.dataset.cuse])));
   box.querySelector(`#cl-go-${kind}`).addEventListener("click", async () => {
+    const why = box.querySelector(`#cl-go-${kind}`).dataset.why;
+    if (why) { box.querySelector(`#cl-st-${kind}`).textContent = why; return; }   // QA, 14 Oct 2026: it did nothing
     Object.assign(s, {busy: true, started: Date.now(), msg: "", redraw});
     redraw();
     try {
