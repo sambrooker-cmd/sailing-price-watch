@@ -599,8 +599,18 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
   </section>
 
   <section aria-labelledby="h-comp">
-    <h2 id="h-comp"><span class="mini"></span>Competitors</h2>
-    <div id="comp"><p class="loading">Loading competitor prices…</p></div>
+    <h2 id="h-comp"><span class="mini"></span>Competitor prices</h2>
+    <div id="comp-prices"><p class="loading">Loading competitor prices…</p></div>
+  </section>
+
+  <section aria-labelledby="h-compoffers">
+    <h2 id="h-compoffers"><span class="mini amber"></span>Competitor offers</h2>
+    <div id="comp-offers"><p class="loading">Loading competitor offers…</p></div>
+  </section>
+
+  <section aria-labelledby="h-compvs">
+    <h2 id="h-compvs"><span class="mini"></span>Ambassador vs competitors</h2>
+    <div id="comp-vs"><p class="loading">Loading…</p></div>
   </section>
 
   <section aria-labelledby="h-coverage">
@@ -2014,6 +2024,8 @@ const auth = getAuth(firebaseApp);
     overview: '<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
     promos: '<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
     comp: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 4l-5 4-5-3-5 4"/>',
+    compoffers: '<path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/>',
+    compvs: '<path d="M4 6h7M4 12h5M4 18h7M20 6h-5M20 12h-7M20 18h-5"/><path d="M12 3v18"/>',
     coverage: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
     feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
@@ -2033,7 +2045,8 @@ const auth = getAuth(firebaseApp);
   // France (stage 2, 14 Oct 2026): Cards and the Ad creator in French; Google Ads and email pages follow in stage 3
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
-  const FR_HIDE = ["rules", "comp"];
+  const FR_HIDE = ["rules", "comp", "compoffers", "compvs"];
+  const COMP = {comp: "prices", compoffers: "offers", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
   const mayView = v => !ONLY[v] || ONLY[v].includes(me.toLowerCase());
@@ -2043,7 +2056,10 @@ const auth = getAuth(firebaseApp);
     ["trends", "Trends", ["h-trends"], "Prices"],
     ["changes", "What changed", ["h-changes"], "Prices"],
     ["promos", "Live promotions", ["h-promos"], "Prices"],
-    ["comp", "Competitors", ["h-comp"], "Prices"],   // UK only (competitors.py, 15 Oct 2026)
+    // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; UK only)
+    ["comp", "Competitor prices", ["h-comp"], "Competitors"],
+    ["compoffers", "Competitor offers", ["h-compoffers"], "Competitors"],
+    ["compvs", "Vs Ambassador", ["h-compvs"], "Competitors"],
     ["cards", "Cards", ["h-cards"], "Creative"],
     ["ads", "Ad creator", ["h-ads"], "Creative"],
     ["gads", "Google Ads", ["h-gads"], "Creative"],
@@ -2083,7 +2099,7 @@ const auth = getAuth(firebaseApp);
     if (v === "email") mountEmail();
     if (v === "ecards") mountEcards();
     if (v === "gads") mountGads();
-    if (v === "comp") mountComp();
+    if (COMP[v]) mountComp(v);
     if (scroll) window.scrollTo({top: 0});
     renderTrends();
     const b = document.querySelector(`#sidenav button[data-view="${v}"]`);
@@ -2182,15 +2198,16 @@ const auth = getAuth(firebaseApp);
   }
 
   // Email cards: the sailing pictures for HubSpot emails (site/emailcards.js)
-  // Competitors (site/competitors.js): loaded when the page is first opened
-  let compMounted = false;
-  async function mountComp(){
-    if (!state || compMounted || FR) return;
-    compMounted = true;
+  // Competitors (site/competitors.js): loaded when one of its pages is first opened, redrawn each time one is opened
+  // (the three share their filters)
+  let compModule = null;
+  async function mountComp(v){
+    if (!state || FR || !COMP[v]) return;
+    const box = $("comp-" + COMP[v]);
     try {
-      const m = await import("./competitors.js?v=__BUILD__");
-      await m.mount($("comp"), {state, cabins, readJson, esc});
-    } catch (e) { compMounted = false; $("comp").innerHTML = `<p class="err">The competitors page couldn't load: ${esc(e.message)}</p>`; }
+      compModule = compModule || await import("./competitors.js?v=__BUILD__");
+      await compModule.mount(box, {state, cabins, readJson, esc}, COMP[v]);
+    } catch (e) { box.innerHTML = `<p class="err">The competitors page couldn't load: ${esc(e.message)}</p>`; }
   }
   let ecardsMounted = false, ecardsModule = null;
   async function mountEcards(){
@@ -2277,7 +2294,7 @@ const auth = getAuth(firebaseApp);
     if (view === "ads") mountAds();
     if (view === "email") mountEmail();
     if (view === "ecards") mountEcards();
-    if (view === "comp") mountComp();
+    if (COMP[view]) mountComp(view);
     if (view === "gads") mountGads();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
