@@ -19,19 +19,19 @@
   --bg:#FFFFFF;--bg-alt:#F1ECE7;--ink:#1B1220;--muted:#5E5465;--heading:#6B207D;--rule:#D9CFD9;--rule-strong:#6B207D;
   --chip:#F1ECE7;--chip-ink:#6B207D;--good:#00764F;--good-bg:#E3F3EC;--warn:#8A4A12;--warn-bg:#FDEBDD;--bad:#9B1C31;--bad-bg:#F8E3E7;
   --price-bg:#F68C4E;--price-ink:#6B207D;--lp:#6B207D;--lc:#009165;--focus:#6B207D;
-  --c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--c4:#eda100;--tip-bg:#1B1220;--tip-ink:#FFFFFF;
+  --c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--c4:#eda100;--c5:#8b5cf6;--c6:#d03b8a;--c7:#5f7d8c;--tip-bg:#1B1220;--tip-ink:#FFFFFF;
   --font:"Quicksand",Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#2A0632;--bg-alt:#380843;--ink:#F5F0F6;--muted:#C9B9CE;--heading:#FFFFFF;--rule:#55275F;--rule-strong:#FFFFFF;
   --chip:#4A1556;--chip-ink:#FFFFFF;--good:#7FE0B9;--good-bg:#0F3B2E;--warn:#FFC49E;--warn-bg:#4A2A16;--bad:#FFAFC0;--bad-bg:#4A1726;
   --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;
-  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}}
+  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--c5:#a07cf8;--c6:#e0559c;--c7:#86a3b1;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#2A0632;--bg-alt:#380843;--ink:#F5F0F6;--muted:#C9B9CE;--heading:#FFFFFF;--rule:#55275F;--rule-strong:#FFFFFF;
   --chip:#4A1556;--chip-ink:#FFFFFF;--good:#7FE0B9;--good-bg:#0F3B2E;--warn:#FFC49E;--warn-bg:#4A2A16;--bad:#FFAFC0;--bad-bg:#4A1726;
   --price-bg:#F68C4E;--price-ink:#380843;--lp:#FFFFFF;--lc:#FFFFFF;--focus:#F68C4E;
-  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}
+  --c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--c5:#a07cf8;--c6:#e0559c;--c7:#86a3b1;--tip-bg:#F5F0F6;--tip-ink:#1B1220;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;margin:0}
 .wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:36px}
@@ -109,6 +109,12 @@ td .sub{font-size:13px;color:var(--muted)}
 .side .logo svg{width:168px;height:auto;display:block;margin:0 10px}
 .side .app-name{margin:10px 10px 0;font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#F68C4E}
 .side nav{display:flex;flex-direction:column;gap:2px}
+/* Market (Sam, 14 Oct 2026): UK or France; switching reloads the page with that market's data */
+.mkt{display:flex;gap:4px;margin:0 10px;padding:3px;border-radius:10px;background:rgba(255,255,255,.08)}
+.mkt button{flex:1;font:inherit;font-size:13px;font-weight:600;color:rgba(255,255,255,.75);background:none;border:0;border-radius:7px;padding:6px 8px;cursor:pointer}
+.mkt button[aria-pressed="true"]{background:#F68C4E;color:#380843}
+.mkt button:focus-visible{outline:2px solid #F68C4E;outline-offset:1px}
+@media (max-width:900px){.mkt{margin:0}}
 .side nav .grp{margin:18px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 .side nav .grp:first-child{margin-top:0}
 .side nav button{font:inherit;font-size:14px;font-weight:600;color:rgba(255,255,255,.78);background:none;border:0;border-radius:8px;
@@ -499,6 +505,7 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <p class="app-name">Sailing Price Watch</p></div>
     <button type="button" class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="sidenav"><span aria-hidden="true">☰</span> <span id="navcur">Pages</span></button>
   </div>
+  <div class="mkt" role="group" aria-label="Market"><button type="button" data-mkt="uk">UK</button><button type="button" data-mkt="fr">France</button></div>
   <div class="gsearch" role="search">
     <input id="gq" type="search" placeholder="Find a sailing  ( / )" aria-label="Find a sailing by name, port, ship or code" autocomplete="off">
     <div id="gq-res" class="gq-res" hidden></div>
@@ -727,7 +734,19 @@ const auth = getAuth(firebaseApp);
 
 (function(){
   const $ = id => document.getElementById(id);
-  const fmtGBP = v => "£" + Math.round(v).toLocaleString("en-GB");
+  // Market (Sam, 14 Oct 2026): "uk" or "fr" (France, ambassadorcroisieres.fr: fr_enrich.py). ?m=fr or the last one
+  // chosen in this browser. France reads the fr- documents, shows euros and has no was/now (prices only).
+  const MKT = (() => { let m = new URLSearchParams(location.search).get("m"); if (!m) try { m = localStorage.getItem("spw-market"); } catch(e){} return m === "fr" ? "fr" : "uk"; })();
+  const FR = MKT === "fr";
+  try { localStorage.setItem("spw-market", MKT); } catch(e){}
+  document.querySelectorAll("[data-mkt]").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.mkt === MKT));
+    b.addEventListener("click", () => { if (b.dataset.mkt === MKT) return; try { localStorage.setItem("spw-market", b.dataset.mkt); } catch(e){}
+      location.href = location.pathname + (b.dataset.mkt === "fr" ? "?m=fr" : ""); });
+  });
+  if (FR) document.title = "Sailing Price Watch · France";
+  const fmtGBP = v => (FR ? "€" : "£") + Math.round(v).toLocaleString("en-GB");   // euros for France (the name stays)
+  const LEFT = FR ? "Went off sale" : "Left the feed";   // France has no feed: a sailing leaves the cruise list, or sells out
   const fmtDate = iso => { if(!iso) return "–"; const d = new Date(iso+"T12:00:00Z"); return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}); };
   const daysBetween = (a,b) => Math.round((new Date(b+"T12:00:00Z") - new Date(a+"T12:00:00Z"))/864e5);
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}) : "";
@@ -738,11 +757,11 @@ const auth = getAuth(firebaseApp);
   let state = null, cabins = {}, runs = [], ship = "", query = "", sort = "dep";
   let filt = {month: "", port: "", nights: "", kind: "", promo: ""};
   let shownRows = [], chg = {range: "7", type: "", from: "", to: ""}, chgAll = false, lastChangeCount = 0;
-  try { const p = JSON.parse(localStorage.getItem("spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
-  const savePrefs = () => { try { localStorage.setItem("spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
+  try { const p = JSON.parse(localStorage.getItem(FR ? "spw-prefs-fr" : "spw-prefs")||"{}"); ship = p.ship||""; sort = p.sort||"dep"; filt = {...filt, ...(p.filt||{})}; } catch(e){}
+  const savePrefs = () => { try { localStorage.setItem(FR ? "spw-prefs-fr" : "spw-prefs", JSON.stringify({ship, sort, filt})); } catch(e){} };
 
   function status(s, today, rules){
-    if (s.removed) return {cls:"bad", label:"Left the feed " + fmtDate(s.removed), rank:4};
+    if (s.removed) return {cls:"bad", label:LEFT + " " + fmtDate(s.removed), rank:4};
     const segs = s.segments; const cur = segs[segs.length-1];
     // "switch": the from price moved when it started coming from the web page instead of the ad feed
     // (13 Oct 2026). Not a drop or a rise: just a new reference period.
@@ -751,6 +770,10 @@ const auth = getAuth(firebaseApp);
     if (c && !c.eligible) return {cls:"warn", label:"Dropped, not eligible", title:c.reason, rank:1};
     if (segs.length > 1 && cur.p > segs[segs.length-2].p && !cur.switch && !cur.back) return {cls:"warn", label:"Price rose " + fmtDate(cur.from), rank:2};
     const held = daysBetween(cur.from, today);
+    if (FR) {   // no was/now for France: just how the price is moving
+      if (segs.length > 1 && cur.p < segs[segs.length-2].p && !cur.back) return {cls:"good", label:"Price dropped " + fmtDate(cur.from), rank:1};
+      return {cls:"watch", label: segs.length > 1 ? `Stable ${held} day${held === 1 ? "" : "s"}` : `Tracked ${held + 1} day${held ? "s" : ""}`, rank:3};
+    }
     const need = rules.min_reference_days;
     if (held < need) return {cls:"watch", label:`Watching · day ${held+1} of ${need}`, rank:3};
     return {cls:"watch", label:`Stable ${held} days`, rank:3};
@@ -777,8 +800,11 @@ const auth = getAuth(firebaseApp);
       <circle cx="${w-pad}" cy="${lastY}" r="3" fill="var(--amber)"/></svg>`;
   }
 
-  const CAB = [["inside","Inside"],["ocean_view","Ocean view"],["balcony","Balcony"],["suite","Suite"]];
-  const CABN = {inside:"Inside cabins", ocean_view:"Ocean view cabins", balcony:"Balcony cabins", suite:"Suites"};
+  // France's ship Renaissance has 7 cabin grades (booking's categories, fr_enrich.py CABIN_IDS)
+  const CAB = FR ? [["inside","Inside"],["obstructed","Obstructed view"],["ocean_view","Ocean view"],["promenade","Promenade terrace"],["balcony","Balcony"],["suite","Suite"],["grand_suite","Grand suite"]]
+                 : [["inside","Inside"],["ocean_view","Ocean view"],["balcony","Balcony"],["suite","Suite"]];
+  const CABN = {inside:"Inside cabins", ocean_view:"Ocean view cabins", balcony:"Balcony cabins", suite:"Suites",
+                obstructed:"Obstructed view cabins", promenade:"Promenade terrace cabins", grand_suite:"Grand suites"};
   function cabCell(id, today){
     const c = (cabins[id] || {}).cabins;
     if (!c) return `<span class="sub">–</span>`;
@@ -849,7 +875,7 @@ const auth = getAuth(firebaseApp);
     renderMeta();
     $("st-count").textContent = active.length;
     const byShip = {}; active.forEach(s => byShip[s.ship] = (byShip[s.ship]||0)+1);
-    $("st-ships").textContent = ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
+    $("st-ships").textContent = FR ? "Renaissance · ambassadorcroisieres.fr" : ["Ambience","Ambition","Renaissance"].map(k => `${k} ${byShip[k]||0}`).join(" · ");
     const recent = runs.filter(r => daysBetween(r.date, today) < 7);
     const drops = recent.reduce((n,r) => n + (r.drops||[]).length, 0);
     const rises = recent.reduce((n,r) => n + (r.rises||[]).length, 0);
@@ -863,9 +889,13 @@ const auth = getAuth(firebaseApp);
       const same = s.claim && s.claim.eligible && k === "twin." + leadC && c.now === s.claim.now;
       if (c.eligible && !same) celig.push({s, cabin: k.split(".")[1], c});
     }));
-    $("st-elig").textContent = elig.length + celig.length;
+    if (FR) {   // no was/now: the third tile counts cruise pages whose "À partir de" differs from booking
+      const pg = active.filter(s => s.feed_gap).length;
+      $("st-elig").textContent = pg; $("st-elig").previousElementSibling.textContent = "Page vs booking";
+      $("st-first").textContent = "pages showing a different from price";
+    } else $("st-elig").textContent = elig.length + celig.length;
     const first = new Date(state.tracking_since+"T12:00:00Z"); first.setUTCDate(first.getUTCDate() + (rules.min_reference_days||28));
-    $("st-first").textContent = (elig.length + celig.length) ? `${elig.length} lead · ${celig.length} cabin` : "Earliest possible " + fmtDate(first.toISOString().slice(0,10));
+    if (!FR) $("st-first").textContent = (elig.length + celig.length) ? `${elig.length} lead · ${celig.length} cabin` : "Earliest possible " + fmtDate(first.toISOString().slice(0,10));
     $("st-flags").textContent = active.filter(s => s.flags && s.flags.length).length;
 
     // Queue
@@ -892,12 +922,12 @@ const auth = getAuth(firebaseApp);
       active.forEach(s => livePromos(s).forEach(o => count[o] = (count[o] || 0) + 1));
       const ids = Object.keys(count).sort((a, b) => count[b] - count[a] || (offerInfo(a).name || "").localeCompare(offerInfo(b).name || ""));
       const none = active.filter(s => !livePromos(s).length).length;
-      $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th><th>Terms</th><th></th></tr></thead><tbody>${ids.map(o => {
+      $("promos").innerHTML = ids.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th><th>Expires</th><th>First seen</th>${FR ? "" : "<th>Terms</th>"}<th></th></tr></thead><tbody>${ids.map(o => {
           const i = offerInfo(o);
           const short = promoShort(i.desc);
           return `<tr><td><b>${esc(i.name || o)}</b>${i.desc ? `<div class="sub${short ? " d-full" : ""}" style="white-space:pre-line">${esc(i.desc)}</div>` : ""}${short ? `<div class="sub d-short">${esc(short)}</div>` : ""}</td>
             <td class="num">${count[o]}</td><td>${fmtExpiry(i.expires) || "–"}</td><td>${fmtDate(i.first_seen)}${i.first_seen === state.promos_since ? `<div class="sub">recording began</div>` : ""}</td>
-            <td>${termsOf(o) ? `<button type="button" class="linkbtn" data-tc="${esc(o)}">${termsOf(o).length ? "T&amp;Cs" : "No T&amp;Cs found"}</button>` : ""}</td>
+            ${FR ? "" : `<td>${termsOf(o) ? `<button type="button" class="linkbtn" data-tc="${esc(o)}">${termsOf(o).length ? "T&amp;Cs" : "No T&amp;Cs found"}</button>` : ""}</td>`}
             <td><button type="button" class="linkbtn" data-promo="${esc(o)}">Show sailings</button></td></tr>`;
         }).join("")}</tbody></table></div><p class="note">${none} of ${active.length} sailings have no promotion. Recording began ${fmtDate(state.promos_since)}.${terms ? ` T&amp;Cs are read from the website's own pages once a day and when a new promotion appears (last ${fmtWhen(terms.fetched_at)}): <button type="button" class="linkbtn" data-tc="*">all ${Object.keys(terms.docs || {}).length} found</button>.` : ""}</p>`
         : `<div class="empty"><p>No promotions are live on any sailing.</p></div>`;
@@ -935,23 +965,26 @@ const auth = getAuth(firebaseApp);
       const gaps = active.filter(s => s.feed_gap).sort((a, b) => Math.abs(gapOf(b)) - Math.abs(gapOf(a)));
       const fixed = (state.feed_gaps_fixed || []).filter(f => daysBetween(f.fixed.slice(0, 10), today) < 7).slice().reverse();
       const nameOf = id => { const r = (state.sailings || {})[id] || {}; return r.base_title || r.title || id; };
-      const diff = d => d < 0 ? `<span class="up2">feed ${fmtGBP(-d)} lower</span>` : `<b>feed ${fmtGBP(d)} higher</b>`;   // lower is the one to fix first
+      // France (no feed): "feed" is the "À partir de" figure on the cruise page, "page" is booking's cheapest twin cabin
+      const [A, B, a] = FR ? ["Page shows", "Booking", "page"] : ["Ad feed", "Website", "feed"];
+      const diff = d => d < 0 ? `<span class="up2">${a} ${fmtGBP(-d)} lower</span>` : `<b>${a} ${fmtGBP(d)} higher</b>`;   // lower is the one to fix first
       const lower = gaps.filter(s => gapOf(s) < 0).length;
-      $("feedgap").innerHTML = `<p class="note" style="margin:0 0 12px">The Google ad feed is what the ads show; it's refreshed once a day. Each hourly check compares its "from" price with the cheapest twin cabin on the sailing's own page (what the tracker and cards use). A difference that lasts 3 hours is reported once in a "Feed prices don't match the website" issue. Nothing here changes the feed or any ad account.</p>` +
-        (gaps.length ? `<p style="margin:0 0 10px"><b>${gaps.length}</b> sailing${gaps.length === 1 ? "" : "s"} differ now${lower ? `, <b>${lower}</b> with the feed lower than the website (the ads show a price guests can't get)` : ""}. <button type="button" class="linkbtn" id="fg-csv">Download CSV</button></p>
-          <div class="tablewrap"><table class="ptable fg-table"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Ad feed</th><th class="num">Website</th><th>Difference</th><th>Since</th></tr></thead><tbody>${gaps.map(s => `
+      $("feedgap").innerHTML = (FR ? `<p class="note" style="margin:0 0 12px">France has no ad feed. Each hourly check compares the "À partir de" price on each cruise page of ambassadorcroisieres.fr with the cheapest twin cabin in its booking (what the tracker uses). A difference that lasts 3 hours is reported once in a "France: pages don't match booking" issue. Nothing here changes the website or any ad account.</p>`
+        : `<p class="note" style="margin:0 0 12px">The Google ad feed is what the ads show; it's refreshed once a day. Each hourly check compares its "from" price with the cheapest twin cabin on the sailing's own page (what the tracker and cards use). A difference that lasts 3 hours is reported once in a "Feed prices don't match the website" issue. Nothing here changes the feed or any ad account.</p>`) +
+        (gaps.length ? `<p style="margin:0 0 10px"><b>${gaps.length}</b> sailing${gaps.length === 1 ? "" : "s"} differ now${lower ? `, <b>${lower}</b> with the ${FR ? "page" : "feed"} lower than ${FR ? "booking (the page shows a price guests can't get)" : "the website (the ads show a price guests can't get)"}` : ""}. <button type="button" class="linkbtn" id="fg-csv">Download CSV</button></p>
+          <div class="tablewrap"><table class="ptable fg-table"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">${A}</th><th class="num">${B}</th><th>Difference</th><th>Since</th></tr></thead><tbody>${gaps.map(s => `
           <tr><td><a href="#${encodeURIComponent(s.id)}"><b>${esc(s.base_title || s.title)}</b></a><div class="sub">${esc(s.id)} · <a href="${esc(s.link)}" target="_blank" rel="noopener">booking page</a></div></td>
             <td>${fmtDate(s.departure_date)}</td><td class="num">${fmtGBP(s.feed_gap.feed)}</td><td class="num">${fmtGBP(s.feed_gap.page)}</td>
             <td>${diff(gapOf(s))}</td><td>${fmtWhen(s.feed_gap.since)}${s.feed_gap.reported ? `<div class="sub">reported</div>` : ""}</td></tr>`).join("")}</tbody></table></div>`
-          : `<div class="empty"><p>Every sailing's ad feed price matches its website price.</p></div>`) +
-        (fixed.length ? `<h3 style="margin:18px 0 8px;font-size:15px">Fixed in the last 7 days</h3><div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th class="num">Ad feed</th><th class="num">Website</th><th>From</th><th>Fixed</th></tr></thead><tbody>${fixed.map(f => `
+          : `<div class="empty"><p>${FR ? "Every cruise page's price matches booking." : "Every sailing's ad feed price matches its website price."}</p></div>`) +
+        (fixed.length ? `<h3 style="margin:18px 0 8px;font-size:15px">Fixed in the last 7 days</h3><div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th class="num">${A}</th><th class="num">${B}</th><th>From</th><th>Fixed</th></tr></thead><tbody>${fixed.map(f => `
           <tr><td><b>${esc(nameOf(f.id))}</b><div class="sub">${esc(f.id)}</div></td><td class="num">${fmtGBP(f.feed)}</td><td class="num">${fmtGBP(f.page)}</td>
             <td>${fmtWhen(f.since)}</td><td>${fmtWhen(f.fixed)}${f.how && f.how !== "matches the website" ? `<div class="sub">${esc(f.how)}</div>` : ""}</td></tr>`).join("")}</tbody></table></div>` : "");
       const b = $("fg-csv");
-      if (b) b.addEventListener("click", () => downloadCsv(`feed-vs-website-${today}.csv`,
-        ["Cruise code", "Sailing", "Departs", "Ad feed £", "Website £", "Difference", "Since (UTC)", "Booking page"],
+      if (b) b.addEventListener("click", () => downloadCsv(FR ? `france-page-vs-booking-${today}.csv` : `feed-vs-website-${today}.csv`,
+        ["Cruise code", "Sailing", "Departs", `${A} ${FR ? "€" : "£"}`, `${B} ${FR ? "€" : "£"}`, "Difference", "Since (UTC)", FR ? "Cruise page" : "Booking page"],
         gaps.map(s => [s.id, s.base_title || s.title, s.departure_date, s.feed_gap.feed, s.feed_gap.page,
-          `feed £${Math.abs(gapOf(s)).toLocaleString("en-GB")} ${gapOf(s) < 0 ? "lower" : "higher"}`, s.feed_gap.since, s.link])));
+          `${a} ${fmtGBP(Math.abs(gapOf(s)))} ${gapOf(s) < 0 ? "lower" : "higher"}`, s.feed_gap.since, s.link])));
     }
 
     // Runs
@@ -960,7 +993,7 @@ const auth = getAuth(firebaseApp);
         const parts = [`<span>${r.count} sailings</span>`];
         if ((r.checks || []).length > 1) parts.push(`<span>${r.checks.length} checks</span>`);
         if ((r.new||[]).length) parts.push(`<span>${r.new.length} new</span>`);
-        if ((r.removed||[]).length) parts.push(`<span>${r.removed.length} left the feed</span>`);
+        if ((r.removed||[]).length) parts.push(`<span>${r.removed.length} ${LEFT.toLowerCase()}</span>`);
         (r.drops||[]).slice(0,6).forEach(d => parts.push(`<span>▼ ${esc(d.id)} ${fmtGBP(d.from)} → ${fmtGBP(d.to)}</span>`));
         if ((r.drops||[]).length > 6) parts.push(`<span>+${r.drops.length-6} more drops</span>`);
         (r.rises||[]).slice(0,4).forEach(d => parts.push(`<span>▲ ${esc(d.id)} ${fmtGBP(d.from)} → ${fmtGBP(d.to)}</span>`));
@@ -1119,8 +1152,10 @@ const auth = getAuth(firebaseApp);
   });
 
   // Sailing detail view: opened from the table or queue, and by link (#<cruise code>)
-  const SERIES = [["inside","Inside","var(--c1)"],["ocean_view","Ocean view","var(--c2)"],["balcony","Balcony","var(--c3)"],["suite","Suite","var(--c4)"]];
-  const GRADE = {inside:"Inside", ocean_view:"Ocean view", balcony:"Balcony", suite:"Suite"};
+  const SERIES = FR ? [["inside","Inside","var(--c1)"],["obstructed","Obstructed view","var(--c5)"],["ocean_view","Ocean view","var(--c2)"],["promenade","Promenade terrace","var(--c6)"],
+                       ["balcony","Balcony","var(--c3)"],["suite","Suite","var(--c4)"],["grand_suite","Grand suite","var(--c7)"]]
+                    : [["inside","Inside","var(--c1)"],["ocean_view","Ocean view","var(--c2)"],["balcony","Balcony","var(--c3)"],["suite","Suite","var(--c4)"]];
+  const GRADE = {inside:"Inside", ocean_view:"Ocean view", balcony:"Balcony", suite:"Suite", obstructed:"Obstructed view", promenade:"Promenade terrace", grand_suite:"Grand suite"};
   const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
   const priceOn = (segs, out, d) => {
     if (out && d >= out) return null;
@@ -1136,7 +1171,13 @@ const auth = getAuth(firebaseApp);
     let cls = "";
     if (s.removed){
       cls = "bad";
-      lines.push(`This sailing left the feed on ${fmtDate(s.removed)}. Its last price was ${fmtGBP(cur.p)}.`);
+      lines.push(`This sailing ${FR ? "went off sale" : "left the feed"} on ${fmtDate(s.removed)}. Its last price was ${fmtGBP(cur.p)}.`);
+      return {cls, lines};
+    }
+    if (FR) {   // France: prices only, no was/now (Sam, 14 Oct 2026)
+      if (prev && cur.p !== prev.p) lines.push(`The from price ${cur.p < prev.p ? "dropped" : "rose"} from ${fmtGBP(prev.p)} to ${fmtGBP(cur.p)} on ${fmtDate(cur.from)}${cur.back ? " (when it came back on sale)" : ""}.`);
+      else lines.push(`The from price of ${fmtGBP(cur.p)} has been on sale for ${held} day${held === 1 ? "" : "s"}, since ${fmtDate(cur.from)}.`);
+      lines.push("Was/now pricing isn't used for France, so drops are recorded only.");
       return {cls, lines};
     }
     const c = cur.switch ? null : s.claim;
@@ -1180,7 +1221,7 @@ const auth = getAuth(firebaseApp);
     for (let i = 1; i < segs.length; i++){
       const a = segs[i-1], b = segs[i], dn = b.p < a.p;
       let note = "";
-      if (b.back){ out.push({d: b.from, k: 1, t: `Back in the feed: from price ${fmtGBP(b.p)}${b.p !== a.p ? ` (was ${fmtGBP(a.p)} before it left)` : ""}`, n: "It was out of the feed for over a day, so a fresh reference period starts."}); continue; }
+      if (b.back){ out.push({d: b.from, k: 1, t: `${FR ? "Back on sale" : "Back in the feed"}: from price ${fmtGBP(b.p)}${b.p !== a.p ? ` (was ${fmtGBP(a.p)} before it left)` : ""}`, n: "It was out of the feed for over a day, so a fresh reference period starts."}); continue; }
       if (b.switch){ out.push({d: b.from, k: 1, t: `From price now read from the web page: ${fmtGBP(b.p)} (the ad feed said ${fmtGBP(a.p)})`, n: "Not a price change. Starts a fresh reference period."}); continue; }
       if (a.c && b.c && a.c !== b.c) note = dn ? `A cheaper cabin grade came on sale (${GRADE[a.c]} → ${GRADE[b.c]}). Not a price cut.` : `The cheapest grade on sale changed (${GRADE[a.c]} → ${GRADE[b.c]}).`;
       out.push({d: b.from, k: 1, t: `From price <span class="${dn ? "dn2" : "up2"}">${dn ? "▼" : "▲"}</span> ${fmtGBP(a.p)} → ${fmtGBP(b.p)}`, n: note});
@@ -1557,7 +1598,7 @@ const auth = getAuth(firebaseApp);
     const v = verdict(s, cab, today, rules);
     const ch = chart(s, cab, today);
     const log = changeLog(s, cab);
-    const fly = s.flight_from ? `Flights from ${esc(s.flight_from)}` : `No-fly from ${esc(s.port)}`;
+    const fly = s.flight_from ? `Flights from ${esc(s.flight_from)}` : FR ? `From ${esc(s.port)}` : `No-fly from ${esc(s.port)}`;
     dlg.innerHTML = `
       <div class="dhead">
         <div>
@@ -1569,22 +1610,22 @@ const auth = getAuth(firebaseApp);
           </div>
         </div>
         <div class="dacts">
-          ${s.removed ? "" : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
+          ${s.removed || FR ? "" : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
           <button type="button" class="btn quiet sm" data-make="ecards" data-id="${esc(id)}">Make email card</button>
           <button type="button" class="btn quiet sm" data-make="gads" data-id="${esc(id)}">Add to Google Ads</button>`}
           <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
         </div>
       </div>
       <div class="dbody">
-        <section><h3>Was/now status</h3><div class="verdict ${v.cls}">${v.lines.map(l => `<p>${esc(l)}</p>`).join("")}</div></section>
+        <section><h3>${FR ? "Price status" : "Was/now status"}</h3><div class="verdict ${v.cls}">${v.lines.map(l => `<p>${esc(l)}</p>`).join("")}</div></section>
         <section><h3>Price per person, twin</h3>${ch.html}
-          <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. The dashed line is the "from" price (the cheapest twin cabin on the sailing's page; the ad feed's price before 13 Oct 2026).</p></section>
+          <p class="note">Tracking began ${fmtDate(state.tracking_since)}; cabin prices since ${fmtDate(state.cabins_since || state.tracking_since)}. ${FR ? "The dashed line is the \"from\" price (the cheapest twin cabin in booking on ambassadorcroisieres.fr)." : "The dashed line is the \"from\" price (the cheapest twin cabin on the sailing's page; the ad feed's price before 13 Oct 2026)."}</p></section>
         <section><h3>Cabins now</h3>${cabinTable(cab, today)}</section>
         <section><h3>From price, month by month</h3>${monthly(s, today)}
           <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
         <section><h3>Promotions</h3>${promoDetail(s)}</section>
-        <section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
-        <section><h3>Cards</h3>${cardsDetail(s)}</section>
+        ${FR ? "" : `<section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
+        <section><h3>Cards</h3>${cardsDetail(s)}</section>`}
         <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
         ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
       </div>`;
@@ -1600,6 +1641,8 @@ const auth = getAuth(firebaseApp);
   dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
   const fromHash = () => {
     const h = location.hash.slice(1);
+    // Shared Ad creator / Email creator links are UK ads: switch to the UK market first
+    if (FR && /^(ad|email)=/.test(h)) { try { localStorage.setItem("spw-market", "uk"); } catch(e){} location.href = location.pathname + location.hash; location.reload(); return; }
     // #ad=… is a shared Ad creator link: open it there (site/adcreator.js openShared)
     // #email=… is a shared Email creator link (site/emailcreator.js openShared)
     if (h.startsWith("email=")) { sharedEmail = h.slice(6); if (dlg.open) dlg.close(); if (emailModule) { emailModule.openShared(sharedEmail); sharedEmail = null; } showView("email"); return; }
@@ -1618,7 +1661,7 @@ const auth = getAuth(firebaseApp);
       hits = Object.entries(state.sailings || {}).filter(([id, s]) => { const hay = [id, s.title, s.base_title, s.port, s.ship, s.flight_from].join(" ").toLowerCase(); return words.every(w => hay.includes(w)); })
         .sort((a, b) => !!a[1].removed - !!b[1].removed || (a[1].departure_date || "9").localeCompare(b[1].departure_date || "9")).slice(0, 10);
       on = 0;
-      res.innerHTML = hits.length ? hits.map(([id, s], i) => `<button type="button" data-gq="${esc(id)}"${i === on ? ' class="on"' : ""}><b>${esc(s.base_title || s.title)}</b><span class="sub">${esc(id)} · ${fmtDate(s.departure_date)} · ${s.flight_from ? "Fly from " + esc(s.flight_from) : esc(s.port || "")}${s.removed ? " · left the feed" : ""}</span></button>`).join("")
+      res.innerHTML = hits.length ? hits.map(([id, s], i) => `<button type="button" data-gq="${esc(id)}"${i === on ? ' class="on"' : ""}><b>${esc(s.base_title || s.title)}</b><span class="sub">${esc(id)} · ${fmtDate(s.departure_date)} · ${s.flight_from ? "Fly from " + esc(s.flight_from) : esc(s.port || "")}${s.removed ? " · " + LEFT.toLowerCase() : ""}</span></button>`).join("")
         : `<p class="sub">No sailing matches "${esc(q.value.trim())}".</p>`;
       res.hidden = false;
     };
@@ -1660,7 +1703,7 @@ const auth = getAuth(firebaseApp);
   $("t-csv").addEventListener("click", () => {
     const today = state.updated, cab = id => ((cabins[id] || {}).cabins) || {};
     const cp = (id, key) => { const h = cab(id)[key]; return !h ? "" : h.out ? "sold out" : h.seg[h.seg.length-1].p; };
-    const grades = ["inside","ocean_view","balcony","suite"];
+    const grades = CAB.map(x => x[0]);
     const header = ["Cruise code","Sailing","Ship","Departs from","Flights from","Departure date","Nights","From price pp","Lead cabin",
       ...grades.map(g => `Twin ${GRADE[g].toLowerCase()} pp`), ...grades.map(g => `Solo ${GRADE[g].toLowerCase()}`),
       "Price since","Price changes","Status","Was/now was","Was/now now","Was/now ends","Promotions","Nectar points (2 sharing, Ambassador fare)","Flags","First seen","Booking link"];
@@ -1707,7 +1750,7 @@ const auth = getAuth(firebaseApp);
       for (const x of r.nectar_changes || []) if ((curAt = x.at || null, true)) add(d, "nectar", x.id, `Nectar points ${fmtPts(x.from)} → ${fmtPts(x.to)}`);
       curAt = null;
       for (const id of r.new || []) add(d, "feed", id, "New sailing in the feed");
-      for (const id of r.removed || []) add(d, "feed", id, "Left the feed");
+      for (const id of r.removed || []) add(d, "feed", id, LEFT);
       for (const id of r.returned || []) add(d, "feed", id, "Back in the feed");
     }
     const K = {drop: 0, rise: 1, cabin: 2, avail: 3, promo: 4, nectar: 5, feed: 6};
@@ -1921,8 +1964,8 @@ const auth = getAuth(firebaseApp);
 
     const feed = keys.map(k => { const xs = days(k).map(d => byDay[d]).filter(Boolean); return xs.length ? xs[xs.length - 1].count : null; });
     const added = total("new") - (start <= first ? (byDay[first].new || 0) : 0);  // on the first day every sailing was new
-    cards.push(["Sailings in the ad feed", `${added} added and ${total("removed")} removed in this period${start <= first ? `, not counting the ${byDay[first].count} there when records began` : ""}.`,
-      tchart(keys, [{name: "Sailings in the feed", color: "var(--c1)", type: "line", vals: feed}], {xlab, tiplab, W}), ""]);
+    cards.push([FR ? "Sailings on sale" : "Sailings in the ad feed", `${added} added and ${total("removed")} removed in this period${start <= first ? `, not counting the ${byDay[first].count} there when records began` : ""}.`,
+      tchart(keys, [{name: FR ? "Sailings on sale" : "Sailings in the feed", color: "var(--c1)", type: "line", vals: feed}], {xlab, tiplab, W}), ""]);
 
     cards.forEach(c => { if (c[2] && c[2].line && c[2].line.filter(v => v != null).length < 2){ c[2] = null; c[3] = [c[3], "The chart fills in as more days are recorded."].filter(Boolean).join(" "); } });
     box.innerHTML = `<div class="tgrid">${cards.map(([h, lead, ch, note], i) => `<div class="tcard" data-i="${i}"><h3>${h}</h3>${lead ? `<p class="lead">${esc(lead)}</p>` : ""}${ch ? ch.html : ""}${note ? `<p class="note">${esc(note)}</p>` : ""}</div>`).join("")}</div>
@@ -1957,6 +2000,9 @@ const auth = getAuth(firebaseApp);
   // Pages shown only to some signed-in people (Sam, 13 Oct 2026: the Email creator is hidden for everyone else
   // for now). This only hides the menu entry; it isn't a lock (everyone signed in is on the allowlist anyway).
   const ONLY = {email: ["sam.brooker@ambassadorcruiseline.com"]};
+  // France (stage 1, prices): no creative pages yet, no ad feed and no was/now
+  const FR_HIDE = ["cards", "ads", "gads", "ecards", "email", "coverage", "rules"];
+  const FR_LABEL = {feedgap: "Page vs booking"};
   let me = "";
   const mayView = v => !ONLY[v] || ONLY[v].includes(me.toLowerCase());
   // Grouped (Sam, 13 Oct 2026: "tidy up the nav"): prices, then making ads, then the checks behind them.
@@ -1974,8 +2020,16 @@ const auth = getAuth(firebaseApp);
     ["feedgap", "Feed vs website", ["h-feedgap"], "Checks"],
     ["runs", "Check history", ["h-runs"], "Checks"],
     ["rules", "Was/now rules", ["h-rules"], "Checks"],
-  ].map(([id, label, secs, grp]) => [id, label, secs.map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
+  ].filter(v => !FR || !FR_HIDE.includes(v[0]))
+   .map(v => FR && FR_LABEL[v[0]] ? [v[0], FR_LABEL[v[0]], v[2], v[3]] : v)
+   .map(([id, label, secs, grp]) => [id, label, secs.filter(x => !(FR && x === "h-queue")).map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
    .filter(v => v[2].length);
+  // Sections of pages France doesn't show stay hidden
+  if (FR) [...FR_HIDE.map(v => ({cards: "h-cards", ads: "h-ads", gads: "h-gads", ecards: "h-ecards", email: "h-email", coverage: "h-coverage", rules: "h-rules"})[v]), "h-queue"]
+    .forEach(h => { const s = $(h) && $(h).closest("section"); if (s) s.hidden = true; });
+  if (FR && $("h-feedgap")) $("h-feedgap").lastChild.textContent = "Cruise pages vs booking prices";
+  // France has one ship and no fly-cruises from UK airports: no ship buttons or fly filter
+  if (FR) { const sg = document.querySelector('.seg[aria-label="Ship"]'); if (sg) sg.hidden = true; if ($("f-kind")) $("f-kind").hidden = true; ship = ""; filt.kind = ""; }
   $("sidenav").innerHTML = VIEWS.map(([id, label, , grp], i) =>
     (i === 0 || VIEWS[i - 1][3] !== grp ? `<p class="grp" aria-hidden="true">${grp}</p>` : "") +
     `<button type="button" data-view="${id}"${ONLY[id] ? " hidden" : ""}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[id]}</svg><span class="lbl">${label}</span><span class="n" id="nav-${id}"></span></button>`).join("");
@@ -1983,7 +2037,7 @@ const auth = getAuth(firebaseApp);
   try { const v = localStorage.getItem("spw-view"); if (VIEWS.some(x => x[0] === v)) wanted = v; } catch(e){}
   view = mayView(wanted) ? wanted : "overview";
   function showView(v, scroll = true){
-    if (!mayView(v)) v = "overview";
+    if (!mayView(v) || !VIEWS.some(x => x[0] === v)) v = "overview";   // (a page France doesn't have)
     view = v;
     for (const [id, , secs] of VIEWS) secs.forEach(s => s.hidden = id !== v);
     const cur = VIEWS.find(x => x[0] === v); if (cur && $("navcur")) $("navcur").textContent = cur[1];
@@ -2146,16 +2200,24 @@ const auth = getAuth(firebaseApp);
       return;
     }
     try {
-      const [st, cab, rs, cov, tr, cd] = await Promise.all([readJson("current"), readJson("cabins"), readJson("runs"),
-        readJson("coverage").catch(() => null),   // the weekly coverage check may not have run yet
-        readJson("trends").catch(() => null),     // published since 12 Oct 2026
-        readJson("cards").catch(() => null)]);    // made by the hourly check since 12 Oct 2026
+      // France reads its own fr- documents (publish.py) and has no coverage, cards or T&Cs yet
+      const P = FR ? "fr-" : "", none = () => Promise.resolve(null);
+      const [st, cab, rs, cov, tr, cd] = await Promise.all([readJson(P + "current"), readJson(P + "cabins"), readJson(P + "runs"),
+        FR ? none() : readJson("coverage").catch(() => null),   // the weekly coverage check may not have run yet
+        readJson(P + "trends").catch(() => null),     // published since 12 Oct 2026
+        FR ? none() : readJson("cards").catch(() => null)]);    // made by the hourly check since 12 Oct 2026
       coverage = cov; trends = tr; cardsDoc = cd;
-      terms = await readJson("terms").catch(() => null);   // promotion T&Cs (terms.py, 13 Oct 2026)
+      terms = FR ? null : await readJson("terms").catch(() => null);   // promotion T&Cs (terms.py, 13 Oct 2026)
       cabins = cab.sailings || {};
       runs = rs;
       state = st;
     } catch (e) {
+      if (FR && e.code === "missing") {   // France before its first check has been published
+        gate("No French prices have been published yet. They appear after the next hourly check.", {signout: true});
+        $("gate").insertAdjacentHTML("beforeend", `<p><button type="button" class="btn quiet" id="gate-uk">Back to the UK</button></p>`);
+        $("gate-uk").addEventListener("click", () => { try { localStorage.setItem("spw-market", "uk"); } catch(e){} location.href = location.pathname; });
+        return;
+      }
       gate(e.code === "missing" ? "No prices have been published yet. They appear after the next daily run." :
            `The price data couldn't load: ${e.message}`, {signout: true});
       return;

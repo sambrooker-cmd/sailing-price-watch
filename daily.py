@@ -14,7 +14,11 @@ Each check, deterministically:
   6. summary                    -> out/summary.md, out/issue.md, GITHUB_OUTPUT new_claims=true|false
 
 Usage:
-  python daily.py [--date YYYY-MM-DD] [--snapshot PATH] [--no-cards] [--at ISO-TIME]
+  python daily.py [--market fr] [--date YYYY-MM-DD] [--snapshot PATH] [--no-cards] [--at ISO-TIME]
+
+  --market    fr = France (Ambassador Croisières; Sam, 14 Oct 2026): fr_enrich.py, files under data/fr, state/fr,
+              runs/fr and out/fr, prices in euros, no was/now claims. The "feed vs website" check becomes
+              "page vs booking" (the cruise page's "À partir de" figure vs booking's cheapest cabin).
 
   --snapshot  use an existing snapshot instead of fetching (testing)
   --at        the check's time (testing; default now, UTC)
@@ -60,7 +64,12 @@ def gh_output(**kv):
                 fh.write(f"{k}={v}\n")
 
 
+MARKET = "uk"
+
+
 def money(v):
+    if MARKET == "fr":
+        return f"{v:,.0f} €".replace(",", "\u202f")
     return f"£{v:,.0f}"
 
 
@@ -108,6 +117,21 @@ def feed_gap_report(st, snap, at):
     if not due:
         return ""
     open_now = sum(1 for r in st["sailings"].values() if r.get("feed_gap"))
+    if MARKET == "fr":
+        L = [f"# France: cruise pages don't match booking ({at[11:16]} UTC check)", "",
+             f"On {len(due)} French sailing{'s' if len(due) != 1 else ''}, the \"À partir de\" price on the cruise page has "
+             f"differed from booking's cheapest cabin for at least {FEED_GAP_HOURS} hours. The tracker and cards use "
+             "booking's price. Worth passing to whoever looks after the French website.", "",
+             "| Sailing | Page shows | Booking | Difference | Since (UTC) |", "|---|---|---|---|---|"]
+        for sid, r in due:
+            g = r["feed_gap"]
+            g["reported"] = at
+            d = g["feed"] - g["page"]
+            L.append(f"| [{r.get('title') or sid}]({r.get('link') or ''}) ({sid}) | {money(g['feed'])} | {money(g['page'])} | "
+                     f"page {'lower' if d < 0 else 'higher'} by {money(abs(d))} | {g['since'][:16].replace('T', ' ')} |")
+        L += ["", f"{open_now} French sailing{'s' if open_now != 1 else ''} differ right now: https://{HOSTING_SITE}.web.app "
+              "→ France → Checks → Page vs booking. Nothing has been changed on the website or in any ad account.", ""]
+        return "\n".join(L)
     L = [f"# Ad feed prices don't match the website ({at[11:16]} UTC check)", "",
          f"The Google ad feed (what the ads show) has had a different \"from\" price to the sailing's own page "
          f"for at least {FEED_GAP_HOURS} hours on {len(due)} sailing{'s' if len(due) != 1 else ''}. "
@@ -173,7 +197,9 @@ def summarise(run_doc, snap, today, cards, with_cards=True, reported=frozenset()
         other.append("Cheaper cabin grade came on sale (NOT a price cut): " +
                      ", ".join(f"{d['id']} {money(d['from'])}→{money(d['to'])} ({d['mix']})" for d in mix))
     nq = [d for d in plain if not (d.get("claim") or {}).get("eligible")]
-    if nq:
+    if nq and MARKET == "fr":   # France: no was/now, so no "qualify"
+        other.append("Price drops: " + ", ".join(f"{d['id']} {money(d['from'])}→{money(d['to'])}" for d in nq))
+    elif nq:
         other.append("Drops that don't qualify: " + ", ".join(
             f"{d['id']} {money(d['from'])}→{money(d['to'])} ({(d.get('claim') or {}).get('reason', '')})" for d in nq))
     if run_doc.get("lead_source_switch"):
@@ -212,7 +238,7 @@ def summarise(run_doc, snap, today, cards, with_cards=True, reported=frozenset()
         if run_doc[k]:
             other.append(f"{label}: " + ", ".join(run_doc[k]))
     when = f", {at[11:16]} UTC" if at else ""
-    head = f"# Price watch {today}{when}: {run_doc['count']} sailings"
+    head = f"# {'France price watch' if MARKET == 'fr' else 'Price watch'} {today}{when}: {run_doc['count']} sailings"
     if not L and not other:
         return head + "\n\nNo price changes.\n", False
     body = [head, ""]
@@ -236,12 +262,20 @@ def main():
     ap.add_argument("--snapshot")
     ap.add_argument("--no-cards", action="store_true")
     ap.add_argument("--at")
+    ap.add_argument("--market", default="uk", choices=("uk", "fr"))
     a = ap.parse_args()
+    global MARKET
+    MARKET = a.market
+    fr = a.market == "fr"
+    sub = "fr" if fr else ""   # France keeps its own files: data/fr, state/fr, runs/fr, out/fr
+    if fr:
+        a.no_cards = True      # no was/now cards for France
     today = a.date or london_today()
     at = a.at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    out = ROOT / "out"
-    out.mkdir(exist_ok=True)
-    run_path = ROOT / "runs" / f"{today}.json"
+    out = ROOT / "out" / sub
+    out.mkdir(parents=True, exist_ok=True)
+    runs = ROOT / "runs" / sub
+    run_path = runs / f"{today}.json"
     day = load(run_path) or None
     reported = {claim_key(e) for e in ((day or {}).get("reported") or [])}
 
@@ -249,15 +283,17 @@ def main():
     if a.snapshot:
         snap_path = Path(a.snapshot).resolve()
     else:
-        run(ROOT / "enrich.py", today)
-        snap_path = ROOT / "data" / f"snapshot_{today}.json"
+        run(ROOT / ("fr_enrich.py" if fr else "enrich.py"), today)
+        snap_path = ROOT / "data" / sub / f"snapshot_{today}.json"
     snap = json.loads(snap_path.read_text())
 
     # 2. safety
-    state_p, cab_p = ROOT / "state" / "current.json", ROOT / "state" / "cabins.json"
+    state_p, cab_p = ROOT / "state" / sub / "current.json", ROOT / "state" / sub / "cabins.json"
     probs = safety_problems(load(state_p), snap)
+    if fr and snap.get("list_total") and snap["count"] + len(snap.get("sold_out") or []) < 0.7 * snap["list_total"]:
+        probs.append(f"read {snap['count']} sailings but the cruise list says {snap['list_total']}")
     if probs:
-        msg = f"# Price watch {today}: NOT saved\n\nSafety check failed, nothing written:\n" + "\n".join(f"- {p}" for p in probs)
+        msg = f"# {'France price watch' if fr else 'Price watch'} {today}: NOT saved\n\nSafety check failed, nothing written:\n" + "\n".join(f"- {p}" for p in probs)
         (out / "summary.md").write_text(msg + "\n")
         (out / "issue.md").write_text(msg + "\n")
         print(msg)
@@ -265,12 +301,12 @@ def main():
         return 2
 
     # 3. tracker
-    report = run(ROOT / "tracker.py", state_p, snap_path, out, cab_p)
+    report = run(ROOT / "tracker.py", *(["--no-claims"] if fr else []), state_p, snap_path, out, cab_p)
     run_doc = json.loads((out / "run.json").read_text())
 
     # 4. save
-    (ROOT / "state").mkdir(exist_ok=True)
-    (ROOT / "runs").mkdir(exist_ok=True)
+    state_p.parent.mkdir(parents=True, exist_ok=True)
+    runs.mkdir(parents=True, exist_ok=True)
     st = json.loads((out / "state.json").read_text())
     st["updated_at"] = at
     gaps = feed_gap_report(st, snap, at)

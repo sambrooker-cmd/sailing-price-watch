@@ -17,6 +17,8 @@ has to understand the shape of the data:
                       every run, half a month per document (days 1-15 / 16-end), so the
                       "What changed" view can reach back past the recent runs; the page
                       loads them only when asked for older dates. Unchanged ones aren't rewritten.
+  pricewatch/fr-current, fr-cabins, fr-runs, fr-trends, fr-runs-YYYY-MM-1 / -2
+                      the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -71,9 +73,10 @@ def old_shown(old):
 OLD_SHOWN = 2
 
 
-def documents():
-    cur = load(ROOT / "state" / "current.json")
-    every = [load(p) for p in sorted((ROOT / "runs").glob("*.json"), reverse=True)]
+def history(state_dir, runs_dir, prefix=""):
+    """current, cabins, recent runs, trends and the half-month run archives of one market."""
+    cur = load(state_dir / "current.json")
+    every = [load(p) for p in sorted(runs_dir.glob("*.json"), reverse=True)]
     runs, size = [], 0
     for r in every[:MAX_RUNS]:
         size += len(json.dumps(r, ensure_ascii=False, separators=(",", ":")).encode())
@@ -83,16 +86,23 @@ def documents():
     archives = {}
     for r in every:
         archives.setdefault(half(r["date"]), []).append(r)
-    docs = {
-        "current": cur,
-        "cabins": load(ROOT / "state" / "cabins.json"),
-        "runs": runs,
-        "trends": {
+    return {
+        prefix + "current": cur,
+        prefix + "cabins": load(state_dir / "cabins.json"),
+        prefix + "runs": runs,
+        prefix + "trends": {
             "days": [day_counts(r) for r in reversed(every)],
-            "archives": {k: [v[-1]["date"], v[0]["date"]] for k, v in archives.items()},
+            "archives": {prefix + k: [v[-1]["date"], v[0]["date"]] for k, v in archives.items()},
         },
-        **archives,
+        **{prefix + k: v for k, v in archives.items()},
     }
+
+
+def documents():
+    docs = history(ROOT / "state", ROOT / "runs")
+    cur = docs["current"]
+    if (ROOT / "state" / "fr" / "current.json").exists():   # France (fr_enrich.py), once its first check has run
+        docs.update(history(ROOT / "state" / "fr", ROOT / "runs" / "fr", "fr-"))
     if (ROOT / "state" / "cards.json").exists():
         man = load(ROOT / "state" / "cards.json")
         slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since", "review",
@@ -113,8 +123,8 @@ def documents():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         if len(s.encode()) > MAX_BYTES:
             raise SystemExit(f"pricewatch/{name} is {len(s.encode()):,} bytes, too close to Firestore's 1 MiB limit")
-        out[name] = {"json": s, "updated": cur.get("updated", "")}
-        if name.startswith("runs-"):
+        out[name] = {"json": s, "updated": (data.get("updated") if name in ("fr-current", "fr-cabins") else None) or cur.get("updated", "")}
+        if name.startswith(("runs-", "fr-runs-")):
             out[name]["sha"] = hashlib.sha256(s.encode()).hexdigest()
     return out
 
