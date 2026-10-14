@@ -1,6 +1,6 @@
 {
  "date": "2026-10-14",
- "count": 223,
+ "count": 224,
  "new": [],
  "removed": [
   "A12626",
@@ -8,7 +8,8 @@
   "A22637"
  ],
  "returned": [
-  "A32650"
+  "A32650",
+  "A22637"
  ],
  "drops": [
   {
@@ -85,18 +86,23 @@
  ],
  "eligible": [],
  "flags": {
+  "A12639": [
+   "feed price £519 differs from cheapest cabin on the page £549 (the page price is used)"
+  ],
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
-  "A22630BR": [
-   "feed price £1,279 differs from cheapest cabin on the page £879 (the page price is used)"
+  "A22633": [
+   "feed price £299 differs from cheapest cabin on the page £449 (the page price is used)"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
-   "feed price £739 differs from cheapest cabin on the page £679 (the page price is used)",
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A22637": [
+   "feed price £579 differs from cheapest cabin on the page £429 (the page price is used)"
   ],
   "A32653M": [
    "feed image looks like campaign art (may contain text)"
@@ -110,6 +116,9 @@
   "A22702": [
    "feed price £1,899 differs from cheapest cabin on the page £2,379 (the page price is used)"
   ],
+  "A12704": [
+   "feed price £699 differs from cheapest cabin on the page £589 (the page price is used)"
+  ],
   "A12706": [
    "feed price £1,159 differs from cheapest cabin on the page £1,699 (the page price is used)"
   ],
@@ -121,9 +130,6 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22721NC": [
-   "feed price £1,349 differs from cheapest cabin on the page £1,199 (the page price is used)"
   ],
   "A22828LV": [
    "feed price £1,679 differs from cheapest cabin on the page £1,529 (the page price is used)"
@@ -337,6 +343,30 @@
    "feed": 1349,
    "page": 1199,
    "at": "2026-10-14T11:33:22Z"
+  },
+  {
+   "id": "A12639",
+   "feed": 519,
+   "page": 549,
+   "at": "2026-10-14T12:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 299,
+   "page": 449,
+   "at": "2026-10-14T12:07:15Z"
+  },
+  {
+   "id": "A22637",
+   "feed": 579,
+   "page": 429,
+   "at": "2026-10-14T12:07:15Z"
+  },
+  {
+   "id": "A12704",
+   "feed": 699,
+   "page": 589,
+   "at": "2026-10-14T12:07:15Z"
   }
  ],
  "feed_gap_fixed": [
@@ -409,6 +439,27 @@
    "page": 1829,
    "how": "matches the website",
    "at": "2026-10-14T11:07:16Z"
+  },
+  {
+   "id": "A22630BR",
+   "feed": 1279,
+   "page": 879,
+   "how": "matches the website",
+   "at": "2026-10-14T12:07:15Z"
+  },
+  {
+   "id": "A12634",
+   "feed": 739,
+   "page": 679,
+   "how": "matches the website",
+   "at": "2026-10-14T12:07:15Z"
+  },
+  {
+   "id": "A22721NC",
+   "feed": 1349,
+   "page": 1199,
+   "how": "matches the website",
+   "at": "2026-10-14T12:07:15Z"
   }
  ],
  "lead_source_switch": [],
@@ -420,6 +471,7 @@
   "2026-10-14T09:07:14Z",
   "2026-10-14T10:07:14Z",
   "2026-10-14T11:07:16Z",
-  "2026-10-14T11:33:22Z"
+  "2026-10-14T11:33:22Z",
+  "2026-10-14T12:07:15Z"
  ]
 }
