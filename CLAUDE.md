@@ -233,12 +233,18 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   price_rise / cabin_off / offer_added / offer_ended / new / gone). Safety stop: fewer than half the pages read → nothing
   saved, exit 2 → "Competitor check FAILED" issue. First full run tested 14 Oct 2026 from here (~110 pages, ~6 min).
 - `publish.py`: `pricewatch/comp-current` (without the `tried` bookkeeping) and `comp-runs` (last 60 days, ≤ 400 KB).
-- Tracker page **Prices → Competitors** (`site/competitors.js`, UK only, loaded when opened): tiles; "Typical price per
-  night" table (median per line and cabin type, twin, with **Ambassador (our website)** over the same months from our
-  own state/cabins); sailings table with filters (line, cabin type, two sharing / solo, month, no-fly only, sort), from
-  price, was, per night, change over 7 days, and **Ambassador per night** = our cheapest of the same cabin type in the same
-  month, within 3 nights' length, same no-fly/fly ("we're N% cheaper/dearer"); offers (brand-wide and per line, with
-  sailing counts); what changed in the last 7 days; CSV. Remembered per browser (`spw-comp`). Not done: Saga; iglu (the
+- Tracker page, its own menu group **Competitors** (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs
+  Ambassador section"; `site/competitors.js`, UK only, data read once and shared, redrawn whenever one of the pages is
+  opened; filters shared and remembered per browser, `spw-comp`): **Competitor prices** (tiles; every sampled sailing with
+  filters line / cabin type / two sharing or solo / month / no-fly only / sort, from price, was, fare, per night, change
+  over 7 days, offers; what changed in the last 7 days; CSV). **Competitor offers** (their live offers: Fred. Olsen's
+  brand-wide deals and each line's offers with "N of M sampled sailings"; ended in the last 30 days; **Ambassador's own
+  live promotions** from our state for comparison). **Vs Ambassador** ("Typical price per night" by line and cabin type,
+  median, with **Ambassador (our website)** over the same months and "we're N% cheaper/dearer" per cell; head to head by
+  line: sailings matched, "we're cheaper on N of M", typical difference; every matched sailing against **our closest** =
+  our cheapest of the same cabin type in the same month, within 3 nights' length, same no-fly/fly, linked to its detail
+  view, sorted where we're dearest first; CSV; and **Ambassador at Planet Cruise vs our website**: the agent's price per
+  cabin type for our own sailings, matched by ship and date). Not done: Saga; iglu (the
   same data as Planet Cruise); a newsletter mailbox (Sam: later).
 
 ## Hard rules (do not change without Sam)
