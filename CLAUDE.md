@@ -101,6 +101,41 @@ ended, cabin choice sold out, uploaded photo to add again); the Saved dialog sho
 … Opening it brings it up to date."), adds a "Needs updating (N)" filter, and the button says "Saved ads (N) · M need
 updating". The thumbnail uses the first sailing still on sale.
 
+## France (14 Oct 2026, Sam: "do all of it for France"; all markets managed by the UK team)
+Ambassador Croisières, `https://www.ambassadorcroisieres.fr` (Next.js site, ex-CFC; ship Renaissance, booking code RN2).
+Built **as if France has no ad feed** (Sam). **No was/now for France** (Sam: "leave the was now pricing for now"): prices
+only. Germany (Ambassador Kreuzfahrten, ambassadorkreuzfahrten.de) is only a holding page so far; it can follow the same
+pattern when bookings open. Stages, one PR each: 1 prices (done), 2 French cards + Ad creator, 3 emails, Email cards,
+Google Ads and Draft with Claude in French. The tracker's own screens stay in English; only what goes out is French.
+- `fr_enrich.py` → `data/fr/snapshot_DATE.json` (same shape as enrich.py's): sailings from the cruise list page
+  `/croisieres` (its `totalCount`, 54 on 14 Oct 2026) plus the sitemap; details from each cruise page's Next.js payload
+  (`cruise_code` R######, title, dates, nights, `port`/`arrival_port`, offer tags, banner photos with captions
+  `photo_captions`, e.g. "Bastia, Corse, France", from `cms.ambassadorcroisieres.fr/assets/<id>`); **prices from the
+  site's booking API** `POST /api/tiller/cabin-categories` {locale, cruise_code, departure_date, no_of_passengers}
+  (what the page's "Les cabines" block asks): per category `lowestPerPersonPrice` and `cabinsAvailable`, for 2 adults
+  (twin) and 1 (solo). Calls are made one at a time (in parallel it answered "TCE - Internal Server Error"). Cabin keys
+  (`CABIN_IDS`): inside, obstructed (Vue Mer Obstruée), ocean_view, promenade (Terrasse Promenade), balcony, suite,
+  grand_suite (Grande Suite Renaissance). From price = cheapest twin cabin on sale (`price_source` "page"); booking
+  unreadable → "feed" (tracker keeps the last price). A sailing with no cabin on sale is left out (as the UK feed does).
+  Tags that are travel notices ("Passeport obligatoire", "Taxes … non incluses") go to `notices`, not offers. The
+  page's own "À partir de" figure is `feed_price_pp`, so tracker.py's feed-gap check is **"page vs booking"** for France
+  (on 14 Oct 2026, 7 pages differed, 6 lower than booking, e.g. Corsica R280508 page 569 € vs booking 679 €). The site's
+  struck-through `barred_price` ("1 acheté = 1 offert": double the price) is kept in the snapshot only
+  (`site_barred_pp`), never in state or on the tracker. Caribbean sailings say "Vols disponibles" (flights from Paris by
+  phone, not included): `flights_available`, snapshot only.
+- `tracker.py --no-claims` (price history only; state `claims: false`, `rules: null`); `CABIN_ORDER` has France's grades.
+- `daily.py --market fr`: files in `data/fr`, `state/fr`, `runs/fr`, `out/fr`; prices in euros; a page-vs-booking gap
+  lasting 3 h → `out/fr/feed_gaps.md` → "France: pages don't match booking — DATE" issue; safety stop also when fewer than
+  70% of the cruise list's sailings were read. Workflow step **France prices** right after the UK one (`continue-on-error`,
+  runs even if the UK check failed; its own "France price watch FAILED" issue). About 2 minutes a check.
+- `publish.py`: `pricewatch/fr-current`, `fr-cabins`, `fr-runs`, `fr-trends`, `fr-runs-YYYY-MM-1/-2` (once `state/fr` exists;
+  the Firestore rule for `pricewatch/{docId}` already covers them).
+- Tracker page: **UK / France** switch under the logo (`MKT`, `?m=fr`, remembered in `spw-market`; switching reloads).
+  France shows Overview (third tile "Page vs booking"), Trends, What changed, Live promotions, Page vs booking and Check
+  history, in euros (€1,029), with Renaissance's 7 cabin grades (chart colours `--c5`…`--c7`); no ship buttons, fly
+  filter, was/now queue, Nectar, cards, creators, coverage or rules (`FR_HIDE`). Filters are remembered per market
+  (`spw-prefs-fr`). A shared Ad/Email creator link opened in France switches to the UK.
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
@@ -137,6 +172,7 @@ updating". The thumbnail uses the first sailing still on sale.
 | `coverage.py`, `.github/workflows/coverage.yml` | Weekly (Mondays 09:30 GMT + manual): sitemap vs ad feed. Writes `state/coverage.json` (sailings on sale on the website but not in the feed, with when each was first spotted), shown on the tracker page; opens an issue only for newly missing sailings. First manual check 12 Oct 2026: 415 site pages, 220 in feed, 15 on sale but missing (13 Curaçao S-codes, A22638, A12705, A12824). **Tags** (Sam, 13 Oct 2026): a sailing whose FareSummary `search-data.agents` isn't ["DIRECT"] (sold through an agent: semi-charters, which aren't meant to be on the site or in the feed) gets `charter: true`, a "Sold through agent" tag (Sam, 13 Oct 2026, renamed from "Semi-charter"; the server still returns these pages' HTML with prices, which is what coverage.py reads, but in a browser the site's own script sends visitors to /404/). **Browser check** (Sam, 13 Oct 2026, "only for pages identified as missing from the feed"): `visitor_404` opens just the on-sale-but-missing sailings in headless Chromium (Playwright, installed by coverage.yml) and waits up to 8 s for a redirect to /404/ → `visitor_404: true` and a red "404 for visitors" tag; such sailings also sort last, aren't counted and are never reported as newly missing. All 14 on 13 Oct 2026 (normal sailings checked: not flagged), sorts last, isn't counted in the menu badge and is never reported as newly missing (all 14 on 13 Oct 2026: the 12 Curaçao S-codes, A12705, A12824; 40 feed sailings checked were all DIRECT). Sitemap pages that return 404 (HTTP 404 or canonical /404/) are listed in `not_found` with a red "404" tag (141 on 13 Oct 2026, mostly past 2025–26 sailings still in the sitemap) |
 | Feed vs website (in `tracker.py`, `daily.py`, `site/index.html`) | **Ad feed price vs website** (Sam, 13 Oct 2026, after hearing the feed is refreshed daily): each check compares the feed's price (`feed_price_pp`) with the page's cheapest twin cabin (only when the page's prices were read). A difference → per sailing `feed_gap` {feed, page, since, seen, reported} (UTC check times); run lists `feed_gap_new` / `feed_gap_fixed`; fixed ones (matching again, or left the feed) kept 30 days in state `feed_gaps_fixed`. `daily.py` `feed_gap_report`: once a gap has lasted `FEED_GAP_HOURS` = 3 it's reported once → `out/feed_gaps.md` → a "Feed prices don't match the website — DATE" issue (one a day, comments after). Tracker page **Checks → Feed vs website** (count badge): current gaps, largest first, feed-lower ones highlighted (the ads show a price guests can't get), CSV download, fixed in the last 7 days. Recorded only: never part of claims, never changes the feed or any ad account |
 | `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
+| `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
 | `archive/2026-10-12-morning-run.json` | The 12 Oct morning change list, which the accidental second run overwrote in `runs/2026-10-12.json` |

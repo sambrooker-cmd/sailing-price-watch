@@ -6,7 +6,8 @@ State lives in the tracker artifact's database:
   runs/<date>    — what changed in each daily run
 
 Usage:
-  python3 tracker.py STATE.json SNAPSHOT.json OUT_DIR [CABINS.json]
+  python3 tracker.py [--no-claims] STATE.json SNAPSHOT.json OUT_DIR [CABINS.json]
+    --no-claims  price history only, no was/now claims (France)
     STATE.json   current state document (or a missing path on the first run)
     SNAPSHOT.json output of enrich.py for today
   Writes OUT_DIR/state.json, OUT_DIR/cabins.json and OUT_DIR/run.json.
@@ -52,7 +53,8 @@ RULES = {"min_reference_days": 28, "max_promo_days": 28, "min_saving_gbp": 10,
          "skip_departing_within_days": 7}
 META = ("title", "base_title", "flight_from", "ship", "port", "nights", "departure_date",
         "link", "image_link", "offer", "flags")
-CABIN_ORDER = ("inside", "ocean_view", "balcony", "suite")
+# UK grades, then France's (fr_enrich.py: obstructed view, promenade terrace and grand suite are Renaissance's own)
+CABIN_ORDER = ("inside", "obstructed", "ocean_view", "promenade", "balcony", "suite", "grand_suite")
 PAGE_FIELDS = ("departure_date", "offer")   # read from the sailing's page, not the feed
 RETURN_RESET_HOURS = 24                      # out of the feed longer than this → fresh reference period on return
 
@@ -235,7 +237,7 @@ def close_feed_gap(rec, at, run, sid, fixed, how):
     run["feed_gap_fixed"].append({"id": sid, "feed": gap["feed"], "page": gap["page"], "how": how})
 
 
-def update(state, snap):
+def update(state, snap, claims=True):
     today = snap["date"]
     at = (dt.datetime.fromisoformat(snap["fetched_at"]).replace(microsecond=0).isoformat().replace("+00:00", "Z")
           if snap.get("fetched_at") else f"{today}T12:00:00Z")
@@ -328,6 +330,10 @@ def update(state, snap):
             # a feed-vs-website gap stays open while the sailing is out of the feed (it often flickers for an hour),
             # so it isn't closed and reported again when it comes back (QA, 13 Oct 2026)
     for sid, rec in sailings.items():
+        if not claims:   # France: no was/now (Sam, 14 Oct 2026); price history only
+            rec.pop("claim", None)
+            rec.pop("cabin_claims", None)
+            continue
         claim = was_now(rec, today, rules)
         if claim:
             rec["claim"] = claim
@@ -360,7 +366,9 @@ def update(state, snap):
         del catalogue[oid]
     new_state = {"updated": today, "tracking_since": state.get("tracking_since", today),
                  "cabins_since": state.get("cabins_since", today),
-                 "rules": rules, "sailings": sailings}
+                 "rules": rules if claims else None, "sailings": sailings}
+    if not claims:
+        new_state["claims"] = False
     if promos_seen and first_promos:
         run["promo_tracking_started"] = True
     if page_seen or "lead_from_page_since" in state:
@@ -426,9 +434,11 @@ def write(o, name, doc):
 
 
 if __name__ == "__main__":
-    # tracker.py [--seed-cabins] STATE.json SNAPSHOT.json OUT_DIR [CABINS.json]
+    # tracker.py [--seed-cabins] [--no-claims] STATE.json SNAPSHOT.json OUT_DIR [CABINS.json]
     # writes OUT_DIR/state.json, OUT_DIR/cabins.json (and run.json unless seeding)
     args = sys.argv[1:]
+    claims = "--no-claims" not in args
+    args = [a for a in args if a != "--no-claims"]
     seed = args[0] == "--seed-cabins"
     if seed:
         args = args[1:]
@@ -442,7 +452,7 @@ if __name__ == "__main__":
         st, cab = split(seed_cabins(state, snap))
         print("seeded cabins; state bytes:", write(o, "state.json", st), "cabins bytes:", write(o, "cabins.json", cab))
         sys.exit()
-    st, run = update(state, snap)
+    st, run = update(state, snap, claims)
     st, cab = split(st)
     a, b = write(o, "state.json", st), write(o, "cabins.json", cab)
     write(o, "run.json", run)

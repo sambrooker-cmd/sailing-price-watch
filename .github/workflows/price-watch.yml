@@ -43,6 +43,17 @@ jobs:
           HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: python daily.py --no-cards
 
+      # France (Ambassador Croisières; Sam, 14 Oct 2026): ambassadorcroisieres.fr's cruise list, pages and booking
+      # prices, kept in state/fr and runs/fr. Prices only, no was/now. Runs whatever happened to the UK check, and a
+      # French problem never stops the UK prices being saved. See fr_enrich.py.
+      - name: France prices
+        id: fr
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
+        run: python daily.py --market fr
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms
@@ -98,8 +109,8 @@ jobs:
           python card_review.py
 
       - name: Commit results
-        # always(): prices are saved even if a later card step failed (QA, 13 Oct 2026)
-        if: always() && steps.watch.outcome == 'success'
+        # always(): prices are saved even if a later card step failed (QA, 13 Oct 2026); France's alone if the UK's failed
+        if: always() && (steps.watch.outcome == 'success' || steps.fr.outcome == 'success')
         run: |
           git config user.name "price-watch-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -137,6 +148,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         # One issue per day; later checks that find more add a comment (each sailing reported once).
         run: .github/issue.sh "Feed prices don't match the website — ${{ steps.watch.outputs.date }}" out/feed_gaps.md
+
+      - name: Open issue for French pages that don't match booking
+        if: steps.fr.outputs.feed_gaps == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .github/issue.sh "France: pages don't match booking — ${{ steps.fr.outputs.date }}" out/fr/feed_gaps.md
+
+      - name: Open issue if the France check failed
+        if: always() && steps.fr.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The France price check at $(date -u '+%H:%M') UTC failed or its safety check stopped it. The UK check isn't affected. Nothing French was saved unless the log says otherwise."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            [ -f out/fr/summary.md ] && cat out/fr/summary.md
+          } > /tmp/frfail.md
+          .github/issue.sh "France price watch FAILED — $(TZ=Europe/London date +%F)" /tmp/frfail.md
 
       - name: Open issue for ended was/now claims
         if: steps.cardrun.outputs.wasnow_ended != '' && steps.cardrun.outputs.wasnow_ended != '0'
