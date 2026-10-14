@@ -492,7 +492,7 @@ function draw(){
         ${sugg.length ? `<details class="ac-sugg"><summary>Suggested intros (${sugg.length})</summary>
           <p class="sub">Built from these sailings' own facts in Ambassador's tone of voice.</p>
           ${sugg.map((o, i) => `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span><p>${esc(o.text)}</p><button type="button" class="btn quiet" data-use="${i}">Use this</button></div>`).join("")}</details>` : ""}
-        ${claude.block("email", it.length > 0)}
+        ${claude.block("email", it.length ? "" : "Add at least one sailing to the email first, then Claude can draft the text.")}
         <label class="ac-lab" for="em-cta">Button under the intro <span class="sub">(blank = no button)</span></label>
         <input id="em-cta" value="${esc(em.cta)}">
         <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">

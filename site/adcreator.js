@@ -383,7 +383,7 @@ function draw(){
         <label class="ac-lab" for="ac-cta">Button</label>
         <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
         ${suggestions()}
-        ${claude.block("ad", textReady())}
+        ${claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}
       </div>
     </div>
     <div class="ac-main">
