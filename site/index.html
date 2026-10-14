@@ -1610,7 +1610,7 @@ const auth = getAuth(firebaseApp);
           </div>
         </div>
         <div class="dacts">
-          ${s.removed ? "" : FR ? `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>` : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
+          ${s.removed ? "" : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
           <button type="button" class="btn quiet sm" data-make="ecards" data-id="${esc(id)}">Make email card</button>
           <button type="button" class="btn quiet sm" data-make="gads" data-id="${esc(id)}">Add to Google Ads</button>`}
           <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
@@ -1644,6 +1644,8 @@ const auth = getAuth(firebaseApp);
     // Shared Ad creator / Email creator links are UK ads: switch to the UK market first
     if (FR && /^(ad|email)=/.test(h)) { try { localStorage.setItem("spw-market", "uk"); } catch(e){} location.href = location.pathname + location.hash; location.reload(); return; }
     // #adfr=… is a French ad (adcreator.js in the France market): open it there
+    if (!FR && h.startsWith("emailfr=")) { try { localStorage.setItem("spw-market", "fr"); } catch(e){} location.href = location.pathname + "?m=fr" + location.hash; return; }
+    if (FR && h.startsWith("emailfr=")) { sharedEmail = h.slice(8); if (dlg.open) dlg.close(); if (emailModule) { emailModule.openShared(sharedEmail); sharedEmail = null; } showView("email"); return; }
     if (!FR && h.startsWith("adfr=")) { try { localStorage.setItem("spw-market", "fr"); } catch(e){} location.href = location.pathname + "?m=fr" + location.hash; return; }
     if (FR && h.startsWith("adfr=")) { sharedAd = h.slice(5); if (dlg.open) dlg.close(); if (adsModule) { adsModule.openShared(sharedAd); sharedAd = null; } showView("ads"); return; }
     // #ad=… is a shared Ad creator link: open it there (site/adcreator.js openShared)
@@ -2005,7 +2007,8 @@ const auth = getAuth(firebaseApp);
   const ONLY = {email: ["sam.brooker@ambassadorcruiseline.com"]};
   // France (stage 1, prices): no creative pages yet, no ad feed and no was/now
   // France (stage 2, 14 Oct 2026): Cards and the Ad creator in French; Google Ads and email pages follow in stage 3
-  const FR_HIDE = ["gads", "ecards", "email", "coverage", "rules"];
+  // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
+  const FR_HIDE = ["coverage", "rules"];
   const FR_LABEL = {feedgap: "Page vs booking"};
   let me = "";
   const mayView = v => !ONLY[v] || ONLY[v].includes(me.toLowerCase());
@@ -2029,7 +2032,7 @@ const auth = getAuth(firebaseApp);
    .map(([id, label, secs, grp]) => [id, label, secs.filter(x => !(FR && x === "h-queue")).map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
    .filter(v => v[2].length);
   // Sections of pages France doesn't show stay hidden
-  if (FR) [...FR_HIDE.map(v => ({gads: "h-gads", ecards: "h-ecards", email: "h-email", coverage: "h-coverage", rules: "h-rules"})[v]), "h-queue"]
+  if (FR) [...FR_HIDE.map(v => ({coverage: "h-coverage", rules: "h-rules"})[v]), "h-queue"]
     .forEach(h => { const s = $(h) && $(h).closest("section"); if (s) s.hidden = true; });
   if (FR && $("h-feedgap")) $("h-feedgap").lastChild.textContent = "Cruise pages vs booking prices";
   if (FR && $("h-ads")) $("h-ads").lastChild.textContent = "Ad creator · France";
@@ -2158,7 +2161,7 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./emailcards.js?v=__BUILD__"), getAdkit()]);
       ecardsModule = m;
       const add = pendingAdd.ecards; delete pendingAdd.ecards;
-      await m.mount($("ecards"), {state, cabins, adkit: kit, terms, add,
+      await m.mount($("ecards"), {state, cabins, adkit: kit, terms, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2171,7 +2174,7 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./googleads.js?v=__BUILD__"), getAdkit()]);
       gadsModule = m;
       const add = pendingAdd.gads; delete pendingAdd.gads;
-      await m.mount($("gads"), {state, cabins, adkit: kit, add,
+      await m.mount($("gads"), {state, cabins, adkit: kit, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { gadsMounted = false; $("gads").innerHTML = `<p class="err">Google Ads couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2184,7 +2187,7 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./emailcreator.js?v=__BUILD__"), getAdkit()]);
       emailModule = m;
       const shared = sharedEmail; sharedEmail = null;
-      await m.mount($("emailc"), {state, cabins, adkit: kit, shared,
+      await m.mount($("emailc"), {state, cabins, adkit: kit, shared, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { emailMounted = false; $("emailc").innerHTML = `<p class="err">The email creator couldn't load: ${esc(e.message)}</p>`; }
   }

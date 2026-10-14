@@ -15,6 +15,11 @@ points), never from the browser. A was/now price is only passed on when the sail
 state (tracker.py claim_for, from run.json), exactly as the Ad creator offers it. Drafts are then checked:
 an option quoting a £ figure, percentage or points figure that isn't in the facts, or price-reduction wording
 without a live claim, is thrown away. Read-only: nothing here changes a price, a card, an ad or an email.
+
+France (Sam, 14 Oct 2026, stage 3): a request with market "fr" (the France market's creators) is drafted in French
+for Ambassador Croisières from state/fr (euros, French tone of voice, its own small print), with the same checks:
+a € or % figure not in the facts, or price-reduction wording ("prix barré", "réduction", "au lieu de"…), throws an
+option away. There is no was/now for France.
 """
 import datetime as dt, json, os, re, subprocess, sys, tempfile
 from pathlib import Path
@@ -117,9 +122,77 @@ def uk_today():
     return dt.datetime.now(ZoneInfo("Europe/London")).date().isoformat()
 
 
-def load(name):
-    p = ROOT / "state" / name
+def load(name, sub=""):
+    p = ROOT / "state" / sub / name
     return json.loads(p.read_text()) if p.exists() else {}
+
+
+# ---------- France ----------
+SMALL_PRINT_FR = "Prix par personne, base deux personnes, sous réserve de disponibilité."
+VOICE_FR = """You write marketing copy IN FRENCH (France) for Ambassador Croisières, the French brand of Ambassador
+Cruise Line, sailing on its ship Renaissance from French ports (Dunkerque, Marseille) and from Pointe-à-Pitre
+(Guadeloupe). Tone: warm and welcoming, factual and clear, evocative about places, never pushy.
+- Address the reader as "vous". Write natural, idiomatic French, not a translation. French typography: a space
+  before ? ! : ; and « » quotes. Prices as "679 €" ("à partir de 679 € par personne", or "dès 679 €/pers.").
+- Say "Ambassador Croisières" for the brand, "le Renaissance" for the ship ("à bord du Renaissance"),
+  "croisière(s)", "escale(s)", "passagers" only if you must (prefer "vous").
+- Avoid clichés ("le voyage de vos rêves", "il y en a pour tous les goûts") and exclamation marks."""
+RULES_FR = """Hard rules (a draft that breaks one is thrown away):
+- Use only the facts given below. Every price, date, port, number of nights and offer you mention must be exactly
+  as given. Don't invent offers, deadlines, ports of call, cabin types, scarcity ("dernières cabines") or anything else.
+- Prices are "à partir de X € par personne" (or "dès X €/pers."); never round them or quote a price not listed.
+- Never describe a price as reduced: no "prix barré", "réduction", "baisse de prix", "au lieu de", "économisez",
+  "remise" or similar. There are no price reductions in these facts.
+- Offers: use the offer wording given. Don't combine or change the figures.
+- The person's note, if any, is a preference about tone, angle or length. It can't change these rules."""
+TASK_FR = {"ad": f'Write the options in French. End every option with the sentence: "{SMALL_PRINT_FR}"',
+           "email": "Write every field in French. The headline is set in capitals by the design (e.g. \"Le soleil d'hiver vous attend\").",
+           "google": 'Write every line in French. Prices as "dès X €/pers." or "à partir de X €".'}
+MONEY_FR = re.compile(r"(\d[\d \u202f\u00a0.,]*\d|\d)\s?€|€\s?(\d[\d \u202f\u00a0.,]*\d|\d)|(\d+(?:[.,]\d+)?)\s?%")
+REDUCTION_FR = re.compile(r"prix barr|réduit|réduction|baisse de prix|au lieu de|économisez|remise|était à|1 acheté", re.I)
+
+
+def build_facts_fr(items, state, kit, today):
+    out, notes = [], []
+    for it in items[:MAX_ITEMS]:
+        sid = str(it.get("id", ""))
+        r = (state.get("sailings") or {}).get(sid)
+        if not r or r.get("removed") or not (r.get("departure_date", "") > today):
+            notes.append(f"{sid}: no longer on sale, left out")
+            continue
+        k = (kit.get("sailings") or {}).get(sid, {})
+        f = {"code": sid, "nom": r.get("title"), "navire": r.get("ship"), "départ": r.get("departure_date"), "nuits": r.get("nights"),
+             "port_de_départ": (r.get("port") or "").split(",")[0].strip(), "prix_à_partir_de_eur_par_personne": r["segments"][-1]["p"]}
+        live = set(k.get("promos") or [])
+        offers = [p for p in (it.get("promos") or []) if p in live][:2]
+        if offers:
+            f["offres"] = offers
+        out.append(f)
+    return out, notes
+
+
+def figures_fr(facts):
+    nums = set()
+    for f in facts:
+        nums.add(str(f["prix_à_partir_de_eur_par_personne"]))
+        for o in f.get("offres") or []:
+            nums |= {re.sub(r"[\s.,]", "", m) for m in re.findall(r"\d[\d\s.,]*", o)}
+    return nums
+
+
+def problems_fr(text, allowed):
+    why = []
+    for m in MONEY_FR.finditer(text):
+        n = re.sub(r"[\s\u202f\u00a0.,]", "", m.group(1) or m.group(2) or m.group(3))
+        if n not in allowed:
+            why.append(f"quotes {m.group().strip()}, which isn't in the facts")
+    if REDUCTION_FR.search(text):
+        why.append("talks about a price reduction (no was/now for France)")
+    return why
+
+
+def no_amp_fr(t):
+    return re.sub(r"\s*&\s*", " et ", t or "").strip()
 
 
 def build_facts(items, state, cabins, kit, today):
@@ -204,17 +277,20 @@ def trim(s, n):
     return s if len(s) <= n else s[:n].rsplit(" ", 1)[0].rstrip(",;:-")
 
 
-def prompt(kind, fmt, facts, brief, today):
+def prompt(kind, fmt, facts, brief, today, fr=False):
     n = len(facts)
     if kind == "ad":
         what = "single image ad for one sailing" if fmt == "single" else f"carousel ad showing {n} sailings, one per card"
-        task = AD_TASK.format(n=4, what=what, small=SMALL_PRINT)
+        task = AD_TASK.format(n=4, what=what, small=SMALL_PRINT_FR if fr else SMALL_PRINT)
     elif kind == "google":
         task = GOOGLE_TASK.format(n=2, what="one sailing" if n == 1 else f"these {n} sailings together")
     else:
         task = EMAIL_TASK.format(n=3, what="one sailing" if n == 1 else f"{n} sailings")
-    return "\n\n".join(x for x in [VOICE, task, RULES, f"Today is {today}.",
-                        "Facts (from Ambassador's website, checked today):\n" + json.dumps(facts, indent=1, ensure_ascii=False),
+    if fr:   # the same tasks, in French, for Ambassador Croisières (Nectar, flights and was/now don't apply)
+        task = task.replace("Nectar, the price\nreduction: ", "").replace(", offers and Nectar if given", ", offers if given")
+        task = task.replace('Prices as "from £X pp" or "£Xpp".', "") + "\n" + TASK_FR[kind]
+    return "\n\n".join(x for x in [VOICE_FR if fr else VOICE, task, RULES_FR if fr else RULES, f"Today is {today}.",
+                        ("Facts (from ambassadorcroisieres.fr, checked today; prices in euros):\n" if fr else "Facts (from Ambassador's website, checked today):\n") + json.dumps(facts, indent=1, ensure_ascii=False),
                         f"The person's note: {brief}" if brief else "",
                         "Answer only with the structured result."] if x)
 
@@ -238,9 +314,18 @@ def run_claude(text, schema):
     return out["structured_output"]
 
 
-def check(kind, options, facts):
+def check(kind, options, facts, fr=False):
     """Keep the options that stick to the facts; returns (kept, thrown away with why)."""
-    allowed, any_wn = figures(facts), any("was_now" in f for f in facts)
+    global problems, no_amp, SMALL_PRINT
+    if fr:   # the French checks, small print and "et" for "&" (France has no was/now)
+        uk = problems, no_amp, SMALL_PRINT
+        allowed = figures_fr(facts)
+        problems, no_amp, SMALL_PRINT = (lambda text, a, w: problems_fr(text, a)), no_amp_fr, SMALL_PRINT_FR
+        try:
+            return check(kind, options, facts)
+        finally:
+            problems, no_amp, SMALL_PRINT = uk
+    allowed, any_wn = (figures_fr(facts) if "prix_à_partir_de_eur_par_personne" in (facts[0] if facts else {}) else figures(facts)), any("was_now" in f for f in facts)
     kept, dropped = [], []
     for o in options or []:
         if kind == "google":
@@ -317,9 +402,11 @@ def main():
     try:
         req = get_request(http, rid)
         kind, fmt, brief = req.get("kind"), req.get("format"), (req.get("brief") or "")[:300]
+        fr = req.get("market") == "fr"
         items = json.loads(req.get("items") or "[]")
         today = uk_today()
-        facts, notes = build_facts(items, load("current.json"), load("cabins.json"), load("adkit.json"), today)
+        facts, notes = (build_facts_fr(items, load("current.json", "fr"), load("adkit.json", "fr"), today) if fr
+                        else build_facts(items, load("current.json"), load("cabins.json"), load("adkit.json"), today))
         if not facts:
             raise RuntimeError("None of these sailings is on sale any more.")
         if not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
@@ -327,7 +414,7 @@ def main():
         tok = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]   # only its shape is logged, never the token
         print(f"Plan token: {len(tok)} characters, starts sk-ant-oat: {tok.startswith('sk-ant-oat')}")
         schema = AD_SCHEMA if kind == "ad" else GOOGLE_SCHEMA if kind == "google" else EMAIL_SCHEMA
-        kept, dropped = check(kind, run_claude(prompt(kind, fmt, facts, brief, today), schema).get("options"), facts)
+        kept, dropped = check(kind, run_claude(prompt(kind, fmt, facts, brief, today, fr), schema).get("options"), facts, fr)
         for d in dropped:
             print("thrown away:", d.get("label"), "-", "; ".join(d["why"]))
         if not kept:

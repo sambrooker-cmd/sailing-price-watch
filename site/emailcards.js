@@ -6,14 +6,18 @@
 // Prices, dates, ships and offers come from the tracker's saved data; "Lower fares" offers never reach the
 // badges (cards_sync adkit). Everything is made in the browser; nothing is saved or sent anywhere.
 import * as cs from "./sections.js?v=__BUILD__";
-import {cropUrl} from "./adcards.js?v=__BUILD__";
+import {cropUrl, frMoney, frDate} from "./adcards.js?v=__BUILD__";
+// France (Sam, 14 Oct 2026, stage 3): mount(…, {market: "fr"}) makes the same cards in French and euros for Ambassador
+// Croisières ("À partir de 679 €/pers.", "7 nuits au départ de Marseille", French cabin grades), links to the sailing's page
+// (the French booking site has no deep link), captions suggested from the page's own photo captions. Own draft.
+let FR = false;
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+const money = v => FR ? frMoney(v) : "£" + Math.round(v).toLocaleString("en-GB");
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
-const KEY = "spw-email-cards";
+let KEY = "spw-email-cards";
 const MAX = 24;   // several cards at once again (Sam, 13 Oct 2026, after a day of one at a time)
 // Sizes and type measured from the team's HubSpot pictures (13 Oct 2026)
 const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across tiles", w: 1200, h: 924, badge: 44, cap: 46},
@@ -29,6 +33,8 @@ const outLabel = o => SIZES[o.split("-")[0]].label + (o.endsWith("-card") ? " ca
 
 export async function mount(el, ctx){
   root = el; ID = ctx.idToken || null; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated;
+  FR = ctx.market === "fr";
+  if (FR) { KEY = "spw-email-cards-fr"; GRADES = GRADES_FR; }
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
   T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
@@ -77,8 +83,8 @@ function badgeTerms(it){
 // Everything about the cards, one row each (Sam, 13 Oct 2026): also cards.csv in the zip.
 function csvText(){
   const sizes = outputs();
-  const rows = [["#", "Cruise code", "Name", "Departure date", "Nights", "Departs from", "Ship", "Fare", "Cabin", "Price £",
-    "Button", "Was £", "Was/now use until", "Link", "Sailing page link", "Booking link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
+  const rows = [["#", "Cruise code", "Name", "Departure date", "Nights", "Departs from", "Ship", "Fare", "Cabin", FR ? "Price €" : "Price £",
+    "Button", FR ? "Was €" : "Was £", "Was/now use until", "Link", "Sailing page link", "Booking link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
   st.items.forEach((it, i) => {
     const s = sailing(it.id), f = fareOf(it), w = words(it), tc = badgeTerms(it);
     rows.push([i + 1, it.id, s.title, s.r.departure_date, s.r.nights, s.fly ? s.fly + " Airport" : s.r.port, s.r.ship,
@@ -95,13 +101,14 @@ function termsText(it){
   return [...head, ...list.flatMap(x => [x.badge.toUpperCase(), "",
     ...(x.docs.length ? x.docs.flatMap(d => [(/^[a-z:,.£]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`),
                                            `(From ${d.pages[0]}${d.pages.length > 1 ? ` and ${d.pages.length - 1} more page${d.pages.length > 2 ? "s" : ""}` : ""})`, ""])
-      : [`No terms for this promotion were found on the website. General booking terms: ${(T && T.general) || "https://www.ambassadorcruiseline.com/information/terms-conditions/"}`, ""]),
+      : [`No terms for this promotion were found on the website. General booking terms: ${(T && T.general) || (FR ? "https://www.ambassadorcroisieres.fr/information/conditions-particulieres" : "https://www.ambassadorcruiseline.com/information/terms-conditions/")}`, ""]),
     ...(x.byName ? ["(Matched by a word in the promotion's name: check these are the right terms.)", ""] : [])])].join("\n");
 }
 const badgesOf = it => st.allBadges ? (sailing(it.id).k.promos || []).slice(0, 2) : it.badges;
 // A place name from a photo's file name, offered as a caption to check
-function captionHint(url){
+function captionHint(url, id){
   if ((url || "").startsWith("/ships/")) return "";   // the ship photo: no place name to suggest
+  if (FR) { const caps = id ? (KIT[id] || {}).captions || {} : Object.assign({}, ...Object.values(KIT).map(k => k.captions || {})); return caps[url] || ""; }   // the page's own caption
   const f = decodeURIComponent((url || "").split("/").pop() || "").replace(/\.\w+$/, "");
   const junk = /^(\d+|\d+x\d+|x|shutterstock|istock|getty|adobe|stock|selected|edited|dsc\d*|img\d*|new|to|use|amb|xxx|cotw|final|v\d+|copy|web|hero|header|crop(ped)?|at|sunset|aerial|view|\d+-\d+-\d+)$/i;
   const words = f.split(/[\s_\-]+/).filter(w => w && !junk.test(w) && !/\d/.test(w));
@@ -111,12 +118,13 @@ function captionHint(url){
 const CAMPAIGN = /cotw|dig-|carousel|boom-radio|weekender|back_to_|no-logo|renaissance|ambience|ambition|_ship|ship_/i;
 function pickPhoto(s){
   if (!s.k.campaign && !CAMPAIGN.test(s.image)) return s.image;
-  return s.photos.find(u => u !== s.image && !CAMPAIGN.test(u) && captionHint(u)) || s.photos.find(u => u !== s.image && !CAMPAIGN.test(u)) || s.image;
+  return s.photos.find(u => u !== s.image && !CAMPAIGN.test(u) && captionHint(u, s.id)) || s.photos.find(u => u !== s.image && !CAMPAIGN.test(u)) || s.image;
 }
 // Fare and cabin (Sam, 13 Oct 2026): twin or solo, the cheapest cabin or a chosen grade. Prices are the
 // tracker's saved per-grade prices (state/cabins.json "twin.<grade>" / "solo.<grade>", latest segment, not
 // sold out); the twin "cheapest" is the sailing's own lead price. Never typed in.
-const GRADES = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+let GRADES = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+const GRADES_FR = {inside: "Intérieure", obstructed: "Vue mer obstruée", ocean_view: "Vue mer", promenade: "Terrasse promenade", balcony: "Balcon", suite: "Suite", grand_suite: "Grande suite"};
 function onSale(id, fare){   // {grade: price} on sale now
   const out = {};
   for (const [k, c] of Object.entries((CAB[id] || {}).cabins || {})) {
@@ -148,29 +156,33 @@ function fareOf(it){   // {fare, grade, price, label, basis} for what's chosen, 
   if (grade) price = grades[grade];
   else if (fare === "twin") price = s.price;
   else { const best = Object.entries(grades).sort((a, b) => a[1] - b[1])[0]; if (best) { price = best[1]; } }
-  const basis = fare === "solo" ? "for one guest travelling solo" : "per person, based on two sharing";
+  const basis = FR ? (fare === "solo" ? "pour une personne voyageant seule" : "par personne, base deux personnes")
+    : fare === "solo" ? "for one guest travelling solo" : "per person, based on two sharing";
   if (price == null) return {fare, grade, price: null, label: "", basis};
+  if (FR) return {fare, grade, price, basis, label: fare === "solo" ? `Solo${grade ? " " + GRADES[grade].toLowerCase() : ""} à partir de ${money(price)}`
+                                                    : `${grade ? GRADES[grade] + " à" : "À"} partir de ${money(price)}/pers.`};
   const label = fare === "solo" ? `Solo ${grade ? GRADES[grade].toLowerCase() + " " : "pricing "}from ${money(price)}`
                                 : `${grade ? GRADES[grade] + " from" : "From"} ${money(price)}pp`;
   return {fare, grade, price, label, basis};
 }
 // The words that go under the picture in the email, as in the team's emails
-const pageLink = it => { const s = sailing(it.id), f = fareOf(it); return s.link + (f.fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""); };
+const pageLink = it => { const s = sailing(it.id), f = fareOf(it); return s.link + (f.fare === "solo" && !FR ? (s.link.includes("?") ? "&" : "?") + "solo=true" : ""); };
 // Booking flow link (Sam, 13 Oct 2026): the one the sailing page's cabin "Book" buttons open (the site's CabinTypes
 // handleBookingLink): book.ambassadorcruiseline.com with the cruise code, the cabin type (inner / outer / balcony /
 // suite) and 2 adults, or 1 for a solo fare. It opens step 1 (Cabin) with these chosen. "Cheapest available" uses
 // the grade that sets the from price for that fare. Tested 13 Oct 2026 in fresh browser sessions.
 const BOOK_TYPE = {inside: "inner", ocean_view: "outer", balcony: "balcony", suite: "suite"};
 function bookingLink(it){
+  if (FR) return pageLink(it);   // the French booking site has no link that opens a sailing's cabins: the page does
   const f = fareOf(it), grades = onSale(it.id, f.fare);
   const grade = f.grade || Object.keys(GRADES).find(g => grades[g] != null && grades[g] === f.price) || Object.keys(GRADES).find(g => grades[g] != null) || "inside";
   return `https://book.ambassadorcruiseline.com/?cruiseCode=${encodeURIComponent(it.id)}&cabinType=${BOOK_TYPE[grade]}&numberOfAdults=${f.fare === "solo" ? 1 : 2}`;
 }
 function words(it){
   const s = sailing(it.id), f = fareOf(it);
-  return {title: s.title.toUpperCase(), date: longDate(s.r.departure_date),
-          nights: `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
-          button: f.label || `From ${money(s.price)}pp`, link: it.linkTo === "booking" ? bookingLink(it) : pageLink(it),
+  return {title: s.title.toUpperCase(), date: FR ? frDate(s.r.departure_date) : longDate(s.r.departure_date),
+          nights: FR ? `${s.r.nights} nuits au départ de ${String(s.r.port || "").split(",")[0].trim()}` : `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
+          button: f.label || (FR ? `À partir de ${money(s.price)}/pers.` : `From ${money(s.price)}pp`), link: it.linkTo === "booking" ? bookingLink(it) : pageLink(it),
           pageLink: pageLink(it), bookingLink: bookingLink(it), basis: f.basis,
           was: f.claim ? `${f.claim.key !== "lead" ? f.claim.label + ": " : ""}was ${money(f.claim.was)}` : "", until: f.claim ? f.claim.ends : ""};
 }
@@ -356,7 +368,7 @@ function draw(){
             <span class="ec-btn">${esc(w.button)}</span></figcaption>`}
           <div class="ec-acts">
             <div>${outputs().map(o => `<button type="button" class="btn sm" data-dl="${i}:${o}">Download ${esc(outLabel(o).toLowerCase())}</button>`).join("")}</div>
-            <div><button type="button" class="btn quiet sm" data-copy="${i}">Copy text</button><button type="button" class="btn quiet sm" data-copylink="${i}:page">Copy sailing link</button><button type="button" class="btn quiet sm" data-copylink="${i}:booking">Copy booking link</button>${badgesOf(x).length ? `<button type="button" class="btn quiet sm" data-copyterms="${i}">Copy offer T&amp;Cs</button>` : ""}${htmlSizes().map(k => `<button type="button" class="btn quiet sm" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}</div>
+            <div><button type="button" class="btn quiet sm" data-copy="${i}">Copy text</button><button type="button" class="btn quiet sm" data-copylink="${i}:page">Copy sailing link</button>${FR ? "" : `<button type="button" class="btn quiet sm" data-copylink="${i}:booking">Copy booking link</button>`}${badgesOf(x).length ? `<button type="button" class="btn quiet sm" data-copyterms="${i}">Copy offer T&amp;Cs</button>` : ""}${htmlSizes().map(k => `<button type="button" class="btn quiet sm" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}</div>
           </div></figure>`;
       }).join("")}</div>
     </div></div>`;
@@ -386,19 +398,19 @@ function priceBlock(it){
     ${c ? `<p class="sub">Twin, from the tracker's live price-reduction claim. <b>Use this card by ${shortDate(c.ends)}</b>; if the claim ends sooner, the card goes back to its "From" price.</p>` : fareBlock(it)}`;
 }
 function editor(it){
-  const s = sailing(it.id), hint = captionHint(it.photo);
+  const s = sailing(it.id), hint = captionHint(it.photo, it.id);
   return `<div class="ac-block">
     <h3>${esc(s.title)}</h3>
     ${priceBlock(it)}
-    <div class="ac-row" role="group" aria-label="Link to"><span class="ac-lab">Link to</span>
+    ${FR ? `<p class="sub">Links go to the sailing's page on ambassadorcroisieres.fr.</p>` : `<div class="ac-row" role="group" aria-label="Link to"><span class="ac-lab">Link to</span>
       <button type="button" class="ac-seg" data-linkto="page" aria-pressed="${it.linkTo !== "booking"}">Sailing page</button>
       <button type="button" class="ac-seg" data-linkto="booking" aria-pressed="${it.linkTo === "booking"}">Booking</button></div>
-    <p class="sub">${it.linkTo === "booking" ? "Opens the booking flow at the cabin step with this cabin type and " + (fareOf(it).fare === "solo" ? "1 guest" : "2 guests") + " already chosen." : "Opens the sailing's page on the website."}</p>
+    <p class="sub">${it.linkTo === "booking" ? "Opens the booking flow at the cabin step with this cabin type and " + (fareOf(it).fare === "solo" ? "1 guest" : "2 guests") + " already chosen." : "Opens the sailing's page on the website."}</p>`}
     <span class="ac-lab">Photo</span>
     ${(() => { const g = cs.photoGrid("ec-item", s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`), s.photos.indexOf(it.photo || s.image)); return `<div class="ac-photos">${g.grid}</div>${g.more}`; })()}
     <label class="ac-lab" for="ec-caption">Location caption <span class="sub">(check it matches the photo)</span></label>
     <input id="ec-caption" value="${esc(it.caption)}" placeholder="e.g. Kirkwall, Scotland" maxlength="40">
-    ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="ec-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
+    ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="ec-hint">Use "${esc(hint)}" (${FR ? "the photo's caption on the website" : "from the photo's file name"})</button>` : ""}
     <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
     ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${st.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
     ${st.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked. Untick it to choose.</p>` : ""}
@@ -419,7 +431,8 @@ async function paint(){
 let typing;
 function change(redraw){ save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(draw, 500); } }
 const copyText = it => { const w = words(it); return [w.title, w.date, w.nights, w.ship, ...(w.was ? [w.was[0].toUpperCase() + w.was.slice(1)] : []), `${w.button}: ${w.link}`,
-  `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.${w.until ? ` Was/now price: use by ${shortDate(w.until)}.` : ""})`].join("\n"); };
+  FR ? `(Prix ${w.basis}, relevés le ${frDate(today)}, sous réserve de disponibilité.)`
+     : `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.${w.until ? ` Was/now price: use by ${shortDate(w.until)}.` : ""})`].join("\n"); };
 function wire(){
   const $ = q => root.querySelector(q);
   cs.wire(root, draw);
@@ -458,7 +471,7 @@ function wire(){
     $("#ec-wasnow") && $("#ec-wasnow").addEventListener("change", e => { cur.wasnow = e.target.value; change(true); });
     $("#ec-caption").addEventListener("input", e => { cur.caption = e.target.value; change(false); });
     $("#ec-name").addEventListener("input", e => { cur.name = e.target.value; save(); $("#ec-names").innerHTML = outputs().map(o => esc(fileName(cur, o))).join("<br>"); });
-    $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });
+    $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo, cur.id); change(true); });
     root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {
       const p = sailing(cur.id).k.promos[+b.dataset.badge];
       cur.badges = b.checked ? [...cur.badges.filter(x => x !== p), p].slice(-2) : cur.badges.filter(x => x !== p);
@@ -541,7 +554,7 @@ async function zip(){
     if (withBadges.length) z.file("offer-terms.txt", withBadges.map(termsText).join("\n\n"));
     z.file("cards.csv", csvText());
     status.textContent = "Zipping…";
-    download(URL.createObjectURL(await z.generateAsync({type: "blob"})), `email-cards_${today}.zip`);
+    download(URL.createObjectURL(await z.generateAsync({type: "blob"})), `email-cards_${FR ? "fr_" : ""}${today}.zip`);
     note = `Downloaded ${st.items.length * sizes.length} pictures. Prices as checked ${shortDate(today)}.`;
   } catch(e) { note = esc(`The zip couldn't be made: ${e.message}`); }
   draw();

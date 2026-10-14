@@ -7,24 +7,34 @@
 import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {gImageDoc, bannerDoc, logoDoc, RATIOS, BANNERS, LOGOS, BANNER_MAX_KB} from "./gbanners.js?v=__BUILD__";
-import {copySet, stalePrices, LIMITS, BUSINESS} from "./gcopy.js?v=__BUILD__";
+import {copySet as copySetUK, stalePrices as staleUK, LIMITS, BUSINESS as BUSINESS_UK} from "./gcopy.js?v=__BUILD__";
+import {copySet as copySetFR, stalePrices as staleFR, BUSINESS as BUSINESS_FR, SITE as SITE_FR} from "./gcopy_fr.js?v=__BUILD__";
+import {frMoney} from "./adcards.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
 import {feedRow, customiserRow, customiserLines, FEED_COLUMNS, ATTRIBUTES, TEXT_MAX} from "./gfeeds.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+// France (Sam, 14 Oct 2026, stage 3): mount(…, {market: "fr"}) makes the same images, copy and feeds for Ambassador
+// Croisières, in French and euros (gcopy_fr.js, gbanners/adcards d.fr, gfeeds s.fr), with its own draft in this browser.
+let FR = false;
+const money = v => FR ? frMoney(v) : "£" + Math.round(v).toLocaleString("en-GB");
+const copySet = items => FR ? copySetFR(items) : copySetUK(items);
+const stalePrices = (t, items) => FR ? staleFR(t, items) : staleUK(t, items);
+let BUSINESS = BUSINESS_UK;
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
-const KEY = "spw-google";
+let KEY = "spw-google";
 const MAX = 20;
 const GRADE = {inside: "Inside cabins", ocean_view: "Ocean view cabins", balcony: "Balcony cabins", suite: "Suites"};
-const CTAS = ["Book now", "Find out more", "View cruise", "Explore"];
+let CTAS = ["Book now", "Find out more", "View cruise", "Explore"];
+const CTAS_FR = ["Réserver", "En savoir plus", "Voir la croisière", "Découvrir"];
 // Campaign artwork carries its own words, which Google advises against on Performance Max images: start on a photo
 const CAMPAIGN = /cotw|dig-|carousel|boom-radio|weekender|back_to_|no-logo/i;
 
 let S, KIT, CAB = {}, ID = null, root, today, LOGO = "", st = fresh(), sel = 0, note = "";
 function fresh(){
-  return {items: [], cta: "Book now", tab: "images", copyMode: "each", copy: {},
-          campaigns: {search: "Search - Cruises", pmax: "Performance Max - Cruises", dg: "Demand Gen - Cruises"},
+  return {items: [], cta: CTAS[0], tab: "images", copyMode: "each", copy: {},
+          campaigns: FR ? {search: "Search - Croisières FR", pmax: "Performance Max - Croisières FR", dg: "Demand Gen - Croisières FR"}
+                        : {search: "Search - Cruises", pmax: "Performance Max - Cruises", dg: "Demand Gen - Cruises"},
           make: {photo: true, card: true, banners: true, logos: true}, feedSale: false,
           ratios: {landscape: true, square: true, portrait: true},
           banners: Object.fromEntries(Object.keys(BANNERS).map(k => [k, true]))};
@@ -33,7 +43,9 @@ function fresh(){
 export async function mount(el, ctx){
   root = el; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated; ID = ctx.idToken || null;
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};
-  LOGO = await (await fetch("logo-white.svg")).text();
+  FR = ctx.market === "fr";
+  if (FR) { KEY = "spw-google-fr"; CTAS = CTAS_FR; BUSINESS = BUSINESS_FR; st = fresh(); }
+  LOGO = await (await fetch(FR ? "logo-fr-white.svg" : "logo-white.svg")).text();
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || "null");
     if (d && Array.isArray(d.items)) {
@@ -85,7 +97,7 @@ const claimOf = it => it.wasnow ? claims(it.id).find(c => c.key === it.wasnow) |
 // What the designs need, in the Ad creator's card shape (adcards.js)
 function cardData(it){
   const s = sailing(it.id), c = claimOf(it), photo = it.photo || s.image;
-  return {id: it.id, title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date,
+  return {id: it.id, fr: FR, title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date,
           price: s.price, promos: (s.k.promos || []).slice(0, s.k.nectar ? 1 : 2), nectar: s.k.nectar || "", photo,
           campaign: !!s.k.campaign && photo === s.image, words: null, trustpilot: "",
           wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
@@ -144,7 +156,7 @@ function draw(){
         <input id="g-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
         <div id="g-results" class="ac-results"></div>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
-          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${money(claimOf(x) ? claimOf(x).now : s.price)}pp${claimOf(x) ? " · was/now" : ""}</span></button>
+          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)} · ${money(claimOf(x) ? claimOf(x).now : s.price)}${FR ? "/pers." : "pp"}${claimOf(x) ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
           <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>`
           : `<p class="sub">Search above and add the sailings you want Google Ads images for.</p>`}`)}
@@ -190,6 +202,7 @@ function editor(it){
     ${cl.length ? `<label class="ac-lab" for="g-wasnow">Price</label>
       <select id="g-wasnow"><option value="">From ${money(s.price)}pp</option>${cl.map(x => `<option value="${esc(x.key)}"${c && c.key === x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (until ${shortDate(x.ends)})</option>`).join("")}</select>
       ${c ? `<p class="sub">From the tracker's live price-reduction claim: stop using these images by <b>${shortDate(c.ends)}</b>.</p>` : ""}`
+      : FR ? `<p class="sub">Price on the images: from ${money(s.price)}/pers. (no was/now for France).</p>`
       : `<p class="sub">Price on the images: from ${money(s.price)}pp. (Was/now is only offered when this sailing has a live price-reduction claim.)</p>`}
     <span class="ac-lab">Photo</span>
     <div class="ac-photos">${g.grid}</div>${g.more}
@@ -296,14 +309,14 @@ async function zip(){
     z.file("HOW_TO_UPLOAD.md", howTo(outs));
     status.textContent = "Zipping…";
     const blob = await z.generateAsync({type: "blob"});
-    download(URL.createObjectURL(blob), `google-ads_${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
+    download(URL.createObjectURL(blob), `google-ads_${FR ? "fr_" : ""}${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
     status.textContent = `Downloaded ${outs.length} images. Prices as checked ${shortDate(today)}.`;
   } catch(e) { status.textContent = `The zip couldn't be made: ${e.message}`; }
   finally { btn.disabled = false; }
 }
 function howTo(outs){
   const has = g => outs.some(o => o.group === g), by = useBy();
-  return [`# Google Ads images`, ``,
+  return [`# Google Ads images${FR ? " (France: Ambassador Croisières)" : ""}`, ``,
     `Made on the Sailing price watch tracker. Prices as checked ${shortDate(today)}.` + (by ? ` **Images with a was/now price must stop being used by ${shortDate(by)}.**` : ""),
     `Nothing has been sent to Google Ads. Check each image before uploading; the full list is in assets.csv.`, ``,
     ...(has("Performance Max and Demand Gen") ? [`## Performance Max and Demand Gen (folder performance-max)`, ``,
@@ -321,7 +334,8 @@ function howTo(outs){
 // ---------- ad copy (part 2) ----------
 // Copy is written per sailing (one ad group / asset group each) or for all the chosen sailings together. Suggestions
 // come from gcopy.js; any edit keeps that set's own copy in the draft (st.copy[key]) until "Back to suggestions".
-const SITE = "https://www.ambassadorcruiseline.com/";
+const SITE_UK = "https://www.ambassadorcruiseline.com/";
+const site = () => FR ? SITE_FR : SITE_UK;
 function copyItem(it){
   const d = cardData(it), s = sailing(it.id), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
   return {id: it.id, title: d.title, ship: d.ship, port: d.port, fly: d.fly, nights: d.nights, departure_date: d.departure_date,
@@ -331,7 +345,7 @@ function sets(){
   if (!st.items.length) return [];
   if (st.copyMode === "together" && st.items.length > 1) {
     const items = st.items.map(copyItem);
-    return [{key: "all:" + st.items.map(x => x.id).join(","), name: `All ${items.length} sailings`, group: `${items.map(i => i.id).join(" ")} together`, items, url: SITE}];
+    return [{key: "all:" + st.items.map(x => x.id).join(","), name: `All ${items.length} sailings`, group: `${items.map(i => i.id).join(" ")} together`, items, url: site()}];
   }
   return st.items.map(it => { const i = copyItem(it); return {key: it.id, name: `${i.title} (${i.id})`, group: `${i.id} ${i.title}`.slice(0, 120), items: [i], url: i.link}; });
 }
@@ -372,18 +386,18 @@ function copyMain(){
       <span class="sub" id="g-status" aria-live="polite">Prices as checked ${shortDate(today)}.${useBy() ? ` <b>Copy with a was/now price: stop using by ${shortDate(useBy())}.</b>` : ""}</span>
     </div>
     ${note ? `<p class="ac-note">${esc(note)}</p>` : ""}
-    <p class="sub">Built from these sailings' own prices, dates, ports, offers and Nectar points, within Google's character limits. Edit any line; edits are kept in this browser. Nothing is sent to Google Ads: download the CSVs and import them with Google Ads Editor (or copy the lines into Google Ads).</p>
+    <p class="sub">${FR ? "In French, built from these sailings' own prices, dates, ports and offers, within Google's character limits (have a French speaker read them)." : "Built from these sailings' own prices, dates, ports, offers and Nectar points, within Google's character limits."} Edit any line; edits are kept in this browser. Nothing is sent to Google Ads: download the CSVs and import them with Google Ads Editor (or copy the lines into Google Ads).</p>
     ${list.length > 1 ? `<label class="ac-lab" for="g-draftfor">Draft with Claude for</label><select id="g-draftfor">${list.map(x => `<option value="${esc(x.key)}"${x.key === draftKey(list) ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : ""}
     ${claude.block("google", "")}
     ${list.map(x => {
       const set = setOf(x), edited = !!st.copy[x.key], stale = stalePrices(allText(set), x.items);
       return `<div class="ac-block g-set"><h3>${esc(x.name)}</h3>
-        ${stale.length ? `<p class="ac-note">This copy mentions ${[...new Set(stale)].map(n => "£" + Number(n).toLocaleString("en-GB")).join(", ")}, which isn't a current price for these sailings. Change it, or go back to the suggestions.</p>` : ""}
+        ${stale.length ? `<p class="ac-note">This copy mentions ${[...new Set(stale)].map(n => money(Number(n))).join(", ")}, which isn't a current price for these sailings. Change it, or go back to the suggestions.</p>` : ""}
         <div class="gc-row"><label class="ac-lab sm" for="g-url-${esc(x.key)}">Final URL</label><input id="g-url-${esc(x.key)}" data-curl="${esc(x.key)}" value="${esc(urlOf(x))}" inputmode="url">
           ${edited ? `<button type="button" class="linkbtn" data-creset="${esc(x.key)}">Back to the suggestions</button>` : `<span class="sub">Suggestions (not edited)</span>`}</div>
         ${FIELDS.map(([g, title, fs]) => cs.section(`gc-${g}`, title, `${fs.map(([f, l]) => `${set[g][f].length} ${l.toLowerCase().split(" (")[0]}`).join(" · ")}`,
           fs.map(([f, l, lim]) => lineInputs(x.key, g, f, lim, l, g === "pmax" && f === "descriptions")).join("") +
-          (g === "rsa" ? `<div class="gc-list"><span class="ac-lab">Display path <span class="sub">(up to 15 characters each, after ambassadorcruiseline.com/)</span></span>
+          (g === "rsa" ? `<div class="gc-list"><span class="ac-lab">Display path <span class="sub">(up to 15 characters each, after ${FR ? "ambassadorcroisieres.fr" : "ambassadorcruiseline.com"}/)</span></span>
             <div class="gc-paths">${["path1", "path2"].map(f => `<input data-cp="${esc(x.key)}|${f}" value="${esc(set.rsa[f])}" maxlength="15" aria-label="${f}">`).join(" / ")}</div></div>` : "") +
           (g !== "rsa" ? `<p class="sub">Business name: ${BUSINESS}</p>` : ""), g === "rsa")).join("")}
         ${cs.section("gc-ext", "Sitelinks and callouts", `${set.sitelinks.length} sitelinks · ${set.callouts.length} callouts`, `
@@ -433,7 +447,7 @@ function wireCopy(){
   // Search and Performance Max headlines and descriptions, and the Performance Max long headlines
   claude.wire(root, "google", {ID, redraw: draw,
     body: () => { const x = sets().find(y => y.key === draftKey(sets()));
-      return {format: x.items.length === 1 ? "single" : "carousel", items: x.items.map(i => ({id: i.id, wasnow: (st.items.find(it => it.id === i.id) || {}).wasnow || null, promos: i.promos}))}; },
+      return {format: x.items.length === 1 ? "single" : "carousel", ...(FR ? {market: "fr"} : {}), items: x.items.map(i => ({id: i.id, wasnow: (st.items.find(it => it.id === i.id) || {}).wasnow || null, promos: i.promos}))}; },
     forWhat: () => (sets().find(y => y.key === draftKey(sets())) || {}).name || "",
     use: o => { const key = draftKey(sets()), e = editable(key);
       e.set.rsa.headlines = o.headlines.slice(0, 15); e.set.rsa.descriptions = o.descriptions.slice(0, 4);
@@ -471,7 +485,7 @@ async function editorZip(){
     }
     z.file("search_ads.csv", csv(rsa)); z.file("performance_max_asset_groups.csv", csv(pmax)); z.file("demand_gen_ads.csv", csv(dg));
     z.file("sitelinks.csv", csv(site)); z.file("callouts.csv", csv(call)); z.file("ad_copy.txt", text.join("\n"));
-    z.file("HOW_TO_IMPORT.md", [`# Importing into Google Ads Editor`, ``,
+    z.file("HOW_TO_IMPORT.md", [`# Importing into Google Ads Editor${FR ? " (France: use the Ambassador Croisières account; the copy is in French)" : ""}`, ``,
       `1. Open Google Ads Editor and download the latest changes for the account.`,
       `2. Account → Import → From file, and choose one CSV at a time (search_ads.csv, performance_max_asset_groups.csv, demand_gen_ads.csv, sitelinks.csv, callouts.csv).`,
       `3. Editor shows a preview: check the campaign and ad group names match yours (campaign names are set on the tracker's Ad copy tab), then Finish and review.`,
@@ -479,7 +493,7 @@ async function editorZip(){
       `Prices are as checked ${shortDate(today)}: if a price changes, update the ads. Every line is within Google's character limits.`,
       `Performance Max asset groups also need images: use the Images tab's zip.`].join("\n"));
     const blob = await z.generateAsync({type: "blob"});
-    download(URL.createObjectURL(blob), `google-ads-copy_${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
+    download(URL.createObjectURL(blob), `google-ads-copy_${FR ? "fr_" : ""}${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
     status.textContent = `Downloaded the copy for ${list.length} set${list.length === 1 ? "" : "s"}.`;
   } catch(e) { status.textContent = `The download couldn't be made: ${e.message}`; }
 }
@@ -489,9 +503,10 @@ async function editorZip(){
 // each, named as the Ad copy tab's "For each sailing" ad groups so they land on the same ad groups in Google Ads.
 const feedPhoto = s => [pickPhoto(s), ...s.photos].find(u => /^https?:\/\//.test(u) && !CAMPAIGN.test(u) && !/logo/i.test(u)) || (/^https?:/.test(s.image) ? s.image : "");
 function feedSailing(id){
-  const s = sailing(id), lead = st.feedSale ? claims(id).find(c => c.key === "lead") : null;
-  return {id, title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date,
-          price: s.price, link: s.link, image: feedPhoto(s), promos: s.k.promos || [], wasnow: lead ? {was: lead.was, now: lead.now, ends: lead.ends} : null};
+  const s = sailing(id), lead = st.feedSale && !FR ? claims(id).find(c => c.key === "lead") : null;
+  return {id, fr: FR, title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date,
+          // France: the site's own photo (Google fetches it itself, so the browser-only copies aren't needed)
+          price: s.price, link: s.link, image: FR ? s.r.image_link : feedPhoto(s), promos: s.k.promos || [], wasnow: lead ? {was: lead.was, now: lead.now, ends: lead.ends} : null};
 }
 function feedRows(){
   return live().filter(([, r]) => r.link).sort((a, b) => a[1].departure_date.localeCompare(b[1].departure_date) || a[0].localeCompare(b[0]))
@@ -501,6 +516,10 @@ const saleEnds = rows => rows.map(x => x.f.wasnow && x.f.wasnow.ends).filter(Boo
 const custRows = () => st.items.map(it => { const f = feedSailing(it.id); return {id: it.id, group: `${it.id} ${f.title}`.slice(0, 120), row: customiserRow(f)}; });
 
 function feedSettings(){
+  if (FR) return cs.section("g-feedset", "Feed settings", "from prices only", `
+    <p class="sub">No was/now for France: every sailing shows its from price ("Dès 679 €/pers.").</p>
+    <span class="ac-lab">Ad customisers</span>
+    <p class="sub">Values are made for the sailings added above, one ad group each, named as on the Ad copy tab ("For each sailing"), in the Search campaign "${esc(st.campaigns.search)}" (change it on the Ad copy tab).</p>`);
   return cs.section("g-feedset", "Feed settings", st.feedSale ? "was/now sale prices included" : "from prices only", `
     <label class="ac-check"><input type="checkbox" id="g-feedsale"${st.feedSale ? " checked" : ""}> Include was/now sale prices <span class="sub">(only sailings with a was/now claim live today, with the claim's own figures)</span></label>
     <p class="sub">Without this, every sailing shows its from price. With it, a sailing with a live claim shows "Was £X" and the sale price "Now £Y": upload a fresh feed before the claim ends.</p>
@@ -513,11 +532,11 @@ const table = (cols, rows) => `<div class="tablewrap"><table class="ptable g-tab
 
 function feedsMain(){
   const rows = feedRows(), ends = saleEnds(rows), sale = rows.filter(x => x.f.wasnow).length, noImg = rows.filter(x => !x.row["Image URL"]).length;
-  const cust = custRows(), lines = customiserLines(cust.map(x => x.row));
+  const cust = custRows(), lines = customiserLines(cust.map(x => x.row), FR);
   return `${note ? `<p class="ac-note">${esc(note)}</p>` : ""}
     <p class="sub">Nothing is sent to Google Ads: download the files and upload them in Google Ads. Prices are as checked ${shortDate(today)}; prices change, so upload a fresh copy regularly (at least weekly, and whenever prices move).</p>
     <div class="ac-block"><h3>Dynamic remarketing feed</h3>
-      <p class="sub">Every sailing on sale (${rows.length}) as a Google Ads "Custom" feed, for dynamic remarketing ads that show people the sailings they looked at. ID = cruise code: the website's Google tag must send the same IDs (dynx_itemid), so check that with whoever looks after the tag before using it. Title, subtitle and description are kept to ${TEXT_MAX} characters, as Google recommends.${sale ? ` <b>${sale} sailing${sale === 1 ? " has a" : "s have"} was/now sale price: upload a fresh feed by ${shortDate(ends)}.</b>` : ""}${noImg ? ` ${noImg} sailing${noImg === 1 ? " has" : "s have"} no usable photo.` : ""}</p>
+      <p class="sub">${FR ? "France: in French and euros, for the Ambassador Croisières Google Ads account. " : ""}Every sailing on sale (${rows.length}) as a Google Ads "Custom" feed, for dynamic remarketing ads that show people the sailings they looked at. ID = cruise code: the website's Google tag must send the same IDs (dynx_itemid), so check that with whoever looks after the tag before using it. Title, subtitle and description are kept to ${TEXT_MAX} characters, as Google recommends.${sale ? ` <b>${sale} sailing${sale === 1 ? " has a" : "s have"} was/now sale price: upload a fresh feed by ${shortDate(ends)}.</b>` : ""}${noImg ? ` ${noImg} sailing${noImg === 1 ? " has" : "s have"} no usable photo.` : ""}</p>
       <div class="ac-actions"><button type="button" class="btn" id="g-feed"${rows.length ? "" : " disabled"}>Download feed (CSV)</button><span class="sub" id="g-feedst" aria-live="polite"></span></div>
       ${table(FEED_COLUMNS.filter(c => c !== "Contextual keywords" && c !== "Image URL" && c !== "Final URL"), rows.slice(0, 8).map(x => x.row))}
       ${rows.length > 8 ? `<p class="sub">First 8 of ${rows.length} shown; the CSV has them all, with image, page link and keywords.</p>` : ""}
@@ -539,11 +558,11 @@ function wireFeeds(){
   $("#g-feed") && $("#g-feed").addEventListener("click", () => {
     const rows = feedRows();
     const csv = "﻿" + [FEED_COLUMNS, ...rows.map(x => FEED_COLUMNS.map(c => x.row[c]))].map(r => r.map(csvCell).join(",")).join("\r\n");
-    download(URL.createObjectURL(new Blob([csv], {type: "text/csv"})), `remarketing_feed_${today}.csv`);
+    download(URL.createObjectURL(new Blob([csv], {type: "text/csv"})), `remarketing_feed_${FR ? "fr_" : ""}${today}.csv`);
     const ends = saleEnds(rows);
     $("#g-feedst").textContent = `Downloaded ${rows.length} sailings.${ends ? ` Sale prices: upload a fresh feed by ${shortDate(ends)}.` : ""}`;
   });
-  const lines = customiserLines(custRows().map(x => x.row));
+  const lines = customiserLines(custRows().map(x => x.row), FR);
   root.querySelectorAll("[data-custcopy]").forEach(b => b.addEventListener("click", async () => {
     const t = lines[+b.dataset.custcopy].text;
     try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = "Copy"; }, 1500); } catch(e) { prompt("Copy this line", t); }
@@ -562,11 +581,11 @@ function wireFeeds(){
         `   match yours (they follow the Ad copy tab's "For each sailing" ad groups), then Apply. If Google asks for its own template,`,
         `   download it from the same page and copy these columns across.`,
         `3. In each responsive search ad, use the lines below (type { in the headline box and pick Ad customizer, or paste them).`, ``,
-        ...customiserLines(cust.map(x => x.row)).map(l => `- ${l.kind}: ${l.text}  (e.g. "${l.example}")`), ``,
+        ...customiserLines(cust.map(x => x.row), FR).map(l => `- ${l.kind}: ${l.text}  (e.g. "${l.example}")`), ``,
         `When prices change, upload a new customizer_values.csv (step 2): the ads update without being edited.`,
         `Values with a price are only right while the price is.`].join("\n"));
       const blob = await z.generateAsync({type: "blob"});
-      download(URL.createObjectURL(blob), `google-ads-customisers_${today}.zip`);
+      download(URL.createObjectURL(blob), `google-ads-customisers_${FR ? "fr_" : ""}${today}.zip`);
       status.textContent = `Downloaded values for ${cust.length} ad group${cust.length === 1 ? "" : "s"}.`;
     } catch(e) { status.textContent = `The download couldn't be made: ${e.message}`; }
   });
