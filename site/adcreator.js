@@ -155,8 +155,15 @@ async function loadVideos(){
 }
 const SIZE_NAME = {"1x1": "1:1", "4x5": "4:5", "9x16": "9:16"};
 const ago = iso => new Date(iso).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"});
+// Only this ad's videos (Sam, 14 Oct 2026: videos made for another ad showed on a new one): a video belongs to the ad
+// when it was made from the same sailings (in any order). Older videos have no list of codes: they're read from the
+// title, "Name (A12345), …". Everyone else's are one click away under "Videos from other ads".
+let showOther = false;
+const keyOf = codes => [...new Set(codes)].sort().join(",");
+const videoKey = v => keyOf(v.codes && v.codes.length ? v.codes : [...(v.title || "").matchAll(/\(([A-Z0-9]{4,20})\)/g)].map(m => m[1]));
 function videosBlock(){
   if (!videos || !videos.length) return `<div id="ac-videos"></div>`;
+  const here = keyOf(ad.cards.map(c => c.id)), mine = ad.cards.length ? videos.filter(v => videoKey(v) === here) : [], other = videos.filter(v => !mine.includes(v));
   const row = v => {
     const who = esc((v.by || "").split("@")[0].replace(/[._]/g, " "));
     const head = `<div class="ac-vh"><b>${esc(v.title || "Ad")}</b><span class="sub">${v.cards} cards · ${who} · ${esc(ago(v.at))}</span></div>`;
@@ -170,11 +177,16 @@ function videosBlock(){
         `<a href="${esc(f.url)}" download="${esc(f.name)}">${esc(f.length)} s</a><button type="button" class="linkbtn" data-play="${esc(f.url)}" aria-label="Play ${SIZE_NAME[sz] || sz} ${esc(f.length)} seconds">▶</button>`).join(" ")}</span>`).join("")}</div>
       ${playing && v.files.some(f => f.url === playing) ? `<video src="${esc(playing)}" controls autoplay muted playsinline></video>` : ""}</li>`;
   };
-  return `<div id="ac-videos" class="ac-block ac-vids"><h3>Videos</h3>
-    <p class="sub">Made from this page in the last 30 days, newest first, by anyone on the tracker. No sound: add music in Ads Manager. Click a length to download it, or ▶ to watch it here.</p>
-    <ul>${videos.slice(0, 12).map(row).join("")}</ul></div>`;
+  if (!mine.length && !showOther) return `<div id="ac-videos" class="ac-vids-other"><button type="button" class="linkbtn" id="ac-vother">Videos from other ads (${other.length})</button></div>`;
+  return `<div id="ac-videos" class="ac-block ac-vids">${mine.length ? `<h3>Videos of this ad</h3>
+    <p class="sub">Made in the last 30 days from these sailings, newest first. No sound: add music in Ads Manager. Click a length to download it, or ▶ to watch it here.</p>
+    <ul>${mine.slice(0, 12).map(row).join("")}</ul>` : ""}
+    ${other.length ? `<button type="button" class="linkbtn" id="ac-vother">${showOther ? "Hide" : "Show"} videos from other ads (${other.length})</button>
+      ${showOther ? `<p class="sub">Made by anyone on the tracker in the last 30 days.</p><ul>${other.slice(0, 12).map(row).join("")}</ul>` : ""}` : ""}</div>`;
 }
 function wireVideos(){
+  const o = root.querySelector("#ac-vother");
+  o && o.addEventListener("click", () => { showOther = !showOther; const box = root.querySelector("#ac-videos"); box.outerHTML = videosBlock(); wireVideos(); });
   root.querySelectorAll("[data-play]").forEach(b => b.addEventListener("click", () => {
     playing = playing === b.dataset.play ? null : b.dataset.play;
     const box = root.querySelector("#ac-videos"); box.outerHTML = videosBlock(); wireVideos();
@@ -186,7 +198,7 @@ async function makeVideo(){
   btn.disabled = true; btn.textContent = "Starting…";
   try {
     const sl = slides();
-    await videoApi("POST", {code: await pack({v: 1, ad: portable()}), cards: sl.length,
+    await videoApi("POST", {code: await pack({v: 1, ad: portable()}), cards: sl.length, codes: ad.cards.map(c => c.id),
                             title: sl.filter(x => x.kind === "sailing").map(x => x.title).join(", ")});
     note = "Making your videos. They'll appear under Videos in about 4 minutes (this page checks every 20 seconds), and you can carry on working meanwhile." +
            (up ? " Uploaded photos can't be sent, so those cards use the feed image." : "");
