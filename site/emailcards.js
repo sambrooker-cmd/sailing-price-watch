@@ -32,6 +32,9 @@ export async function mount(el, ctx){
   T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
   st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
+  const ended = st.items.filter(it => it.wasnow && !claimOf(it));
+  ended.forEach(it => { it.wasnow = ""; });
+  if (ended.length) { note = `Since these cards were last open: ${ended.length} was/now price${ended.length === 1 ? "" : "s"} switched back to "From" because the price-reduction claim has ended.`; save(); }
   draw();
   if (ctx.add) addSailing(ctx.add);
 }
@@ -74,11 +77,11 @@ function badgeTerms(it){
 function csvText(){
   const sizes = outputs();
   const rows = [["#", "Cruise code", "Name", "Departure date", "Nights", "Departs from", "Ship", "Fare", "Cabin", "Price £",
-    "Button", "Link", "Sailing page link", "Booking link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
+    "Button", "Was £", "Was/now use until", "Link", "Sailing page link", "Booking link", "Location caption", "Offer badges", "Offer T&Cs on the website", "Photo", ...sizes.map(o => outLabel(o) + " file"), "Prices as checked"]];
   st.items.forEach((it, i) => {
     const s = sailing(it.id), f = fareOf(it), w = words(it), tc = badgeTerms(it);
     rows.push([i + 1, it.id, s.title, s.r.departure_date, s.r.nights, s.fly ? s.fly + " Airport" : s.r.port, s.r.ship,
-      f.fare === "solo" ? "Solo" : "Twin", f.grade ? GRADES[f.grade] : "Cheapest available", f.price ?? "", w.button, w.link, w.pageLink, w.bookingLink,
+      f.fare === "solo" ? "Solo" : "Twin", f.grade ? GRADES[f.grade] : "Cheapest available", f.price ?? "", w.button, f.claim ? f.claim.was : "", w.until, w.link, w.pageLink, w.bookingLink,
       it.caption, badgesOf(it).join("; "), tc.map(x => `${x.badge}: ${x.docs.length ? x.docs.map(d => d.title).join(", ") : "none found"}`).join("; "),
       it.photo || s.image, ...sizes.map(o => fileName(it, o)), today]);
   });
@@ -121,7 +124,23 @@ function onSale(id, fare){   // {grade: price} on sale now
   }
   return out;
 }
+// Was/now (Sam, 14 Oct 2026: option A of the mock-ups, chosen per card, never automatic): only a claim that is live
+// today in the tracker's state (tracker.py claim_for, as the Ad creator and Email creator), with its own figures.
+// The card then shows "was £X" struck through above a "Now £Ypp" button, twin, and goes back to "From" once it ends.
+function claims(id){
+  const s = sailing(id); if (!s) return [];
+  const out = [], c = s.r.claim;
+  if (c && c.eligible && c.ends >= today && c.now === s.price)
+    out.push({key: "lead", label: "Lead price", was: c.was, now: c.now, ends: c.ends, grade: s.k.lead_grade || null});
+  for (const [k, cc] of Object.entries((CAB[id] || {}).cabin_claims || {}))
+    if (k.startsWith("twin.") && GRADES[k.slice(5)] && cc.eligible && cc.ends >= today)
+      out.push({key: k, label: GRADES[k.slice(5)] + " cabins", was: cc.was, now: cc.now, ends: cc.ends, grade: k.slice(5)});
+  return out;
+}
+const claimOf = it => it.wasnow ? claims(it.id).find(c => c.key === it.wasnow) || null : null;
 function fareOf(it){   // {fare, grade, price, label, basis} for what's chosen, falling back if it's no longer on sale
+  const c = claimOf(it);
+  if (c) return {fare: "twin", grade: c.key === "lead" ? "" : c.grade, price: c.now, label: `Now ${money(c.now)}pp`, basis: "per person, based on two sharing", claim: c};
   // Solo with no solo cabin on sale falls back to twin, so a card never shows a twin price as "solo" (QA, 13 Oct 2026)
   const s = sailing(it.id), fare = it.fare === "solo" && Object.keys(onSale(it.id, "solo")).length ? "solo" : "twin", grades = onSale(it.id, fare);
   let grade = it.grade && grades[it.grade] != null ? it.grade : "", price;
@@ -151,7 +170,8 @@ function words(it){
   return {title: s.title.toUpperCase(), date: longDate(s.r.departure_date),
           nights: `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
           button: f.label || `From ${money(s.price)}pp`, link: it.linkTo === "booking" ? bookingLink(it) : pageLink(it),
-          pageLink: pageLink(it), bookingLink: bookingLink(it), basis: f.basis};
+          pageLink: pageLink(it), bookingLink: bookingLink(it), basis: f.basis,
+          was: f.claim ? `${f.claim.key !== "lead" ? f.claim.label + ": " : ""}was ${money(f.claim.was)}` : "", until: f.claim ? f.claim.ends : ""};
 }
 // File name in the team's style: "<Caption> - Standard (<offers>).png", or the cruise code when there's no caption
 // A file name typed on the card (Sam, 13 Oct 2026) replaces all of that, keeping only the size and kind.
@@ -161,7 +181,7 @@ function fileName(it, out){
   if (cleanName(it.name || "")) return `${cleanName(it.name)} - ${SIZES[size].label}${card ? " card" : ""}.png`;
   const base = (it.caption.trim() || `${it.id} ${sailing(it.id).title}`).replace(/[\\/:*?"<>|]+/g, "").slice(0, 60);
   const f = fareOf(it), fare = f.fare === "solo" || f.grade ? [`${f.grade ? GRADES[f.grade] + " " : ""}${f.fare}`.trim()] : [];
-  const tags = [...fare, ...badgesOf(it).map(badgeText)];
+  const tags = [...(claimOf(it) ? ["Was-now"] : []), ...fare, ...badgesOf(it).map(badgeText)];
   return `${base} - ${SIZES[size].label}${card ? " card" : ""}${tags.length ? ` (${tags.join(", ").replace(/[\\/:*?"<>|]+/g, "").slice(0, 70)})` : ""}.png`;
 }
 
@@ -202,6 +222,8 @@ async function render(it, size){
     return url;
   } finally { f.remove(); }
 }
+// "Balcony cabins: was <s>£1,899</s>" above the button on a was/now card
+const wasLine = (w, cls, style) => w.was ? `<p${cls ? ` class="${cls}"` : ""} style="${style}">${esc(w.was).replace(/(£[\d,]+)$/, "<s>$1</s>")}</p>` : "";
 // The whole card, laid out as in the team's emails (picture, NAME in Allium capitals, date, nights and port,
 // ship, Allium "From £Xpp" button) on the email's Pearl background, drawn at the email's size and saved
 // sharper (4x for a tile, 2x for full width), so it can be dropped into HubSpot as one image.
@@ -218,7 +240,7 @@ async function renderCard(it, size){
     <script>window.ready=async()=>{await document.fonts.ready;await Promise.all([...document.images].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r;})));};
     window.toPng=()=>htmlToImage.toPng(document.getElementById('card'),{pixelRatio:${c.scale},cacheBust:false,backgroundColor:'#F1ECE7'});<\/script></head>
     <body><div id="card"><img src="${pic}" alt=""><p class="t">${esc(w.title)}</p>
-    <p class="d">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}</p><span class="b">${esc(w.button)}</span></div></body></html>`;
+    <p class="d">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}</p>${wasLine(w, "d", "margin:0 0 8px")}<span class="b">${esc(w.button)}</span></div></body></html>`;
   if (made.has(doc)) return made.get(doc);
   const f = document.createElement("iframe");
   f.style.cssText = `position:fixed;left:-${c.w + 100}px;top:0;width:${c.w + 8}px;height:900px;border:0`;
@@ -274,7 +296,7 @@ function cardHtml(it, size, url){
 <a href="${esc(w.link)}" target="_blank"><img src="${esc(url)}" width="${pw}" alt="${esc(sailing(it.id).title)}" style="display:block;width:${pw}px;max-width:100%;height:auto;border:0"></a>
 <p style="margin:14px 0 10px;font-family:${F};font-weight:700;font-size:${wide ? 16 : 15}px;line-height:1.3;color:#6B207D;text-transform:uppercase">${esc(sailing(it.id).title)}</p>
 <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:#1B1220">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr><td bgcolor="#6B207D" style="background:#6B207D;border-radius:6px">
+${wasLine(w, "", `margin:0 0 8px;font-family:${F};font-size:14px;color:#1B1220`)}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr><td bgcolor="#6B207D" style="background:#6B207D;border-radius:6px">
 <a href="${esc(w.link)}" target="_blank" style="display:inline-block;padding:10px 16px;font-family:${F};font-size:15px;color:#ffffff;text-decoration:none;border-radius:6px">${esc(w.button)}</a></td></tr></table>
 </td></tr></table>`;
 }
@@ -305,7 +327,7 @@ function draw(){
       <div class="ac-block">
         <h3>Sailings (${it.length})</h3>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
-          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}</span></button>
+          <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}${claimOf(x) ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
           <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and add the sailings you need cards for. Click one to edit it.</p>`}
         <label class="ac-check"><input type="checkbox" id="ec-all"${st.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
@@ -323,7 +345,7 @@ function draw(){
         <button type="button" class="btn quiet" id="ec-csv"${it.length ? "" : " disabled"} title="Every card's details in a spreadsheet">Download CSV</button>
         ${it.some(x => badgesOf(x).length) ? `<button type="button" class="linkbtn" id="ec-terms" title="The website's T&amp;Cs for every offer badge on these cards">Copy offer T&amp;Cs</button>` : ""}
         <button type="button" class="btn quiet" id="ec-clear"${it.length ? "" : " disabled"}>Start again</button>
-        <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
+        <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.${useBy() ? ` <b>Was/now cards: use by ${shortDate(useBy())}.</b>` : ""}</span>
       </div>
       ${note ? `<p class="ac-note">${note}</p>` : ""}
       <p class="sub">The zip has a PNG per sailing for each size and download you've ticked, named like the team's (e.g. "Kirkwall, Scotland - Standard card (Up to £200 Onboard Credit).png"), plus <b>email-text.txt</b> and <b>cards.csv</b> with the words and links. In HubSpot, link a whole card to the sailing's page (the link is in the text file).</p>
@@ -356,11 +378,19 @@ function fareBlock(it){
     ${it.grade && !f.grade ? `<p class="ac-note">${esc(GRADES[it.grade] || it.grade)} cabins aren't on sale for this fare now, so the card uses the cheapest.</p>` : ""}
     <p class="sub">Button: <b>${esc(f.label || "no price on sale")}</b> · prices ${esc(f.basis)}, as checked ${shortDate(today)}.</p>`;
 }
+const useBy = () => st.items.map(claimOf).filter(Boolean).map(c => c.ends).sort()[0] || "";
+function priceBlock(it){
+  const cl = claims(it.id), c = claimOf(it);
+  if (!cl.length) return fareBlock(it);
+  return `<label class="ac-lab" for="ec-wasnow">Price</label>
+    <select id="ec-wasnow"><option value="">From price (choose the fare and cabin below)</option>${cl.map(x => `<option value="${esc(x.key)}"${c && c.key === x.key ? " selected" : ""}>Was/now: ${esc(x.label)}, was ${money(x.was)} now ${money(x.now)} (use by ${shortDate(x.ends)})</option>`).join("")}</select>
+    ${c ? `<p class="sub">Twin, from the tracker's live price-reduction claim. <b>Use this card by ${shortDate(c.ends)}</b>; if the claim ends sooner, the card goes back to its "From" price.</p>` : fareBlock(it)}`;
+}
 function editor(it){
   const s = sailing(it.id), hint = captionHint(it.photo);
   return `<div class="ac-block">
     <h3>${esc(s.title)}</h3>
-    ${fareBlock(it)}
+    ${priceBlock(it)}
     <div class="ac-row" role="group" aria-label="Link to"><span class="ac-lab">Link to</span>
       <button type="button" class="ac-seg" data-linkto="page" aria-pressed="${it.linkTo !== "booking"}">Sailing page</button>
       <button type="button" class="ac-seg" data-linkto="booking" aria-pressed="${it.linkTo === "booking"}">Booking</button></div>
@@ -388,7 +418,8 @@ async function paint(){
 }
 let typing;
 function change(redraw){ save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(draw, 500); } }
-const copyText = it => { const w = words(it); return [w.title, w.date, w.nights, w.ship, `${w.button}: ${w.link}`, `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.)`].join("\n"); };
+const copyText = it => { const w = words(it); return [w.title, w.date, w.nights, w.ship, ...(w.was ? [w.was[0].toUpperCase() + w.was.slice(1)] : []), `${w.button}: ${w.link}`,
+  `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.${w.until ? ` Was/now price: use by ${shortDate(w.until)}.` : ""})`].join("\n"); };
 function wire(){
   const $ = q => root.querySelector(q);
   const find = $("#ec-find"), res = $("#ec-results");
@@ -422,7 +453,8 @@ function wire(){
     root.querySelectorAll("[data-photo]").forEach(b => b.addEventListener("click", () => { cur.photo = b.dataset.photo; change(true); }));
     root.querySelectorAll("[data-fare]").forEach(b => b.addEventListener("click", () => { cur.fare = b.dataset.fare; cur.grade = ""; change(true); }));
     root.querySelectorAll("[data-linkto]").forEach(b => b.addEventListener("click", () => { cur.linkTo = b.dataset.linkto; change(true); }));
-    $("#ec-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
+    $("#ec-grade") && $("#ec-grade").addEventListener("change", e => { cur.grade = e.target.value; change(true); });
+    $("#ec-wasnow") && $("#ec-wasnow").addEventListener("change", e => { cur.wasnow = e.target.value; change(true); });
     $("#ec-caption").addEventListener("input", e => { cur.caption = e.target.value; change(false); });
     $("#ec-name").addEventListener("input", e => { cur.name = e.target.value; save(); $("#ec-names").innerHTML = outputs().map(o => esc(fileName(cur, o))).join("<br>"); });
     $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo); change(true); });

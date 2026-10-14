@@ -53,8 +53,14 @@ lead price's own grade. Not covered: real Storage upload and GitHub issue creati
 check). Email cards have no was/now design (prices are "From" only). Ad creator (Sam, 14 Oct 2026): a card's Meta description defaults to "Now £Ypp, was £X" on was/now cards
 (`descFor`, figures from the claim) and "From £Xpp" otherwise; an automatic description (`autoDesc`) follows the design
 and is refreshed with the latest price whenever the ad is opened (saved ads kept old prices before); typed wording is
-never changed. Email cards was/now: mocked up for Sam (A: "Balcony cabins: was ~~£1,899~~" above a "Now £1,739pp"
-button, as the Email creator; B: A plus an orange "Price reduction" badge), waiting on his choice.
+never changed. Email cards was/now (Sam, 14 Oct 2026: option A of two mock-ups, "an option rather than automatic"; the emails
+that need it will already carry a price-reduction badge, so no badge is added): per card **Price** select, shown
+only when the sailing has a claim live today (`claims()`, as the Email creator), default "From price". Chosen
+(`it.wasnow` = claim key): "Balcony cabins: was ~~£1,899~~" (lead: "Was ~~£X~~") above a "Now £Ypp" button, twin
+(fare/cabin choices hidden, booking link uses the claim's grade), in the whole-card PNG, the HTML block, Copy text
+("Was/now price: use by …"), the CSV ("Was £", "Was/now use until"), file names ("Was-now"), the cards list and
+the toolbar ("Was/now cards: use by" the earliest end). A claim that has ended switches the card back to "From"
+with a note when the page opens.
 
 ## Usability round (13 Oct 2026, Sam picked from the QA suggestions)
 - **Find a sailing** in the sidebar (`#gq`, "/" focuses it): name, port, ship, airport or code → its detail view (on-sale first).
