@@ -11,6 +11,7 @@
 // HubSpot specifics (template, unsubscribe token, UTM) are left for later (Sam).
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
+import * as claude from "./drafts.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -491,6 +492,7 @@ function draw(){
         ${sugg.length ? `<details class="ac-sugg"><summary>Suggested intros (${sugg.length})</summary>
           <p class="sub">Built from these sailings' own facts in Ambassador's tone of voice.</p>
           ${sugg.map((o, i) => `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span><p>${esc(o.text)}</p><button type="button" class="btn quiet" data-use="${i}">Use this</button></div>`).join("")}</details>` : ""}
+        ${claude.block("email", it.length > 0)}
         <label class="ac-lab" for="em-cta">Button under the intro <span class="sub">(blank = no button)</span></label>
         <input id="em-cta" value="${esc(em.cta)}">
         <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">
@@ -638,6 +640,13 @@ function wire(){
   root.querySelectorAll("[data-hero]").forEach(b => b.addEventListener("click", () => { em.hero.photo = b.dataset.hero; change(true); }));
   $("#em-nohero") && $("#em-nohero").addEventListener("click", () => { em.hero.photo = ""; change(true); });
   root.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => { em.intro = sugg[+b.dataset.use].text; change(true); }));
+  // Claude's drafts (drafts.js): subject, preview text, header words and intro together; facts come from saved state
+  claude.wire(root, "email", {ID, redraw: draw,
+    body: () => ({format: em.items.length === 1 ? "single" : "carousel",
+                  items: em.items.map(it => ({id: it.id, wasnow: claimOf(it) ? it.design.slice(7) : null, promos: badgesOf(it)}))}),
+    forWhat: () => em.items.map(it => sailing(it.id).title).join(", "),
+    use: o => { Object.assign(em, {subject: o.subject, preheader: o.preheader, intro: o.intro});
+                Object.assign(em.hero, {headline: o.headline.slice(0, 28), sub: o.sub.slice(0, 70)}); change(true); }});
   const cur = em.items[sel];
   if (cur) {
     root.querySelectorAll("[data-layout]").forEach(b => b.addEventListener("click", () => { cur.layout = b.dataset.layout; change(true); }));
