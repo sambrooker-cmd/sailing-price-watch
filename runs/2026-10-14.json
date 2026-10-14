@@ -32,9 +32,6 @@
   "A22705": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22706PO": [
-   "feed price £1,039 differs from cheapest cabin on the page £989 (the page price is used)"
-  ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
@@ -65,10 +62,19 @@
    "at": "2026-10-14T01:01:46Z"
   }
  ],
- "feed_gap_fixed": [],
+ "feed_gap_fixed": [
+  {
+   "id": "A22706PO",
+   "feed": 1039,
+   "page": 989,
+   "how": "matches the website",
+   "at": "2026-10-14T05:07:14Z"
+  }
+ ],
  "lead_source_switch": [],
  "reported": [],
  "checks": [
-  "2026-10-14T01:01:46Z"
+  "2026-10-14T01:01:46Z",
+  "2026-10-14T05:07:14Z"
  ]
 }
