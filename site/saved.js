@@ -3,7 +3,10 @@
 // thumbnail, its name, what's in it and when it was saved, and Open / Duplicate / Rename / Delete.
 // The creators keep their own storage; this only shows the list and calls back.
 //
-// openSaved({title, noun, items: [{id, name, saved_at, thumb, count, detail}], current,
+// Out-of-date warnings (Sam, 14 Oct 2026): each item's `issues` (from the creator's own normalise(): sailings no longer on
+// sale, ended was/now claims, ended offers, sold-out cabin choices, uploads to add again) show on its row before it's
+// opened, with a "Needs updating" filter. Opening an item fixes what it can and says what changed.
+// openSaved({title, noun, items: [{id, name, saved_at, thumb, count, detail, issues}], current,
 //            onOpen(id), onCopy(id), onRename(id, name), onDelete(id)})
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const when = iso => new Date(iso).toLocaleString("en-GB", {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"});
@@ -16,19 +19,21 @@ export function openSaved(o){
   dlg.setAttribute("aria-label", o.title);
   document.body.appendChild(dlg);
   let q = "", items = o.items.slice(), who = "all";
+  const stale = () => items.filter(x => (x.issues || []).length).length;
   const anyOthers = items.some(x => x.mine === false);
   const close = () => { dlg.close(); dlg.remove(); };
   const rows = () => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const list = items.filter(x => (who === "all" || x.mine !== false) && words.every(w => `${x.name} ${x.detail} ${x.by || ""}`.toLowerCase().includes(w)))
+    const list = items.filter(x => (who === "all" || (who === "stale" ? (x.issues || []).length : x.mine !== false)) && words.every(w => `${x.name} ${x.detail} ${x.by || ""}`.toLowerCase().includes(w)))
       .sort((a, b) => SORT === "name" ? a.name.localeCompare(b.name) : SORT === "old" ? a.saved_at.localeCompare(b.saved_at) : b.saved_at.localeCompare(a.saved_at));
     if (!items.length) return `<p class="sub">Nothing saved yet. Use "Save as…" to keep this ${o.noun} for later.</p>`;
-    if (!list.length) return `<p class="sub">No saved ${o.noun}s match "${esc(q)}".</p>`;
+    if (!list.length) return `<p class="sub">${who === "stale" && !q ? `Every saved ${o.noun} is up to date.` : `No saved ${o.noun}s match${q ? ` "${esc(q)}"` : ""}.`}</p>`;
     return `<ul class="sv-list">${list.map(x => `<li${x.id === o.current ? ' class="on"' : ""}>
       <div class="sv-thumb">${x.thumb ? `<img src="${esc(x.thumb)}" alt="" loading="lazy">` : ""}</div>
       <div class="sv-text"><b>${esc(x.name)}</b>${x.id === o.current ? ` <span class="sv-tag">Open now</span>` : ""}
         <span class="sub">${x.count} sailing${x.count === 1 ? "" : "s"} · saved ${esc(when(x.saved_at))}${x.by ? ` by ${esc(x.mine ? "you" : x.by)}` : ""}</span>
-        ${x.detail ? `<span class="sub sv-detail">${esc(x.detail)}</span>` : ""}</div>
+        ${x.detail ? `<span class="sub sv-detail">${esc(x.detail)}</span>` : ""}
+        ${(x.issues || []).length ? `<span class="sv-warn"><b>Needs updating:</b> ${esc(x.issues.join(" · "))}. Opening it brings it up to date.</span>` : ""}</div>
       <div class="sv-acts">
         <button type="button" class="btn sm" data-sv="open" data-id="${esc(x.id)}">Open</button>
         <button type="button" class="btn quiet sm" data-sv="copy" data-id="${esc(x.id)}">Duplicate</button>
@@ -40,7 +45,7 @@ export function openSaved(o){
       <button type="button" class="linkbtn" data-sv="close">Close</button></div>
     <div class="sv-tools">
       <input type="search" placeholder="Search names, sailings and people" aria-label="Search saved ${esc(o.noun)}s">
-      ${anyOthers ? `<select aria-label="Whose" data-who><option value="all">Everyone's</option><option value="mine">Mine</option></select>` : ""}
+      ${anyOthers || stale() ? `<select aria-label="Show" data-who><option value="all">${anyOthers ? "Everyone's" : "All"}</option>${anyOthers ? `<option value="mine">Mine</option>` : ""}${stale() ? `<option value="stale">Needs updating (${stale()})</option>` : ""}</select>` : ""}
       <select aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="name">Name A–Z</option></select>
     </div>
     ${o.note ? `<p class="sub" style="margin:0 0 8px">${esc(o.note)}</p>` : ""}

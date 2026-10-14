@@ -98,7 +98,11 @@ function normalise(d){
   if (ended) msgs.push(`${ended} was/now price${ended === 1 ? "" : "s"} switched to "From" because the price-reduction claim has ended`);
   if (cabins) msgs.push(`${cabins} cabin choice${cabins === 1 ? " is" : "s are"} no longer on sale, so ${cabins === 1 ? "it uses" : "they use"} the cheapest available`);
   if (offers) msgs.push(`${offers} offer badge${offers === 1 ? " was" : "s were"} removed because the offer has ended or changed`);
-  return {em: out, msgs};
+  // The same findings in a few words, shown on the item in the Saved list before it's opened (Sam, 14 Oct 2026)
+  const issues = [gone.length && `${gone.length} sailing${gone.length === 1 ? "" : "s"} no longer on sale`,
+    ended && `was/now claim ended on ${ended} sailing${ended === 1 ? "" : "s"}`, cabins && `${cabins} cabin choice${cabins === 1 ? "" : "s"} sold out`,
+    offers && `${offers} offer badge${offers === 1 ? "" : "s"} ended`].filter(Boolean);
+  return {em: out, msgs, issues};
 }
 function load(d, msg){
   const n = normalise(d); em = n.em; sel = 0; made = null;
@@ -134,7 +138,7 @@ function draftsBlock(){
       <button type="button" class="btn quiet sm" id="dr-link"${em.items.length ? "" : " disabled"}>Copy link</button>
       <button type="button" class="btn quiet sm" id="dr-new">New email</button>
     </div>
-    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved emails (${ids.length})</button>` : ""}
+    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved emails (${ids.length})${(n => n ? ` · ${n} need${n === 1 ? "s" : ""} updating` : "")(ids.filter(id => normalise(all[id].email).issues.length).length)}</button>` : ""}
     ${store && store.problem ? `<p class="ac-note">${esc(store.problem)}</p>` : ""}
     ${oldHere ? `<p class="sub" style="margin:8px 0 0">${oldHere} email${oldHere === 1 ? " is" : "s are"} saved in this browser only. <button type="button" class="linkbtn" id="dr-move">Move ${oldHere === 1 ? "it" : "them"} to the shared list</button></p>` : ""}
   </div>`;
@@ -608,10 +612,10 @@ function wire(){
     openSaved({title: "Saved emails", noun: "email", current: draftId,
       note: store.shared ? "Shared with everyone on the tracker. You can open or copy anyone's; only your own can be changed." : "",
       items: Object.entries(all).map(([id, d]) => {
-        const xs = (d.email.items || []), first = xs[0] && sailing(xs[0].id);
-        const photo = xs[0] && xs[0].photo && !String(xs[0].photo).startsWith("upload:") ? xs[0].photo : first && first.image;
+        const xs = (d.email.items || []), x0 = xs.find(x => sailing(x.id)), first = x0 && sailing(x0.id);   // the first still on sale
+        const photo = x0 && x0.photo && !String(x0.photo).startsWith("upload:") && first.photos.includes(x0.photo) ? x0.photo : first && first.image;
         return {id, name: d.name, saved_at: d.saved_at, count: xs.length, thumb: photo ? cropUrl(photo, 120, 90) : "",
-                by: d.by || "", mine: store.mine(id),
+                by: d.by || "", mine: store.mine(id), issues: normalise(d.email).issues,
                 detail: [...new Set(xs.map(x => (sailing(x.id) || {title: x.id}).title))].join(" · ")};
       }),
       onOpen: id => { const d = drafts()[id]; if (!d) return; draftId = id; load(d.email, `Opened "${d.name}"`); },
