@@ -1,14 +1,14 @@
 {
- "checked": "2026-10-13",
- "checked_at": "2026-10-13T20:48:23Z",
+ "checked": "2026-10-14",
+ "checked_at": "2026-10-14T16:02:24Z",
  "site_pages": 415,
  "feed": 225,
  "feed_not_on_site": [],
  "counts": {
   "not_found": 141,
   "no_prices": 28,
-  "sold_out": 7,
-  "on_sale": 14
+  "sold_out": 6,
+  "on_sale": 15
  },
  "on_sale_missing": [
   {
@@ -165,6 +165,18 @@
    "solo_only": false,
    "offers": [],
    "first_seen": "2026-10-12",
+   "visitor_404": true
+  },
+  {
+   "id": "A22720NC",
+   "url": "https://www.ambassadorcruiseline.com/cruise/a22720nc-back-to-the-beat/",
+   "title": "Weekend Escape to Holland",
+   "departure_date": "2027-08-27",
+   "charter": true,
+   "from_pp": 1439,
+   "solo_only": false,
+   "offers": [],
+   "first_seen": "2026-10-14",
    "visitor_404": true
   },
   {
