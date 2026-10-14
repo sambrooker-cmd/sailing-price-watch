@@ -98,22 +98,26 @@ def history(state_dir, runs_dir, prefix=""):
     }
 
 
+def cards_doc(man):
+    slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since", "review",
+                                            "kind", "cabin", "was", "now", "since", "ends", "do_not_use")
+                      if c.get(k) is not None} | {"files": {t: f["url"] for t, f in c["files"].items()}}
+    return {"updated_at": man.get("updated_at"), "sailings": {
+        sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in old_shown(m.get("old") or [])],
+              **({"wasnow": {k: slim(c) for k, c in m["wasnow"].items()}} if m.get("wasnow") else {})}
+        for sid, m in man.get("sailings", {}).items()}}
+
+
 def documents():
     docs = history(ROOT / "state", ROOT / "runs")
     cur = docs["current"]
     if (ROOT / "state" / "fr" / "current.json").exists():   # France (fr_enrich.py), once its first check has run
         docs.update(history(ROOT / "state" / "fr", ROOT / "runs" / "fr", "fr-"))
-    if (ROOT / "state" / "cards.json").exists():
-        man = load(ROOT / "state" / "cards.json")
-        slim = lambda c: {k: c.get(k) for k in ("made_at", "reason", "price", "promos", "nectar", "out_of_date_since", "review",
-                                                "kind", "cabin", "was", "now", "since", "ends", "do_not_use")
-                          if c.get(k) is not None} | {"files": {t: f["url"] for t, f in c["files"].items()}}
-        docs["cards"] = {"updated_at": man.get("updated_at"), "sailings": {
-            sid: {"current": slim(m["current"]) if m.get("current") else None, "old": [slim(o) for o in old_shown(m.get("old") or [])],
-                  **({"wasnow": {k: slim(c) for k, c in m["wasnow"].items()}} if m.get("wasnow") else {})}
-            for sid, m in man.get("sailings", {}).items()}}
-    if (ROOT / "state" / "adkit.json").exists():
-        docs["adkit"] = load(ROOT / "state" / "adkit.json")
+    for sub, prefix in (("", ""), ("fr", "fr-")):   # UK, then France (cards_sync.py --market fr)
+        if (ROOT / "state" / sub / "cards.json").exists():
+            docs[prefix + "cards"] = cards_doc(load(ROOT / "state" / sub / "cards.json"))
+        if (ROOT / "state" / sub / "adkit.json").exists():
+            docs[prefix + "adkit"] = load(ROOT / "state" / sub / "adkit.json")
     if (ROOT / "state" / "terms.json").exists():
         docs["terms"] = load(ROOT / "state" / "terms.json")
     if (ROOT / "state" / "coverage.json").exists():

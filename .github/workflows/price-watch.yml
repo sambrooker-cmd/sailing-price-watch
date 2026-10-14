@@ -69,8 +69,16 @@ jobs:
         continue-on-error: true   # a card problem must never stop prices being saved (QA, 13 Oct 2026)
         run: python cards_sync.py plan
 
+      # French standard cards (Sam, 14 Oct 2026, France stage 2): same as the UK's, in French and euros, under
+      # pricewatch-cards/fr in Storage and state/fr/cards.json. No was/now for France.
+      - name: Which French cards need making
+        id: frcards
+        if: always() && steps.fr.outcome == 'success'
+        continue-on-error: true
+        run: python cards_sync.py plan --market fr
+
       - name: Install the card renderer
-        if: steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0'
+        if: always() && ((steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0') || (steps.frcards.outputs.todo != '' && steps.frcards.outputs.todo != '0'))
         continue-on-error: true
         run: |
           pip install playwright==1.56.0
@@ -86,6 +94,16 @@ jobs:
         run: |
           pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
           python cards_sync.py run
+
+      - name: Make and upload French cards
+        id: frcardrun
+        if: always() && steps.frcards.outputs.work != '' && steps.frcards.outputs.work != '0'
+        continue-on-error: true   # a card problem must never stop prices being saved
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
+          python cards_sync.py run --market fr
 
       # Claude Code looks over new or remade cards and lists any that need a person's eye (Sam, 12 Oct 2026).
       # Runs on Sam's Claude plan (CLAUDE_CODE_OAUTH_TOKEN, from `claude setup-token`), not a paid API key;
@@ -189,6 +207,20 @@ jobs:
             [ -f out/summary.md ] && sed -n '/^## Cards/,$p' out/summary.md
           } > /tmp/cards.md
           .github/issue.sh "Cards FAILED — $(TZ=Europe/London date +%F)" /tmp/cards.md
+
+      - name: Open issue if French cards failed
+        if: always() && steps.frcardrun.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "French prices were saved, but some French cards couldn't be made or uploaded at $(date -u '+%H:%M') UTC. The next check tries again."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            [ -f out/fr/summary.md ] && sed -n '/^## France cards/,$p' out/fr/summary.md
+          } > /tmp/frcards.md
+          .github/issue.sh "France cards FAILED — $(TZ=Europe/London date +%F)" /tmp/frcards.md
 
       - name: Open issue for cards to check
         if: steps.review.outputs.flagged != '' && steps.review.outputs.flagged != '0'

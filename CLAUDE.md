@@ -135,6 +135,30 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   history, in euros (€1,029), with Renaissance's 7 cabin grades (chart colours `--c5`…`--c7`); no ship buttons, fly
   filter, was/now queue, Nectar, cards, creators, coverage or rules (`FR_HIDE`). Filters are remembered per market
   (`spw-prefs-fr`). A shared Ad/Email creator link opened in France switches to the UK.
+- **Stage 2 (14 Oct 2026): French cards and Ad creator.** `render_cards.py` draws French sailings (`is_fr`: snapshot
+  `market` "fr") in the same standard design: logo `logo-fr-white.svg` (the site's own Ambassador Croisières logo, made
+  white; colour copy `site/logo-fr.svg`), badge "À bord du Renaissance / Départ de <town>", "7 nuits", "8 mai 2028",
+  "À partir de 679 €/pers." (`fr_money`, `fr_date`), photos cropped by the CMS (`?width&height&fit=cover`). Offers:
+  `PRICE_CLAIM_FR` keeps "1 acheté = 1 offert" (shown on the site with a struck-through price) and price-cut wording
+  off cards; emoji/asterisks stripped; % offers first, then "offert". No was/now. `cards_sync.py --market fr`
+  (`use_market`): manifest `state/fr/cards.json`, files `pricewatch-cards/fr/…`, ad kit `state/fr/adkit.json` (with
+  photo `captions`), summary `out/fr`; workflow steps "Which French cards need making" / "Make and upload French cards"
+  (`continue-on-error`, own "France cards FAILED" issue). **French photos are copied into Storage**
+  (`pricewatch-cards/fr/photos/<asset id>.jpg`, 2400 px, `state/fr/photos.json`, never deleted, ~270 photos ≈ 100 MB):
+  cms.ambassadorcroisieres.fr only allows ambassadorcroisieres.fr to read its pictures from a browser, so the Ad creator
+  couldn't draw them; the ad kit points at the copies (a photo not copied yet is left out until the next run).
+  `publish.py`: `fr-cards`, `fr-adkit`. The card check (`card_review.py`) is UK only (Sam's plan usage; ask before adding France).
+  Tracker page in France: Cards page and the **Ad creator** (`market: "fr"`): `adcards.js` French design (`d.fr`,
+  `frMoney`, `frDate`), French opening/closing cards ("Où naviguerez-vous ensuite ?", no Ambassador A by default;
+  "L'accueil le plus chaleureux en mer", "Réservez votre croisière", ambassadorcroisieres.fr; check these with Sam),
+  eyebrow "Au départ de …", Meta description "À partir de 679 €/pers.", feed preview "Ambassador Croisières ·
+  Sponsorisé", CTA shown as Meta shows it to French viewers (`CTA_FR`, the zip keeps Ads Manager's English name),
+  French suggested primary text (`site/adcopy_fr.js`, no AI, "vous", French typography), up to 2 offers, no Nectar,
+  Trustpilot, was/now or Draft with Claude. French ads are kept apart: browser draft `spw-ad-draft-fr`, `"market": "fr"`
+  in the shared saved list (each market lists only its own), share links `#adfr=` (opening one switches to France),
+  zip `ad_fr_…`. Make video works for French ads: `make_video.py` reads the market from the link and opens
+  `?m=fr#adfr=…`, letting its stand-in page read the Storage photo copies. Stage 3 (Google Ads, Email cards, Email
+  creator, Draft with Claude in French) to follow.
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.

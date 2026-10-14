@@ -47,6 +47,10 @@ ROOT = Path(__file__).parent
 # Works from the project layout (fonts/, assets/) or a flat kit folder.
 FONTS = ROOT / "fonts" if (ROOT / "fonts").exists() else ROOT
 LOGO = ((ROOT / "assets" / "logo-white.svg") if (ROOT / "assets").exists() else (ROOT / "logo-white.svg")).read_text()
+# France (Ambassador Croisières; Sam, 14 Oct 2026): the same designs in French, in euros, with the French logo
+# (white version of the site's own logo, cms.ambassadorcroisieres.fr). A sailing is French when its snapshot says so
+# (fr_enrich.py sets "market": "fr").
+LOGO_FR = (ROOT / "logo-fr-white.svg").read_text()
 CACHE = ROOT / "img_cache"
 CACHE.mkdir(exist_ok=True)
 
@@ -69,11 +73,36 @@ FONT_CSS = "\n".join(
     for w in (400, 500, 600, 700))
 
 
+def is_fr(s):
+    return s.get("market") == "fr"
+
+
+MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+MOIS_COURT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+
+
+def fr_money(v):
+    """1 029 € (narrow no-break space for thousands, no-break space before €)."""
+    return f"{v:,.0f}".replace(",", "\u202f") + "\u00a0€"
+
+
+def fr_date(iso, short=False):
+    d = datetime.date.fromisoformat(iso)
+    return f"{'1er' if d.day == 1 else d.day} {(MOIS_COURT if short else MOIS)[d.month - 1]} {d.year}"
+
+
+def cms(url, **q):
+    """French photos come from the Directus CMS: size and crop with its own query parameters."""
+    base = url.split("?", 1)[0]
+    return base + "?" + "&".join(f"{k}={v}" for k, v in q.items())
+
+
 def photo(url, sid, w, h):
-    # Storyblok image service: focal-point smart crop at the card size.
+    # Storyblok image service: focal-point smart crop at the card size (France: the CMS crops to the centre).
     dst = CACHE / f"{sid}_{w}x{h}.jpg"
     if not dst.exists():
-        src = url + f"/m/{w}x{h}/smart/filters:quality(88):format(jpeg)"
+        src = (cms(url, width=w, height=h, fit="cover", format="jpg", quality=88) if "cms.ambassadorcroisieres.fr" in url
+               else url + f"/m/{w}x{h}/smart/filters:quality(88):format(jpeg)")
         req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0"})
         dst.write_bytes(urllib.request.urlopen(req, timeout=60).read())
     return "data:image/jpeg;base64," + b64(dst)
@@ -168,11 +197,18 @@ OVERRIDES = json.loads(_OV.read_text()) if _OV.exists() else {}
 # which is a was/now (reference pricing) claim, and those only ever come from run.json.
 # "Lower solo supplement" too (Sam, 13 Oct 2026): "lower" implies a price comparison the tracker can't back up
 PRICE_CLAIM = re.compile(r"\b(lower|reduced|reduction)\b.*\b(fares?|supplements?|prices?)\b", re.I)
+# France (Sam, 14 Oct 2026): "1 acheté = 1 offert" comes with a struck-through "barred" price on the site, which is a
+# reference-price claim, so like "lower fares" it never goes on a card; nor does anything about prices coming down.
+PRICE_CLAIM_FR = re.compile(r"1\s*achet[ée]\s*=\s*1\s*offert|prix\s+(barr|baiss|réduit)|baisse\s+de\s+prix|tarifs?\s+réduits?", re.I)
+# Emoji and footnote marks in French tag names ("🚢 Larguez les amarres") aren't in the card font
+NOT_TEXT = re.compile(r"[^\w\s%€£&'’,.:;!?()/+=-]")
 MAX_PROMOS = 2
 
 
 def promo_rank(o):
     n = o["name"].lower()
+    if o.get("_fr"):   # France: a % saving first, then "offert" (free) offers, then the rest as listed
+        return (0, 0) if "%" in n else (1, 0) if "offert" in n else (9, 0)
     if "%" in n or "code" in (o.get("description") or "").lower():
         return (0, 0)
     m = re.search(r"£([\d,]+)\s+onboard credit", n)
@@ -195,8 +231,14 @@ def promo_lines(s, limit=None):
     # One promotion when the card also has a Nectar strip (Sam, 12 Oct 2026), so it doesn't get too busy.
     if limit is None:
         limit = 1 if nectar_line(s) else MAX_PROMOS
-    for o in sorted((o for o in offers if not PRICE_CLAIM.search(o["name"])), key=promo_rank)[:limit or None]:
+    fr = is_fr(s)
+    claim = PRICE_CLAIM_FR if fr else PRICE_CLAIM
+    for o in sorted(({**o, "_fr": fr} for o in offers if not claim.search(o["name"])), key=promo_rank)[:limit or None]:
         name = o["name"].strip()
+        if fr:
+            name = re.sub(r"\s+", " ", NOT_TEXT.sub("", name)).strip()
+            if not name:
+                continue
         if name.isupper():
             name = name.capitalize()
         bits = [name]
@@ -218,7 +260,7 @@ def promo_lines(s, limit=None):
                 except ValueError:
                     pass
         if end:
-            bits.append(f"ends {end.strftime('%-d %b')}")
+            bits.append(f"jusqu'au {fr_date(end.isoformat(), True)[:-5]}" if fr else f"ends {end.strftime('%-d %b')}")
         out.append(" · ".join(bits))
     return out
 
@@ -291,12 +333,17 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None, campaign=None):
     # second half reads better as a line under a short headline.
     if kicker and len(headline) > 24 and len(kicker) <= 24:
         headline, sub, kicker = kicker, headline, ""
-    if fly:
+    fr = is_fr(s)
+    if fr:   # "À bord du Renaissance" / "Départ de Dunkerque" (the town only: "Pointe-à-Pitre, Guadeloupe" → "Pointe-à-Pitre")
+        if was:
+            raise SystemExit(f"{s['id']}: no was/now cards for France")
+        badge_icon, b1, b2 = SHIP_ICON, f"À bord du {s['ship']}", f"Départ de {(s.get('port') or '').split(',')[0].strip()}"
+    elif fly:
         badge_icon, b1, b2 = PLANE_ICON, f"Fly-cruise on {s['ship']}", f"Flights from {fly}"
     else:
         badge_icon, b1, b2 = SHIP_ICON, f"No-fly on {s['ship']}", f"from {s['port']}"
-    nights = f"{s['nights']} nights"
-    date = nice_date(s["departure_date"]) if s.get("departure_date") else ""
+    nights = f"{s['nights']} nuits" if fr else f"{s['nights']} nights"
+    date = (fr_date(s["departure_date"]) if fr else nice_date(s["departure_date"])) if s.get("departure_date") else ""
     now = s["price_pp"]
     cab = ""
     if cabin:
@@ -304,7 +351,8 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None, campaign=None):
         if not now:
             raise SystemExit(f"{s['id']}: no twin {cabin} price on sale in this snapshot")
         cab = f'<div class="cab">{CABIN_LABEL[cabin]}</div>'
-    price = money(now)
+    price = fr_money(now) if fr else money(now)
+    lab, pp = ("À partir de", "/pers.") if fr else ("From", "pp")
     if was:
         fare = f"""
         <div class="fare-col">{cab}
@@ -314,11 +362,11 @@ def card_html(s, was=None, w=1080, h=1080, cabin=None, campaign=None):
     elif cab:
         fare = f"""
         <div class="fare-col">{cab}
-          <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>
+          <div class="fare-row"><span class="from">{lab}</span><span class="big">{price}</span><span class="pp">{pp}</span></div>
         </div>"""
     else:
         fare = f"""
-        <div class="fare-row"><span class="from">From</span><span class="big">{price}</span><span class="pp">pp</span></div>"""
+        <div class="fare-row"><span class="from">{lab}</span><span class="big">{price}</span><span class="pp">{pp}</span></div>"""
     top_c = bot_c = None
     if campaign:
         # Campaign artwork whole, on plain colours from its own top and bottom edges (Sam, 13 Oct 2026,
@@ -376,7 +424,7 @@ html,body{{width:{w}px;height:{h}px;background:#380843}}
 </style></head><body><div id="card">
 {art_html}
 <div class="scrim"></div>
-<div class="logo">{LOGO}</div>
+<div class="logo">{LOGO_FR if fr else LOGO}</div>
 <div class="badge" id="badge">{badge_icon}<div class="lines"><span>{html.escape(b1)}</span><span>{html.escape(b2)}</span></div></div>
 <div class="stack">
   {kicker_html}
@@ -442,7 +490,7 @@ PR_PLANE = PLANE_ICON.replace('width="58" height="58"', 'width="36" height="36"'
 def lead_grade(s):
     """Cabin grade whose twin price is the sailing's lead price, if any."""
     twin = (s.get("cabins") or {}).get("twin") or {}
-    for k in ("inside", "ocean_view", "balcony", "suite"):
+    for k in ("inside", "ocean_view", "balcony", "suite", "obstructed", "promenade", "grand_suite"):   # UK grades, then France's
         if twin.get(k) and round(twin[k]) == round(s["price_pp"]):
             return k
     return None

@@ -1437,7 +1437,7 @@ const auth = getAuth(firebaseApp);
   function cardsDetail(s){
     const c = cardsOf(s.id);
     if (!cardsDoc) return `<p class="sub">Cards appear here after the next hourly check.</p>`;
-    if (!c) return `<p class="sub">${s.removed ? "This sailing has left the feed, so it has no cards." : "No cards yet. They're made at the next hourly check."}</p>`;
+    if (!c) return `<p class="sub">${s.removed ? `This sailing has ${FR ? "gone off sale" : "left the feed"}, so it has no cards.` : "No cards yet. They're made at the next hourly check."}</p>`;
     const cur = c.current;
     const pk = cur ? pvReg(`${s.base_title || s.title || s.id} (${s.id})`, cur.files, "") : null;
     const wn = Object.values(c.wasnow || {}).map(w => {
@@ -1451,7 +1451,7 @@ const auth = getAuth(firebaseApp);
       <div class="cardset">${Object.entries(cur.files).map(([t, u]) => `<figure>${pvLink(pk, t, `<img src="${esc(u)}" alt="${esc(SIZE_LABEL[t] || t)} card" loading="lazy">`)}
         <figcaption>${esc(SIZE_LABEL[t] || t)}</figcaption><a href="${esc(u)}">Download</a></figure>`).join("")}</div>`
       : `<p class="sub">No current cards: ${esc(((c.old || [])[0] || {}).reason || "withdrawn")}.</p>`;
-    const chk = (cur ? checkDetail(cur) : "") + (cur ? `<div id="cardopts"></div>` : "");
+    const chk = (cur ? checkDetail(cur) : "") + (cur && !FR ? `<div id="cardopts"></div>` : "");   // "Make a version" is Nectar/Trustpilot: UK only
     const old = (c.old || []).length ? `<div class="oldcards"><b>Out of date</b>${c.old.map(o => {
         const k = pvReg(o.kind === "wasnow" ? `${s.id} was/now (DO NOT USE): ${wnTitle(o)}` : `${s.id} (out of date)`, o.files,
           o.kind === "wasnow" ? `<span class="dnu">Do not use</span> ${esc(o.reason)}` : `<span class="stale">Out of date</span> ${esc(o.reason)}`);
@@ -1610,7 +1610,7 @@ const auth = getAuth(firebaseApp);
           </div>
         </div>
         <div class="dacts">
-          ${s.removed || FR ? "" : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
+          ${s.removed ? "" : FR ? `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>` : `<button type="button" class="btn quiet sm" data-make="ads" data-id="${esc(id)}">Add to ad</button>
           <button type="button" class="btn quiet sm" data-make="ecards" data-id="${esc(id)}">Make email card</button>
           <button type="button" class="btn quiet sm" data-make="gads" data-id="${esc(id)}">Add to Google Ads</button>`}
           <button type="button" class="btn quiet" id="d-close" autofocus>Close</button>
@@ -1624,7 +1624,7 @@ const auth = getAuth(firebaseApp);
         <section><h3>From price, month by month</h3>${monthly(s, today)}
           <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
         <section><h3>Promotions</h3>${promoDetail(s)}</section>
-        ${FR ? "" : `<section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
+        ${FR ? `<section><h3>Cards</h3>${cardsDetail(s)}</section>` : `<section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
         <section><h3>Cards</h3>${cardsDetail(s)}</section>`}
         <section><h3>Every change</h3><ul class="log">${log.map(e => `<li><span class="d">${fmtDate(e.d)}</span><div>${e.t}${e.n ? `<div class="n">${esc(e.n)}</div>` : ""}</div></li>`).join("")}</ul></section>
         ${(s.flags || []).length ? `<section><h3>Needs a look</h3>${s.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}</section>` : ""}
@@ -1643,6 +1643,9 @@ const auth = getAuth(firebaseApp);
     const h = location.hash.slice(1);
     // Shared Ad creator / Email creator links are UK ads: switch to the UK market first
     if (FR && /^(ad|email)=/.test(h)) { try { localStorage.setItem("spw-market", "uk"); } catch(e){} location.href = location.pathname + location.hash; location.reload(); return; }
+    // #adfr=… is a French ad (adcreator.js in the France market): open it there
+    if (!FR && h.startsWith("adfr=")) { try { localStorage.setItem("spw-market", "fr"); } catch(e){} location.href = location.pathname + "?m=fr" + location.hash; return; }
+    if (FR && h.startsWith("adfr=")) { sharedAd = h.slice(5); if (dlg.open) dlg.close(); if (adsModule) { adsModule.openShared(sharedAd); sharedAd = null; } showView("ads"); return; }
     // #ad=… is a shared Ad creator link: open it there (site/adcreator.js openShared)
     // #email=… is a shared Email creator link (site/emailcreator.js openShared)
     if (h.startsWith("email=")) { sharedEmail = h.slice(6); if (dlg.open) dlg.close(); if (emailModule) { emailModule.openShared(sharedEmail); sharedEmail = null; } showView("email"); return; }
@@ -2001,7 +2004,8 @@ const auth = getAuth(firebaseApp);
   // for now). This only hides the menu entry; it isn't a lock (everyone signed in is on the allowlist anyway).
   const ONLY = {email: ["sam.brooker@ambassadorcruiseline.com"]};
   // France (stage 1, prices): no creative pages yet, no ad feed and no was/now
-  const FR_HIDE = ["cards", "ads", "gads", "ecards", "email", "coverage", "rules"];
+  // France (stage 2, 14 Oct 2026): Cards and the Ad creator in French; Google Ads and email pages follow in stage 3
+  const FR_HIDE = ["gads", "ecards", "email", "coverage", "rules"];
   const FR_LABEL = {feedgap: "Page vs booking"};
   let me = "";
   const mayView = v => !ONLY[v] || ONLY[v].includes(me.toLowerCase());
@@ -2025,9 +2029,11 @@ const auth = getAuth(firebaseApp);
    .map(([id, label, secs, grp]) => [id, label, secs.filter(x => !(FR && x === "h-queue")).map(x => x.startsWith("h-") ? ($(x) && $(x).closest("section")) : document.querySelector(x)).filter(Boolean), grp])
    .filter(v => v[2].length);
   // Sections of pages France doesn't show stay hidden
-  if (FR) [...FR_HIDE.map(v => ({cards: "h-cards", ads: "h-ads", gads: "h-gads", ecards: "h-ecards", email: "h-email", coverage: "h-coverage", rules: "h-rules"})[v]), "h-queue"]
+  if (FR) [...FR_HIDE.map(v => ({gads: "h-gads", ecards: "h-ecards", email: "h-email", coverage: "h-coverage", rules: "h-rules"})[v]), "h-queue"]
     .forEach(h => { const s = $(h) && $(h).closest("section"); if (s) s.hidden = true; });
   if (FR && $("h-feedgap")) $("h-feedgap").lastChild.textContent = "Cruise pages vs booking prices";
+  if (FR && $("h-ads")) $("h-ads").lastChild.textContent = "Ad creator · France";
+  if (FR && $("k-kind")) $("k-kind").hidden = true;   // no fly-cruises from UK airports
   // France has one ship and no fly-cruises from UK airports: no ship buttons or fly filter
   if (FR) { const sg = document.querySelector('.seg[aria-label="Ship"]'); if (sg) sg.hidden = true; if ($("f-kind")) $("f-kind").hidden = true; ship = ""; filt.kind = ""; }
   $("sidenav").innerHTML = VIEWS.map(([id, label, , grp], i) =>
@@ -2108,7 +2114,7 @@ const auth = getAuth(firebaseApp);
 
   // Ad kit (pricewatch/adkit): per-sailing card extras, loaded once when the Ad creator or a card version needs it
   let adkitP = null;
-  const getAdkit = () => adkitP || (adkitP = readJson("adkit").catch(() => null));
+  const getAdkit = () => adkitP || (adkitP = readJson(FR ? "fr-adkit" : "adkit").catch(() => null));
   // "Make a version" in a sailing's Cards section: Nectar line / Trustpilot widget on or off (site/cardmaker.js)
   async function mountCardOpts(id){
     const el = $("cardopts"), r = (state.sailings || {})[id]; if (!el || !r) return;
@@ -2138,7 +2144,7 @@ const auth = getAuth(firebaseApp);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
       const add = pendingAdd.ads; delete pendingAdd.ads;
-      await m.mount($("ads"), {state, cabins, adkit: kit, shared, add,
+      await m.mount($("ads"), {state, cabins, adkit: kit, shared, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2205,7 +2211,7 @@ const auth = getAuth(firebaseApp);
       const [st, cab, rs, cov, tr, cd] = await Promise.all([readJson(P + "current"), readJson(P + "cabins"), readJson(P + "runs"),
         FR ? none() : readJson("coverage").catch(() => null),   // the weekly coverage check may not have run yet
         readJson(P + "trends").catch(() => null),     // published since 12 Oct 2026
-        FR ? none() : readJson("cards").catch(() => null)]);    // made by the hourly check since 12 Oct 2026
+        readJson(P + "cards").catch(() => null)]);    // made by the hourly check since 12 Oct 2026 (France: fr-cards)
       coverage = cov; trends = tr; cardsDoc = cd;
       terms = FR ? null : await readJson("terms").catch(() => null);   // promotion T&Cs (terms.py, 13 Oct 2026)
       cabins = cab.sailings || {};
