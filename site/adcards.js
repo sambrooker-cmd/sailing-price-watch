@@ -290,6 +290,8 @@ export function cardDoc(d, size, logoSvg){
   const [w, h] = SIZES[size];
   return d.wasnow ? wasNow(d, w, h, logoSvg) : standard(d, w, h, logoSvg);
 }
+// The same designs at any size (Google Ads images, gbanners.js): w × h is the design size, scaled when saved.
+export const cardAt = (d, w, h, logoSvg) => d.wasnow ? wasNow(d, w, h, logoSvg) : standard(d, w, h, logoSvg);
 
 // Opening and closing cards for carousels (Sam, 13 Oct 2026: "Intro 2" and "End 1"), from the
 // Ambassador design system: solid Allium with the 20° background pattern (#753685 hatch), whiteout
