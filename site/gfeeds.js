@@ -24,7 +24,28 @@ export const FEED_COLUMNS = ["ID", "Item title", "Item subtitle", "Item descript
   "Formatted price", "Formatted sale price", "Image URL", "Final URL", "Contextual keywords"];
 export const TEXT_MAX = 25;   // Google's recommended length for the title, subtitle and description
 
+// France (s.fr; Sam, 14 Oct 2026): French text, euros ("679.00 EUR", "Dès 679 €/pers."), no sale prices
+const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const jour = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d === 1 ? "1er" : d} ${MOIS[m - 1]} ${y}`; };
+const euros = v => Math.round(v).toLocaleString("en-GB").replace(/,/g, " ") + " €";
+const town = p => String(p || "").split(",")[0].trim();
+function feedRowFr(s){
+  return {
+    "ID": s.id,
+    "Item title": cut(s.title, TEXT_MAX),
+    "Item subtitle": `${jour(s.departure_date)} · ${s.nights} nuits`,
+    "Item description": cut(`Départ de ${town(s.port)}`, TEXT_MAX),
+    "Item category": "Croisière",
+    "Price": `${Math.round(s.price)}.00 EUR`, "Sale price": "",
+    "Formatted price": `Dès ${euros(s.price)}/pers.`, "Formatted sale price": "",
+    "Image URL": s.image || "",
+    "Final URL": s.link,
+    "Contextual keywords": [s.title, town(s.port), s.ship, `croisière ${s.nights} nuits`, "croisière"].filter(Boolean).join(";"),
+  };
+}
+
 export function feedRow(s){
+  if (s.fr) return feedRowFr(s);
   const c = s.wasnow;
   return {
     "ID": s.id,
@@ -44,14 +65,16 @@ export function feedRow(s){
 
 // Ad customiser attributes (all Text, so the words appear exactly as written)
 export const ATTRIBUTES = [
-  ["FromPrice", "From price per person, e.g. £1,029"],
+  ["FromPrice", "From price per person, e.g. £1,029 (France: 1 029 €)"],
   ["Nights", "Number of nights, e.g. 7"],
-  ["DepartureDate", "Departure date, e.g. 12 Jan 2027"],
+  ["DepartureDate", "Departure date, e.g. 12 Jan 2027 (France: 12 janv. 2027)"],
   ["DepartsFrom", "UK port, or the airport for fly-cruises, e.g. Heathrow"],
   ["Ship", "Ship name"],
   ["Offer", "The sailing's main offer, when it's short enough for a headline (else blank)"],
 ];
 export function customiserRow(s){
+  if (s.fr) return {FromPrice: euros(s.price), Nights: String(s.nights), DepartureDate: jour(s.departure_date), DepartsFrom: town(s.port), Ship: s.ship,
+                    Offer: (s.promos || []).map(l => String(l).split(" · ")[0]).find(o => o.length <= LIMITS.rsa.headlines[0]) || ""};
   const offer = (s.promos || []).map(offerName).find(o => o.length <= LIMITS.rsa.headlines[0]) || "";
   return {FromPrice: money(s.price), Nights: String(s.nights), DepartureDate: day(s.departure_date),
           DepartsFrom: s.fly || s.port, Ship: s.ship, Offer: offer};
@@ -68,10 +91,20 @@ const TEMPLATES = [
   ["Description", "{CUSTOMIZER.Nights} nights on {CUSTOMIZER.Ship} from {CUSTOMIZER.FromPrice}pp, departing {CUSTOMIZER.DepartureDate}. Based on two sharing."],
   ["Description", "Departing {CUSTOMIZER.DepartsFrom} on {CUSTOMIZER.DepartureDate}. {CUSTOMIZER.Nights} nights from {CUSTOMIZER.FromPrice}pp, based on two sharing."],
 ];
+const TEMPLATES_FR = [
+  ["Headline", "Croisière dès {CUSTOMIZER.FromPrice}/pers."],
+  ["Headline", "{CUSTOMIZER.Nights} nuits dès {CUSTOMIZER.FromPrice}"],
+  ["Headline", "Départ le {CUSTOMIZER.DepartureDate}"],
+  ["Headline", "Départ de {CUSTOMIZER.DepartsFrom}"],
+  ["Headline", "{CUSTOMIZER.Nights} nuits à bord du {CUSTOMIZER.Ship}"],
+  ["Headline", "{CUSTOMIZER.Offer}"],
+  ["Description", "{CUSTOMIZER.Nights} nuits à bord du {CUSTOMIZER.Ship}, départ le {CUSTOMIZER.DepartureDate}. Dès {CUSTOMIZER.FromPrice}/pers."],
+  ["Description", "Départ de {CUSTOMIZER.DepartsFrom} le {CUSTOMIZER.DepartureDate}. {CUSTOMIZER.Nights} nuits dès {CUSTOMIZER.FromPrice} par personne."],
+];
 const fill = (t, row) => t.replace(/\{CUSTOMIZER\.(\w+)\}/g, (_, k) => row[k] || "");
-export function customiserLines(rows){
+export function customiserLines(rows, fr = false){
   if (!rows.length) return [];
-  return TEMPLATES.map(([kind, text]) => {
+  return (fr ? TEMPLATES_FR : TEMPLATES).map(([kind, text]) => {
     const max = kind === "Headline" ? LIMITS.rsa.headlines[0] : LIMITS.rsa.descriptions[0];
     const used = [...text.matchAll(/\{CUSTOMIZER\.(\w+)\}/g)].map(m => m[1]);
     if (rows.some(r => used.some(k => !r[k]))) return null;   // a value missing for an ad group: the ad couldn't show there

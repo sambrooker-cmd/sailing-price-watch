@@ -273,7 +273,8 @@ exports.drafts = onRequest({
   const ref = col.doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued", kind,
                  format: b.format === "single" ? "single" : "carousel", items: JSON.stringify(items),
-                 brief: String(b.brief || "").slice(0, 300)});
+                 brief: String(b.brief || "").slice(0, 300),
+                 market: b.market === "fr" ? "fr" : "uk"});   // France (Sam, 14 Oct 2026): draft_job.py reads state/fr
   const started = await dispatch(ref, DRAFT_WORKFLOW, {request: ref.id}, "draft");
   if (started !== true) return res.status(502).json({error: started});
   return res.json({id: ref.id});

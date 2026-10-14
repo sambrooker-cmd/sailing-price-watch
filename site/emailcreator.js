@@ -9,26 +9,36 @@
 // Was/now only from a live claim (tracker.py, twin only), with its own figures, and the email says until
 // when it may be sent. "Lower fares" offers never reach the badges (cards_sync adkit).
 // HubSpot specifics (template, unsubscribe token, UTM) are left for later (Sam).
-import {cropUrl} from "./adcards.js?v=__BUILD__";
-import {suggest} from "./adcopy.js?v=__BUILD__";
+import {cropUrl, frMoney, frDate} from "./adcards.js?v=__BUILD__";
+import {suggest as suggestUK} from "./adcopy.js?v=__BUILD__";
+import {suggest as suggestFR} from "./adcopy_fr.js?v=__BUILD__";
+// France (Sam, 14 Oct 2026, stage 3): mount(…, {market: "fr"}) makes Ambassador Croisières emails: French logo, phone
+// (0 801 34 22 22), links and small print, euros, French cabin grades and dates, French suggestions; no Nectar,
+// Trustpilot or was/now; links to the sailing's page. French emails are kept apart: own browser draft, "market": "fr"
+// in the shared saved list, #emailfr= links. The default small print has no company details: check them with Sam.
+let FR = false;
 import * as claude from "./drafts.js?v=__BUILD__";
 import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+const money = v => FR ? frMoney(v) : "£" + Math.round(v).toLocaleString("en-GB");
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
-const GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
-const SITE = "https://www.ambassadorcruiseline.com/";
+let GRADE = {inside: "Inside", ocean_view: "Ocean view", balcony: "Balcony", suite: "Suite"};
+const GRADE_FR = {inside: "Intérieure", obstructed: "Vue mer obstruée", ocean_view: "Vue mer", promenade: "Terrasse promenade", balcony: "Balcon", suite: "Suite", grand_suite: "Grande suite"};
+let SITE = "https://www.ambassadorcruiseline.com/";
+const SITE_FR = "https://www.ambassadorcroisieres.fr/";
 const FN = "https://us-central1-promotions-planner.cloudfunctions.net/emailImages";
-const KEY = "spw-email-draft";      // the email being worked on (this browser)
-const DRAFTS = "spw-email-drafts";  // named saved emails from before the shared list (this browser): {id: {name, saved_at, email}}
+let KEY = "spw-email-draft";        // the email being worked on (this browser; "-fr" for France)
+let DRAFTS = "spw-email-drafts";  // named saved emails from before the shared list (this browser): {id: {name, saved_at, email}}
 let store = null;                    // saved emails, shared by the team (saved.js sharedStore, Sam 13 Oct 2026)
 const MAX = 12;
-const NAV = [["Find a Cruise", SITE + "search/"], ["Last-Minute Deals", SITE + "deals/late-deals/"], ["Our Ships", SITE + "our-ships/"], ["Order a Brochure", SITE + "brochures/"]];
-const LEGAL = "Calls to 03 numbers cost no more than calls to geographic numbers (01 or 02) and are included in inclusive minutes from landlines and mobiles.\n" +
+let NAV = [["Find a Cruise", SITE + "search/"], ["Last-Minute Deals", SITE + "deals/late-deals/"], ["Our Ships", SITE + "our-ships/"], ["Order a Brochure", SITE + "brochures/"]];
+const NAV_FR = [["Nos croisières", SITE_FR + "croisieres"], ["Nos offres", SITE_FR + "offres"], ["Vie à bord", SITE_FR + "vie-a-bord"], ["Brochure", SITE_FR + "brochure"]];
+const LEGAL_FR = "© 2026 Ambassador Croisières. Appel gratuit au 0 801 34 22 22, du lundi au vendredi de 9h à 18h30 et le samedi de 9h30 à 17h.";
+let LEGAL = "Calls to 03 numbers cost no more than calls to geographic numbers (01 or 02) and are included in inclusive minutes from landlines and mobiles.\n" +
   "© 2026. Ambassador Cruise Holidays Limited is a company registered in England and Wales. Registered number: 13299365.\n" +
   "Ambassador Cruise Line, Gateway House, Stonehouse Lane, Purfleet, Essex RM19 1NS";
 const COL = {allium: "#6B207D", palatyn: "#380843", pearl: "#F1ECE7", amber: "#F68C4E", ink: "#1B1220", muted: "#5E5465"};
@@ -40,6 +50,10 @@ let em = fresh(), sel = 0, note = "", made = null, previewMode = "desktop", draf
 const baked = new Map();   // image key -> data URL (preview and upload)
 
 function fresh(){
+  if (FR) return {subject: "", preheader: "", phone: "0 801 34 22 22", market: "fr",
+          hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Trouvez votre croisière", ctaLink: SITE_FR + "croisieres",
+          items: [], terms: SITE_FR + "offres", legal: LEGAL_FR, unsub: "",
+          nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}, allBadges: false};
   return {subject: "", preheader: "", phone: "0333 920 1164",
           hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Find your sailing", ctaLink: SITE,
           items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: "",
@@ -65,11 +79,14 @@ async function loadNectar(){
 }
 
 export async function mount(el, ctx){
-  await loadNectar();
+  FR = ctx.market === "fr";
+  if (FR) { KEY = "spw-email-draft-fr"; DRAFTS = "spw-email-drafts-fr"; GRADE = GRADE_FR; SITE = SITE_FR; NAV = NAV_FR; em = fresh(); }
+  else await loadNectar();   // Nectar is UK only
   root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; ID = ctx.idToken || null;
   today = S.updated;
   const sym = document.getElementById("amb-logo");
-  if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
+  if (FR) LOGO_SVG = await (await fetch("logo-fr.svg")).text();   // the colour Ambassador Croisières logo
+  else if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
   store = await sharedStore({kind: "email", localKey: DRAFTS, field: "email", idToken: ID}).load();
   // The email left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) { const n = normalise(d); em = n.em; draftId = d._draft || null;
@@ -111,8 +128,8 @@ function load(d, msg){
 }
 
 // ---------- saved emails (shared list; this browser only if it can't be reached) ----------
-const drafts = () => store ? store.all() : {};
-const portable = () => JSON.parse(JSON.stringify(em));
+const drafts = () => store ? Object.fromEntries(Object.entries(store.all()).filter(([, d]) => ((d.email || {}).market === "fr") === FR)) : {};
+const portable = () => JSON.parse(JSON.stringify(FR ? {...em, market: "fr"} : em));
 async function saveDraft(asNew){
   const all = drafts();
   let id = asNew || (draftId && !store.mine(draftId)) ? null : draftId;   // someone else's: save your own copy
@@ -156,7 +173,7 @@ async function unpack(s){
   return JSON.parse(await new Response(z).text());
 }
 async function copyLink(){
-  const url = `${location.origin}${location.pathname}#email=${await pack({v: 1, email: portable()})}`;
+  const url = `${location.origin}${location.pathname}#${FR ? "emailfr" : "email"}=${await pack({v: 1, email: portable()})}`;
   try { await navigator.clipboard.writeText(url); note = "Link copied. Anyone on the tracker's allowlist can open it in their own Email creator; prices are always the latest."; }
   catch(e) { prompt("Copy this link", url); note = ""; }
   draw();
@@ -202,11 +219,13 @@ function onSale(id, fare){   // {grade: price} on sale now
   }
   return out;
 }
-const linkOf = it => claimOf(it) ? sailing(it.id).link : fareOf(it).link;   // solo fares link with ?solo=true
+const linkOf = it => claimOf(it) ? sailing(it.id).link : fareOf(it).link;   // solo fares link with ?solo=true (UK)
 function fareOf(it){   // {fare, grade, price, label, link} for what's chosen, falling back to the cheapest
   const s = sailing(it.id), fare = it.fare === "solo" && Object.keys(onSale(it.id, "solo")).length ? "solo" : "twin";
   const grades = onSale(it.id, fare), grade = it.grade && grades[it.grade] != null ? it.grade : "";
   const price = grade ? grades[grade] : fare === "twin" ? s.price : Math.min(...Object.values(grades));
+  if (FR) return {fare, grade, price, link: s.link, label: fare === "solo" ? `Solo${grade ? " " + GRADE[grade].toLowerCase() : ""} à partir de ${money(price)}`
+                                                                  : `${grade ? GRADE[grade] + " à" : "À"} partir de ${money(price)}/pers.`};
   const label = fare === "solo" ? `Solo ${grade ? GRADE[grade].toLowerCase() + " " : "pricing "}from ${money(price)}`
                                 : `${grade ? GRADE[grade] + " from" : "From"} ${money(price)}pp`;
   return {fare, grade, price, label, link: s.link + (fare === "solo" ? (s.link.includes("?") ? "&" : "?") + "solo=true" : "")};
@@ -226,6 +245,7 @@ function promoEnds(line){
 // A place name from a photo's file name, offered as a caption to check (e.g. ".../bridgetown-barbados_....jpg")
 function captionHint(url){
   if ((url || "").startsWith("/ships/")) return "";   // the ship photo: no place name to suggest
+  if (FR) return Object.assign({}, ...Object.values(KIT).map(k => k.captions || {}))[url] || "";   // France: the page's own caption
   const f = decodeURIComponent((url || "").split("/").pop() || "").replace(/\.\w+$/, "");
   const junk = /^(\d+|\d+x\d+|shutterstock|istock|getty|adobe|stock|selected|edited|dsc\d*|img\d*|new|to|use|amb|xxx|cotw|final|v\d+|copy|web|hero|header|crop(ped)?|at|sunset|aerial|view|\d+-\d+-\d+)$/i;
   const words = f.split(/[\s_\-]+/).filter(w => w && !junk.test(w) && !/\d/.test(w));
@@ -316,7 +336,7 @@ function sailingInfo(it, size){
   const s = sailing(it.id), c = claimOf(it);
   const price = c ? `<p style="margin:0 0 8px;font-family:${F};font-size:14px;color:${COL.ink}">${c.grade && c.key !== "lead" ? esc(GRADE[c.grade]) + " cabins: " : ""}was <s>${money(c.was)}</s></p>` : "";
   return `<p style="margin:14px 0 10px;font-family:${F};font-weight:700;font-size:${size}px;line-height:1.3;color:${COL.allium};text-transform:uppercase">${esc(s.title)}</p>
-    <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:${COL.ink}">${longDate(s.r.departure_date)}<br>${s.r.nights} nights departing ${esc(s.fly ? s.fly + " Airport" : s.r.port)}<br>${esc(s.r.ship)}</p>
+    <p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:${COL.ink}">${FR ? `${frDate(s.r.departure_date)}<br>${s.r.nights} nuits au départ de ${esc(String(s.r.port || "").split(",")[0].trim())}` : `${longDate(s.r.departure_date)}<br>${s.r.nights} nights departing ${esc(s.fly ? s.fly + " Airport" : s.r.port)}`}<br>${esc(s.r.ship)}</p>
     ${price}${button(c ? `Now ${money(c.now)}pp` : fareOf(it).label, linkOf(it))}`;
 }
 // Header picture as the cell's background with the words as live text on top, centred: readable and
@@ -367,15 +387,17 @@ function emailHtml(src){
   const wn = em.items.map(it => [it, claimOf(it)]).filter(x => x[1]);
   const solo = em.items.some(it => !claimOf(it) && fareOf(it).fare === "solo"), twin = em.items.some(it => claimOf(it) || fareOf(it).fare === "twin");
   const basis = [twin ? "per person, based on two sharing" : "", solo ? `${twin ? "solo prices are " : ""}for one guest travelling solo` : ""].filter(Boolean).join("; ");
-  const small = [`Prices are ${basis}, as checked ${shortDate(today)}, and subject to availability.${safeUrl(em.terms) ? ` View full offer T&amp;Cs <a href="${esc(safeUrl(em.terms))}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
+  const basisFr = [twin ? "par personne, base deux personnes" : "", solo ? `${twin ? "prix solo " : ""}pour une personne voyageant seule` : ""].filter(Boolean).join(" ; ");
+  const small = FR ? [`Prix ${basisFr}, relevés le ${frDate(today)}, sous réserve de disponibilité.${safeUrl(em.terms) ? ` Conditions des offres <a href="${esc(safeUrl(em.terms))}" target="_blank" style="color:${COL.allium}">ici</a>.` : ""}`,
+    ...em.legal.split(/\n+/).filter(Boolean).map(esc)] : [`Prices are ${basis}, as checked ${shortDate(today)}, and subject to availability.${safeUrl(em.terms) ? ` View full offer T&amp;Cs <a href="${esc(safeUrl(em.terms))}" target="_blank" style="color:${COL.allium}">here</a>.` : ""}`,
     ...(src.nectar ? ["*Nectar points: terms and conditions apply."] : []),
     ...wn.map(([it, c]) => `Was price: ${esc(sailing(it.id).title)}${c.key !== "lead" ? ` (${esc(GRADE[c.grade].toLowerCase())} cabins)` : ""} was on sale at ${money(c.was)} for at least 28 days before it was reduced to ${money(c.now)} on ${shortDate(c.since)}.`),
     ...em.legal.split(/\n+/).filter(Boolean).map(esc)];
   const unsub = safeUrl(em.unsub) || "UNSUBSCRIBE_LINK";
   return `<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="${FR ? "fr" : "en"}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || "Ambassador Cruise Line")}</title>
+<meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || (FR ? "Ambassador Croisières" : "Ambassador Cruise Line"))}</title>
 <!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
 <style>body{margin:0;padding:0;background:#ffffff}img{border:0;line-height:100%;outline:none;text-decoration:none}a{color:${COL.allium}}
 @media only screen and (max-width:620px){.w600{width:100%!important}.pad{padding-left:16px!important;padding-right:16px!important}
@@ -387,7 +409,7 @@ function emailHtml(src){
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff"><tr><td align="center" style="padding:16px 0">
 <table role="presentation" class="w600" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;background:${COL.pearl}">
 <tr><td class="pad" style="padding:22px 30px 14px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-  <td class="logo" valign="middle"><a href="${SITE}" target="_blank"><img src="${src.logo}" width="221" height="48" alt="Ambassador Cruise Line" style="display:block;width:221px;height:48px"></a></td>
+  <td class="logo" valign="middle"><a href="${SITE}" target="_blank"><img src="${src.logo}" width="221" height="48" alt="${FR ? "Ambassador Croisières" : "Ambassador Cruise Line"}" style="display:block;width:221px;height:48px"></a></td>
   <td class="phone" align="right" valign="middle" style="font-family:${F};font-weight:700;font-size:24px;color:${COL.palatyn}"><a href="tel:${esc(em.phone.replace(/\s/g, ""))}" style="color:${COL.palatyn};text-decoration:none">${esc(em.phone)}</a></td>
 </tr></table></td></tr>
 <tr><td class="nav" align="center" style="padding:0 10px 18px;font-family:${F};font-weight:700;font-size:15px;color:${COL.palatyn}">${NAV.map(([t, u]) => `<a href="${u}" target="_blank" style="color:${COL.palatyn};text-decoration:none">${t}</a>`).join(" | ")}</td></tr>
@@ -400,7 +422,7 @@ ${rows.join("\n")}
 ${strips("footer", src)}
 <tr><td class="pad" style="padding:6px 48px 26px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${COL.palatyn};font-size:0;line-height:0">&nbsp;</td></tr></table>
 ${small.map(t => `<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:${COL.muted};text-align:center">${t}</p>`).join("")}
-<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;text-align:center"><a href="${esc(unsub)}" target="_blank" style="color:${COL.muted}">Manage preferences</a></p></td></tr>
+<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;text-align:center"><a href="${esc(unsub)}" target="_blank" style="color:${COL.muted}">${FR ? "Gérer mes préférences" : "Manage preferences"}</a></p></td></tr>
 </table></td></tr></table>
 </body></html>`;
 }
@@ -408,7 +430,12 @@ ${small.map(t => `<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-ser
 // ---------- page ----------
 function suggestionsFor(){
   if (!em.items.length) return [];
-  return suggest(em.items.map(it => {
+  if (FR) return suggestFR(em.items.map(it => { const s = sailing(it.id);
+      return {title: s.title, ship: s.r.ship, port: s.r.port, nights: s.r.nights, departure_date: s.r.departure_date, price: fareOf(it).fare === "twin" ? s.price : s.price, promos: badgesOf(it)}; }),
+    em.items.length === 1 ? "single" : "carousel")
+    .map(o => ({...o, text: o.text.replace(/\s*Prix par personne, base deux personnes, sous réserve de disponibilité\.$/, "")   // the small print says this
+      .replace("Faites défiler et trouvez celle qui vous ressemble.", "Découvrez-les et trouvez celle qui vous ressemble.")}));
+  return suggestUK(em.items.map(it => {
     const s = sailing(it.id), c = claimOf(it), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
     return {title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date, price: s.price,
             promos: badgesOf(it), nectarPts: n, wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
@@ -436,12 +463,12 @@ function itemEditor(){
       <button type="button" class="ac-seg" data-layout="wide" aria-pressed="${it.layout === "wide"}">Full width</button></div>
     <label class="ac-lab" for="em-design">Price</label>
     <select id="em-design"><option value="standard">${it.design === "standard" ? esc(fareOf(it).label) : `From ${money(s.price)}pp`}</option>${cl.map(c => `<option value="wasnow:${c.key}"${it.design === "wasnow:" + c.key ? " selected" : ""}>Was/now: ${esc(c.label)}, was ${money(c.was)} now ${money(c.now)} (send by ${shortDate(c.ends)})</option>`).join("")}</select>
-    ${cl.length ? "" : `<p class="sub">Was/now is only offered when this sailing has a live price-reduction claim.</p>`}
+    ${cl.length ? "" : `<p class="sub">${FR ? "No was/now for France: the email shows the \"from\" price." : "Was/now is only offered when this sailing has a live price-reduction claim."}</p>`}
     ${it.design === "standard" ? fareBlock(it) : ""}
     <span class="ac-lab">Photo</span>${photoPicker(it.photo, "data-photo", s.photos, "em-item")}
     <label class="ac-lab" for="em-caption">Location caption <span class="sub">(optional: check it matches the photo)</span></label>
     <input id="em-caption" value="${esc(it.caption)}" placeholder="e.g. Bridgetown, Barbados" maxlength="40">
-    ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="em-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
+    ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="em-hint">Use "${esc(hint)}" (${FR ? "the photo's caption on the website" : "from the photo's file name"})</button>` : ""}
     <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
     ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${em.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
     ${em.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked, so this shows its first ${Math.min(2, s.k.promos.length)}. Untick it to choose.</p>` : ""}
@@ -486,7 +513,7 @@ function draw(){
         <input id="em-sub" value="${esc(em.hero.sub)}" placeholder="Second line (optional)" maxlength="70" aria-label="Header second line">`)}
       ${cs.section("em-words", "Words", em.subject.trim() ? `Subject: "${esc(em.subject.trim().slice(0, 50))}${em.subject.trim().length > 50 ? "…" : ""}"${em.intro.trim() ? "" : " · no intro yet"}` : "No subject line yet", `
         <label class="ac-lab" for="em-subject">Subject line <span class="sub" id="em-n-subject"></span></label>
-        <input id="em-subject" value="${esc(em.subject)}" placeholder="e.g. Winter sunshine from ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "£399"}pp">
+        <input id="em-subject" value="${esc(em.subject)}" placeholder="${FR ? `ex. Le soleil d'hiver dès ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "679 €"}` : `e.g. Winter sunshine from ${it.length ? money(Math.min(...it.map(x => sailing(x.id).price))) : "£399"}pp`}">
         <label class="ac-lab" for="em-pre">Preview text <span class="sub">(shown after the subject in the inbox)</span></label>
         <input id="em-pre" value="${esc(em.preheader)}" placeholder="One line that adds to the subject">
         <label class="ac-lab" for="em-intro">Intro</label>
@@ -498,7 +525,7 @@ function draw(){
         <label class="ac-lab" for="em-cta">Button under the intro <span class="sub">(blank = no button)</span></label>
         <input id="em-cta" value="${esc(em.cta)}">
         <input id="em-ctalink" value="${esc(em.ctaLink)}" aria-label="Button link" placeholder="${SITE}">`)}
-      ${cs.section("em-strips", "Nectar and Trustpilot", [em.nectar.on && NECTAR ? `Nectar banner ${PLACES[em.nectar.pos].toLowerCase()}` : "Nectar banner off", em.tp.on ? `Trustpilot ${PLACES[em.tp.pos].toLowerCase()}` : "Trustpilot off"].join(" · "), `
+      ${FR ? "" : cs.section("em-strips", "Nectar and Trustpilot", [em.nectar.on && NECTAR ? `Nectar banner ${PLACES[em.nectar.pos].toLowerCase()}` : "Nectar banner off", em.tp.on ? `Trustpilot ${PLACES[em.tp.pos].toLowerCase()}` : "Trustpilot off"].join(" · "), `
         <label class="ac-check"><input type="checkbox" id="em-nectar"${em.nectar.on && NECTAR ? " checked" : ""}${NECTAR ? "" : " disabled"}> Nectar banner ${NECTAR ? "" : `<span class="sub">(waiting for the Nectar banner artwork)</span>`}</label>
         ${NECTAR && em.nectar.on ? `${NECTAR.images.length > 1 ? `<div class="ac-photos em-banners" role="group" aria-label="Nectar banner">${NECTAR.images.map((x, i) => `<button type="button" class="ac-ph${x.file === (em.nectar.file || NECTAR.images[0].file) ? " on" : ""}" data-nectar="${esc(x.file)}" title="${esc(x.label)}" aria-label="${esc(x.label)}"><img src="email/${esc(x.file)}" alt=""></button>`).join("")}</div>` : ""}
           <select id="em-nectar-pos" aria-label="Where the Nectar banner goes">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}"${k === em.nectar.pos ? " selected" : ""}>${v}</option>`).join("")}</select>` : ""}
@@ -640,7 +667,7 @@ function wire(){
   // Claude's drafts (drafts.js): subject, preview text, header words and intro together; facts come from saved state
   claude.wire(root, "email", {ID, redraw: draw,
     body: () => ({format: em.items.length === 1 ? "single" : "carousel",
-                  items: em.items.map(it => ({id: it.id, wasnow: claimOf(it) ? it.design.slice(7) : null, promos: badgesOf(it)}))}),
+                  ...(FR ? {market: "fr"} : {}), items: em.items.map(it => ({id: it.id, wasnow: claimOf(it) ? it.design.slice(7) : null, promos: badgesOf(it)}))}),
     forWhat: () => em.items.map(it => sailing(it.id).title).join(", "),
     use: o => { Object.assign(em, {subject: o.subject, preheader: o.preheader, intro: o.intro});
                 Object.assign(em.hero, {headline: o.headline.slice(0, 28), sub: o.sub.slice(0, 70)}); change(true); }});
@@ -663,10 +690,10 @@ function wire(){
   $("#em-make").addEventListener("click", makeEmail);
   // Off means no badges until chosen per sailing (Sam, 13 Oct 2026)
   $("#em-allbadges") && $("#em-allbadges").addEventListener("change", e => { em.allBadges = e.target.checked; if (!em.allBadges) em.items.forEach(x => { x.badges = []; }); change(true); });
-  $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });
+  $("#em-nectar") && $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });   // (not in France)
   root.querySelectorAll("[data-nectar]").forEach(b => b.addEventListener("click", () => { em.nectar.file = b.dataset.nectar; change(true); }));
   $("#em-nectar-pos") && $("#em-nectar-pos").addEventListener("change", e => { em.nectar.pos = e.target.value; change(true); });
-  $("#em-tp").addEventListener("change", e => { em.tp.on = e.target.checked; change(true); });
+  $("#em-tp") && $("#em-tp").addEventListener("change", e => { em.tp.on = e.target.checked; change(true); });
   $("#em-tp-pos") && $("#em-tp-pos").addEventListener("change", e => { em.tp.pos = e.target.value; change(true); });
   $("#em-copy") && $("#em-copy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(made); $("#em-copy").textContent = "Copied"; } catch(e) { prompt("Copy the email's HTML", made); }

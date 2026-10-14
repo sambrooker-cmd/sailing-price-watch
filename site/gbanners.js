@@ -11,6 +11,8 @@ import {cardAt, cropUrl, wholeUrl} from "./adcards.js?v=__BUILD__";
 const ORIGIN = location.origin;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
+// France (d.fr, Sam 14 Oct 2026): euros, French dates and words, as adcards.js
+import {frMoney, frDate} from "./adcards.js?v=__BUILD__";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const niceDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const FONT_CSS = [400, 500, 600, 700].map(w =>
@@ -85,9 +87,10 @@ export function bannerDoc(d, size, LOGO, cta){
   const wn = d.wasnow;
   const price = wn
     ? `<div class="price wn"><span class="was">Was <s>${money(wn.was)}</s></span><span class="now"><small>Now</small> ${money(wn.now)}<small>pp</small></span></div>`
+    : d.fr ? `<div class="price"><small>À partir de</small> <b>${frMoney(d.price)}</b><small>/pers.</small></div>`
     : `<div class="price"><small>From</small> <b>${money(d.price)}</b><small>pp</small></div>`;
-  const when = [d.departure_date ? niceDate(d.departure_date) : "", `${d.nights} nights`].filter(Boolean).join(" · ");
-  const where = d.fly ? `Fly from ${d.fly}` : `No-fly from ${d.port}`;
+  const when = [d.departure_date ? (d.fr ? frDate(d.departure_date) : niceDate(d.departure_date)) : "", `${d.nights} ${d.fr ? "nuits" : "nights"}`].filter(Boolean).join(" · ");
+  const where = d.fr ? `Départ de ${String(d.port || "").split(",")[0].trim()}` : d.fly ? `Fly from ${d.fly}` : `No-fly from ${d.port}`;
   const button = cta && !tiny ? `<span class="cta">${esc(cta)}</span>` : "";
   const logo = `<div class="logo">${LOGO}</div>`;
   const pic = (pw, ph) => d.campaign

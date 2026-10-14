@@ -157,8 +157,27 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   Trustpilot, was/now or Draft with Claude. French ads are kept apart: browser draft `spw-ad-draft-fr`, `"market": "fr"`
   in the shared saved list (each market lists only its own), share links `#adfr=` (opening one switches to France),
   zip `ad_fr_…`. Make video works for French ads: `make_video.py` reads the market from the link and opens
-  `?m=fr#adfr=…`, letting its stand-in page read the Storage photo copies. Stage 3 (Google Ads, Email cards, Email
-  creator, Draft with Claude in French) to follow.
+  `?m=fr#adfr=…`, letting its stand-in page read the Storage photo copies.
+- **Stage 3 (14 Oct 2026): Google Ads, Email cards, Email creator and Draft with Claude in French** (each page's
+  `mount(…, {market: "fr"})`, own browser draft `…-fr`). **Google Ads**: French images (`gbanners.js` d.fr: "À partir de
+  989 €/pers.", "Départ de …", buttons Réserver / En savoir plus / Voir la croisière / Découvrir; French logo), copy from
+  `site/gcopy_fr.js` (no AI, Google's limits, "Dès 679 €/pers.", "Croisière sans avion" only from mainland French
+  ports, sitelink "Nos offres" → /offres, display path Croisieres/<place>, business name "Ambassador Croisières",
+  campaigns "… - Croisières FR"), feeds (`gfeeds.js` s.fr: French Custom feed in EUR with the site's own photos, French
+  customiser values and lines; no sale prices). **Email cards**: French words ("8 mai 2028", "7 nuits au départ de
+  Marseille", "À partir de 679 €/pers.", French cabin grades, "Solo à partir de …"), links to the sailing's page (the
+  French booking site has no deep link, so no "Booking" choice), captions suggested from the page's own photo
+  captions, French copy text and T&Cs fallback (conditions particulières). **Email creator** (still only shown to Sam):
+  French logo, phone 0 801 34 22 22, links (Nos croisières, Nos offres, Vie à bord, Brochure), small print ("Prix par
+  personne, base deux personnes, relevés le …"), "Gérer mes préférences", `lang="fr"`, French suggestions; no Nectar or
+  Trustpilot. The default legal line ("© 2026 Ambassador Croisières" + phone hours) has **no company details: check with
+  Sam**. French emails: `"market": "fr"` in the shared saved list, `#emailfr=` links. **Draft with Claude**: the pages send
+  `market: "fr"`; the `drafts` function stores it; `draft_job.py` builds French facts from `state/fr`
+  (`build_facts_fr`), uses a French tone-of-voice brief (`VOICE_FR`, `RULES_FR`, "vous", French typography) and checks
+  (`figures_fr`, `problems_fr`: any € or % figure not in the facts, or reduction wording such as "prix barré",
+  "réduction", "au lieu de", throws an option away); ads end with "Prix par personne, base deux personnes, sous réserve
+  de disponibilité." Not done for France: promotion T&Cs (`terms.py` reads the UK site only; the French offers have
+  pages under /offres), the weekly coverage check and the Claude card check.
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.

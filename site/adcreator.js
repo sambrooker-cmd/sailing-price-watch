@@ -433,7 +433,7 @@ function draw(){
         <label class="ac-lab" for="ac-cta">Button</label>
         <select id="ac-cta">${CTAS.map(x => `<option value="${x}"${x === ad.cta ? " selected" : ""}>${x}${FR ? ` (shows as "${CTA_FR[x]}")` : ""}</option>`).join("")}</select>
         ${suggestions()}
-        ${FR ? "" : claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}`)}
+        ${claude.block("ad", textReady() ? "" : ad.format === "carousel" ? "Add at least 2 sailings first, then Claude can draft the text." : "Add a sailing first, then Claude can draft the text.")}`)}
     </div>
     <div class="ac-main">
       <div class="ac-actions">
@@ -620,7 +620,7 @@ function wire(){
   }));
   // Claude's drafts (drafts.js): the run reads every fact from the tracker's saved state, so only codes and choices go
   claude.wire(root, "ad", {ID, redraw: draw,
-    body: () => ({format: ad.format, items: ad.cards.map(c => ({id: c.id, wasnow: c.design.startsWith("wasnow:") ? c.design.slice(7) : null,
+    body: () => ({format: ad.format, ...(FR ? {market: "fr"} : {}), items: ad.cards.map(c => ({id: c.id, wasnow: c.design.startsWith("wasnow:") ? c.design.slice(7) : null,
                                                               promos: c.promos || [], nectar: !!c.nectar}))}),
     forWhat: () => ad.cards.map(c => (sailing(c.id) || {}).title || c.id).join(", "),
     use: o => { ad.primary = o.text; $("#ac-primary").value = ad.primary; change(false); $("#ac-primary").focus(); }});
