@@ -4,9 +4,12 @@
  "new": [],
  "removed": [
   "A12626",
+  "A32650",
+  "A22637"
+ ],
+ "returned": [
   "A32650"
  ],
- "returned": [],
  "drops": [
   {
    "id": "A12704",
@@ -82,6 +85,12 @@
  ],
  "eligible": [],
  "flags": {
+  "A32650": [
+   "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A22630BR": [
+   "feed price £1,279 differs from cheapest cabin on the page £879 (the page price is used)"
+  ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
@@ -112,6 +121,9 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A22721NC": [
+   "feed price £1,349 differs from cheapest cabin on the page £1,199 (the page price is used)"
   ],
   "A22828LV": [
    "feed price £1,679 differs from cheapest cabin on the page £1,529 (the page price is used)"
@@ -313,6 +325,18 @@
    "feed": 1899,
    "page": 2379,
    "at": "2026-10-14T11:07:16Z"
+  },
+  {
+   "id": "A22630BR",
+   "feed": 1279,
+   "page": 879,
+   "at": "2026-10-14T11:33:22Z"
+  },
+  {
+   "id": "A22721NC",
+   "feed": 1349,
+   "page": 1199,
+   "at": "2026-10-14T11:33:22Z"
   }
  ],
  "feed_gap_fixed": [
@@ -395,6 +419,7 @@
   "2026-10-14T08:07:15Z",
   "2026-10-14T09:07:14Z",
   "2026-10-14T10:07:14Z",
-  "2026-10-14T11:07:16Z"
+  "2026-10-14T11:07:16Z",
+  "2026-10-14T11:33:22Z"
  ]
 }

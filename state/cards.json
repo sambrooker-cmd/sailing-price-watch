@@ -790,7 +790,41 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+    "base_title": "Atlantic Horizons and Caribbean Discovery",
+    "ship": "Renaissance",
+    "port": "London Tilbury",
+    "flight_from": "Heathrow",
+    "nights": 24,
+    "departure_date": "2026-10-29",
+    "price": 1349,
+    "promos": [],
+    "nectar": "",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+    "fp": "794f5f6ba9e7",
+    "made_at": "2026-10-14T11:34:04Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_1x1.jpg?alt=media&token=de19233e-94ba-44bc-94de-a1755ddc40fd",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_1x1.jpg",
+      "kb": 336
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_4x5.jpg?alt=media&token=0d2274e2-ef3d-4d1b-8ef8-026da4e38774",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_4x5.jpg",
+      "kb": 410
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_9x16.jpg?alt=media&token=fbd018cb-28ee-483b-8f35-2ee23f0bc5ca",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_9x16.jpg",
+      "kb": 441
+     }
+    }
+   }
   },
   "A22630BR": {
    "old": [
@@ -13161,6 +13195,41 @@
      "nectar": "Collect up to 14,000 Nectar points",
      "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
      "fp": "6ee5bde3e290",
+     "made_at": "2026-10-14T08:08:37Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_1x1.jpg?alt=media&token=f7082de4-e810-4a7a-8f60-b1a7e6e48b9a",
+       "path": "pricewatch-cards/A22637/6ee5bde3e290_1x1.jpg",
+       "kb": 312
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_4x5.jpg?alt=media&token=2827fc5f-25a2-4bd1-b52e-3dcbf07120f6",
+       "path": "pricewatch-cards/A22637/6ee5bde3e290_4x5.jpg",
+       "kb": 430
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_9x16.jpg?alt=media&token=0555c556-5a8b-4f95-a120-42ebc2eaebf1",
+       "path": "pricewatch-cards/A22637/6ee5bde3e290_9x16.jpg",
+       "kb": 544
+      }
+     },
+     "out_of_date_since": "2026-10-14T11:34:04Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Christmas Markets of Holland & Belgium",
+     "base_title": "Christmas Markets of Holland & Belgium",
+     "ship": "Ambition",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 3,
+     "departure_date": "2026-12-14",
+     "price": 429,
+     "promos": [],
+     "nectar": "Collect up to 14,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
+     "fp": "6ee5bde3e290",
      "made_at": "2026-10-13T14:22:32Z",
      "reason": "left the ad feed",
      "files": {
@@ -13287,41 +13356,7 @@
      },
      "out_of_date_since": "2026-10-13T10:08:11Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Christmas Markets of Holland & Belgium",
-    "base_title": "Christmas Markets of Holland & Belgium",
-    "ship": "Ambition",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 3,
-    "departure_date": "2026-12-14",
-    "price": 429,
-    "promos": [],
-    "nectar": "Collect up to 14,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
-    "fp": "6ee5bde3e290",
-    "made_at": "2026-10-14T08:08:37Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_1x1.jpg?alt=media&token=f7082de4-e810-4a7a-8f60-b1a7e6e48b9a",
-      "path": "pricewatch-cards/A22637/6ee5bde3e290_1x1.jpg",
-      "kb": 312
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_4x5.jpg?alt=media&token=2827fc5f-25a2-4bd1-b52e-3dcbf07120f6",
-      "path": "pricewatch-cards/A22637/6ee5bde3e290_4x5.jpg",
-      "kb": 430
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F6ee5bde3e290_9x16.jpg?alt=media&token=0555c556-5a8b-4f95-a120-42ebc2eaebf1",
-      "path": "pricewatch-cards/A22637/6ee5bde3e290_9x16.jpg",
-      "kb": 544
-     }
-    }
-   }
+   ]
   },
   "A22638": {
    "old": [
@@ -13432,5 +13467,5 @@
    }
   }
  },
- "updated_at": "2026-10-14T10:07:35Z"
+ "updated_at": "2026-10-14T11:34:04Z"
 }
