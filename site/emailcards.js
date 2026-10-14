@@ -5,6 +5,7 @@
 // picture in the email (name, date, nights and port, ship, "From £Xpp", link), so they can be pasted in.
 // Prices, dates, ships and offers come from the tracker's saved data; "Lower fares" offers never reach the
 // badges (cards_sync adkit). Everything is made in the browser; nothing is saved or sent anywhere.
+import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -319,23 +320,21 @@ function draw(){
   const it = st.items, cur = it[sel];
   root.innerHTML = `<div class="ac">
     <div class="ac-side">
-      <div class="ac-block">
+      ${cs.section("ec-sailings", "Sailings", it.length ? `${it.length} sailing${it.length === 1 ? "" : "s"}${it.some(x => claimOf(x)) ? " · was/now on some" : ""}` : "none added yet", `
         <label class="ac-lab" for="ec-find">Add a sailing</label>
         <input id="ec-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
         <div id="ec-results" class="ac-results"></div>
-      </div>
-      <div class="ac-block">
-        <h3>Sailings (${it.length})</h3>
         ${it.length ? `<ol class="ac-list">${it.map((x, i) => { const s = sailing(x.id); return `<li class="${i === sel ? "on" : ""}">
           <button type="button" class="ac-pick" data-i="${i}"><b><span class="ac-n">${i + 1}</span>${esc(s.title)}</b><span class="sub">${esc(x.id)} · ${shortDate(s.r.departure_date)}${x.caption ? " · " + esc(x.caption) : ""}${claimOf(x) ? " · was/now" : ""}</span></button>
           <span class="ac-strips"></span>
           <span class="ac-ord"><button type="button" data-up="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" data-down="${i}" aria-label="Move down"${i < it.length - 1 ? "" : " disabled"}>↓</button><button type="button" data-del="${i}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>` : `<p class="sub">Search above and add the sailings you need cards for. Click one to edit it.</p>`}
-        <label class="ac-check"><input type="checkbox" id="ec-all"${st.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>
+        <label class="ac-check"><input type="checkbox" id="ec-all"${st.allBadges ? " checked" : ""}> Offer badges on every sailing <span class="sub">(each sailing's live offers, up to 2)</span></label>`)}
+      ${cs.section("ec-out", "Sizes and downloads", [Object.entries(SIZES).filter(([k]) => st.sizes[k]).map(([, z]) => z.label).join(" and ") || "no size ticked",
+        Object.entries(KINDS).filter(([k]) => st.kinds[k]).map(([, x]) => x.label.toLowerCase()).join(" and ") || "nothing to download"].join(" · "), `
         <span class="ac-lab">Sizes</span>
         ${Object.entries(SIZES).map(([k, z]) => `<label class="ac-check"><input type="checkbox" data-size="${k}"${st.sizes[k] ? " checked" : ""}> ${z.label} <span class="sub">(${z.note})</span></label>`).join("")}
         <span class="ac-lab">Download</span>
-        ${Object.entries(KINDS).map(([k, x]) => `<label class="ac-check"><input type="checkbox" data-kind="${k}"${st.kinds[k] ? " checked" : ""}> ${x.label} <span class="sub">(${x.note})</span></label>`).join("")}
-      </div>
+        ${Object.entries(KINDS).map(([k, x]) => `<label class="ac-check"><input type="checkbox" data-kind="${k}"${st.kinds[k] ? " checked" : ""}> ${x.label} <span class="sub">(${x.note})</span></label>`).join("")}`, false)}
       ${cur ? editor(cur) : ""}
     </div>
     <div class="ac-main">
@@ -395,10 +394,8 @@ function editor(it){
       <button type="button" class="ac-seg" data-linkto="page" aria-pressed="${it.linkTo !== "booking"}">Sailing page</button>
       <button type="button" class="ac-seg" data-linkto="booking" aria-pressed="${it.linkTo === "booking"}">Booking</button></div>
     <p class="sub">${it.linkTo === "booking" ? "Opens the booking flow at the cabin step with this cabin type and " + (fareOf(it).fare === "solo" ? "1 guest" : "2 guests") + " already chosen." : "Opens the sailing's page on the website."}</p>
-    <div class="ac-photos">${s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`).join("")}</div>
-    <label class="ac-lab" for="ec-name">File name <span class="sub">(optional: blank uses the caption and offers)</span></label>
-    <input id="ec-name" value="${esc(it.name || "")}" placeholder="${esc(fileName({...it, name: ""}, outputs()[0] || "standard").replace(/ - (Standard|Wide).*$/, ""))}" maxlength="100">
-    <p class="sub" id="ec-names">${outputs().map(o => esc(fileName(it, o))).join("<br>") || "Tick a size and a download above."}</p>
+    <span class="ac-lab">Photo</span>
+    ${(() => { const g = cs.photoGrid("ec-item", s.photos.map(u => `<button type="button" class="ac-ph${(it.photo || s.image) === u ? " on" : ""}" data-photo="${esc(u)}" aria-label="Use this photo"><img src="${esc(cropUrl(u, 160, 160))}" alt="" loading="lazy"></button>`), s.photos.indexOf(it.photo || s.image)); return `<div class="ac-photos">${g.grid}</div>${g.more}`; })()}
     <label class="ac-lab" for="ec-caption">Location caption <span class="sub">(check it matches the photo)</span></label>
     <input id="ec-caption" value="${esc(it.caption)}" placeholder="e.g. Kirkwall, Scotland" maxlength="40">
     ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="ec-hint">Use "${esc(hint)}" (from the photo's file name)</button>` : ""}
@@ -406,6 +403,9 @@ function editor(it){
     ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${st.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
     ${st.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked. Untick it to choose.</p>` : ""}
     ${badgesOf(it).length ? `<button type="button" class="btn quiet sm" data-copyterms="${sel}">Copy offer T&amp;Cs</button> <span class="sub">${badgeTerms(it).map(x => `${esc(x.badge)}: ${x.docs.length ? "terms found" : "none on the website"}`).join(" · ")}</span>` : ""}
+    <label class="ac-lab" for="ec-name">File name <span class="sub">(optional: blank uses the caption and offers)</span></label>
+    <input id="ec-name" value="${esc(it.name || "")}" placeholder="${esc(fileName({...it, name: ""}, outputs()[0] || "standard").replace(/ - (Standard|Wide).*$/, ""))}" maxlength="100">
+    <p class="sub" id="ec-names">${outputs().map(o => esc(fileName(it, o))).join("<br>") || "Tick a size and a download under Sizes and downloads."}</p>
   </div>`;
 }
 let pass = 0;
@@ -422,6 +422,7 @@ const copyText = it => { const w = words(it); return [w.title, w.date, w.nights,
   `(Price ${w.basis}, as checked ${shortDate(today)}, subject to availability.${w.until ? ` Was/now price: use by ${shortDate(w.until)}.` : ""})`].join("\n"); };
 function wire(){
   const $ = q => root.querySelector(q);
+  cs.wire(root, draw);
   const find = $("#ec-find"), res = $("#ec-results");
   find.addEventListener("input", () => {
     const q = find.value.trim().toLowerCase();
