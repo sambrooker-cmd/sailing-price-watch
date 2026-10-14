@@ -321,7 +321,7 @@ function draw(){
         <button type="button" class="btn" id="ec-zip"${it.length && outputs().length ? "" : " disabled"}>Download zip</button>
         <button type="button" class="btn quiet" id="ec-html"${it.length && htmlSizes().length ? "" : " disabled"} title="One HTML file with every card, pictures saved online">Download HTML</button>
         <button type="button" class="btn quiet" id="ec-csv"${it.length ? "" : " disabled"} title="Every card's details in a spreadsheet">Download CSV</button>
-        <button type="button" class="btn quiet" id="ec-terms"${it.length && it.some(x => badgesOf(x).length) ? "" : " disabled title=\"Only for cards with offer badges\""}>Download offer T&amp;Cs</button>
+        ${it.some(x => badgesOf(x).length) ? `<button type="button" class="linkbtn" id="ec-terms" title="The website's T&amp;Cs for every offer badge on these cards">Copy offer T&amp;Cs</button>` : ""}
         <button type="button" class="btn quiet" id="ec-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
       </div>
@@ -444,10 +444,11 @@ function wire(){
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
   $("#ec-zip").addEventListener("click", zip);
   $("#ec-csv").addEventListener("click", () => download(URL.createObjectURL(new Blob([csvText()], {type: "text/csv;charset=utf-8"})), `email-cards_${today}.csv`));
-  $("#ec-terms").addEventListener("click", () => {
-    const withBadges = st.items.filter(x => badgesOf(x).length);
-    download(URL.createObjectURL(new Blob([withBadges.map(termsText).join("\n\n")], {type: "text/plain;charset=utf-8"})),
-             `offer-terms_${withBadges.map(x => x.id).join("_")}_${today}.txt`);
+  // Copy, not download (Sam, 14 Oct 2026: "a copy text link, like in the promotions view")
+  $("#ec-terms") && $("#ec-terms").addEventListener("click", async e => {
+    const b = e.currentTarget, t = st.items.filter(x => badgesOf(x).length).map(termsText).join("\n\n");
+    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = "Copy offer T&Cs"; }, 1500); }
+    catch(err) { prompt("Copy the offer T&Cs", t); }
   });
   root.querySelectorAll("[data-html]").forEach(b => b.addEventListener("click", async () => {
     const [i, k] = b.dataset.html.split(":"), was = b.textContent;
