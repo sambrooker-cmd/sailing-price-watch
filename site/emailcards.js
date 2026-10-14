@@ -330,9 +330,13 @@ function draw(){
       <div class="ec-grid">${it.map((x, i) => {
         const w = words(x);
         return `<figure class="ec-card${i === sel ? " on" : ""}" data-i="${i}">
-          <div class="ec-pics">${outputs().map(o => `<div class="ec-pic ec-${o.split("-")[0]}${o.endsWith("-card") ? " ec-whole" : ""}"><img data-pic="${i}:${o}" alt="${esc(outLabel(o))} for ${esc(w.title)}"><button type="button" class="linkbtn" data-dl="${i}:${o}">${esc(outLabel(o))} PNG</button></div>`).join("")}</div>
-          ${st.kinds.card ? `<div class="ec-copy">` : `<figcaption>`}<b class="ec-t">${esc(w.title)}</b><span>${esc(w.date)}</span><span>${esc(w.nights)}</span><span>${esc(w.ship)}</span>
-            <span class="ec-btn">${esc(w.button)}</span><button type="button" class="linkbtn" data-copy="${i}">Copy text</button>${badgesOf(x).length ? `<button type="button" class="linkbtn" data-copyterms="${i}">Copy offer T&amp;Cs</button>` : ""}${htmlSizes().map(k => `<button type="button" class="linkbtn" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}${st.kinds.card ? `</div>` : `</figcaption>`}</figure>`;
+          <div class="ec-pics">${outputs().map(o => `<div class="ec-pic ec-${o.split("-")[0]}${o.endsWith("-card") ? " ec-whole" : ""}"><img data-pic="${i}:${o}" alt="${esc(outLabel(o))} for ${esc(w.title)}"></div>`).join("")}</div>
+          ${st.kinds.card ? "" : `<figcaption><b class="ec-t">${esc(w.title)}</b><span>${esc(w.date)}</span><span>${esc(w.nights)}</span><span>${esc(w.ship)}</span>
+            <span class="ec-btn">${esc(w.button)}</span></figcaption>`}
+          <div class="ec-acts">
+            <div>${outputs().map(o => `<button type="button" class="btn sm" data-dl="${i}:${o}">Download ${esc(outLabel(o).toLowerCase())}</button>`).join("")}</div>
+            <div><button type="button" class="btn quiet sm" data-copy="${i}">Copy text</button><button type="button" class="btn quiet sm" data-copylink="${i}:page">Copy sailing link</button><button type="button" class="btn quiet sm" data-copylink="${i}:booking">Copy booking link</button>${badgesOf(x).length ? `<button type="button" class="btn quiet sm" data-copyterms="${i}">Copy offer T&amp;Cs</button>` : ""}${htmlSizes().map(k => `<button type="button" class="btn quiet sm" data-html="${i}:${k}">Copy ${SIZES[k].label.toLowerCase()} HTML</button>`).join("")}</div>
+          </div></figure>`;
       }).join("")}</div>
     </div></div>`;
   note = "";
@@ -432,14 +436,19 @@ function wire(){
     const [i, k] = b.dataset.dl.split(":"), it = st.items[+i];
     b.disabled = true; try { download(await make(it, k), fileName(it, k)); } finally { b.disabled = false; }
   }));
-  root.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
-    const t = copyText(st.items[+b.dataset.copy]);
-    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; } catch(e) { prompt("Copy the text", t); }
+  // Copy buttons say "Copied" for a moment, then go back (Sam, 14 Oct 2026: proper buttons, plus the two links)
+  const copied = async (b, t, what) => {
+    const was = b.textContent;
+    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = was; }, 1500); } catch(e) { prompt(what, t); }
+  };
+  root.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => copied(b, copyText(st.items[+b.dataset.copy]), "Copy the text")));
+  root.querySelectorAll("[data-copylink]").forEach(b => b.addEventListener("click", () => {
+    const [i, k] = b.dataset.copylink.split(":"), it = st.items[+i];
+    copied(b, k === "booking" ? bookingLink(it) : pageLink(it), k === "booking" ? "Copy the booking link" : "Copy the sailing link");
   }));
   // Copy the T&Cs of the offers on a card (Sam, 13 Oct 2026), the same text as Download offer T&Cs
   root.querySelectorAll("[data-copyterms]").forEach(b => b.addEventListener("click", async () => {
-    const t = termsText(st.items[+b.dataset.copyterms]), was = b.textContent;
-    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = was; }, 1500); } catch(e) { prompt("Copy the offer T&Cs", t); }
+    copied(b, termsText(st.items[+b.dataset.copyterms]), "Copy the offer T&Cs");
   }));
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
   $("#ec-zip").addEventListener("click", zip);
