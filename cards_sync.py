@@ -35,7 +35,7 @@ a browser, so the Ad creator couldn't draw them: `run` keeps a copy of every Fre
 (pricewatch-cards/fr/photos/<asset id>.jpg, 2400 px JPEG, listed in state/fr/photos.json; the bucket's CORS rule lets
 the tracker read them) and the ad kit points at the copies. Photos are never deleted (about 100 MB on 14 Oct 2026).
 """
-import datetime as dt, glob, hashlib, json, os, re, sys, urllib.request, uuid
+import datetime as dt, glob, hashlib, json, os, re, sys, urllib.error, urllib.request, uuid
 from pathlib import Path
 from urllib.parse import quote
 
@@ -285,6 +285,25 @@ def fr_photos_missing(snap, today):
     return need
 
 
+def fr_photo(aid):
+    """A French CMS photo as a 2400 px JPEG. The CMS resizes it; for a very large original it answers 400
+    (R270403's 8.9 MB photo, 14 Oct 2026), so then the original is fetched and resized here."""
+    get = lambda q: urllib.request.urlopen(urllib.request.Request(
+        f"https://cms.ambassadorcroisieres.fr/assets/{aid}{q}", headers={"User-Agent": "Mozilla/5.0"}), timeout=120).read()
+    try:
+        return get("?width=2400&format=jpg&quality=82")
+    except urllib.error.HTTPError as e:
+        if e.code != 400:
+            raise
+    import io
+    from PIL import Image
+    im = Image.open(io.BytesIO(get(""))).convert("RGB")
+    im.thumbnail((2400, 2400 * 4))   # 2400 wide, as the CMS's width=2400
+    out = io.BytesIO()
+    im.save(out, "JPEG", quality=82, optimize=True)
+    return out.getvalue()
+
+
 def mirror(url, pm):
     """The tracker's own copy of a French CMS photo (None until it has been copied)."""
     m = CMS_ID.search(url or "")
@@ -364,9 +383,7 @@ def main():
         pm, copied = photo_map(), 0
         for aid in fr_photos_missing(snap, today):
             try:
-                req = urllib.request.Request(
-                    f"https://cms.ambassadorcroisieres.fr/assets/{aid}?width=2400&format=jpg&quality=82", headers={"User-Agent": "Mozilla/5.0"})
-                data = urllib.request.urlopen(req, timeout=60).read()
+                data = fr_photo(aid)
                 pm[aid] = {"url": store.put(f"{PREFIX}/photos/{aid}.jpg", data, f"{aid}.jpg"), "path": f"{PREFIX}/photos/{aid}.jpg",
                            "kb": round(len(data) / 1024), "at": at}
                 copied += 1
