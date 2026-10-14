@@ -165,9 +165,14 @@ Old tracker artifact (Claude-hosted page + database): `https://claude.ai/artifac
   in Sam's account, its time zone left on UK time at Sam's choice; the GitHub `schedule` crons are UTC and only a backstop).
   Sam was told the trade-off: intraday flip-flops (see below) are now recorded, so sold-out-then-back cabins restart
   their reference period more often and some was/now claims qualify later than with one daily check.
-- **Claude review of cards.** Built 12 Oct 2026 as `card_review.py` (see above), on Sam's Claude plan. **Paused by Sam,
-  12 Oct 2026** after the plan token kept getting 401 "Invalid bearer token" (cause not found: plan type or the value
-  pasted; setup-token is documented for Pro/Max). The workflow step only runs when the repo variable `CARD_CHECK` = `on`. Don't move it to a paid API key, change the model or the batching without asking Sam.
+- **Claude review of cards.** Built 12 Oct 2026 as `card_review.py` (see above), on Sam's Claude plan (Pro). Paused
+  12 Oct 2026 after 401 "Invalid bearer token"; the cause (14 Oct 2026) was the wrong value in the secret: the browser's
+  one-time sign-in code instead of the `sk-ant-oat01-…` token PowerShell prints after it. **Turned on by Sam, 14 Oct
+  2026**, first pass over the weekend: nothing before `START` = Sat 17 Oct 06:00 UK, then `BATCH` = 32 per batch at
+  least `WINDOW_HOURS` = 4.5 h apart (the weekend's 06:07 / 11:07 / 16:07 / 22:07 checks = 8 batches, 256 places for
+  ~223 sailings; simulated: done by Sunday 22:09 even with a usage-limit stop), then remade cards hourly. A usage-limit
+  answer stops the batch (`LimitReached`) and the rest wait for the next window. The step now runs unless the repo
+  variable `CARD_CHECK` = `off`. Don't move it to a paid API key, change the model or the batching without asking Sam.
 - **Intraday flip-flops.** On 12 Oct the site's prices/availability changed between 07:00 and 10:30 (cabins sold out and
   came back, lead prices moved both ways). Running once a day at a fixed time keeps this consistent. Worth Sam knowing,
   because "sold out then back" resets a cabin's reference period.

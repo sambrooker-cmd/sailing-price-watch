@@ -30,9 +30,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "state" / "cards.json"
 MODEL = "claude-opus-5-5"
-BATCH = 56          # ~220 sailings to check at first → 4 batches (Sam: over 4 usage windows)
+BATCH = 32          # first pass over the weekend of 17–18 Oct 2026 (Sam): ~223 sailings in up to 8 batches
 SMALL = 15          # with this many or fewer waiting, check them all straight away
-WINDOW_HOURS = 5    # the plan's usage window
+WINDOW_HOURS = 4.5  # between batches: the plan's 5-hour usage window, less the few minutes a check can start late
+# Sam, 14 Oct 2026: "turn it on but run the first pass over the weekend, done before Monday morning". Nothing is
+# checked before this; then batches at the weekend's checks (06:07, 11:07, 16:07, 22:07 UK both days = 8 slots,
+# 256 places), and afterwards only newly remade cards, at the next hourly check.
+START = "2026-10-17T06:00:00+01:00"
 SIZES = ("1x1", "4x5", "9x16")
 
 SCHEMA = {
@@ -132,6 +136,10 @@ class SignInFailed(RuntimeError):
     pass
 
 
+class LimitReached(RuntimeError):
+    """The plan's usage limit: stop this batch and carry on at the next window."""
+
+
 def run_claude(prompt, cwd):
     """One Claude Code run that may only read files; returns its structured answer."""
     cmd = ["claude", "-p", prompt, "--model", MODEL, "--tools", "Read", "--allowedTools", "Read",
@@ -146,6 +154,8 @@ def run_claude(prompt, cwd):
         msg = str(out.get("result") or out.get("subtype"))
         if "401" in msg or "authenticat" in msg.lower():
             raise SignInFailed(msg[:200])
+        if "limit" in msg.lower() and any(w in msg.lower() for w in ("usage", "rate", "reached", "reset")):
+            raise LimitReached(msg[:200])
         raise RuntimeError(f"Claude Code didn't answer: {str(out.get('result') or out.get('subtype'))[:200]}")
     return out["structured_output"]
 
@@ -177,9 +187,12 @@ def main():
         print("No cards yet.")
         return 0
     import requests
+    at = now_utc()
+    if hours_between(START, at) < 0:
+        print(f"Card check: starts {START[:16].replace('T', ' ')} UK time (Sam: first pass over the weekend).")
+        return 0
     man = json.loads(MANIFEST.read_text())
     queue = todo(man)
-    at = now_utc()
     if len(queue) > SMALL:
         last = man.get("review_batch_at")
         if last and hours_between(last, at) < WINDOW_HOURS:
@@ -205,6 +218,10 @@ def main():
         except SignInFailed as e:   # every other sailing would fail the same way: stop and say so
             signin = str(e)
             errors.append(f"{sid}: {signin}")
+            break
+        except LimitReached as e:   # the plan's allowance for this window is used: the rest wait for the next batch
+            print(f"Card check paused: Claude's usage limit ({e}). The rest carry on at the next batch.")
+            errors.append(f"{sid}: usage limit reached, tried again next batch")
             break
         except Exception as e:  # noqa: one failure mustn't stop the rest; it's retried next check
             errors.append(f"{sid}: {str(e)[:200]}")
