@@ -80,7 +80,10 @@ function normalise(d){
   });
   if (ended) msgs.push(`${ended} was/now card${ended === 1 ? "" : "s"} switched to standard because the price-reduction claim has ended`);
   if (lost) msgs.push(`${lost} uploaded photo${lost === 1 ? " needs" : "s need"} adding again (uploads stay on the computer they came from)`);
-  return {ad: out, msgs};
+  // The same findings in a few words, shown on the item in the Saved list before it's opened (Sam, 14 Oct 2026)
+  const issues = [gone.length && `${gone.length} sailing${gone.length === 1 ? "" : "s"} no longer on sale`,
+    ended && `was/now claim ended on ${ended} card${ended === 1 ? "" : "s"}`, lost && `${lost} uploaded photo${lost === 1 ? "" : "s"} to add again`].filter(Boolean);
+  return {ad: out, msgs, issues};
 }
 const fresh = () => ({format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}});
 function load(d, msg){
@@ -348,7 +351,7 @@ function draftsBlock(){
       <button type="button" class="btn quiet sm" id="dr-link"${ad.cards.length ? "" : " disabled"}>Copy link</button>
       <button type="button" class="btn quiet sm" id="dr-new">New ad</button>
     </div>
-    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved ads (${ids.length})</button>` : ""}
+    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="dr-browse">Saved ads (${ids.length})${(n => n ? ` · ${n} need${n === 1 ? "s" : ""} updating` : "")(ids.filter(id => normalise(all[id].ad).issues.length).length)}</button>` : ""}
     ${store && store.problem ? `<p class="ac-note">${esc(store.problem)}</p>` : ""}
     ${oldHere ? `<p class="sub" style="margin:8px 0 0">${oldHere} ad${oldHere === 1 ? " is" : "s are"} saved in this browser only. <button type="button" class="linkbtn" id="dr-move">Move ${oldHere === 1 ? "it" : "them"} to the shared list</button></p>` : ""}
     ${note ? `<p class="ac-note" role="status">${esc(note)}</p>` : ""}
@@ -608,10 +611,10 @@ function wire(){
     openSaved({title: "Saved ads", noun: "ad", current: draftId,
       note: store.shared ? "Shared with everyone on the tracker. You can open or copy anyone's; only your own can be changed." : "",
       items: Object.entries(all).map(([id, d]) => {
-        const xs = (d.ad.cards || []), first = xs[0] && sailing(xs[0].id);
-        const photo = xs[0] && xs[0].photo && !String(xs[0].photo).startsWith("upload:") ? xs[0].photo : first && first.image;
+        const xs = (d.ad.cards || []), x0 = xs.find(x => sailing(x.id)), first = x0 && sailing(x0.id);   // the first still on sale
+        const photo = x0 && x0.photo && !String(x0.photo).startsWith("upload:") && first.photos.includes(x0.photo) ? x0.photo : first && first.image;
         return {id, name: d.name, saved_at: d.saved_at, count: xs.length, thumb: photo ? cropUrl(photo, 120, 90) : "",
-                by: d.by || "", mine: store.mine(id),
+                by: d.by || "", mine: store.mine(id), issues: normalise(d.ad).issues,
                 detail: [...new Set(xs.map(x => (sailing(x.id) || {title: x.id}).title))].join(" · ")};
       }),
       onOpen: id => { const d = drafts()[id]; if (!d) return; draftId = id; load(d.ad, `Opened "${d.name}"`); },

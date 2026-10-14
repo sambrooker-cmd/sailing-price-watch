@@ -95,6 +95,11 @@ browser-only storage, with a note, if the function can't be reached) and the Sav
 Everyone's / Mine filter, and Rename/Delete only on your own. Ads saved in a browser before this get "Move them to the
 shared list" (`moveLocal`), which uploads them and clears the browser copy. Limits: 300 KB an item, 1,000 per kind.
 `make_video.py` answers the function calls with 503 (not needed there).
+Out-of-date warnings (Sam, 14 Oct 2026, picked from: warnings / thumbnail grid / Email cards sets / more filters):
+each creator's `normalise()` also returns short `issues` (sailings no longer on sale, was/now claim ended, offer badge
+ended, cabin choice sold out, uploaded photo to add again); the Saved dialog shows them on the item ("Needs updating:
+… Opening it brings it up to date."), adds a "Needs updating (N)" filter, and the button says "Saved ads (N) · M need
+updating". The thumbnail uses the first sailing still on sale.
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
