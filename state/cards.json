@@ -509,6 +509,43 @@
      "flight_from": null,
      "nights": 16,
      "departure_date": "2026-10-18",
+     "price": 1849,
+     "promos": [
+      "Up to £400 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 50,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/c25a3191b9/alta-norway_2000x1333.png",
+     "fp": "8a57e347fe3e",
+     "made_at": "2026-10-13T15:08:13Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_1x1.jpg?alt=media&token=1fb6c4b1-09f8-4424-90d5-11c587740e60",
+       "path": "pricewatch-cards/A12626/8a57e347fe3e_1x1.jpg",
+       "kb": 171
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_4x5.jpg?alt=media&token=c1a89e32-5109-4aa3-afb1-be344901a184",
+       "path": "pricewatch-cards/A12626/8a57e347fe3e_4x5.jpg",
+       "kb": 208
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_9x16.jpg?alt=media&token=8db03b2a-d973-4173-a661-cca91722bcde",
+       "path": "pricewatch-cards/A12626/8a57e347fe3e_9x16.jpg",
+       "kb": 257
+      }
+     },
+     "out_of_date_since": "2026-10-14T09:07:59Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Norway's Land of the Northern Lights",
+     "base_title": "Norway's Land of the Northern Lights",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 16,
+     "departure_date": "2026-10-18",
      "price": 2049,
      "promos": [
       "Up to £400 Onboard Credit · ends 23 Nov"
@@ -574,46 +611,45 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Norway's Land of the Northern Lights",
-    "base_title": "Norway's Land of the Northern Lights",
-    "ship": "Ambience",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 16,
-    "departure_date": "2026-10-18",
-    "price": 1849,
-    "promos": [
-     "Up to £400 Onboard Credit · ends 23 Nov"
-    ],
-    "nectar": "Collect up to 50,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/c25a3191b9/alta-norway_2000x1333.png",
-    "fp": "8a57e347fe3e",
-    "made_at": "2026-10-13T15:08:13Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_1x1.jpg?alt=media&token=1fb6c4b1-09f8-4424-90d5-11c587740e60",
-      "path": "pricewatch-cards/A12626/8a57e347fe3e_1x1.jpg",
-      "kb": 171
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_4x5.jpg?alt=media&token=c1a89e32-5109-4aa3-afb1-be344901a184",
-      "path": "pricewatch-cards/A12626/8a57e347fe3e_4x5.jpg",
-      "kb": 208
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12626%2F8a57e347fe3e_9x16.jpg?alt=media&token=8db03b2a-d973-4173-a661-cca91722bcde",
-      "path": "pricewatch-cards/A12626/8a57e347fe3e_9x16.jpg",
-      "kb": 257
-     }
-    }
-   }
+   ]
   },
   "A32650": {
    "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+     "base_title": "Atlantic Horizons and Caribbean Discovery",
+     "ship": "Renaissance",
+     "port": "London Tilbury",
+     "flight_from": "Heathrow",
+     "nights": 24,
+     "departure_date": "2026-10-29",
+     "price": 3599,
+     "promos": [],
+     "nectar": "",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+     "fp": "a585338babc4",
+     "made_at": "2026-10-13T10:08:11Z",
+     "reason": "price £3,599 → £1,349",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_1x1.jpg?alt=media&token=cc956585-284b-474b-9a63-06c1f139a3ef",
+       "path": "pricewatch-cards/A32650/a585338babc4_1x1.jpg",
+       "kb": 337
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_4x5.jpg?alt=media&token=bd0baf2c-54e2-40ef-bb25-e4798e07794e",
+       "path": "pricewatch-cards/A32650/a585338babc4_4x5.jpg",
+       "kb": 411
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_9x16.jpg?alt=media&token=82951433-c253-4139-822e-3a2ddefba516",
+       "path": "pricewatch-cards/A32650/a585338babc4_9x16.jpg",
+       "kb": 442
+      }
+     },
+     "out_of_date_since": "2026-10-14T09:07:59Z"
+    },
     {
      "design": "2026-10-12",
      "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
@@ -729,28 +765,28 @@
     "flight_from": "Heathrow",
     "nights": 24,
     "departure_date": "2026-10-29",
-    "price": 3599,
+    "price": 1349,
     "promos": [],
     "nectar": "",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
-    "fp": "a585338babc4",
-    "made_at": "2026-10-13T10:08:11Z",
-    "reason": "new",
+    "fp": "794f5f6ba9e7",
+    "made_at": "2026-10-14T09:07:59Z",
+    "reason": "price £3,599 → £1,349",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_1x1.jpg?alt=media&token=cc956585-284b-474b-9a63-06c1f139a3ef",
-      "path": "pricewatch-cards/A32650/a585338babc4_1x1.jpg",
-      "kb": 337
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_1x1.jpg?alt=media&token=07935b3c-48cb-4576-b664-3a2e1b4bc5bf",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_1x1.jpg",
+      "kb": 336
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_4x5.jpg?alt=media&token=bd0baf2c-54e2-40ef-bb25-e4798e07794e",
-      "path": "pricewatch-cards/A32650/a585338babc4_4x5.jpg",
-      "kb": 411
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_4x5.jpg?alt=media&token=73cc605a-719d-4901-aef3-c0ad5af85eb0",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_4x5.jpg",
+      "kb": 410
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2Fa585338babc4_9x16.jpg?alt=media&token=82951433-c253-4139-822e-3a2ddefba516",
-      "path": "pricewatch-cards/A32650/a585338babc4_9x16.jpg",
-      "kb": 442
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F794f5f6ba9e7_9x16.jpg?alt=media&token=343c52f8-9862-4a1d-be5f-f202ad11fa4d",
+      "path": "pricewatch-cards/A32650/794f5f6ba9e7_9x16.jpg",
+      "kb": 441
      }
     }
    }
@@ -5261,7 +5297,43 @@
    }
   },
   "A12709": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Chocolates & Lace: Mini Cruise to Medieval Bruges",
+     "base_title": "Chocolates & Lace: Mini Cruise to Medieval Bruges",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 2,
+     "departure_date": "2027-05-01",
+     "price": 449,
+     "promos": [],
+     "nectar": "",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/4d5256f97d/27-11-2023_zeebrugge_selected-edited_gde_2252_1920x1080.jpg",
+     "fp": "7d5ce2c37593",
+     "made_at": "2026-10-12T14:20:12Z",
+     "reason": "price £449 → £499",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_1x1.jpg?alt=media&token=6d1fa2e2-9736-4830-b532-7138d2a9df2c",
+       "path": "pricewatch-cards/A12709/7d5ce2c37593_1x1.jpg",
+       "kb": 385
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_4x5.jpg?alt=media&token=cffe6d98-0bb0-4c26-8ad4-c68a4665cc2f",
+       "path": "pricewatch-cards/A12709/7d5ce2c37593_4x5.jpg",
+       "kb": 431
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_9x16.jpg?alt=media&token=c9fe4b5b-7e0d-4525-8e3c-01df4157f0b6",
+       "path": "pricewatch-cards/A12709/7d5ce2c37593_9x16.jpg",
+       "kb": 503
+      }
+     },
+     "out_of_date_since": "2026-10-14T09:07:59Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Chocolates & Lace: Mini Cruise to Medieval Bruges",
@@ -5271,28 +5343,28 @@
     "flight_from": null,
     "nights": 2,
     "departure_date": "2027-05-01",
-    "price": 449,
+    "price": 499,
     "promos": [],
     "nectar": "",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/4d5256f97d/27-11-2023_zeebrugge_selected-edited_gde_2252_1920x1080.jpg",
-    "fp": "7d5ce2c37593",
-    "made_at": "2026-10-12T14:20:12Z",
-    "reason": "new",
+    "fp": "e8cc4b28f6f0",
+    "made_at": "2026-10-14T09:07:59Z",
+    "reason": "price £449 → £499",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_1x1.jpg?alt=media&token=6d1fa2e2-9736-4830-b532-7138d2a9df2c",
-      "path": "pricewatch-cards/A12709/7d5ce2c37593_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_1x1.jpg?alt=media&token=5869ec3f-420e-47af-998b-f99b95c5b922",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_1x1.jpg",
       "kb": 385
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_4x5.jpg?alt=media&token=cffe6d98-0bb0-4c26-8ad4-c68a4665cc2f",
-      "path": "pricewatch-cards/A12709/7d5ce2c37593_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_4x5.jpg?alt=media&token=3fae5c33-ded7-49ae-b911-babb9654e8b4",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_4x5.jpg",
       "kb": 431
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2F7d5ce2c37593_9x16.jpg?alt=media&token=c9fe4b5b-7e0d-4525-8e3c-01df4157f0b6",
-      "path": "pricewatch-cards/A12709/7d5ce2c37593_9x16.jpg",
-      "kb": 503
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_9x16.jpg?alt=media&token=fbf134e4-aedd-49d7-b2e2-b007637a6125",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_9x16.jpg",
+      "kb": 504
      }
     }
    }
@@ -13359,5 +13431,5 @@
    }
   }
  },
- "updated_at": "2026-10-14T08:08:37Z"
+ "updated_at": "2026-10-14T09:07:59Z"
 }
