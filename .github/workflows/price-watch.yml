@@ -54,6 +54,16 @@ jobs:
           HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE }}
         run: python daily.py --market fr
 
+      # Competitor prices and offers (Sam, 15 Oct 2026): Fred. Olsen's own site and the agent Planet Cruise (P&O,
+      # Princess, Cunard, Marella, MSC, Royal Caribbean, Celebrity and Ambassador), a sample of sailings, once a UK
+      # day (later checks skip it). Only sites whose terms allow it: see competitors.py. Recorded only.
+      - name: Competitor prices
+        id: comp
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        timeout-minutes: 25
+        run: python competitors.py
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms
@@ -137,7 +147,7 @@ jobs:
 
       - name: Commit results
         # always(): prices are saved even if a later card step failed (QA, 13 Oct 2026); France's alone if the UK's failed
-        if: always() && (steps.watch.outcome == 'success' || steps.fr.outcome == 'success')
+        if: always() && (steps.watch.outcome == 'success' || steps.fr.outcome == 'success' || steps.comp.outcome == 'success')
         run: |
           git config user.name "price-watch-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -243,6 +253,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: .github/issue.sh "Card check can't sign in — $(TZ=Europe/London date +%F)" out/review_signin.md
+
+      - name: Open issue if the competitor check failed
+        if: always() && steps.comp.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The daily competitor price check failed at $(date -u '+%H:%M') UTC. Our own prices are unaffected; the next check tries again."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > /tmp/comp.md
+          .github/issue.sh "Competitor check FAILED — $(TZ=Europe/London date +%F)" /tmp/comp.md
 
       - name: Open issue on failure
         if: failure()

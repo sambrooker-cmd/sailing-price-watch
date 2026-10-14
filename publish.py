@@ -20,6 +20,7 @@ has to understand the shape of the data:
   pricewatch/fr-current, fr-cabins, fr-runs, fr-trends, fr-runs-YYYY-MM-1 / -2
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
+  pricewatch/comp-current, comp-runs   competitor prices and offers (competitors.py), once it has run
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -122,6 +123,20 @@ def documents():
         for name in ("terms", "coverage"):   # France: terms.py --market fr, coverage.py --market fr
             if (ROOT / "state" / sub / f"{name}.json").exists():
                 docs[prefix + name] = load(ROOT / "state" / sub / f"{name}.json")
+    # Competitors (competitors.py, 15 Oct 2026): the sampled sailings and offers, and the last 60 days' changes.
+    # Not the sample bookkeeping (pages tried), which the page doesn't need.
+    comp = ROOT / "state" / "competitors" / "current.json"
+    if comp.exists():
+        docs["comp-current"] = {k: v for k, v in load(comp).items() if k not in ("tried", "uk_ships", "uk_ships_at")}
+        runs, size = [], 0
+        for f in sorted((ROOT / "runs" / "competitors").glob("*.json"), reverse=True)[:60]:
+            r = load(f)
+            r = {"date": r.get("date"), "changes": r.get("changes", [])}
+            size += len(json.dumps(r))
+            if size > 400_000:
+                break
+            runs.append(r)
+        docs["comp-runs"] = {"runs": runs}
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
