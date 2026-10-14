@@ -11,9 +11,13 @@ can include its own discounts and "was" figures.
 How it reads, politely (the same rules for both sites):
   * once a day, public pages only, nothing robots.txt disallows (checked with urllib.robotparser before
     every request), no booking systems, no logins;
-  * a sample, never the whole catalogue: SAMPLE sailings per cruise line departing from a UK port in the
-    next 1-18 months, spread over the months, kept the same from day to day (so each has a price history)
-    and topped up as sailings depart or disappear; at most NEW_PER_RUN new candidates a line per run;
+  * every sailing Ambassador competes with (Sam, 15 Oct 2026: "capture all sailings that ambassador would compete
+    with so no fly uk sailings and fly caribbean"), not the rest of the catalogue: sailings from a UK port (no-fly),
+    and Caribbean sailings sold from the UK with flights (a UK-airport package, a departure from a Caribbean island,
+    and every Marella Caribbean holiday), departing at least MIN_DAYS ahead (`competes`). Each page is read once to
+    see whether it competes (pages that don't are remembered in `tried` and never read again; at most NEW_PER_RUN new
+    pages a line per run, so the first days discover the lists); competing sailings are then read every day.
+    Ambassador's own sailings at Planet Cruise stay a sample of CAP (our own prices come from our website);
   * PAUSE seconds between requests to a site, one request at a time, and an honest User-Agent.
 
 What it records (state/competitors/current.json, runs/competitors/DATE.json):
@@ -37,11 +41,10 @@ ROOT = Path(__file__).resolve().parent
 STATE = ROOT / "state" / "competitors" / "current.json"
 RUNS = ROOT / "runs" / "competitors"
 UA = "Mozilla/5.0 (compatible; AmbassadorPriceWatch/1.0; Ambassador Cruise Line digital team, competitor price sample)"
-PAUSE = 3.0         # seconds between requests to the same site
-SAMPLE = 20         # sailings per cruise line
-SAMPLE_FO = 30      # Fred. Olsen, the closest competitor, read directly
-NEW_PER_RUN = 12    # new candidate pages a line per run (the first days fill the sample)
-MONTHS = (1, 18)    # departures this many months ahead
+PAUSE = 2.0         # seconds between requests to the same site
+CAP = {"ambassador": 20}   # a sample only for Ambassador at Planet Cruise; every competing sailing otherwise
+NEW_PER_RUN = 80    # new pages a line per run, to find which sailings compete (the first days discover the lists)
+MIN_DAYS = 7        # departures at least this many days ahead (as our own tracker)
 CABINS = ("inside", "outside", "balcony", "suite")   # the comparable types; others kept as read
 
 PC = "https://www.planetcruise.com"
@@ -64,6 +67,13 @@ LINE_NAMES = {"fredolsen": "Fred. Olsen", **{k: v[0] for k, v in PC_LINES.items(
 UK_PORTS = re.compile(r"(?i)\b(southampton|dover|portsmouth|liverpool|newcastle|tyne|tilbury|london|bristol|avonmouth|"
                       r"belfast|rosyth|edinburgh|leith|greenock|glasgow|hull|harwich|falmouth|cardiff|holyhead|"
                       r"invergordon|aberdeen|plymouth|poole|swansea|birkenhead|sunderland|kirkwall)\b")
+# The Caribbean: a departure port or itinerary with any of these is a Caribbean sailing
+CARIB = re.compile(r"(?i)caribbean|antilles|barbados|bridgetown|antigua|st\.? john'?s|st\.? lucia|castries|jamaica|montego|"
+                   r"ocho rios|falmouth, jamaica|bahamas|nassau|aruba|cura[cç]ao|bonaire|st\.? kitts|basseterre|grenada|"
+                   r"dominica|roseau|martinique|fort-de-france|guadeloupe|pointe-?[aà]-?pitre|st\.? maarten|philipsburg|"
+                   r"puerto rico|san juan|cozumel|virgin islands|tortola|st\.? thomas|st\.? croix|trinidad|tobago|"
+                   r"cayman|belize|costa maya|roatan|st\.? vincent|kingstown|bequia|turks|grand turk|la romana|samana|"
+                   r"punta cana|cartagena|colon, panama|st\.? barts|guadeloupe")
 MON = {m: i + 1 for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
                                        "september", "october", "november", "december"])}
 MON3 = {m[:3]: i for m, i in MON.items()}
@@ -187,6 +197,8 @@ def pc_read(page, url, line=None):
         if key and now and (key not in prices or now < prices[key]["p"]):
             prices[key] = {"p": now, "was": money(was.group(1)) if was else None, "fare": text(fare.group(1)) if fare else None}
     s["prices"] = {"twin": prices}
+    itin = re.findall(r"Day \d+(?:-\d+)?:\s*([^<\n|]{2,60})", text(page[:80000]).replace(" Day ", "\nDay "))
+    s["carib"] = bool(CARIB.search(" ".join([s.get("title") or "", s.get("port") or ""] + itin)))
     tags = [text(t) for t in re.findall(r'<li class="attribute-tooltip[^"]*"[^>]*>(.*?)</li>', page, re.S)]
     s["tags"] = [t for t in dict.fromkeys(tags) if t]
     promo = re.search(r'<div class="itinerary-promo-message"[^>]*>\s*<span>(.*?)</span>', page, re.S)
@@ -223,6 +235,9 @@ def fo_read(page, url):
             s.update(title=html.unescape(d.get("name") or ""), departure_date=(d.get("departureTime") or "")[:10] or None,
                      port=term.get("name"), uk=((term.get("address") or {}).get("addressCountry") == "GB"),
                      code=(d.get("offers") or {}).get("sku"))
+            # Fred. Olsen's Caribbean sailings leave from a Caribbean island, with flights from the UK
+            s["carib"] = bool(CARIB.search(f"{s['title']} {s['port'] or ''}"))
+            s["fly"] = not s["uk"] and s["carib"]
             break
     m = re.search(r'fa-moon-stars"></i>\s*<span>(\d+) nights</span>', page)
     s["nights"] = int(m.group(1)) if m else None
@@ -273,6 +288,15 @@ def fo_brand_offers(site, today):
 
 
 # ---------- sample ----------
+def competes(s):
+    """No-fly from a UK port, or a Caribbean sailing sold from the UK with flights ("no-fly" / "fly-caribbean")."""
+    if s.get("uk") and not s.get("fly"):
+        return "no-fly"
+    if s.get("carib") and (s.get("fly") or (s.get("port") and CARIB.search(s["port"]))):
+        return "fly-caribbean"
+    return None
+
+
 def spread(cands, n):
     """n candidates spread over the months (round robin by month, earliest first)."""
     by = {}
@@ -297,7 +321,7 @@ def seg_update(segs, p, was, today):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date")
-    ap.add_argument("--max-pages", type=int, default=300, help="safety cap on pages read in one run")
+    ap.add_argument("--max-pages", type=int, default=2500, help="safety cap on pages read in one run")
     ap.add_argument("--force", action="store_true", help="run even if today's check has been done")
     a = ap.parse_args()
     from daily import london_today
@@ -319,7 +343,7 @@ def main():
         r = old or {"line": line, "first_seen": today, "prices": {}, "offers": {}}
         if not old:
             note(kind="new", line=line, id=sid, title=s.get("title"))
-        r.update({k: s.get(k) for k in ("url", "source", "title", "ship", "port", "uk", "fly", "departure_date", "nights", "code", "fare") if s.get(k) is not None})
+        r.update({k: s.get(k) for k in ("url", "source", "title", "ship", "port", "uk", "fly", "carib", "segment", "departure_date", "nights", "code", "fare") if s.get(k) is not None})
         r["last_seen"], r["checked_at"] = today, at
         r.pop("gone", None)
         for occ, cab in (s.get("prices") or {}).items():
@@ -355,7 +379,8 @@ def main():
     for line, (name, code) in PC_LINES.items():
         sample, tried = st["sample"].setdefault(line, []), set(st["tried"].setdefault(line, []))
         try:
-            cands = [(u, d) for u, d in pc_candidates(pc, code) if MONTHS[0] <= months_ahead(d, today) <= MONTHS[1]]
+            soon = (dt.date.fromisoformat(today) + dt.timedelta(days=MIN_DAYS)).isoformat()
+            cands = [(u, d) for u, d in pc_candidates(pc, code) if d > soon]
         except Exception as e:  # noqa
             problems.append(f"{name}: Planet Cruise's list couldn't be read ({str(e)[:100]})")
             cands = None
@@ -370,7 +395,8 @@ def main():
                     r["gone"] = today
                     note(kind="gone", line=line, id=sid, title=r.get("title"))
         todo = list(sample)
-        if cands is not None and len(sample) < SAMPLE:
+        cap = CAP.get(line)
+        if cands is not None and (cap is None or len(sample) < cap):
             pool = [c for c in cands if c[0] not in tried and c[0] not in sample]
             first = [c for c in pool if c[0].split("/")[5] in uk_ships]   # ships that sail from the UK first
             new = spread(first, NEW_PER_RUN)
@@ -391,13 +417,20 @@ def main():
                     tried.add(u)
                 continue
             read_ok += 1
+            s["segment"] = competes(s)
+            if not s["segment"]:   # doesn't compete with Ambassador (or no longer does): not tracked
+                tried.add(u)
+                if u in sample:
+                    sample.remove(u)
+                    st["sailings"].pop(sid, None)
+                continue
             if u not in sample:
                 tried.add(u)
-                if not s["uk"] or len(sample) >= SAMPLE:
-                    continue   # the sample is UK departures only (Ambassador's market)
+                if cap is not None and len(sample) >= cap:
+                    continue
                 sample.append(u)
             record(line, sid, s)
-        st["tried"][line] = sorted(tried)[-2000:]
+        st["tried"][line] = sorted(tried)[-6000:]
 
     # ---- Fred. Olsen, directly ----
     line = "fredolsen"
@@ -417,9 +450,8 @@ def main():
                 r["gone"] = today
                 note(kind="gone", line=line, id=sid, title=r.get("title"))
     todo = list(sample)
-    if all_urls is not None and len(sample) < SAMPLE_FO:
-        fresh = [u for u in all_urls if u not in tried and u not in sample]
-        todo += fresh[:: max(1, len(fresh) // NEW_PER_RUN)][:NEW_PER_RUN] if fresh else []
+    if all_urls is not None:
+        todo += [u for u in all_urls if u not in tried and u not in sample][:NEW_PER_RUN * 3]   # ~180 pages: all on day one
     for u in todo:
         if pc.count + fo.count >= a.max_pages:
             break
@@ -435,14 +467,19 @@ def main():
                 tried.add(u)
             continue
         read_ok += 1
+        d = s.get("departure_date")
+        s["segment"] = competes(s)
+        if not s["segment"] or not d or d <= (dt.date.fromisoformat(today) + dt.timedelta(days=MIN_DAYS)).isoformat():
+            tried.add(u)
+            if u in sample:
+                sample.remove(u)
+                st["sailings"].pop(sid, None)
+            continue
         if u not in sample:
             tried.add(u)
-            d = s.get("departure_date")
-            if not s.get("uk") or not d or not (MONTHS[0] <= months_ahead(d, today) <= MONTHS[1]) or len(sample) >= SAMPLE_FO:
-                continue
             sample.append(u)
         record(line, sid, s)
-    st["tried"][line] = sorted(tried)[-2000:]
+    st["tried"][line] = sorted(tried)[-6000:]
     try:
         brand = fo_brand_offers(fo, today)
         bo = st["brand_offers"].setdefault(line, {})

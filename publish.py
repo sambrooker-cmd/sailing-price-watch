@@ -20,7 +20,7 @@ has to understand the shape of the data:
   pricewatch/fr-current, fr-cabins, fr-runs, fr-trends, fr-runs-YYYY-MM-1 / -2
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
-  pricewatch/comp-current, comp-runs   competitor prices and offers (competitors.py), once it has run
+  pricewatch/comp-current, comp-<line>, comp-runs   competitor prices and offers (competitors.py), once it has run
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -127,7 +127,16 @@ def documents():
     # Not the sample bookkeeping (pages tried), which the page doesn't need.
     comp = ROOT / "state" / "competitors" / "current.json"
     if comp.exists():
-        docs["comp-current"] = {k: v for k, v in load(comp).items() if k not in ("tried", "uk_ships", "uk_ships_at")}
+        # One document per cruise line (every competing sailing: ~1,000, too many for one 1 MiB document) plus
+        # comp-current with the rest and the list of parts
+        c = load(comp)
+        by = {}
+        for sid, r in (c.get("sailings") or {}).items():
+            by.setdefault(r.get("line") or "other", {})[sid] = r
+        for line, sailings in by.items():
+            docs[f"comp-{line}"] = {"sailings": sailings}
+        docs["comp-current"] = {**{k: v for k, v in c.items() if k not in ("tried", "uk_ships", "uk_ships_at", "sample", "sailings")},
+                                "parts": sorted(f"comp-{line}" for line in by)}
         runs, size = [], 0
         for f in sorted((ROOT / "runs" / "competitors").glob("*.json"), reverse=True)[:60]:
             r = load(f)

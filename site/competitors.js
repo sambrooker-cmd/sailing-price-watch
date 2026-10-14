@@ -15,7 +15,11 @@ const KEY = "spw-comp";
 const LINES = {fredolsen: "Fred. Olsen", po: "P&O Cruises", princess: "Princess Cruises", cunard: "Cunard", marella: "Marella Cruises",
   msc: "MSC Cruises", royal: "Royal Caribbean", celebrity: "Celebrity Cruises", ambassador: "Ambassador (at Planet Cruise)"};
 let C, R, our, ctx, esc, loading = null;
-const st = {line: "", cabin: "inside", occ: "twin", month: "", nofly: false, sort: "date", vsSort: "gap"};
+const st = {line: "", cabin: "inside", occ: "twin", month: "", seg: "", sort: "date", vsSort: "gap"};
+let showAll = false;
+// No-fly from a UK port, or fly-Caribbean (competitors.py `segment`; older records: the fly flag)
+const segOf = r => r.segment || (r.fly ? "fly-caribbean" : "no-fly");
+const SEGS = {"no-fly": "No-fly from the UK", "fly-caribbean": "Fly-Caribbean"};
 
 const gbp = v => v == null ? "–" : "£" + Math.round(v).toLocaleString("en-GB");
 const day = iso => { if (!iso) return "–"; const [y, m, d] = iso.split("-").map(Number); return `${d} ${MON[m - 1]} ${y}`; };
@@ -51,7 +55,7 @@ function ourSailings(state, cabins){
 }
 // Ambassador's cheapest per night for the same cabin type, same month, similar length (±3 nights), same no-fly/fly
 function ourMatch(r, occ, cab){
-  const m = (r.departure_date || "").slice(0, 7), fly = !!r.fly;
+  const m = (r.departure_date || "").slice(0, 7), fly = segOf(r) === "fly-caribbean";
   const hits = our.filter(o => o.date.slice(0, 7) === m && Math.abs(o.nights - (r.nights || 0)) <= 3 && o.fly === fly && o.pr[occ][cab] != null);
   if (!hits.length) return null;
   const best = hits.reduce((a, o) => o.pr[occ][cab] / o.nights < a.pr[occ][cab] / a.nights ? o : a);
@@ -68,25 +72,25 @@ function controls(box, opts){
     ${opts.cabin === false ? "" : `<select data-k="cabin" aria-label="Cabin type">${CABINS.map(([c, l]) => `<option value="${c}"${st.cabin === c ? " selected" : ""}>${l}</option>`).join("")}</select>
     <select data-k="occ" aria-label="Fare"><option value="twin"${st.occ === "twin" ? " selected" : ""}>Two sharing</option><option value="solo"${st.occ === "solo" ? " selected" : ""}>Solo (Fred. Olsen only)</option></select>`}
     ${opts.month === false ? "" : `<select data-k="month" aria-label="Departure month"><option value="">Any month</option>${months.map(m => `<option value="${m}"${st.month === m ? " selected" : ""}>${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}</option>`).join("")}</select>
-    <label><input type="checkbox" data-k="nofly"${st.nofly ? " checked" : ""}> No-fly only</label>`}
+    <select data-k="seg" aria-label="No-fly or fly-Caribbean"><option value="">No-fly and fly-Caribbean</option>${Object.entries(SEGS).map(([k, l]) => `<option value="${k}"${st.seg === k ? " selected" : ""}>${l}</option>`).join("")}</select>`}
     ${opts.extra || ""}
   </div>`;
 }
 function wire(box, rerender){
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} };
   box.querySelectorAll("[data-k]").forEach(i => i.addEventListener("change", e => {
-    st[i.dataset.k] = i.type === "checkbox" ? e.target.checked : e.target.value; save(); rerender();
+    st[i.dataset.k] = i.type === "checkbox" ? e.target.checked : e.target.value; showAll = false; save(); rerender();
   }));
 }
-const pick = r => (!st.line || r.line === st.line) && (!st.month || (r.departure_date || "").slice(0, 7) === st.month) && (!st.nofly || !r.fly);
+const pick = r => (!st.line || r.line === st.line) && (!st.month || (r.departure_date || "").slice(0, 7) === st.month) && (!st.seg || segOf(r) === st.seg);
 function csvDownload(name, head, body){
   const q = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
   const blob = new Blob(["﻿" + [head, ...body].map(r => r.map(q).join(",")).join("\r\n")], {type: "text/csv"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }
 const source = () => `<p class="note" style="margin:0 0 12px">Read once a day from <b>Fred. Olsen's own website</b> and the travel agent <b>Planet Cruise</b>
-  (P&amp;O, Princess, Cunard, Marella, MSC, Royal Caribbean, Celebrity, and Ambassador itself): a sample of sailings sold from the UK,
-  never the whole catalogue. Agent prices can include the agent's own discounts and "was" figures. Last read
+  (P&amp;O, Princess, Cunard, Marella, MSC, Royal Caribbean, Celebrity): every sailing Ambassador competes with, that is from a UK port
+  (no-fly) or a Caribbean sailing sold from the UK with flights, read every day (plus a sample of Ambassador's own sailings there). Agent prices can include the agent's own discounts and "was" figures. Last read
   ${esc(C.updated_at ? C.updated_at.slice(0, 16).replace("T", " ") + " UTC" : "–")}. Saga isn't covered. Recorded only: nothing here changes a price, an ad or a claim.</p>`;
 
 // ---------- Competitor prices ----------
@@ -101,21 +105,21 @@ function renderPrices(box){
   const lines = new Set(all.map(r => r.line));
   box.innerHTML = source() + `
     <div class="stats" style="margin-bottom:18px">
-      <div class="stat"><span class="k">Sailings sampled</span><span class="v">${all.length}</span><span class="s">${lines.size} lines</span></div>
+      <div class="stat"><span class="k">Competing sailings</span><span class="v">${all.filter(r => r.line !== "ambassador").length}</span><span class="s">${all.filter(r => r.line !== "ambassador" && segOf(r) === "no-fly").length} no-fly · ${all.filter(r => r.line !== "ambassador" && segOf(r) === "fly-caribbean").length} fly-Caribbean · ${[...lines].filter(l => l !== "ambassador").length} lines</span></div>
       <div class="stat"><span class="k">Price moves, 7 days</span><span class="v">${moves.length}</span><span class="s">${moves.filter(c => c.kind === "price_drop").length} down · ${moves.filter(c => c.kind === "price_rise").length} up</span></div>
       <div class="stat"><span class="k">New offers, 7 days</span><span class="v">${recent.filter(c => c.kind === "offer_added").length}</span><span class="s">${recent.filter(c => c.kind === "offer_ended").length} ended</span></div>
     </div>
     ${controls(box, {extra: `<select data-k="sort" aria-label="Sort"><option value="date"${st.sort === "date" ? " selected" : ""}>By departure</option><option value="pn"${st.sort === "pn" ? " selected" : ""}>Cheapest per night</option><option value="chg"${st.sort === "chg" ? " selected" : ""}>Biggest drop this week</option></select>
       <button type="button" class="linkbtn" id="cp-csv">Download CSV</button>`})}
     ${list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Nights</th><th class="num">From pp</th><th class="num">Per night</th><th class="num">7 days</th><th>Offers</th></tr></thead><tbody>
-      ${list.map(({r, p, pn, chg}) => `<tr>
-        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${r.fly ? ' <span class="chip">fly</span>' : ""}</div></td>
+      ${(showAll ? list : list.slice(0, 300)).map(({r, p, pn, chg}) => `<tr>
+        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${segOf(r) === "fly-caribbean" ? ' <span class="chip">fly-Caribbean</span>' : ""}</div></td>
         <td>${day(r.departure_date)}</td><td class="num">${r.nights || "–"}</td>
         <td class="num">${gbp(p.p)}${p.was ? `<div class="sub"><s>${gbp(p.was)}</s></div>` : ""}${p.fare ? `<div class="sub">${esc(p.fare)}</div>` : ""}</td>
         <td class="num">${pn ? gbp(pn) : "–"}</td>
         <td class="num">${chg == null ? "–" : `<span style="color:${chg < 0 ? "var(--ok, #1a7f26)" : "var(--warn)"}">${chg < 0 ? "−" : "+"}${gbp(Math.abs(chg))}</span>`}</td>
         <td>${liveOffers(r).slice(0, 3).map(o => `<span class="chip" title="${esc(o)}" style="white-space:normal">${esc(o.length > 70 ? o.slice(0, 68) + "…" : o)}</span>`).join(" ") || "–"}</td></tr>`).join("")}
-    </tbody></table></div><p class="note">${list.length} sailing${list.length === 1 ? "" : "s"} with a ${st.occ === "solo" ? "solo " : ""}${cabinLabel(st.cabin).toLowerCase()} price. See <b>Vs Ambassador</b> for how ours compare.</p>`
+    </tbody></table></div><p class="note">${list.length} sailing${list.length === 1 ? "" : "s"} with a ${st.occ === "solo" ? "solo " : ""}${cabinLabel(st.cabin).toLowerCase()} price${!showAll && list.length > 300 ? ` (showing the first 300: <button type="button" class="linkbtn" id="cp-all">Show all</button>)` : ""}. See <b>Vs Ambassador</b> for how ours compare.</p>`
       : `<div class="empty"><p>No sampled sailings match. The first days fill the sample (about a dozen new pages a line each day).</p></div>`}
     <h3 style="margin:22px 0 8px;font-size:15px">What changed (last 7 days)</h3>
     ${recent.some(c => c.kind !== "new") ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Date</th><th>Line</th><th>Sailing</th><th>Change</th></tr></thead><tbody>
@@ -123,10 +127,12 @@ function renderPrices(box){
         return `<tr><td>${day(c.date)}</td><td>${esc(lineName(c.line))}</td><td>${c.id ? `<a href="${esc(r.url || "#")}" target="_blank" rel="noopener">${esc(r.title || c.title || c.id)}</a>` : "Brand-wide"}</td><td>${esc(words(c))}</td></tr>`; }).join("")}
     </tbody></table></div>` : `<div class="empty"><p>Changes appear after the second daily check.</p></div>`}`;
   wire(box, () => renderPrices(box));
+  const more = box.querySelector("#cp-all");
+  if (more) more.addEventListener("click", () => { showAll = true; renderPrices(box); });
   const csv = box.querySelector("#cp-csv");
   if (csv) csv.addEventListener("click", () => csvDownload(`competitor-prices-${st.occ}-${st.cabin}-${C.updated || ""}.csv`,
-    ["Line", "Sailing", "Ship", "Departs from", "Fly", "Departure date", "Nights", "Cabin", "Fare", "Price pp", "Was pp", "Per night", "Change 7 days", "Offers", "Link", "Read"],
-    list.map(({r, p, pn, chg}) => [lineName(r.line), r.title, r.ship, r.port, r.fly ? "yes" : "", r.departure_date, r.nights, st.occ + " " + st.cabin, p.fare, p.p, p.was, pn && Math.round(pn), chg, liveOffers(r).join("; "), r.url, r.checked_at])));
+    ["Line", "Sailing", "Ship", "Departs from", "No-fly / fly-Caribbean", "Departure date", "Nights", "Cabin", "Fare", "Price pp", "Was pp", "Per night", "Change 7 days", "Offers", "Link", "Read"],
+    list.map(({r, p, pn, chg}) => [lineName(r.line), r.title, r.ship, r.port, SEGS[segOf(r)], r.departure_date, r.nights, st.occ + " " + st.cabin, p.fare, p.p, p.was, pn && Math.round(pn), chg, liveOffers(r).join("; "), r.url, r.checked_at])));
 }
 
 function words(c){
@@ -224,7 +230,7 @@ function renderVs(box){
         <td class="num">${gbp(pn)}</td>
         <td><a href="#${esc(m.best.id)}"><b>${esc(m.best.title || m.best.id)}</b></a><div class="sub">${esc(m.best.ship || "")} · ${day(m.best.date)} · ${m.best.nights} nights · ${gbp(m.best.pr[occ][st.cabin])}pp${m.n > 1 ? ` · cheapest of ${m.n}` : ""}</div></td>
         <td class="num">${gbp(m.pn)}</td><td class="num">${pctCell(d)}</td></tr>`).join("")}
-    </tbody></table></div>` : `<div class="empty"><p>No matches for these filters: we need one of our sailings in the same month, within 3 nights' length, with the same cabin type on sale.</p></div>`}
+    </tbody></table></div>` : `<div class="empty"><p>No matches for these filters: we need one of our sailings in the same month, within 3 nights' length, the same no-fly or fly-Caribbean, with the same cabin type on sale.</p></div>`}
 
     <h3 style="margin:22px 0 8px;font-size:15px">Ambassador at Planet Cruise vs our website</h3>
     ${agentVsUs.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th>${CABINS.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
@@ -247,7 +253,15 @@ export async function mount(box, c, page){
   try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch(e){}
   if (!C){
     box.innerHTML = `<p class="loading">Loading competitor prices…</p>`;
-    loading = loading || Promise.all([c.readJson("comp-current"), c.readJson("comp-runs").catch(() => ({runs: []}))]);
+    // comp-current holds the list of per-line parts (comp-po, comp-cunard, …) with the sailings
+    loading = loading || Promise.all([c.readJson("comp-current"), c.readJson("comp-runs").catch(() => ({runs: []}))])
+      .then(async ([cur, runs]) => {
+        if (cur.parts) {
+          const parts = await Promise.all(cur.parts.map(p => c.readJson(p).catch(() => ({sailings: {}}))));
+          cur.sailings = Object.assign({}, ...parts.map(x => x.sailings || {}));
+        }
+        return [cur, runs];
+      });
     try { [C, R] = await loading; }
     catch (e) {
       loading = null;

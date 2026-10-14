@@ -1,0 +1,77 @@
+name: Competitor prices
+
+# Every sailing Ambassador competes with (no-fly from UK ports, and fly-Caribbean), from Fred. Olsen's own site and
+# the agent Planet Cruise, once a UK day. Started by the morning price watch (its "Start the competitor check" step),
+# or by hand. Its own workflow because reading every competing sailing takes 30-50 minutes, too long for the hourly
+# check. See competitors.py.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run even if today's check has been done"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "37 7 * * *"   # backstop only (GitHub's own timer is unreliable; the morning price watch starts it)
+
+permissions:
+  contents: write   # commit state/competitors, runs/competitors
+  issues: write     # open an issue if the check fails
+
+concurrency:
+  group: competitors
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    outputs:
+      ran: ${{ steps.comp.outputs.ran }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Read competitor prices
+        id: comp
+        run: |
+          python competitors.py ${{ inputs.force && '--force' || '' }}
+          echo "ran=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit results
+        if: always() && steps.comp.outcome == 'success'
+        run: |
+          git config user.name "price-watch-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/competitors runs/competitors
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "Competitor prices $(date -u '+%F %H:%M') UTC"
+          # The hourly price watch commits too: pull its commits first, and try again if it pushed in between
+          for i in 1 2 3 4; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((i * 10))
+          done
+          exit 1
+
+      - name: Open issue if the competitor check failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The daily competitor price check failed at $(date -u '+%H:%M') UTC. Our own prices are unaffected; tomorrow's check tries again (or run Actions → Competitor prices by hand)."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > /tmp/comp.md
+          .github/issue.sh "Competitor check FAILED — $(TZ=Europe/London date +%F)" /tmp/comp.md
+
+  publish:
+    needs: check
+    if: needs.check.result == 'success'
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
