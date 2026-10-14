@@ -4,30 +4,79 @@
  "new": [],
  "removed": [],
  "returned": [],
- "drops": [],
- "rises": [],
+ "drops": [
+  {
+   "id": "A12704",
+   "from": 699,
+   "to": 589,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 1 days, needs 28",
+    "was": 699,
+    "now": 589,
+    "since": "2026-10-14",
+    "held_days": 1
+   },
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12734",
+   "from": 229,
+   "to": 189,
+   "mix": "ocean_view → inside",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (ocean_view → inside), not a price cut",
+    "was": 229,
+    "now": 189,
+    "since": "2026-10-14",
+    "held_days": 1
+   },
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12805",
+   "from": 659,
+   "to": 629,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 1 days, needs 28",
+    "was": 659,
+    "now": 629,
+    "since": "2026-10-14",
+    "held_days": 1
+   },
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
+ "rises": [
+  {
+   "id": "A22633",
+   "from": 399,
+   "to": 449,
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
  "eligible": [],
  "flags": {
   "A32650": [
    "no twin cabins on sale; the feed price is a solo price"
   ],
-  "A22633": [
-   "feed price £449 differs from cheapest cabin on the page £399 (the page price is used)"
-  ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
+   "feed price £739 differs from cheapest cabin on the page £679 (the page price is used)",
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22702": [
+  "A32653M": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A12704": [
-   "feed price £589 differs from cheapest cabin on the page £699 (the page price is used)"
+  "A32653": [
+   "feed image looks like campaign art (may contain text)"
   ],
   "A12706": [
-   "feed image looks like campaign art (may contain text)"
+   "feed price £1,159 differs from cheapest cabin on the page £1,699 (the page price is used)"
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
@@ -37,21 +86,130 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A12734": [
-   "feed price £189 differs from cheapest cabin on the page £229 (the page price is used)"
-  ],
-  "A12805": [
-   "feed price £629 differs from cheapest cabin on the page £659 (the page price is used)"
   ]
  },
- "cabin_drops": [],
- "cabin_rises": [],
- "cabin_sold_out": [],
- "cabin_back": [],
+ "cabin_drops": [
+  {
+   "id": "A12704",
+   "cabin": "twin.inside",
+   "from": 699,
+   "to": 589,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 1 days, needs 28",
+    "was": 699,
+    "now": 589,
+    "since": "2026-10-14",
+    "held_days": 1
+   },
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12805",
+   "cabin": "twin.inside",
+   "from": 659,
+   "to": 629,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 1 days, needs 28",
+    "was": 659,
+    "now": 629,
+    "since": "2026-10-14",
+    "held_days": 1
+   },
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
+ "cabin_rises": [
+  {
+   "id": "A22633",
+   "cabin": "twin.ocean_view",
+   "from": 399,
+   "to": 449,
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12707",
+   "cabin": "twin.balcony",
+   "from": 2499,
+   "to": 2659,
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
+ "cabin_sold_out": [
+  {
+   "id": "A22715BL",
+   "cabin": "solo.ocean_view",
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
+ "cabin_back": [
+  {
+   "id": "A22637",
+   "cabin": "twin.ocean_view",
+   "p": 429,
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12637",
+   "cabin": "solo.inside",
+   "p": 3399,
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12703",
+   "cabin": "twin.balcony",
+   "p": 2689,
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12734",
+   "cabin": "twin.inside",
+   "p": 189,
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
  "cabin_eligible": [],
- "promo_added": [],
- "promo_ended": [],
+ "promo_added": [
+  {
+   "id": "A32653M",
+   "offer": "47c1fd9c-a4de-4c0f-a646-1e99b99ad5f0",
+   "name": "Cruise of the Week - Save 10%",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A32653",
+   "offer": "47c1fd9c-a4de-4c0f-a646-1e99b99ad5f0",
+   "name": "Cruise of the Week - Save 10%",
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
+ "promo_ended": [
+  {
+   "id": "A32653M",
+   "offer": "8e09b9ee-4ff3-46ea-b466-8c7e4ca1f486",
+   "name": "REDUCED OCEAN VIEW CABIN FARES",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A32653",
+   "offer": "8e09b9ee-4ff3-46ea-b466-8c7e4ca1f486",
+   "name": "REDUCED OCEAN VIEW CABIN FARES",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A22702",
+   "offer": "54b71d3a-1547-4846-8672-f8e10862a77e",
+   "name": "Cruise of the Week - Save 15%",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12706",
+   "offer": "54b71d3a-1547-4846-8672-f8e10862a77e",
+   "name": "Cruise of the Week - Save 15%",
+   "at": "2026-10-14T08:07:15Z"
+  }
+ ],
  "promo_changed": [],
  "nectar_changes": [],
  "feed_gap_new": [
@@ -60,6 +218,18 @@
    "feed": 1039,
    "page": 989,
    "at": "2026-10-14T01:01:46Z"
+  },
+  {
+   "id": "A12634",
+   "feed": 739,
+   "page": 679,
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12706",
+   "feed": 1159,
+   "page": 1699,
+   "at": "2026-10-14T08:07:15Z"
   }
  ],
  "feed_gap_fixed": [
@@ -69,12 +239,41 @@
    "page": 989,
    "how": "matches the website",
    "at": "2026-10-14T05:07:14Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 449,
+   "page": 399,
+   "how": "matches the website",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12704",
+   "feed": 589,
+   "page": 699,
+   "how": "matches the website",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12734",
+   "feed": 189,
+   "page": 229,
+   "how": "matches the website",
+   "at": "2026-10-14T08:07:15Z"
+  },
+  {
+   "id": "A12805",
+   "feed": 629,
+   "page": 659,
+   "how": "matches the website",
+   "at": "2026-10-14T08:07:15Z"
   }
  ],
  "lead_source_switch": [],
  "reported": [],
  "checks": [
   "2026-10-14T01:01:46Z",
-  "2026-10-14T05:07:14Z"
+  "2026-10-14T05:07:14Z",
+  "2026-10-14T08:07:15Z"
  ]
 }

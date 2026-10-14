@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-10-14T01:02:21Z",
+ "fetched_at": "2026-10-14T08:08:13Z",
  "pages_checked": 215,
  "general": "https://www.ambassadorcruiseline.com/information/terms-conditions/",
  "docs": {
@@ -90,18 +90,17 @@
    "text": "is valid on new bookings made on selected sailings between 30/07/2026 – 23/11/2026, closing at 23:59 and is only valid at time of booking. Onboard Credit Offer is applicable on all cabin grades on both Ambience and Ambition with amount dependent on cruise duration and cabin type booked. For sailings of 2-6 night, Inside £25 per cabin, outside £50 per cabin, Balcony £75 per cabin, Suite £100 per cabin, for sailings of 7-13 nights, Inside £50 per cabin, Ocean View £100 per cabin, Balcony £150 per cabin, Suite £200 per cabin. For sailings of 14-18 nights, Inside £100 per cabin, Ocean View £200 per cabin, Balcony £300 per cabin, Suite £400 per cabin. For sailings of 19-30 nights, Inside £150 per cabin, Ocean View £300 per cabin, Balcony £400 per cabin, Suite £600 per cabin. For sailings of 31 nights or more, Inside £200 per cabin, Ocean View £400 per cabin, Balcony £600 per cabin, Suite £800 per cabin. Single cabins get 50% of the per cabin value based on cabin booked and duration. Please note onboard credit can be used against purchases for Bars and Specialty Restaurants, Wifi, Spa Treatments, Shopping Galleria, Destination Experiences, Exploring Ambience or Ambition: Behind the Scenes Tours, Onboard Photography and Crafting Classes. Please note onboard credit cannot be used in the ships casino.",
    "pages": [
     "https://www.ambassadorcruiseline.com/deals/cruise-offers/",
-    "https://www.ambassadorcruiseline.com/deals/cruises-of-the-week/",
     "https://www.ambassadorcruiseline.com/deals/up-to-800-onboard-credit/"
    ],
    "first_seen": "2026-10-13"
   },
-  "f6177249c2": {
-   "title": "Extra 15% off",
-   "text": "is valid only on cruises of the week A22702 and A12706 when promo code COTW15 is used at the time of booking. Fares are based on Inside Guarantee (A22702) and INS10MID (A12706) Cabin Grades with two persons sharing. The promotional code COTW15 cannot be combined with other charity/member/association/media or affiliate promotion codes or onboard future cruise offers. COTW15 is valid for new bookings made between 09.00 07/10/26 and 23.59 13/10/26.",
+  "3007e21d2b": {
+   "title": "Extra 10% off",
+   "text": "is valid only on cruises of the week A32653 and A32653M when promo code COTW10 is used at the time of booking. Fares are based on INS05FWD Cabin Grade with two persons sharing. The promotional code COTW10 cannot be combined with other charity/member/association/media or affiliate promotion codes or onboard future cruise offers. COTW10 is valid for new bookings made between 09.00 14/10/26 and 23.59 20/10/26.",
    "pages": [
     "https://www.ambassadorcruiseline.com/deals/cruises-of-the-week/"
    ],
-   "first_seen": "2026-10-13"
+   "first_seen": "2026-10-14"
   },
   "7b1f4616ed": {
    "title": "The Ambassador Price Promise",
@@ -213,9 +212,7 @@
   "41c8ea6b-ee77-4b09-af19-288695181e66": [
    "5c67790179"
   ],
-  "54b71d3a-1547-4846-8672-f8e10862a77e": [
-   "f6177249c2"
-  ],
+  "54b71d3a-1547-4846-8672-f8e10862a77e": [],
   "7e8299d6-5745-43ee-93ba-2b06efb73e8b": [
    "5c67790179"
   ],
@@ -232,20 +229,24 @@
   "f998a597-cdc0-4e26-88d5-14228c559161": [
    "12379bc0a2"
   ],
-  "c8971712-3959-4cfb-8c1a-7c7a390d0288": []
+  "c8971712-3959-4cfb-8c1a-7c7a390d0288": [],
+  "47c1fd9c-a4de-4c0f-a646-1e99b99ad5f0": [
+   "3007e21d2b"
+  ]
  },
  "how": {
   "991789db-008b-4e9f-b5a9-a0cac87457fd": "type",
   "41c8ea6b-ee77-4b09-af19-288695181e66": "type",
-  "54b71d3a-1547-4846-8672-f8e10862a77e": "code",
   "7e8299d6-5745-43ee-93ba-2b06efb73e8b": "type",
   "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9": "type",
   "7f05011e-5cd6-4e34-b4e8-69f1fe388505": "type",
   "ad1413f9-6c93-4464-ae88-596929a4f00b": "type",
-  "f998a597-cdc0-4e26-88d5-14228c559161": "type"
+  "f998a597-cdc0-4e26-88d5-14228c559161": "type",
+  "47c1fd9c-a4de-4c0f-a646-1e99b99ad5f0": "code"
  },
  "known_at_fetch": [
   "41c8ea6b-ee77-4b09-af19-288695181e66",
+  "47c1fd9c-a4de-4c0f-a646-1e99b99ad5f0",
   "54b71d3a-1547-4846-8672-f8e10862a77e",
   "649b8b39-3b3b-470d-b526-5a59e8604903",
   "79f63076-3ef6-4d75-bb53-03ece92da04d",
