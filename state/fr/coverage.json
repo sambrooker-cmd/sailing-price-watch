@@ -1,0 +1,52 @@
+{
+ "market": "fr",
+ "checked": "2026-10-14",
+ "checked_at": "2026-10-14T16:20:52Z",
+ "list_total": 54,
+ "listed": 54,
+ "sitemap": 50,
+ "on_sale": 53,
+ "counts": {
+  "on_sale": 0
+ },
+ "not_in_sitemap": [
+  {
+   "id": "R280428",
+   "url": "https://www.ambassadorcroisieres.fr/croisieres/splendeurs-iberiques-r280428",
+   "title": "Splendeurs Ibériques",
+   "departure_date": "2028-04-28",
+   "from_pp": 549,
+   "on_sale": true,
+   "first_seen": "2026-10-14"
+  },
+  {
+   "id": "R280618",
+   "url": "https://www.ambassadorcroisieres.fr/croisieres/splendeurs-de-l'adriatique-r280618",
+   "title": "Splendeurs de l'Adriatique",
+   "departure_date": "2028-06-18",
+   "from_pp": 1119,
+   "on_sale": true,
+   "first_seen": "2026-10-14"
+  },
+  {
+   "id": "R280705",
+   "url": "https://www.ambassadorcroisieres.fr/croisieres/rivages-de-l'atlantique-r280705",
+   "title": "Rivages de l'Atlantique",
+   "departure_date": "2028-07-05",
+   "from_pp": 709,
+   "on_sale": true,
+   "first_seen": "2026-10-14"
+  },
+  {
+   "id": "R280822",
+   "url": "https://www.ambassadorcroisieres.fr/croisieres/tresors-d'islande-et-iles-feroe-r280822",
+   "title": "Trésors d'Islande et îles Féroé",
+   "departure_date": "2028-08-22",
+   "from_pp": 1399,
+   "on_sale": true,
+   "first_seen": "2026-10-14"
+  }
+ ],
+ "not_in_list": [],
+ "not_found": []
+}
