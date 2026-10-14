@@ -147,7 +147,7 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   (`pricewatch-cards/fr/photos/<asset id>.jpg`, 2400 px, `state/fr/photos.json`, never deleted, ~270 photos ≈ 100 MB):
   cms.ambassadorcroisieres.fr only allows ambassadorcroisieres.fr to read its pictures from a browser, so the Ad creator
   couldn't draw them; the ad kit points at the copies (a photo not copied yet is left out until the next run).
-  `publish.py`: `fr-cards`, `fr-adkit`. The card check (`card_review.py`) is UK only (Sam's plan usage; ask before adding France).
+  `publish.py`: `fr-cards`, `fr-adkit`. The card check (`card_review.py`) covers France since stage 4 (below).
   Tracker page in France: Cards page and the **Ad creator** (`market: "fr"`): `adcards.js` French design (`d.fr`,
   `frMoney`, `frDate`), French opening/closing cards ("Où naviguerez-vous ensuite ?", no Ambassador A by default;
   "L'accueil le plus chaleureux en mer", "Réservez votre croisière", ambassadorcroisieres.fr; check these with Sam),
@@ -176,8 +176,26 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   (`build_facts_fr`), uses a French tone-of-voice brief (`VOICE_FR`, `RULES_FR`, "vous", French typography) and checks
   (`figures_fr`, `problems_fr`: any € or % figure not in the facts, or reduction wording such as "prix barré",
   "réduction", "au lieu de", throws an option away); ads end with "Prix par personne, base deux personnes, sous réserve
-  de disponibilité." Not done for France: promotion T&Cs (`terms.py` reads the UK site only; the French offers have
-  pages under /offres), the weekly coverage check and the Claude card check.
+  de disponibilité."
+- **Stage 4 (14 Oct 2026, Sam: "build the things not built yet")**. **Promotion T&Cs**: `terms.py --market fr` (workflow
+  step "French promotion terms", `continue-on-error`) reads every French sitemap page except the cruise pages once a UK
+  day (and when a new promotion has no terms): the offer pages' "Conditions de l'offre <name>" blocks (`sections_fr`,
+  `infoCard`) and "*Offre … valable …" footnotes (title: the « name », else the words before "valable", else the line
+  above: "1 acheté = 1 offert" on /offres). Matched by name (`match_fr`, `norm` drops accents/emoji/figures): name =
+  terms title or the text's « name » ("type"), else a main word not in `STOP_FR` ("name", check). 14 Oct 2026: 6 terms,
+  every promotion matched except "Dernière chance" (its page has none; the general terms are the Conditions
+  particulières page). → `state/fr/terms.json` → `fr-terms`; Live promotions shows the Terms column in France too, and
+  Email cards' Copy offer T&Cs uses them (badge names compared without emoji or case). **Coverage**: France has no feed,
+  so `coverage.py --market fr` (weekly in coverage.yml after the UK check, `continue-on-error`, own issues "France:
+  sailings missing from the sitemap or cruise list" / "France coverage check FAILED") compares the cruise list
+  (/croisieres) with the sitemap: on the list but not in the sitemap (search engines may miss them; 4 on 14 Oct 2026:
+  R280428, R280618, R280705, R280822), on sale with a page but not on the list, sitemap pages that 404 (`fr_status`).
+  → `state/fr/coverage.json` → `fr-coverage`; tracker page France: "List vs sitemap" (was hidden). **Card check**:
+  `card_review.py` queues French cards (`state/fr/cards.json`) after every UK card, in the same batches (BATCH,
+  WINDOW_HOURS, START and the model unchanged; the batch time stays in the UK manifest), with a French description of
+  the design (`GUIDE_FR`, `expected_fr`); flagged ones are listed "France · …" in the same issue. That's ~53 more
+  sailings for the first pass: the UK cards still finish by Sunday night, the last French ones at Monday 06:07 UK.
+  Repo variable `CARD_CHECK_FR` = `off` leaves France out. Not done for France: was/now (Sam: later).
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.

@@ -74,8 +74,10 @@ function badgeTerms(it){
   const r = sailing(it.id).r, offers = S.offers || {};
   const live = Object.entries(r.promos || {}).filter(([, sp]) => sp.length && sp[sp.length - 1][1] == null).map(([o]) => o);
   return badgesOf(it).map(b => {
-    const name = badgeText(b).trim().toLowerCase();
-    const oid = live.find(o => (offers[o] && offers[o].name || "").trim().toLowerCase() === name);
+    // Names compared without emoji, asterisks or case (France's tags: "🚢 Larguez les amarres" on the site, "Larguez les amarres" on cards)
+    const key = t => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}%£€=+-]+/gu, " ").trim();
+    const name = key(badgeText(b));
+    const oid = live.find(o => key(offers[o] && offers[o].name) === name);
     const docs = oid && T && T.offers ? (T.offers[oid] || []).map(i => T.docs[i]).filter(Boolean) : [];
     return {badge: badgeText(b), docs, byName: !!(oid && T && T.how && T.how[oid] === "name")};
   });
@@ -97,7 +99,7 @@ function csvText(){
 function termsText(it){
   const w = words(it), list = badgeTerms(it);
   const head = [`Offer T&Cs for the email card: ${w.title} (${it.id}), ${w.date}`,
-    T ? `Read from ambassadorcruiseline.com ${T.fetched_at.slice(0, 16).replace("T", " ")} UTC. Check the wording on the website before using it.` : "", ""];
+    T ? `Read from ${FR ? "ambassadorcroisieres.fr" : "ambassadorcruiseline.com"} ${T.fetched_at.slice(0, 16).replace("T", " ")} UTC. Check the wording on the website before using it.` : "", ""];
   return [...head, ...list.flatMap(x => [x.badge.toUpperCase(), "",
     ...(x.docs.length ? x.docs.flatMap(d => [(/^[a-z:,.£]/.test(d.text) ? `${d.title} ${d.text.replace(/^:\s*/, "")}` : `${d.title}\n${d.text}`),
                                            `(From ${d.pages[0]}${d.pages.length > 1 ? ` and ${d.pages.length - 1} more page${d.pages.length > 2 ? "s" : ""}` : ""})`, ""])

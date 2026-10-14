@@ -19,6 +19,7 @@ has to understand the shape of the data:
                       loads them only when asked for older dates. Unchanged ones aren't rewritten.
   pricewatch/fr-current, fr-cabins, fr-runs, fr-trends, fr-runs-YYYY-MM-1 / -2
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
+  pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -118,10 +119,9 @@ def documents():
             docs[prefix + "cards"] = cards_doc(load(ROOT / "state" / sub / "cards.json"))
         if (ROOT / "state" / sub / "adkit.json").exists():
             docs[prefix + "adkit"] = load(ROOT / "state" / sub / "adkit.json")
-    if (ROOT / "state" / "terms.json").exists():
-        docs["terms"] = load(ROOT / "state" / "terms.json")
-    if (ROOT / "state" / "coverage.json").exists():
-        docs["coverage"] = load(ROOT / "state" / "coverage.json")
+        for name in ("terms", "coverage"):   # France: terms.py --market fr, coverage.py --market fr
+            if (ROOT / "state" / sub / f"{name}.json").exists():
+                docs[prefix + name] = load(ROOT / "state" / sub / f"{name}.json")
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))

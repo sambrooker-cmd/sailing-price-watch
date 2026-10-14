@@ -39,11 +39,20 @@ jobs:
         id: cov
         run: python coverage.py
 
+      # France has no ad feed (14 Oct 2026): its cruise list against its sitemap instead. See coverage.py.
+      - name: France cruise list vs sitemap
+        id: frcov
+        if: always()
+        continue-on-error: true
+        run: python coverage.py --market fr
+
       - name: Commit results
+        if: always()
         run: |
           git config user.name "price-watch-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add state/coverage.json
+          if [ -f state/fr/coverage.json ]; then git add state/fr/coverage.json; fi
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
           git commit -m "Feed coverage check $(date -u +%F)"
           git pull --rebase origin "$GITHUB_REF_NAME"
@@ -54,6 +63,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: .github/issue.sh "Sailings on sale but not in the ad feed — ${{ steps.cov.outputs.date }}" out/coverage.md
+
+      - name: Open issue for French sailings missing from the sitemap or cruise list
+        if: always() && steps.frcov.outputs.new_missing == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .github/issue.sh "France: sailings missing from the sitemap or cruise list — ${{ steps.frcov.outputs.date }}" out/fr/coverage.md
+
+      - name: Open issue if the France check failed
+        if: always() && steps.frcov.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The weekly France coverage check (cruise list vs sitemap) failed. The UK check is separate."
+            echo
+            echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            [ -f out/fr/coverage.md ] && cat out/fr/coverage.md
+          } > /tmp/frfail.md
+          .github/issue.sh "France coverage check FAILED — $(date -u +%F)" /tmp/frfail.md
 
       - name: Open issue on failure
         if: failure()
@@ -71,5 +101,6 @@ jobs:
 
   publish:
     needs: check
+    if: always()
     uses: ./.github/workflows/publish.yml
     secrets: inherit

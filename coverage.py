@@ -5,7 +5,14 @@ and opens each page that isn't in the feed to see whether it's actually on
 sale (prices shown, not departed). Writes state/coverage.json, keeping when
 each missing sailing was first noticed, and out/coverage.md for the issue.
 
-Usage: python coverage.py [--date YYYY-MM-DD]
+France (--market fr, 14 Oct 2026; Sam: "build the things not built yet"): France has no ad feed, so its
+check compares the site's own two lists of sailings: the cruise list visitors browse (/croisieres) and the
+sitemap search engines read. Sailings on the list but not in the sitemap (search engines may not find their
+pages), sailings on sale with a sitemap page but not on the list (visitors browsing can't find them), and
+sitemap pages that are 404, departed or sold out. Prices and titles come from state/fr (the hourly check
+reads every sailing on either list). Writes state/fr/coverage.json and out/fr/coverage.md.
+
+Usage: python coverage.py [--date YYYY-MM-DD] [--market fr]
 Exit codes: 0 ok, 2 the sitemap or feed couldn't be read properly (nothing written).
 """
 import argparse, concurrent.futures as cf, csv, datetime as dt, html, io, json, os, re, sys
@@ -132,12 +139,103 @@ def check(code, url, today):
     return out
 
 
+def fr_status(url, today):
+    """A French sitemap page that isn't on the cruise list and isn't in state: not_found / departed / sold_out / error."""
+    import fr_enrich
+    try:
+        page = fr_enrich.get(url, tries=2)
+    except Exception as e:  # noqa
+        return "not_found" if getattr(e, "code", None) == 404 else "error"
+    c = fr_enrich.cruise_object(fr_enrich.flight(page), "")
+    if not c:
+        return "not_found" if re.search(r"(?i)<title>[^<]*404", page) else "error"
+    if (c.get("departure_date") or "9") < today:
+        return "departed"
+    try:
+        cab, _ = fr_enrich.cabins(c["cruise_code"], c.get("departure_date"))
+    except Exception:  # noqa
+        return "error"
+    return "on_sale" if cab.get("twin") or cab.get("solo") else "sold_out"
+
+
+def main_fr(today, at):
+    import fr_enrich
+    out_dir = ROOT / "out" / "fr"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    page = fr_enrich.get(fr_enrich.LIST)
+    m = re.search(r'\\?"totalCount\\?":(\d+)', page)
+    total = int(m.group(1)) if m else None
+    listed = {m.group(2).upper(): fr_enrich.SITE + "/croisieres/" + m.group(1) for m in fr_enrich.CODE.finditer(html.unescape(page))}
+    mapped = {m.group(2).upper(): fr_enrich.SITE + "/croisieres/" + m.group(1) for m in fr_enrich.CODE.finditer(fr_enrich.get(fr_enrich.SITEMAP))}
+    if not listed or (total and len(listed) < total * 0.7):
+        msg = f"# France coverage check {today}: NOT saved\n\nThe cruise list gave {len(listed)} sailings (it says {total}), which looks wrong, so nothing was written.\n"
+        (out_dir / "coverage.md").write_text(msg)
+        print(msg)
+        return 2
+    state = json.loads((ROOT / "state" / "fr" / "current.json").read_text())
+    live = {k: r for k, r in state["sailings"].items() if not r.get("removed")}
+    path = ROOT / "state" / "fr" / "coverage.json"
+    prev = json.loads(path.read_text()) if path.exists() else {}
+    first_seen = {s["id"]: s.get("first_seen") for k in ("not_in_sitemap", "not_in_list", "not_found") for s in prev.get(k) or []}
+
+    def row(code, url):
+        r = live.get(code) or {}
+        seg = (r.get("segments") or [{}])[-1]
+        return {"id": code, "url": r.get("link") or url, "title": r.get("title"), "departure_date": r.get("departure_date"),
+                "from_pp": seg.get("p"), "on_sale": code in live, "first_seen": first_seen.get(code) or today}
+    key = lambda s: (s.get("departure_date") or "9", s["id"])
+    not_in_sitemap = sorted((row(c, u) for c, u in listed.items() if c not in mapped), key=key)
+    only_map = {c: u for c, u in mapped.items() if c not in listed}
+    not_in_list = sorted((row(c, u) for c, u in only_map.items() if c in live), key=key)
+    counts = {"on_sale": len(not_in_list)}
+    not_found = []
+    for c, u in sorted(only_map.items()):
+        if c in live:
+            continue
+        st = fr_status(u, today)
+        counts[st] = counts.get(st, 0) + 1
+        if st == "not_found":
+            not_found.append({"id": c, "url": u, "first_seen": first_seen.get(c) or today})
+        elif st == "on_sale":   # on sale but not in state yet (the hourly check will pick it up)
+            not_in_list.append({"id": c, "url": u, "on_sale": True, "first_seen": first_seen.get(c) or today})
+    doc = {"market": "fr", "checked": today, "checked_at": at, "list_total": total, "listed": len(listed),
+           "sitemap": len(mapped), "on_sale": len(live), "counts": counts, "not_in_sitemap": not_in_sitemap,
+           "not_in_list": not_in_list, "not_found": not_found}
+    path.write_text(json.dumps(doc, ensure_ascii=False, indent=1))
+
+    before = {s["id"] for k in ("not_in_sitemap", "not_in_list") for s in prev.get(k) or []}
+    new = [s for s in not_in_sitemap + not_in_list if s["id"] not in before]
+    lines = [f"# France coverage check {today}", "",
+             f"The cruise list on ambassadorcroisieres.fr shows {len(listed)} sailings (it says {total}); the sitemap has "
+             f"{len(mapped)} cruise pages. {len(not_in_sitemap)} on the list {'are' if len(not_in_sitemap) != 1 else 'is'} missing "
+             f"from the sitemap (search engines may not find {'them' if len(not_in_sitemap) != 1 else 'it'}), and "
+             f"{len(not_in_list)} on sale with a sitemap page {'are' if len(not_in_list) != 1 else 'is'} missing from the list."
+             + (f" {len(not_found)} sitemap page{'s' if len(not_found) != 1 else ''} return{'' if len(not_found) != 1 else 's'} 404." if not_found else ""), ""]
+    if new:
+        lines += ["## New since the last check"]
+        for s in new:
+            where = "not in the sitemap" if s in not_in_sitemap else "not on the cruise list"
+            price = f", from {money(s['from_pp'])}/pers." if s.get("from_pp") else ""
+            lines.append(f"- **{s.get('title') or s['id']}** ({s['id']}), departs {s.get('departure_date') or '?'}{price}: {where}. {s['url']}")
+        lines.append("")
+    text = "\n".join(lines)
+    (out_dir / "coverage.md").write_text(text)
+    print(text)
+    gh_output(new_missing="true" if new else "false", date=today)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date")
+    ap.add_argument("--market", choices=["uk", "fr"], default="uk")
     a = ap.parse_args()
     today = a.date or london_today()
     at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    if a.market == "fr":
+        import daily
+        daily.MARKET = "fr"   # money() in euros
+        return main_fr(today, at)
     out_dir = ROOT / "out"
     out_dir.mkdir(exist_ok=True)
 
