@@ -9,6 +9,7 @@ import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {gImageDoc, bannerDoc, logoDoc, RATIOS, BANNERS, LOGOS, BANNER_MAX_KB} from "./gbanners.js?v=__BUILD__";
 import {copySet, stalePrices, LIMITS, BUSINESS} from "./gcopy.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
+import {feedRow, customiserRow, customiserLines, FEED_COLUMNS, ATTRIBUTES, TEXT_MAX} from "./gfeeds.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
@@ -24,7 +25,7 @@ let S, KIT, CAB = {}, ID = null, root, today, LOGO = "", st = fresh(), sel = 0, 
 function fresh(){
   return {items: [], cta: "Book now", tab: "images", copyMode: "each", copy: {},
           campaigns: {search: "Search - Cruises", pmax: "Performance Max - Cruises", dg: "Demand Gen - Cruises"},
-          make: {photo: true, card: true, banners: true, logos: true},
+          make: {photo: true, card: true, banners: true, logos: true}, feedSale: false,
           ratios: {landscape: true, square: true, portrait: true},
           banners: Object.fromEntries(Object.keys(BANNERS).map(k => [k, true]))};
 }
@@ -149,6 +150,7 @@ function draw(){
           : `<p class="sub">Search above and add the sailings you want Google Ads images for.</p>`}`)}
       ${cur && st.tab === "images" ? editor(cur) : ""}
       ${st.tab === "copy" ? copySettings() : ""}
+      ${st.tab === "feeds" ? feedSettings() : ""}
       ${st.tab !== "images" ? "" : cs.section("g-make", "What to make", [st.make.photo && "photos", st.make.card && "card designs", st.make.banners && `${Object.values(st.banners).filter(Boolean).length} banner sizes`, st.make.logos && "logos"].filter(Boolean).join(" · ") || "nothing ticked", `
         <span class="ac-lab">Performance Max and Demand Gen images</span>
         <label class="ac-check"><input type="checkbox" data-gmake="photo"${st.make.photo ? " checked" : ""}> Photo only <span class="sub">(no words: Google's advice for these images)</span></label>
@@ -163,9 +165,9 @@ function draw(){
         <label class="ac-check"><input type="checkbox" data-gmake="logos"${st.make.logos ? " checked" : ""}> Square and landscape logos <span class="sub">(once per download)</span></label>`, false)}
     </div>
     <div class="ac-main">
-      <div class="ac-tabs g-tabs" role="tablist" aria-label="Google Ads">${[["images", "Images"], ["copy", "Ad copy"]].map(([k, l]) =>
+      <div class="ac-tabs g-tabs" role="tablist" aria-label="Google Ads">${[["images", "Images"], ["copy", "Ad copy"], ["feeds", "Feeds"]].map(([k, l]) =>
         `<button type="button" role="tab" class="ac-tab" data-gtab="${k}" aria-selected="${st.tab === k}"><span>${l}</span></button>`).join("")}</div>
-      ${st.tab === "copy" ? copyMain() : `<div class="ac-actions">
+      ${st.tab === "copy" ? copyMain() : st.tab === "feeds" ? feedsMain() : `<div class="ac-actions">
         <button type="button" class="btn" id="g-zip"${outs.length ? "" : " disabled"}>Download zip</button>
         <button type="button" class="btn quiet" id="g-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="g-status" aria-live="polite">${outs.length} image${outs.length === 1 ? "" : "s"} · prices as checked ${shortDate(today)}.${by ? ` <b>Was/now images: stop using by ${shortDate(by)}.</b>` : ""}</span>
@@ -176,7 +178,7 @@ function draw(){
     </div></div>`;
   note = "";
   wire();
-  if (st.tab === "copy") wireCopy(); else paint();
+  if (st.tab === "copy") wireCopy(); else if (st.tab === "feeds") wireFeeds(); else paint();
 }
 
 function editor(it){
@@ -480,4 +482,92 @@ async function editorZip(){
     download(URL.createObjectURL(blob), `google-ads-copy_${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
     status.textContent = `Downloaded the copy for ${list.length} set${list.length === 1 ? "" : "s"}.`;
   } catch(e) { status.textContent = `The download couldn't be made: ${e.message}`; }
+}
+
+// ---------- feeds (part 3, download only) ----------
+// The remarketing feed lists every sailing on sale; the customiser values are for the chosen sailings, one ad group
+// each, named as the Ad copy tab's "For each sailing" ad groups so they land on the same ad groups in Google Ads.
+const feedPhoto = s => [pickPhoto(s), ...s.photos].find(u => /^https?:\/\//.test(u) && !CAMPAIGN.test(u) && !/logo/i.test(u)) || (/^https?:/.test(s.image) ? s.image : "");
+function feedSailing(id){
+  const s = sailing(id), lead = st.feedSale ? claims(id).find(c => c.key === "lead") : null;
+  return {id, title: s.title, ship: s.r.ship, port: s.r.port, fly: s.fly, nights: s.r.nights, departure_date: s.r.departure_date,
+          price: s.price, link: s.link, image: feedPhoto(s), promos: s.k.promos || [], wasnow: lead ? {was: lead.was, now: lead.now, ends: lead.ends} : null};
+}
+function feedRows(){
+  return live().filter(([, r]) => r.link).sort((a, b) => a[1].departure_date.localeCompare(b[1].departure_date) || a[0].localeCompare(b[0]))
+    .map(([id]) => { const f = feedSailing(id); return {f, row: feedRow(f)}; });
+}
+const saleEnds = rows => rows.map(x => x.f.wasnow && x.f.wasnow.ends).filter(Boolean).sort()[0] || "";
+const custRows = () => st.items.map(it => { const f = feedSailing(it.id); return {id: it.id, group: `${it.id} ${f.title}`.slice(0, 120), row: customiserRow(f)}; });
+
+function feedSettings(){
+  return cs.section("g-feedset", "Feed settings", st.feedSale ? "was/now sale prices included" : "from prices only", `
+    <label class="ac-check"><input type="checkbox" id="g-feedsale"${st.feedSale ? " checked" : ""}> Include was/now sale prices <span class="sub">(only sailings with a was/now claim live today, with the claim's own figures)</span></label>
+    <p class="sub">Without this, every sailing shows its from price. With it, a sailing with a live claim shows "Was £X" and the sale price "Now £Y": upload a fresh feed before the claim ends.</p>
+    <span class="ac-lab">Ad customisers</span>
+    <p class="sub">Values are made for the sailings added above, one ad group each, named as on the Ad copy tab ("For each sailing"), in the Search campaign "${esc(st.campaigns.search)}" (change it on the Ad copy tab).</p>`);
+}
+
+const table = (cols, rows) => `<div class="tablewrap"><table class="ptable g-table"><thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
+  <tbody>${rows.map(r => `<tr>${cols.map(c => `<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+
+function feedsMain(){
+  const rows = feedRows(), ends = saleEnds(rows), sale = rows.filter(x => x.f.wasnow).length, noImg = rows.filter(x => !x.row["Image URL"]).length;
+  const cust = custRows(), lines = customiserLines(cust.map(x => x.row));
+  return `${note ? `<p class="ac-note">${esc(note)}</p>` : ""}
+    <p class="sub">Nothing is sent to Google Ads: download the files and upload them in Google Ads. Prices are as checked ${shortDate(today)}; prices change, so upload a fresh copy regularly (at least weekly, and whenever prices move).</p>
+    <div class="ac-block"><h3>Dynamic remarketing feed</h3>
+      <p class="sub">Every sailing on sale (${rows.length}) as a Google Ads "Custom" feed, for dynamic remarketing ads that show people the sailings they looked at. ID = cruise code: the website's Google tag must send the same IDs (dynx_itemid), so check that with whoever looks after the tag before using it. Title, subtitle and description are kept to ${TEXT_MAX} characters, as Google recommends.${sale ? ` <b>${sale} sailing${sale === 1 ? " has a" : "s have"} was/now sale price: upload a fresh feed by ${shortDate(ends)}.</b>` : ""}${noImg ? ` ${noImg} sailing${noImg === 1 ? " has" : "s have"} no usable photo.` : ""}</p>
+      <div class="ac-actions"><button type="button" class="btn" id="g-feed"${rows.length ? "" : " disabled"}>Download feed (CSV)</button><span class="sub" id="g-feedst" aria-live="polite"></span></div>
+      ${table(FEED_COLUMNS.filter(c => c !== "Contextual keywords" && c !== "Image URL" && c !== "Final URL"), rows.slice(0, 8).map(x => x.row))}
+      ${rows.length > 8 ? `<p class="sub">First 8 of ${rows.length} shown; the CSV has them all, with image, page link and keywords.</p>` : ""}
+    </div>
+    <div class="ac-block"><h3>Ad customiser values</h3>
+      ${cust.length ? `<p class="sub">One row per ad group, so one responsive search ad can show each sailing's own price, nights, date, port, ship and offer. When prices change, upload new values instead of rewriting the ads.</p>
+      <div class="ac-actions"><button type="button" class="btn" id="g-cust">Download customiser files (zip)</button><span class="sub" id="g-custst" aria-live="polite"></span></div>
+      ${table(["Ad group", ...ATTRIBUTES.map(a => a[0])], cust.map(x => ({"Ad group": x.group, ...x.row})))}
+      <span class="ac-lab">Lines to use in the ads <span class="sub">(each fits Google's limit with every ad group's values)</span></span>
+      ${lines.length ? `<ul class="g-cust">${lines.map((l, i) => `<li><span class="sub">${l.kind}, up to ${l.longest} of ${l.max}</span> <code>${esc(l.text)}</code> <button type="button" class="linkbtn" data-custcopy="${i}">Copy</button><br><span class="sub">e.g. ${esc(l.example)}</span></li>`).join("")}</ul>`
+        : `<p class="sub">None of the lines fit every ad group's values.</p>`}`
+      : `<p class="sub">Add sailings on the left to make customiser values for their ad groups.</p>`}
+    </div>`;
+}
+
+function wireFeeds(){
+  const $ = q => root.querySelector(q);
+  $("#g-feedsale") && $("#g-feedsale").addEventListener("change", e => { st.feedSale = e.target.checked; save(); draw(); });
+  $("#g-feed") && $("#g-feed").addEventListener("click", () => {
+    const rows = feedRows();
+    const csv = "﻿" + [FEED_COLUMNS, ...rows.map(x => FEED_COLUMNS.map(c => x.row[c]))].map(r => r.map(csvCell).join(",")).join("\r\n");
+    download(URL.createObjectURL(new Blob([csv], {type: "text/csv"})), `remarketing_feed_${today}.csv`);
+    const ends = saleEnds(rows);
+    $("#g-feedst").textContent = `Downloaded ${rows.length} sailings.${ends ? ` Sale prices: upload a fresh feed by ${shortDate(ends)}.` : ""}`;
+  });
+  const lines = customiserLines(custRows().map(x => x.row));
+  root.querySelectorAll("[data-custcopy]").forEach(b => b.addEventListener("click", async () => {
+    const t = lines[+b.dataset.custcopy].text;
+    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; setTimeout(() => { b.textContent = "Copy"; }, 1500); } catch(e) { prompt("Copy this line", t); }
+  }));
+  $("#g-cust") && $("#g-cust").addEventListener("click", async () => {
+    const status = $("#g-custst");
+    try {
+      const JSZip = await loadZip(), z = new JSZip(), cust = custRows(), csv = rows => "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n");
+      z.file("customizer_attributes.csv", csv([["Attribute", "Data type", "What it holds"], ...ATTRIBUTES.map(([n, w]) => [n, "Text", w])]));
+      z.file("customizer_values.csv", csv([["Campaign", "Ad group", ...ATTRIBUTES.map(a => `Customizer:${a[0]}`)],
+        ...cust.map(x => [st.campaigns.search, x.group, ...ATTRIBUTES.map(a => x.row[a[0]])])]));
+      z.file("HOW_TO_USE.md", [`# Ad customisers`, ``, `Made on the Sailing price watch tracker. Prices as checked ${shortDate(today)}. Nothing has been sent to Google Ads.`, ``,
+        `1. Once only: Google Ads → Tools → Shared library → Business data → Ad customizer attributes → +, and create each attribute in`,
+        `   customizer_attributes.csv as type Text, with exactly that name.`,
+        `2. Tools → Bulk actions → Uploads → + → choose customizer_values.csv. Use Preview and check the campaign and ad group names`,
+        `   match yours (they follow the Ad copy tab's "For each sailing" ad groups), then Apply. If Google asks for its own template,`,
+        `   download it from the same page and copy these columns across.`,
+        `3. In each responsive search ad, use the lines below (type { in the headline box and pick Ad customizer, or paste them).`, ``,
+        ...customiserLines(cust.map(x => x.row)).map(l => `- ${l.kind}: ${l.text}  (e.g. "${l.example}")`), ``,
+        `When prices change, upload a new customizer_values.csv (step 2): the ads update without being edited.`,
+        `Values with a price are only right while the price is.`].join("\n"));
+      const blob = await z.generateAsync({type: "blob"});
+      download(URL.createObjectURL(blob), `google-ads-customisers_${today}.zip`);
+      status.textContent = `Downloaded values for ${cust.length} ad group${cust.length === 1 ? "" : "s"}.`;
+    } catch(e) { status.textContent = `The download couldn't be made: ${e.message}`; }
+  });
 }
