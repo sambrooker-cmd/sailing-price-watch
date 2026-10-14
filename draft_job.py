@@ -206,11 +206,13 @@ def run_claude(text, schema):
     try:
         out = json.loads(p.stdout)
     except ValueError:
+        print("Claude Code output:", (p.stdout or "")[-1500:], "\nerrors:", (p.stderr or "")[-1500:])
         raise RuntimeError(f"Claude Code failed: {(p.stderr or p.stdout).strip()[:200]}")
     if out.get("is_error") or not isinstance(out.get("structured_output"), dict):
         msg = str(out.get("result") or out.get("subtype"))
+        print("Claude Code said:", msg[:1500], "| stderr:", (p.stderr or "").strip()[-800:])   # never contains the token
         if "401" in msg or "authenticat" in msg.lower():
-            raise RuntimeError("Claude couldn't sign in (the plan token needs renewing). Tell Sam.")
+            raise RuntimeError(f"Claude couldn't sign in (the plan token needs renewing). Claude said: {msg[:160]}")
         raise RuntimeError(f"Claude didn't answer: {msg[:200]}")
     return out["structured_output"]
 
@@ -286,6 +288,8 @@ def main():
             raise RuntimeError("None of these sailings is on sale any more.")
         if not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
             raise RuntimeError("Drafting isn't set up yet: the Claude sign-in token is missing. Tell Sam.")
+        tok = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]   # only its shape is logged, never the token
+        print(f"Plan token: {len(tok)} characters, starts sk-ant-oat: {tok.startswith('sk-ant-oat')}")
         schema = AD_SCHEMA if kind == "ad" else EMAIL_SCHEMA
         kept, dropped = check(kind, run_claude(prompt(kind, fmt, facts, brief, today), schema).get("options"), facts)
         for d in dropped:
