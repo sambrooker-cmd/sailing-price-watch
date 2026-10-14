@@ -70,7 +70,9 @@ export async function mount(el, ctx){
   const sym = document.getElementById("amb-logo");
   if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
   store = await sharedStore({kind: "email", localKey: DRAFTS, field: "email", idToken: ID}).load();
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) { em = normalise(d).em; draftId = d._draft || null; } } catch(e){}
+  // The email left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026)
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) { const n = normalise(d); em = n.em; draftId = d._draft || null;
+    if (n.msgs.length) { note = esc(`Since this email was last open: ${n.msgs.join(". ")}.`); save(); } } } catch(e){}
   if (draftId && !store.all()[draftId]) draftId = null;
   if (ctx.shared) await openShared(ctx.shared); else draw();
 }

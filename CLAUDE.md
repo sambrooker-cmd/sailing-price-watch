@@ -40,6 +40,18 @@ carousels trimmed (with a note) when an opening/closing card is switched on; mal
 in the brand colour; on phones What changed stacks each change, Feed vs website and Not in ad feed drop their least
 useful columns.
 
+## Was/now rehearsal (14 Oct 2026)
+End-to-end rehearsal on a scratch copy (test prices only, nothing committed, uploaded or published): A12702 given a
+fake £1,129 inside / £1,899 balcony history from 1 Sep, then the real 14 Oct snapshot (£1,029 / £1,739). Worked: both
+claims (ends 10 Nov = since + 27), A12703's 10-day drop refused, issue text with tracker links, 6 was/now JPEGs (Sam's
+checks passed: name one line, price in the sticker, 9:16 clear of the top 14% / bottom 20%), no repeat at the next
+check, Overview queue, detail view, Cards "live now", Ad creator option + zip ("stop running by"), Email creator,
+Draft facts; next day the inside price rose → lead cards withdrawn "Do not use" with the issue, balcony claim kept.
+Fixed: a draft ad/email left open in the browser now says what normalise() changed ("Since this ad was last
+open: …"; it was silent); the withdrawn issue names the cards (grade, was → now); `card_review.py` tells Claude the
+lead price's own grade. Not covered: real Storage upload and GitHub issue creation (same code paths as every hourly
+check). Email cards have no was/now design (prices are "From" only).
+
 ## Usability round (13 Oct 2026, Sam picked from the QA suggestions)
 - **Find a sailing** in the sidebar (`#gq`, "/" focuses it): name, port, ship, airport or code → its detail view (on-sale first).
 - **Add to ad / Make email card** buttons in a sailing's detail view (`data-make`): open that page with the sailing added

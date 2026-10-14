@@ -100,6 +100,8 @@ def expected(sid, c, s=None):
     if c.get("kind") == "wasnow":
         s = s or {}
         grade = (c.get("cabin") or "").replace("twin.", "").replace("_", " ")
+        if not grade:   # a lead-price claim: the sticker names the lead price's own grade (rehearsal, 14 Oct 2026)
+            grade = ((s.get("segments") or [{}])[-1].get("c") or "").replace("_", " ")
         return "\n".join([
             "Card type: was/now (price reduction)", f"Cruise code: {sid}", f"Sailing name: {c.get('title')}",
             f"Ship: {s.get('ship')}", f"Flights from: {s['flight_from']}" if s.get("flight_from") else f"Sails from: {s.get('port')}",
