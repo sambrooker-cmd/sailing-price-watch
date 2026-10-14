@@ -19,7 +19,7 @@ const SITE = "https://www.ambassadorcruiseline.com/";
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
-const noAmp = t => String(t || "").replace(/\s*&\s*/g, " and ").replace(/\s+/g, " ").trim();
+export const noAmp = t => String(t || "").replace(/\s*&\s*/g, " and ").replace(/\s+/g, " ").trim();
 const day = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MON[m - 1]} ${y}`; };
 const month = iso => { const [y, m] = iso.split("-").map(Number); return `${MONTHS[m - 1]} ${y}`; };
 // "Jan to Mar 2027" / "Dec 2026 to Feb 2027" / "March 2027"
@@ -29,10 +29,10 @@ const uniq = xs => [...new Set(xs.filter(Boolean).map(x => x.replace(/\s+/g, " "
 const fit = (xs, n) => uniq(xs).filter(x => x.length <= n);
 const list = xs => xs.length <= 1 ? (xs[0] || "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 // "Up to £400 Onboard Credit · ends 23 Nov" → "Up to £400 onboard credit" (sentence case, keeps £, %, UK, Nectar)
-const offerName = line => { const n = noAmp(line).split(" · ")[0]; return n.split(" ").map((w, i) => i === 0 || /^[A-Z0-9£%]{2,}$/.test(w) || /^Nectar/.test(w) ? w : w.toLowerCase()).join(" "); };
+export const offerName = line => { const n = noAmp(line).split(" · ")[0]; return n.split(" ").map((w, i) => i === 0 || /^[A-Z0-9£%]{2,}$/.test(w) || /^Nectar/.test(w) ? w : w.toLowerCase()).join(" "); };
 const priceOf = i => i.wasnow ? i.wasnow.now : i.price;
 // A short name for headlines: the whole name if it fits, else its main part ("Norway's Land of the Northern Lights" → "Northern Lights")
-function shortName(t, n){
+export function shortName(t, n){
   t = noAmp(t); if (t.length <= n) return t;
   for (const sep of [" – ", " - ", ": "]) if (t.includes(sep)) { const [a, b] = t.split(sep); if (b.length <= n) return b; if (a.length <= n) return a; }
   for (const kw of [" of the ", " to the ", " of ", " to ", " in ", " and "]) { const i = t.lastIndexOf(kw); if (i > 0 && t.length - i - kw.length <= n) return t.slice(i + kw.length); }
