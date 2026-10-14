@@ -324,7 +324,8 @@ def main():
         m.setdefault("old", []).insert(0, {**c, "out_of_date_since": at, "reason": reason, "do_not_use": True})
         if not m["wasnow"]:
             del m["wasnow"]
-        wn_lines.append(f"{sid}: was/now cards withdrawn, DO NOT USE ({reason})")
+        grade = rc.CABIN_LABEL.get((c.get("cabin") or "").replace("twin.", ""), "lead price")
+        wn_lines.append(f"{sid}: was/now cards withdrawn, DO NOT USE ({grade}: was £{c['was']:,.0f} → now £{c['now']:,.0f}; {reason})")
     for sid, files in imgs.items():
         s, oc = by[sid], on_card(by[sid])
         fp = fingerprint(s)

@@ -38,7 +38,10 @@ export async function mount(el, ctx){
   // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off.
   try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
   store = await sharedStore({kind: "ad", localKey: DRAFTS, field: "ad", idToken: ID}).load();
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { ad = normalise(d).ad; draftId = d._draft || null; } } catch(e){}
+  // The ad left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026: a card whose
+  // claim had ended was switched to standard without a word)
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { const n = normalise(d); ad = n.ad; draftId = d._draft || null;
+    if (n.msgs.length) { note = `Since this ad was last open: ${n.msgs.join(". ")}.`; save(); } } } catch(e){}
   if (draftId && !store.all()[draftId]) draftId = null;   // saved in this browser before, or deleted since
   if (ctx.shared) await openShared(ctx.shared); else draw();
   if (ctx.add) addSailing(ctx.add);
