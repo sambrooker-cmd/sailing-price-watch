@@ -240,6 +240,18 @@ details.cs[open]>summary .cs-sum{display:none}
 .g-frame{background:var(--bg-alt);border:1px solid var(--rule);width:100%}
 .g-frame img{display:block;width:100%;height:100%;object-fit:contain}
 .g-img figcaption{font-size:12.5px;display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline}
+.g-tabs{margin-bottom:12px}
+.g-set{margin-bottom:16px}.g-set details.cs{margin-top:10px}
+.gc-row{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}.gc-row input{flex:1;min-width:220px}
+.gc-list{display:flex;flex-direction:column;gap:5px;margin:8px 0 4px}
+.gc-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.gc-line{display:flex;gap:6px;align-items:center}.gc-line input{flex:1;min-width:0}
+.gc-n{font-size:12px;color:var(--muted);min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
+.gc-x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px}
+.gc-paths{display:flex;gap:6px;align-items:center}.gc-paths input{max-width:180px}
+.cl-lines{margin:0 0 4px 18px;font-size:13px;line-height:1.45}
+.gc-site{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px}.gc-site .gc-url{grid-column:1/-1;font-size:12px;overflow-wrap:anywhere}
+@media (max-width:640px){.gc-site{grid-template-columns:1fr}}
 /* Email preview: the right-hand column stays in view and the preview fills the rest of the screen,
    scrolling inside itself (Sam, 13 Oct 2026: it overlapped its box and didn't fit the screen) */
 .em-main{height:calc(100vh - 24px)}
@@ -2097,7 +2109,8 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./googleads.js?v=__BUILD__"), getAdkit()]);
       gadsModule = m;
       const add = pendingAdd.gads; delete pendingAdd.gads;
-      await m.mount($("gads"), {state, cabins, adkit: kit, add});
+      await m.mount($("gads"), {state, cabins, adkit: kit, add,
+        idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { gadsMounted = false; $("gads").innerHTML = `<p class="err">Google Ads couldn't load: ${esc(e.message)}</p>`; }
   }
   // Email creator: its own module, loaded the first time the page is opened (site/emailcreator.js)
