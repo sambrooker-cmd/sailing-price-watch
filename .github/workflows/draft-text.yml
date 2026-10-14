@@ -1,0 +1,51 @@
+name: Draft text
+
+# "Draft with Claude" in the tracker page's Ad creator and Email creator (Sam, 14 Oct 2026). Started by the
+# Firebase function `drafts` (functions/index.js) with the request's id; draft_job.py builds the facts from the
+# saved state in this repo, asks Claude Code (on Sam's Claude plan: CLAUDE_CODE_OAUTH_TOKEN, not a paid API key)
+# and saves the options on the request, where the page picks them up. Saves nothing to the repo and never
+# touches Meta, HubSpot or any ad account.
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: "Filled in by the tracker page (don't run this by hand)"
+        required: true
+
+run-name: Draft text for the tracker page (${{ inputs.request }})
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          npm install -g @anthropic-ai/claude-code@2.1.296 --no-audit --no-fund
+          pip install google-auth==2.40.3 requests==2.32.3
+
+      - name: Write the drafts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          REQUEST: ${{ inputs.request }}
+        run: |
+          # A token copied out of a terminal often picks up line breaks or spaces: drop them.
+          export CLAUDE_CODE_OAUTH_TOKEN="$(printf %s "$CLAUDE_CODE_OAUTH_TOKEN" | tr -d '[:space:]')"
+          python draft_job.py "$REQUEST"
+
+      - name: Mark the request as failed
+        if: failure()
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python draft_job.py failed "$REQUEST"

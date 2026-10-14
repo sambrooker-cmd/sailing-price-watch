@@ -6,6 +6,7 @@
 // reach the promotion choices (render_cards.py PRICE_CLAIM, via state/adkit.json).
 import {cardDoc, introDoc, endDoc, defaultWords, cropUrl, PR_CABIN, SIZES} from "./adcards.js?v=__BUILD__";
 import {suggest} from "./adcopy.js?v=__BUILD__";
+import * as claude from "./drafts.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -382,6 +383,7 @@ function draw(){
         <label class="ac-lab" for="ac-cta">Button</label>
         <select id="ac-cta">${CTAS.map(x => `<option${x === ad.cta ? " selected" : ""}>${x}</option>`).join("")}</select>
         ${suggestions()}
+        ${claude.block("ad", textReady())}
       </div>
     </div>
     <div class="ac-main">
@@ -401,10 +403,11 @@ function draw(){
   counts();
 }
 
+const textReady = () => ad.format === "carousel" ? ad.cards.length >= 2 : ad.cards.length === 1;
 // Suggested primary text from the chosen sailings' own facts, in the brand's tone of voice (adcopy.js).
 let sugg = [];
 function suggestions(){
-  if (ad.format === "carousel" ? ad.cards.length < 2 : ad.cards.length !== 1) return "";
+  if (!textReady()) return "";
   sugg = suggest(ad.cards.map(c => {
     const d = cardData(c), s = sailing(c.id), n = parseInt(((s.k.nectar || "").match(/[\d,]+/) || ["0"])[0].replace(/,/g, ""), 10);
     return {title: d.title, ship: d.ship, port: d.port, fly: d.fly, nights: d.nights, departure_date: d.departure_date, price: d.price,
@@ -561,6 +564,12 @@ function wire(){
     ad.primary = sugg[+b.dataset.use].text; $("#ac-primary").value = ad.primary; change(false);
     $("#ac-primary").focus();
   }));
+  // Claude's drafts (drafts.js): the run reads every fact from the tracker's saved state, so only codes and choices go
+  claude.wire(root, "ad", {ID, redraw: draw,
+    body: () => ({format: ad.format, items: ad.cards.map(c => ({id: c.id, wasnow: c.design.startsWith("wasnow:") ? c.design.slice(7) : null,
+                                                              promos: c.promos || [], nectar: !!c.nectar}))}),
+    forWhat: () => ad.cards.map(c => (sailing(c.id) || {}).title || c.id).join(", "),
+    use: o => { ad.primary = o.text; $("#ac-primary").value = ad.primary; change(false); $("#ac-primary").focus(); }});
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);

@@ -48,6 +48,29 @@ async function allowedUser(req, res){
 
 const iso = t => (t && t.toDate ? t.toDate() : new Date(t)).toISOString();
 
+// Starts a GitHub workflow for a request recorded at `ref`. Returns true, or the message to show; a request that
+// couldn't start is marked failed so it doesn't hold a place in the limits (QA, 13 Oct 2026).
+async function dispatch(ref, workflow, inputs, what){
+  let r;
+  try {
+    r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, {
+      method: "POST",
+      headers: {Authorization: `Bearer ${GH.value().trim()}`, Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "pricewatch-tracker"},
+      body: JSON.stringify({ref: "main", inputs}),
+    });
+  } catch (e) {
+    console.error("dispatch error", workflow, e.message);
+    await ref.update({status: "failed", error: "Couldn't reach GitHub. Try again in a minute."});
+    return `Couldn't reach GitHub to start the ${what}. Try again in a minute.`;
+  }
+  if (r.ok) return true;
+  const why = r.status === 401 ? "the GitHub token has expired or is wrong" : `GitHub answered ${r.status}`;
+  await ref.update({status: "failed", error: `Couldn't start: ${why}.`});
+  console.error("dispatch failed", workflow, r.status, (await r.text()).slice(0, 300));
+  return `Couldn't start the ${what} on GitHub (${why}).`;
+}
+
 exports.makeVideo = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"], secrets: [GH],
   maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
@@ -84,26 +107,8 @@ exports.makeVideo = onRequest({
   const ref = db.collection(COL).doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued",
                  title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0))});
-  let r;
-  try {
-    r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
-      method: "POST",
-      headers: {Authorization: `Bearer ${GH.value().trim()}`, Accept: "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "pricewatch-make-video"},
-      body: JSON.stringify({ref: "main", inputs: {link: code, request: ref.id}}),
-    });
-  } catch (e) {
-    // GitHub unreachable: mark the request failed so it doesn't hold a place in the limits (QA, 13 Oct 2026)
-    console.error("dispatch error", e.message);
-    await ref.update({status: "failed", error: "Couldn't reach GitHub. Try again in a minute."});
-    return res.status(502).json({error: "Couldn't reach GitHub to start the video. Try again in a minute."});
-  }
-  if (!r.ok) {
-    const why = r.status === 401 ? "the GitHub token has expired or is wrong" : `GitHub answered ${r.status}`;
-    await ref.update({status: "failed", error: `Couldn't start: ${why}.`});
-    console.error("dispatch failed", r.status, (await r.text()).slice(0, 300));
-    return res.status(502).json({error: `Couldn't start the video on GitHub (${why}).`});
-  }
+  const started = await dispatch(ref, WORKFLOW, {link: code, request: ref.id}, "video");
+  if (started !== true) return res.status(502).json({error: started});
   return res.json({id: ref.id});
 });
 
@@ -221,4 +226,53 @@ exports.saved = onRequest({
     return res.json({ok: true});
   }
   return res.status(400).json({error: "Unknown request."});
+});
+
+// "Draft with Claude" in the Ad creator and Email creator (Sam, 14 Oct 2026, the free option: Claude Code on Sam's
+// plan in a GitHub run, not a paid API key). POST {kind: "ad" | "email", format, items: [{id, wasnow, promos,
+// nectar}], brief} → records pricewatch_drafts/<id> and starts the Draft text workflow (draft_job.py), which builds
+// the facts from the repo's saved state (never from what the browser sends), asks Claude and saves the options.
+// GET ?id= → {status, error, options, notes}: the page asks every few seconds until it's done.
+const DRAFTS = "pricewatch_drafts", DRAFT_WORKFLOW = "draft-text.yml";
+const DRAFT_DAY_LIMIT = 60;     // drafts a day for everyone together (each is a short run on Sam's plan)
+const DRAFT_STUCK_MIN = 10;     // a draft still "queued" after this never started on GitHub
+exports.drafts = onRequest({
+  region: "us-central1", cors: ["https://acl-price-watch.web.app"], secrets: [GH],
+  maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
+}, async (req, res) => {
+  const email = await allowedUser(req, res);
+  if (!email) return;
+  const db = getFirestore(), col = db.collection(DRAFTS);
+  if (req.method === "GET") {
+    const id = String(req.query.id || "");
+    if (!/^[A-Za-z0-9]{10,40}$/.test(id)) return res.status(400).json({error: "Bad id."});
+    const doc = await col.doc(id).get();
+    if (!doc.exists) return res.status(404).json({error: "That draft has gone."});
+    const v = doc.data();
+    const late = v.status === "queued" && v.at && v.at.toMillis() < Date.now() - DRAFT_STUCK_MIN * 6e4;
+    return res.json({status: late ? "failed" : v.status, error: late ? "It didn't start on GitHub. Try again." : (v.error || ""),
+                     options: v.options || [], notes: v.notes || [], prices: v.prices || ""});
+  }
+  if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
+  const b = req.body || {}, kind = String(b.kind || "");
+  if (!["ad", "email"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  const items = (Array.isArray(b.items) ? b.items : []).slice(0, 24).map(x => ({
+    id: String((x || {}).id || "").slice(0, 20), wasnow: x.wasnow ? String(x.wasnow).slice(0, 40) : null,
+    promos: (Array.isArray(x.promos) ? x.promos : []).slice(0, 4).map(p => String(p).slice(0, 200)), nectar: x.nectar !== false}))
+    .filter(x => /^[A-Za-z0-9]{3,20}$/.test(x.id));
+  if (!items.length) return res.status(400).json({error: "Add some sailings first."});
+  const day = new Date(); day.setUTCHours(0, 0, 0, 0);
+  if ((await col.where("at", ">=", day).count().get()).data().count >= DRAFT_DAY_LIMIT)
+    return res.status(429).json({error: `Today's ${DRAFT_DAY_LIMIT} drafts have been made. Try again tomorrow.`});
+  const fresh = Date.now() - DRAFT_STUCK_MIN * 6e4;
+  const mine = await col.where("by", "==", email).get();
+  if (mine.docs.some(d => { const v = d.data(); return ["queued", "running"].includes(v.status) && v.at && v.at.toMillis() >= fresh; }))
+    return res.status(429).json({error: "You already have a draft being written. Wait for that one first."});
+  const ref = col.doc();
+  await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued", kind,
+                 format: b.format === "single" ? "single" : "carousel", items: JSON.stringify(items),
+                 brief: String(b.brief || "").slice(0, 300)});
+  const started = await dispatch(ref, DRAFT_WORKFLOW, {request: ref.id}, "draft");
+  if (started !== true) return res.status(502).json({error: started});
+  return res.json({id: ref.id});
 });
