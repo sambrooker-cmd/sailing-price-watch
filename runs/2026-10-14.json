@@ -129,6 +129,35 @@
     "held_days": 2
    },
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22637",
+   "from": 579,
+   "to": 429,
+   "mix": "suite → ocean_view",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (suite → ocean_view), not a price cut",
+    "was": 579,
+    "now": 429,
+    "since": "2026-10-14",
+    "held_days": 0
+   },
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12704",
+   "from": 699,
+   "to": 589,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 699,
+    "now": 589,
+    "since": "2026-10-14",
+    "held_days": 0
+   },
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "rises": [
@@ -168,18 +197,30 @@
    "from": 1529,
    "to": 1679,
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22710BL",
+   "from": 1439,
+   "to": 1619,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12801",
+   "from": 3799,
+   "to": 4049,
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "eligible": [],
  "flags": {
+  "A22630BR": [
+   "feed price £1,279 differs from cheapest cabin on the page £879 (the page price is used)"
+  ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22637": [
-   "feed price £429 differs from cheapest cabin on the page £579 (the page price is used)"
   ],
   "A32653M": [
    "feed image looks like campaign art (may contain text)"
@@ -187,11 +228,8 @@
   "A32653": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A12701": [
-   "feed price £3,399 differs from cheapest cabin on the page £3,369 (the page price is used)"
-  ],
-  "A12704": [
-   "feed price £589 differs from cheapest cabin on the page £699 (the page price is used)"
+  "A22639": [
+   "feed price £1,499 differs from cheapest cabin on the page £1,829 (the page price is used)"
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
@@ -200,10 +238,13 @@
    "no twin cabins on sale; the feed price is a solo price"
   ],
   "A22710BL": [
-   "feed price £1,619 differs from cheapest cabin on the page £1,439 (the page price is used)"
+   "feed price £1,439 differs from cheapest cabin on the page £1,619 (the page price is used)"
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12801": [
+   "feed price £3,799 differs from cheapest cabin on the page £4,049 (the page price is used)"
   ]
  },
  "cabin_drops": [
@@ -305,6 +346,21 @@
     "held_days": 0
    },
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A12704",
+   "cabin": "twin.inside",
+   "from": 699,
+   "to": 589,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 699,
+    "now": 589,
+    "since": "2026-10-14",
+    "held_days": 0
+   },
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "cabin_rises": [
@@ -349,6 +405,41 @@
    "from": 1529,
    "to": 1679,
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22701",
+   "cabin": "solo.ocean_view",
+   "from": 4289,
+   "to": 5299,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A22710BL",
+   "cabin": "twin.inside",
+   "from": 1439,
+   "to": 1619,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12801",
+   "cabin": "twin.inside",
+   "from": 3799,
+   "to": 4049,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A22802",
+   "cabin": "solo.inside",
+   "from": 3349,
+   "to": 3429,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A22820DD",
+   "cabin": "twin.ocean_view",
+   "from": 1189,
+   "to": 1309,
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "cabin_sold_out": [
@@ -442,6 +533,18 @@
    "cabin": "twin.inside",
    "p": 1159,
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22637",
+   "cabin": "twin.ocean_view",
+   "p": 429,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12704",
+   "cabin": "twin.ocean_view",
+   "p": 899,
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "cabin_eligible": [],
@@ -620,6 +723,24 @@
    "feed": 1619,
    "page": 1439,
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22630BR",
+   "feed": 1279,
+   "page": 879,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A22639",
+   "feed": 1499,
+   "page": 1829,
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12801",
+   "feed": 3799,
+   "page": 4049,
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "feed_gap_fixed": [
@@ -748,6 +869,27 @@
    "page": 1529,
    "how": "matches the website",
    "at": "2026-10-14T13:07:17Z"
+  },
+  {
+   "id": "A22637",
+   "feed": 429,
+   "page": 579,
+   "how": "matches the website",
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12701",
+   "feed": 3399,
+   "page": 3369,
+   "how": "matches the website",
+   "at": "2026-10-14T14:07:16Z"
+  },
+  {
+   "id": "A12704",
+   "feed": 589,
+   "page": 699,
+   "how": "matches the website",
+   "at": "2026-10-14T14:07:16Z"
   }
  ],
  "lead_source_switch": [],
@@ -761,6 +903,7 @@
   "2026-10-14T11:07:16Z",
   "2026-10-14T11:33:22Z",
   "2026-10-14T12:07:15Z",
-  "2026-10-14T13:07:17Z"
+  "2026-10-14T13:07:17Z",
+  "2026-10-14T14:07:16Z"
  ]
 }
