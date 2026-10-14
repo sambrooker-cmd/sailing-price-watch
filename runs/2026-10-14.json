@@ -287,6 +287,9 @@
  ],
  "eligible": [],
  "flags": {
+  "A22633": [
+   "feed price £299 differs from cheapest cabin on the page £399 (the page price is used)"
+  ],
   "A32652M": [
    "feed price £1,499 differs from cheapest cabin on the page £1,549 (the page price is used)"
   ],
@@ -304,6 +307,9 @@
   ],
   "A12702": [
    "feed price £1,149 differs from cheapest cabin on the page £1,029 (the page price is used)"
+  ],
+  "A12704": [
+   "feed price £699 differs from cheapest cabin on the page £589 (the page price is used)"
   ],
   "A22704": [
    "feed price £1,259 differs from cheapest cabin on the page £1,119 (the page price is used)"
@@ -327,6 +333,7 @@
    "feed price £1,599 differs from cheapest cabin on the page £1,479 (the page price is used)"
   ],
   "A12712": [
+   "feed price £2,239 differs from cheapest cabin on the page £2,049 (the page price is used)",
    "feed image looks like campaign art (may contain text)"
   ],
   "A12718": [
@@ -1239,6 +1246,24 @@
    "feed": 1489,
    "page": 1359,
    "at": "2026-10-14T16:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 299,
+   "page": 399,
+   "at": "2026-10-14T19:19:07Z"
+  },
+  {
+   "id": "A12704",
+   "feed": 699,
+   "page": 589,
+   "at": "2026-10-14T19:19:07Z"
+  },
+  {
+   "id": "A12712",
+   "feed": 2239,
+   "page": 2049,
+   "at": "2026-10-14T19:19:07Z"
   }
  ],
  "feed_gap_fixed": [
@@ -1461,6 +1486,7 @@
   "2026-10-14T14:07:16Z",
   "2026-10-14T14:28:50Z",
   "2026-10-14T15:07:17Z",
-  "2026-10-14T16:07:15Z"
+  "2026-10-14T16:07:15Z",
+  "2026-10-14T19:19:07Z"
  ]
 }

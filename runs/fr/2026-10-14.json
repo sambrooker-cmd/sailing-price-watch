@@ -58,8 +58,31 @@
  ],
  "removed": [],
  "returned": [],
- "drops": [],
- "rises": [],
+ "drops": [
+  {
+   "id": "R270303",
+   "from": 1199,
+   "to": 969,
+   "mix": "ocean_view → inside",
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  },
+  {
+   "id": "R280508",
+   "from": 699,
+   "to": 679,
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  }
+ ],
+ "rises": [
+  {
+   "id": "R261016",
+   "from": 1449,
+   "to": 1459,
+   "at": "2026-10-14T19:19:31Z"
+  }
+ ],
  "eligible": [],
  "flags": {
   "R261116": [
@@ -69,7 +92,7 @@
    "the page shows from €789 but booking's cheapest is €909"
   ],
   "R280508": [
-   "the page shows from €569 but booking's cheapest is €699"
+   "the page shows from €569 but booking's cheapest is €679"
   ],
   "R280528": [
    "the page shows from €1,159 but booking's cheapest is €1,739"
@@ -81,9 +104,56 @@
    "the page shows from €919 but booking's cheapest is €1,079"
   ]
  },
- "cabin_drops": [],
- "cabin_rises": [],
- "cabin_sold_out": [],
+ "cabin_drops": [
+  {
+   "id": "R261228",
+   "cabin": "solo.balcony",
+   "from": 3539,
+   "to": 2339,
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  },
+  {
+   "id": "R270414",
+   "cabin": "twin.obstructed",
+   "from": 2099,
+   "to": 1519,
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  },
+  {
+   "id": "R270829",
+   "cabin": "twin.ocean_view",
+   "from": 2429,
+   "to": 2039,
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  },
+  {
+   "id": "R280508",
+   "cabin": "twin.ocean_view",
+   "from": 699,
+   "to": 679,
+   "claim": null,
+   "at": "2026-10-14T19:19:31Z"
+  }
+ ],
+ "cabin_rises": [
+  {
+   "id": "R261016",
+   "cabin": "twin.ocean_view",
+   "from": 1449,
+   "to": 1459,
+   "at": "2026-10-14T19:19:31Z"
+  }
+ ],
+ "cabin_sold_out": [
+  {
+   "id": "R280724",
+   "cabin": "twin.grand_suite",
+   "at": "2026-10-14T19:19:31Z"
+  }
+ ],
  "cabin_back": [],
  "cabin_eligible": [],
  "promo_added": [],
@@ -129,10 +199,11 @@
   }
  ],
  "feed_gap_fixed": [],
- "promo_tracking_started": true,
  "lead_source_switch": [],
+ "promo_tracking_started": true,
  "reported": [],
  "checks": [
-  "2026-10-14T16:07:39Z"
+  "2026-10-14T16:07:39Z",
+  "2026-10-14T19:19:31Z"
  ]
 }
