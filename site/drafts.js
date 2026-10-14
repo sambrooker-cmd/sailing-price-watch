@@ -9,7 +9,7 @@
 
 const FN = "https://us-central1-promotions-planner.cloudfunctions.net/drafts";
 const POLL_MS = 5000, GIVE_UP_MS = 6 * 60e3;
-const st = {ad: {}, email: {}};
+const st = {ad: {}, email: {}, google: {}};
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const ukDate = iso => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}) : "";
 const mins = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -32,6 +32,12 @@ function status(s){
 }
 
 function option(kind, o, i){
+  if (kind === "google") {   // Google Ads copy (googleads.js): headlines, long headlines, descriptions
+    const ul = (t, xs) => xs.length ? `<p class="ac-lab sm" style="margin:6px 0 2px">${t}</p><ul class="cl-lines">${xs.map(x => `<li>${esc(x)} <span class="sub">${x.length}</span></li>`).join("")}</ul>` : "";
+    return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
+      ${ul("Headlines", o.headlines)}${ul("Long headlines", o.long_headlines)}${ul("Descriptions", o.descriptions)}
+      <button type="button" class="btn quiet" data-cuse="${i}">Use this</button></div>`;
+  }
   if (kind === "ad") {
     const cut = o.text.length <= 125 ? o.text.length : o.text.lastIndexOf(" ", 125);
     return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
@@ -46,7 +52,7 @@ function option(kind, o, i){
 }
 
 export function block(kind, notReady){
-  const s = st[kind], what = kind === "ad" ? "primary text" : "subject line, preview text, header words and intro";
+  const s = st[kind], what = kind === "ad" ? "primary text" : kind === "google" ? "headline, long headline and description" : "subject line, preview text, header words and intro";
   return `<div class="ac-sugg ac-claude" id="cl-${kind}">
     <p class="ac-lab" style="margin:0">Draft with Claude</p>
     <p class="sub">Claude writes new ${what} options from these sailings' prices, dates, offers and Nectar points, in Ambassador's tone of voice. Read them before using them: Claude can get things wrong.</p>

@@ -257,7 +257,7 @@ exports.drafts = onRequest({
   }
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
   const b = req.body || {}, kind = String(b.kind || "");
-  if (!["ad", "email"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  if (!["ad", "email", "google"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
   const items = (Array.isArray(b.items) ? b.items : []).slice(0, 24).map(x => ({
     id: String((x || {}).id || "").slice(0, 20), wasnow: x.wasnow ? String(x.wasnow).slice(0, 40) : null,
     promos: (Array.isArray(x.promos) ? x.promos : []).slice(0, 4).map(p => String(p).slice(0, 200)), nectar: x.nectar !== false}))

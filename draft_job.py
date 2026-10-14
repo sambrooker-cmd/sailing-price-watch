@@ -74,12 +74,31 @@ EMAIL_TASK = """Write {n} different options for a marketing email showing {what}
   below it. Don't list every sailing's details: each one has its own tile with its name, date, ship and price.
   Don't add small print: the email has its own ("based on two sharing, subject to availability")."""
 
+GOOGLE_TASK = """Write {n} different sets of Google Ads text about {what}, each with:
+- label: a few words naming its angle,
+- headlines: 10 to 15 headlines of at most 30 characters each (count every character, spaces included). They are
+  mixed and matched by Google, so each must make sense on its own and they shouldn't repeat each other. Cover the
+  name or place, the price, where it sails from, the ship, the dates or length, offers and Nectar if given, and the brand.
+- long_headlines: 3 to 5 long headlines of at most 90 characters each,
+- descriptions: 4 descriptions of at most 90 characters each, each a complete sentence or two that works alone.
+Google's rules: no exclamation marks in headlines, no words in ALL CAPS, no repeated punctuation, no emoji, no
+phone numbers. Prices as "from £X pp" or "£Xpp"."""
+
 AD_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["options"],
     "properties": {"options": {"type": "array", "items": {
         "type": "object", "additionalProperties": False, "required": ["label", "text"],
         "properties": {"label": {"type": "string"}, "text": {"type": "string"}}}}},
 }
+GOOGLE_SCHEMA = {
+    "type": "object", "additionalProperties": False, "required": ["options"],
+    "properties": {"options": {"type": "array", "items": {
+        "type": "object", "additionalProperties": False, "required": ["label", "headlines", "long_headlines", "descriptions"],
+        "properties": {"label": {"type": "string"}, **{k: {"type": "array", "items": {"type": "string"}}
+                                                     for k in ("headlines", "long_headlines", "descriptions")}}}}},
+}
+GOOGLE_LIMITS = {"headlines": (30, 15), "long_headlines": (90, 5), "descriptions": (90, 4)}
+
 EMAIL_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["options"],
     "properties": {"options": {"type": "array", "items": {
@@ -190,6 +209,8 @@ def prompt(kind, fmt, facts, brief, today):
     if kind == "ad":
         what = "single image ad for one sailing" if fmt == "single" else f"carousel ad showing {n} sailings, one per card"
         task = AD_TASK.format(n=4, what=what, small=SMALL_PRINT)
+    elif kind == "google":
+        task = GOOGLE_TASK.format(n=2, what="one sailing" if n == 1 else f"these {n} sailings together")
     else:
         task = EMAIL_TASK.format(n=3, what="one sailing" if n == 1 else f"{n} sailings")
     return "\n\n".join(x for x in [VOICE, task, RULES, f"Today is {today}.",
@@ -222,6 +243,21 @@ def check(kind, options, facts):
     allowed, any_wn = figures(facts), any("was_now" in f for f in facts)
     kept, dropped = [], []
     for o in options or []:
+        if kind == "google":
+            # Line by line: anything over Google's limit, quoting a figure that isn't in the facts, or with reduction
+            # wording without a live claim is left out; the set is kept if enough good lines remain
+            g, why = {"label": trim(o.get("label"), 30)}, []
+            for k, (n, most) in GOOGLE_LIMITS.items():
+                good = []
+                for line in o.get(k) or []:
+                    line = no_amp(re.sub(r"\s+", " ", line or "")).strip().rstrip("!") if k == "headlines" else no_amp(re.sub(r"\s+", " ", line or "")).strip()
+                    if line and len(line) <= n and not problems(line, allowed, any_wn) and line not in good:
+                        good.append(line)
+                g[k] = good[:most]
+            if len(g["headlines"]) < 5 or len(g["descriptions"]) < 2:
+                why.append("too few lines within Google's limits that stick to the facts")
+            (dropped if why else kept).append({**g, **({"why": why} if why else {})})
+            continue
         if kind == "ad":
             o = {"label": trim(o.get("label"), 30), "text": no_amp(re.sub(r"[ \t]+", " ", o.get("text") or ""))}
             if o["text"] and not o["text"].endswith(SMALL_PRINT):
@@ -290,7 +326,7 @@ def main():
             raise RuntimeError("Drafting isn't set up yet: the Claude sign-in token is missing. Tell Sam.")
         tok = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]   # only its shape is logged, never the token
         print(f"Plan token: {len(tok)} characters, starts sk-ant-oat: {tok.startswith('sk-ant-oat')}")
-        schema = AD_SCHEMA if kind == "ad" else EMAIL_SCHEMA
+        schema = AD_SCHEMA if kind == "ad" else GOOGLE_SCHEMA if kind == "google" else EMAIL_SCHEMA
         kept, dropped = check(kind, run_claude(prompt(kind, fmt, facts, brief, today), schema).get("options"), facts)
         for d in dropped:
             print("thrown away:", d.get("label"), "-", "; ".join(d["why"]))
