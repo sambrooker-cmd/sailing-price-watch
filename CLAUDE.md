@@ -197,6 +197,50 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   sailings for the first pass: the UK cards still finish by Sunday night, the last French ones at Monday 06:07 UK.
   Repo variable `CARD_CHECK_FR` = `off` leaves France out. Not done for France: was/now (Sam: later).
 
+## Competitors (15 Oct 2026, Sam: "Go ahead with Fred Olsen and Planet Cruise")
+**Terms review first** (14–15 Oct 2026; Sam: legal sign-off "leave with me"): of the 15 names in the competitor analysis
+(the CompetitorTracker repo's seed), reading is only done where neither robots.txt nor the website terms forbid it:
+- **Clear**: Fred. Olsen (no website terms of use, only booking conditions; robots.txt allows /cruise/ and the deals
+  pages), and the agents Planet Cruise, iglu (same platform and, it appears, the same company), Cruise.co.uk and Cruise
+  Nation (booking terms only). Cruise.co.uk and Cruise Nation draw prices with JavaScript: not used.
+- **Not read, ever**: P&O (terms ban automated scraping; Sam's own check, Sept 2026; the site also refuses automated
+  requests), Princess (Website Terms §5: "You must not use automated tools to scrape, extract or mine content or data";
+  robots.txt also disallows its pricing pages), Marella/TUI (website terms: "personal, non-commercial use only", no
+  extracting information "for any commercial purpose"; site refuses automated requests), Cunard (Carnival, as P&O and
+  Princess; blocks), Saga (blocks even a normal browser), MSC (401), Cruise1st (Cloudflare challenge), Bolsover
+  ("domestic and private use… not… any commercial or business purposes"). Royal Caribbean and Celebrity's own sites
+  couldn't be read from here (maintenance / "on vacation" pages). **Never get round a block** (no disguised browsers,
+  bot-bypass or proxy services): that's beyond a terms question. Sam was told website terms are probably binding once
+  read, database right applies to systematic extraction (hence a sample, not the catalogue), and that a block is not
+  the only consequence.
+- `competitors.py`: run by the hourly workflow's **Competitor prices** step, but only once a UK day (the first check;
+  later ones print "already checked today"; `--force` overrides). Polite: robots.txt checked before every request
+  (`urllib.robotparser`; no robots.txt readable = site not read), `PAUSE` = 3 s between requests, one at a time, an honest
+  User-Agent (`AmbassadorPriceWatch/1.0 …`), `--max-pages` 300, public pages only, no booking systems. **Sample**: `SAMPLE`
+  = 20 sailings a line from Planet Cruise, `SAMPLE_FO` = 30 from Fred. Olsen, sold from the UK (UK port, or a UK-airport
+  fly-cruise: Planet Cruise's "London Airports", and every Marella holiday, which is sold with flights), departing in 1–18
+  months, spread over the months, kept from day to day and topped up (`NEW_PER_RUN` = 12 new pages a line a run; pages
+  tried and not kept in `tried`). Planet Cruise lines: P&O (sitemap PAO), Princess (PSC), Cunard (CND), Marella (no
+  sitemap: the sailings its /en/marella-cruises page links), MSC (MSC), Royal Caribbean (RLC), Celebrity (CYC) and
+  **Ambassador (AMB)** for a like-for-like agent comparison; ships linked from its UK port pages (`PC_UK_PORTS`,
+  refreshed weekly, `uk_ships`) are tried first. Read per sailing: title, ship, port, date, nights, per cabin type
+  (inside / outside / balcony / suite, plus Fred. Olsen's terrace and single) the from price pp for two sharing, Planet
+  Cruise's "was" figure and fare name, Fred. Olsen's solo prices and fare ("Freedom Fare"); offers: Planet Cruise's promo
+  line and offer-like tags (`OFFERISH`, minus `NOT_OFFER` features), Fred. Olsen's brand-wide deals (each
+  /cruise-deals page's headline and first line; pages saying the deal is closed are skipped). → `state/competitors/
+  current.json` (prices as segments {p, was, from}, last 24 changes; offers [[from, to]]; `gone` when a sailing departs or
+  leaves the list; a cabin type no longer priced → a null segment) and `runs/competitors/DATE.json` (price_drop /
+  price_rise / cabin_off / offer_added / offer_ended / new / gone). Safety stop: fewer than half the pages read → nothing
+  saved, exit 2 → "Competitor check FAILED" issue. First full run tested 14 Oct 2026 from here (~110 pages, ~6 min).
+- `publish.py`: `pricewatch/comp-current` (without the `tried` bookkeeping) and `comp-runs` (last 60 days, ≤ 400 KB).
+- Tracker page **Prices → Competitors** (`site/competitors.js`, UK only, loaded when opened): tiles; "Typical price per
+  night" table (median per line and cabin type, twin, with **Ambassador (our website)** over the same months from our
+  own state/cabins); sailings table with filters (line, cabin type, two sharing / solo, month, no-fly only, sort), from
+  price, was, per night, change over 7 days, and **Ambassador per night** = our cheapest of the same cabin type in the same
+  month, within 3 nights' length, same no-fly/fly ("we're N% cheaper/dearer"); offers (brand-wide and per line, with
+  sailing counts); what changed in the last 7 days; CSV. Remembered per browser (`spw-comp`). Not done: Saga; iglu (the
+  same data as Planet Cruise); a newsletter mailbox (Sam: later).
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
@@ -233,6 +277,7 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
 | `coverage.py`, `.github/workflows/coverage.yml` | Weekly (Mondays 09:30 GMT + manual): sitemap vs ad feed. Writes `state/coverage.json` (sailings on sale on the website but not in the feed, with when each was first spotted), shown on the tracker page; opens an issue only for newly missing sailings. First manual check 12 Oct 2026: 415 site pages, 220 in feed, 15 on sale but missing (13 Curaçao S-codes, A22638, A12705, A12824). **Tags** (Sam, 13 Oct 2026): a sailing whose FareSummary `search-data.agents` isn't ["DIRECT"] (sold through an agent: semi-charters, which aren't meant to be on the site or in the feed) gets `charter: true`, a "Sold through agent" tag (Sam, 13 Oct 2026, renamed from "Semi-charter"; the server still returns these pages' HTML with prices, which is what coverage.py reads, but in a browser the site's own script sends visitors to /404/). **Browser check** (Sam, 13 Oct 2026, "only for pages identified as missing from the feed"): `visitor_404` opens just the on-sale-but-missing sailings in headless Chromium (Playwright, installed by coverage.yml) and waits up to 8 s for a redirect to /404/ → `visitor_404: true` and a red "404 for visitors" tag; such sailings also sort last, aren't counted and are never reported as newly missing. All 14 on 13 Oct 2026 (normal sailings checked: not flagged), sorts last, isn't counted in the menu badge and is never reported as newly missing (all 14 on 13 Oct 2026: the 12 Curaçao S-codes, A12705, A12824; 40 feed sailings checked were all DIRECT). Sitemap pages that return 404 (HTTP 404 or canonical /404/) are listed in `not_found` with a red "404" tag (141 on 13 Oct 2026, mostly past 2025–26 sailings still in the sitemap) |
 | Feed vs website (in `tracker.py`, `daily.py`, `site/index.html`) | **Ad feed price vs website** (Sam, 13 Oct 2026, after hearing the feed is refreshed daily): each check compares the feed's price (`feed_price_pp`) with the page's cheapest twin cabin (only when the page's prices were read). A difference → per sailing `feed_gap` {feed, page, since, seen, reported} (UTC check times); run lists `feed_gap_new` / `feed_gap_fixed`; fixed ones (matching again, or left the feed) kept 30 days in state `feed_gaps_fixed`. `daily.py` `feed_gap_report`: once a gap has lasted `FEED_GAP_HOURS` = 3 it's reported once → `out/feed_gaps.md` → a "Feed prices don't match the website — DATE" issue (one a day, comments after). Tracker page **Checks → Feed vs website** (count badge): current gaps, largest first, feed-lower ones highlighted (the ads show a price guests can't get), CSV download, fixed in the last 7 days. Recorded only: never part of claims, never changes the feed or any ad account |
 | `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
+| `competitors.py`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Competitor prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
