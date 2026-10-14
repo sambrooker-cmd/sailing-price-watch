@@ -1,9 +1,10 @@
 {
  "date": "2026-10-14",
- "count": 224,
+ "count": 223,
  "new": [],
  "removed": [
-  "A12626"
+  "A12626",
+  "A32650"
  ],
  "returned": [],
  "drops": [
@@ -81,8 +82,8 @@
  ],
  "eligible": [],
  "flags": {
-  "A32650": [
-   "no twin cabins on sale; the feed price is a solo price"
+  "A22630BR": [
+   "feed price £1,279 differs from cheapest cabin on the page £879 (the page price is used)"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
@@ -96,11 +97,11 @@
   "A32653": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A12701": [
-   "feed price £3,499 differs from cheapest cabin on the page £3,249 (the page price is used)"
+  "A22639": [
+   "feed price £2,479 differs from cheapest cabin on the page £1,829 (the page price is used)"
   ],
-  "A12704": [
-   "feed price £699 differs from cheapest cabin on the page £589 (the page price is used)"
+  "A12701": [
+   "feed price £3,369 differs from cheapest cabin on the page £3,249 (the page price is used)"
   ],
   "A12706": [
    "feed price £1,159 differs from cheapest cabin on the page £1,699 (the page price is used)"
@@ -114,8 +115,8 @@
   "A12712": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A12801": [
-   "feed price £4,049 differs from cheapest cabin on the page £3,799 (the page price is used)"
+  "A22828LV": [
+   "feed price £1,679 differs from cheapest cabin on the page £1,529 (the page price is used)"
   ]
  },
  "cabin_drops": [
@@ -284,6 +285,24 @@
    "feed": 4049,
    "page": 3799,
    "at": "2026-10-14T09:07:14Z"
+  },
+  {
+   "id": "A22630BR",
+   "feed": 1279,
+   "page": 879,
+   "at": "2026-10-14T10:07:14Z"
+  },
+  {
+   "id": "A22639",
+   "feed": 2479,
+   "page": 1829,
+   "at": "2026-10-14T10:07:14Z"
+  },
+  {
+   "id": "A22828LV",
+   "feed": 1679,
+   "page": 1529,
+   "at": "2026-10-14T10:07:14Z"
   }
  ],
  "feed_gap_fixed": [
@@ -328,6 +347,20 @@
    "page": 679,
    "how": "matches the website",
    "at": "2026-10-14T09:07:14Z"
+  },
+  {
+   "id": "A12704",
+   "feed": 699,
+   "page": 589,
+   "how": "matches the website",
+   "at": "2026-10-14T10:07:14Z"
+  },
+  {
+   "id": "A12801",
+   "feed": 4049,
+   "page": 3799,
+   "how": "matches the website",
+   "at": "2026-10-14T10:07:14Z"
   }
  ],
  "lead_source_switch": [],
@@ -336,6 +369,7 @@
   "2026-10-14T01:01:46Z",
   "2026-10-14T05:07:14Z",
   "2026-10-14T08:07:15Z",
-  "2026-10-14T09:07:14Z"
+  "2026-10-14T09:07:14Z",
+  "2026-10-14T10:07:14Z"
  ]
 }
