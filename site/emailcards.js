@@ -4,9 +4,11 @@
 // (orange, top right, stacked) and a location caption (dark, bottom left). Plus the words that go under each
 // picture in the email (name, date, nights and port, ship, "From £Xpp", link), so they can be pasted in.
 // Prices, dates, ships and offers come from the tracker's saved data; "Lower fares" offers never reach the
-// badges (cards_sync adkit). Everything is made in the browser; nothing is saved or sent anywhere.
+// badges (cards_sync adkit). Everything is made in the browser; nothing is sent anywhere. Sets of cards can be saved
+// by name to the team's shared list (Sam, 15 Oct 2026), as in the Ad creator.
 import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl, frMoney, frDate} from "./adcards.js?v=__BUILD__";
+import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 // France (Sam, 14 Oct 2026, stage 3): mount(…, {market: "fr"}) makes the same cards in French and euros for Ambassador
 // Croisières ("À partir de 679 €/pers.", "7 nuits au départ de Marseille", French cabin grades), links to the sailing's page
 // (the French booking site has no deep link), captions suggested from the page's own photo captions. Own draft.
@@ -25,6 +27,13 @@ const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across ti
                wide: {label: "Wide", note: "2400 × 924, for full-width sailings", w: 2400, h: 924, badge: 44, cap: 46}};
 
 let ID = null, S, KIT, CAB = {}, T = null, root, today, st = fresh(), sel = 0, note = "";
+// Saved card sets (Sam, 15 Oct 2026: "map out each email send … save functionality similar to the meta ads builder"):
+// named sets in the team's shared saved list (saved.js sharedStore, kind "ecards"), as the Ad creator and Email creator
+let store = null, draftId = null;
+const DRAFTS = "spw-email-cards-sets";   // this browser only, if the shared list can't be reached
+// Download names start with the saved set's name, so each email send's CSV and zip are easy to tell apart
+const fileBase = () => { const d = draftId && drafts()[draftId]; const n = d ? d.name.replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 60) : "";
+  return `${n ? n + "_" : ""}email-cards_${FR ? "fr_" : ""}${today}`; };
 function fresh(){ return {items: [], allBadges: false, sizes: {standard: true, wide: true}, kinds: {card: true, pic: false}}; }
 // What to make (Sam, 13 Oct 2026: "the whole card to pop into HubSpot"): the whole card (picture, words and
 // price button, as in the emails, one PNG) and/or the picture on its own. Outputs are "<size>" or "<size>-card".
@@ -38,15 +47,121 @@ export async function mount(el, ctx){
   if (FR) { KEY = "spw-email-cards-fr"; GRADES = GRADES_FR; }
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
   T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) st = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}}; } catch(e){}
-  st.items = st.items.filter(it => sailing(it.id)).slice(0, MAX).map(it => ({...it, badges: (it.badges || []).filter(b => (sailing(it.id).k.promos || []).includes(b))}));
-  const ended = st.items.filter(it => it.wasnow && !claimOf(it));
-  ended.forEach(it => { it.wasnow = ""; });
-  if (ended.length) { note = `Since these cards were last open: ${ended.length} was/now price${ended.length === 1 ? "" : "s"} switched back to "From" because the price-reduction claim has ended.`; save(); }
+  store = await sharedStore({kind: "ecards", localKey: DRAFTS, field: "cards", idToken: ID}).load();
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (d && Array.isArray(d.items)) {
+      const n = normalise(d); st = n.st; draftId = d._draft || null;
+      if (n.msgs.length) { note = esc(`Since these cards were last open: ${n.msgs.join("; ")}.`); save(); }
+    }
+  } catch(e){}
+  if (draftId && !drafts()[draftId]) draftId = null;
   draw();
   if (ctx.add) addSailing(ctx.add);
 }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({...st, _draft: draftId})); } catch(e){} };
+
+// Brings saved or draft cards up to date: sailings no longer on sale dropped, ended offer badges removed, ended was/now
+// prices back to "From", sold-out cabin choices noted (the card already falls back to the cheapest). `issues` are the
+// short forms the Saved list shows before a set is opened.
+function normalise(d){
+  const out = {...fresh(), ...d, kinds: {...fresh().kinds, ...(d.kinds || {})}, sizes: {...fresh().sizes, ...(d.sizes || {})}};
+  delete out._draft; delete out.market;
+  const items = Array.isArray(d.items) ? d.items : [], gone = items.filter(it => !sailing(it.id));
+  let badges = 0, wasnow = 0, cabins = 0;
+  out.items = items.filter(it => sailing(it.id)).slice(0, MAX).map(it => {
+    const promos = sailing(it.id).k.promos || [], keep = (it.badges || []).filter(b => promos.includes(b));
+    badges += (it.badges || []).length - keep.length;
+    const x = {...it, badges: keep};
+    if (x.wasnow && !claimOf(x)) { x.wasnow = ""; wasnow++; }
+    if (x.grade && !x.wasnow && onSale(x.id, x.fare === "solo" ? "solo" : "twin")[x.grade] == null) cabins++;
+    return x;
+  });
+  const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+  const msgs = [gone.length && `${n(gone.length, "sailing", "sailings")} no longer on sale removed`,
+    badges && `${n(badges, "offer badge", "offer badges")} for ended offers removed`,
+    wasnow && `${n(wasnow, "was/now price", "was/now prices")} back to "From" (the claim has ended)`,
+    cabins && `${n(cabins, "cabin choice", "cabin choices")} sold out, so the card uses the cheapest`].filter(Boolean);
+  const issues = [gone.length && `${n(gone.length, "sailing", "sailings")} no longer on sale`, badges && `${n(badges, "offer", "offers")} ended`,
+    wasnow && "was/now ended", cabins && `${n(cabins, "cabin choice", "cabin choices")} sold out`].filter(Boolean);
+  return {st: out, msgs, issues};
+}
+function load(d, msg){
+  const n = normalise(d); st = n.st; sel = 0;
+  note = esc([msg, ...n.msgs].filter(Boolean).join(". ") + ".");
+  save(); draw();
+}
+
+// ---------- saved card sets (shared list; this browser only if it can't be reached) ----------
+const drafts = () => store ? Object.fromEntries(Object.entries(store.all()).filter(([, d]) => d.cards && ((d.cards.market === "fr") === FR))) : {};
+const portable = () => { const c = JSON.parse(JSON.stringify(st)); return FR ? {...c, market: "fr"} : c; };
+async function saveDraft(asNew){
+  const all = drafts();
+  const id = asNew || (draftId && !store.mine(draftId)) ? null : draftId;   // someone else's: save your own copy
+  let name = id && all[id] ? all[id].name : "";
+  if (!id) {
+    const first = st.items[0] && sailing(st.items[0].id);
+    name = prompt(asNew ? "Name the copy" : "Name this set of cards (e.g. the email send it's for)",
+      asNew && draftId && all[draftId] ? `${all[draftId].name} (copy)` : first ? `${first.title}${st.items.length > 1 ? ` + ${st.items.length - 1} more` : ""}` : "Email send");
+    if (!name || !name.trim()) return;
+    name = name.trim();
+  }
+  try { draftId = await store.save(id, name, portable()); note = esc(`Saved "${name}"${store.shared ? "" : " in this browser"}.`); }
+  catch(e) { note = esc(`Couldn't save: ${e.message}`); }
+  save(); draw();
+}
+function draftsBlock(){
+  const all = drafts(), ids = Object.keys(all);
+  const cur = draftId && all[draftId], mine = cur && store.mine(draftId), oldHere = Object.keys(store ? store.localOnly() : {}).length;
+  const stale = ids.filter(id => normalise(all[id].cards).issues.length).length;
+  return `<div class="ac-block">
+    <h3>${cur ? esc(cur.name) : "Unsaved set of cards"}</h3>
+    ${cur && !mine ? `<p class="sub" style="margin:0 0 6px">Saved by ${esc(cur.by)}. Save a copy to keep your own changes.</p>` : ""}
+    <div class="ac-row">
+      ${cur && !mine ? "" : `<button type="button" class="btn quiet sm" id="sv-save"${st.items.length ? "" : " disabled"}>${cur ? "Save" : "Save as…"}</button>`}
+      ${cur ? `<button type="button" class="btn quiet sm" id="sv-saveas">Save a copy…</button>` : ""}
+      <button type="button" class="btn quiet sm" id="sv-new">New set</button>
+    </div>
+    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="sv-browse">Saved card sets (${ids.length})${stale ? ` · ${stale} need${stale === 1 ? "s" : ""} updating` : ""}</button>` : ""}
+    ${store && store.problem ? `<p class="ac-note">${esc(store.problem)}</p>` : ""}
+    ${oldHere ? `<p class="sub" style="margin:8px 0 0">${oldHere} set${oldHere === 1 ? " is" : "s are"} saved in this browser only. <button type="button" class="linkbtn" id="sv-move">Move ${oldHere === 1 ? "it" : "them"} to the shared list</button></p>` : ""}
+  </div>`;
+}
+function wireDrafts(){
+  const $ = q => root.querySelector(q);
+  $("#sv-save") && $("#sv-save").addEventListener("click", () => saveDraft(false));
+  $("#sv-saveas") && $("#sv-saveas").addEventListener("click", () => saveDraft(true));
+  $("#sv-new") && $("#sv-new").addEventListener("click", () => {
+    if (st.items.length && !draftId && !confirm("Start a new set? These cards aren't saved.")) return;
+    draftId = null; st = fresh(); sel = 0; note = ""; save(); draw();
+  });
+  $("#sv-move") && $("#sv-move").addEventListener("click", async () => {
+    try { const n = await store.moveLocal(); note = esc(`Moved ${n} saved set${n === 1 ? "" : "s"} to the shared list.`); draftId = null; }
+    catch(e) { note = esc(`Couldn't move them: ${e.message}`); }
+    save(); draw();
+  });
+  $("#sv-browse") && $("#sv-browse").addEventListener("click", () => {
+    const all = drafts();
+    openSaved({title: "Saved card sets", noun: "set of cards", current: draftId,
+      note: store.shared ? "Shared with everyone on the tracker. You can open or copy anyone's; only your own can be changed." : "",
+      items: Object.entries(all).map(([id, d]) => {
+        const xs = d.cards.items || [], x0 = xs.find(x => sailing(x.id)), first = x0 && sailing(x0.id);
+        const photo = x0 && x0.photo && first.photos.includes(x0.photo) ? x0.photo : first && first.image;
+        return {id, name: d.name, saved_at: d.saved_at, count: xs.length, thumb: photo ? cropUrl(photo, 120, 90) : "",
+                by: d.by || "", mine: store.mine(id), issues: normalise(d.cards).issues,
+                detail: [...new Set(xs.map(x => (sailing(x.id) || {title: x.id}).title))].join(" · ")};
+      }),
+      onOpen: id => { const d = drafts()[id]; if (!d) return; draftId = id; load(d.cards, `Opened "${d.name}"`); },
+      onCopy: async id => {
+        const d = drafts()[id]; if (!d) return;
+        try { const name = `${d.name} (copy)`; draftId = await store.save(null, name, JSON.parse(JSON.stringify(d.cards))); load(d.cards, `Made a copy: "${name}"`); }
+        catch(e) { note = esc(`Couldn't copy: ${e.message}`); draw(); }
+      },
+      onRename: async (id, name) => { try { await store.rename(id, name); } catch(e) { alert(`Couldn't rename: ${e.message}`); } draw(); },
+      onDelete: async id => { try { await store.remove(id); if (draftId === id) { draftId = null; save(); } } catch(e) { alert(`Couldn't delete: ${e.message}`); } draw(); },
+    });
+  });
+}
 // "Make email card" from a sailing's detail view (Sam, 13 Oct 2026)
 export function addSailing(id){
   const s = sailing(id);
@@ -335,6 +450,7 @@ function draw(){
   const it = st.items, cur = it[sel];
   root.innerHTML = `<div class="ac">
     <div class="ac-side">
+      ${draftsBlock()}
       ${cs.section("ec-sailings", "Sailings", it.length ? `${it.length} sailing${it.length === 1 ? "" : "s"}${it.some(x => claimOf(x)) ? " · was/now on some" : ""}` : "none added yet", `
         <label class="ac-lab" for="ec-find">Add a sailing</label>
         <input id="ec-find" type="search" placeholder="Search name, port or cruise code" autocomplete="off">
@@ -499,9 +615,10 @@ function wire(){
   root.querySelectorAll("[data-copyterms]").forEach(b => b.addEventListener("click", async () => {
     copied(b, termsText(st.items[+b.dataset.copyterms]), "Copy the offer T&Cs");
   }));
-  $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; change(true); } });
+  $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; draftId = null; change(true); } });
+  wireDrafts();
   $("#ec-zip").addEventListener("click", zip);
-  $("#ec-csv").addEventListener("click", () => download(URL.createObjectURL(new Blob([csvText()], {type: "text/csv;charset=utf-8"})), `email-cards_${today}.csv`));
+  $("#ec-csv").addEventListener("click", () => download(URL.createObjectURL(new Blob([csvText()], {type: "text/csv;charset=utf-8"})), `${fileBase()}.csv`));
   // Copy, not download (Sam, 14 Oct 2026: "a copy text link, like in the promotions view")
   $("#ec-terms") && $("#ec-terms").addEventListener("click", async e => {
     const b = e.currentTarget, t = st.items.filter(x => badgesOf(x).length).map(termsText).join("\n\n");
@@ -530,7 +647,7 @@ function wire(){
 <div style="max-width:600px;margin:0 auto;padding:20px 0">
 ${blocks.join("\n\n")}
 </div></body></html>`;
-      download(URL.createObjectURL(new Blob([page], {type: "text/html"})), `email-cards_${today}.html`);
+      download(URL.createObjectURL(new Blob([page], {type: "text/html"})), `${fileBase()}.html`);
       note = `Downloaded the HTML for ${list.length} card${list.length === 1 ? "" : "s"}. Open it in a browser to check, then copy each card's block into HubSpot.`;
     } catch(e) { note = esc(e.message); }
     draw();
@@ -541,7 +658,7 @@ async function zip(){
   btn.disabled = true;
   try {
     const JSZip = await loadZip(), sizes = outputs(), used = new Set(), total = st.items.length * sizes.length;
-    const parts = Math.ceil(total / ZIP_PICS), base = `email-cards_${FR ? "fr_" : ""}${today}`;
+    const parts = Math.ceil(total / ZIP_PICS), base = fileBase();
     const text = [`Email card text, prices as checked ${shortDate(today)}, subject to availability`, ""];
     let z = new JSZip(), n = 0, inZip = 0, part = 1;
     // A big set downloads as several zips ("part 1 of 3"…), each with up to ZIP_PICS pictures; the text, CSV and

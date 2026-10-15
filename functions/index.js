@@ -175,7 +175,8 @@ exports.emailImages = onRequest({
 // GET ?kind=ad → {me, items}. POST {op: "save", kind, id?, name, data} → {id, saved_at}; {op: "rename", id, name};
 // {op: "delete", id}. Everyone can open and copy anything; only the person who saved an item can save over,
 // rename or delete it.
-const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
+// ecards: saved sets of Email cards (Sam, 15 Oct 2026: "map out each email send")
+const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email", "ecards"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
 exports.saved = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"],
   maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
