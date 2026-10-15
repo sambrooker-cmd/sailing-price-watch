@@ -73,7 +73,10 @@ CARIB = re.compile(r"(?i)caribbean|antilles|barbados|bridgetown|antigua|st\.? jo
                    r"dominica|roseau|martinique|fort-de-france|guadeloupe|pointe-?[aà]-?pitre|st\.? maarten|philipsburg|"
                    r"puerto rico|san juan|cozumel|virgin islands|tortola|st\.? thomas|st\.? croix|trinidad|tobago|"
                    r"cayman|belize|costa maya|roatan|st\.? vincent|kingstown|bequia|turks|grand turk|la romana|samana|"
-                   r"punta cana|cartagena|colon, panama|st\.? barts|guadeloupe")
+                   r"punta cana|cartagena|colon, panama|st\.? barts|guadeloupe|cuba|havana|santo domingo|dominican")
+# A departure that is really a flight (Planet Cruise lists fly-cruise packages by the UK airport: "London Heathrow",
+# "London Gatwick", "London Airports", "Manchester Airport"); the cruise's own start is then in the title
+AIR = re.compile(r"(?i)airport|heathrow|gatwick|stansted|luton|flight|manchester|birmingham|east midlands")
 MON = {m: i + 1 for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
                                        "september", "october", "november", "december"])}
 MON3 = {m[:3]: i for m, i in MON.items()}
@@ -178,11 +181,16 @@ def pc_read(page, url, line=None):
     s["port"] = re.sub(r"(?i)^departs from\s*", "", text(m.group(1))) if m else None
     # Sold from the UK: a UK port (no-fly), or UK airports (a fly-cruise package, "London Airports"). Marella's
     # pages give no port line: its holidays are sold from the UK with flights, the port is in the title.
-    s["fly"] = bool(s["port"] and re.search(r"(?i)airport", s["port"])) or line == "marella"
-    if not s["port"] and s.get("title"):
-        m = re.search(r" from ([^,]+),", s["title"])
-        s["port"] = m.group(1).strip() if m else None
-    s["uk"] = bool(s["port"] and UK_PORTS.search(s["port"]) and not s["fly"]) or s["fly"]
+    s["fly"] = bool(s["port"] and AIR.search(s["port"])) or line == "marella"
+    # The cruise's own start (and end) for a flight package or a page with no port line: from the title, "… from
+    # Valencia with Stay, 4 November 2026" → "Valencia with Stay" (15 Oct 2026: fly-cruises from Valencia had been
+    # counted as no-fly because "London Heathrow" matched "London")
+    if (s["fly"] or not s["port"]) and s.get("title"):
+        m = re.search(r" from (.+?), \d{1,2} \w+ \d{4}\s*$", s["title"]) or re.search(r" from ([^,|]+)", s["title"])
+        if s["port"] and s["fly"]:
+            s["flights"] = s["port"]
+        s["port"] = re.split(r"\s*\|", m.group(1))[0].strip() if m else s["port"]
+    s["uk"] = bool(s["port"] and UK_PORTS.search(s["port"]) and not AIR.search(s["port"])) or s["fly"]
     prices = {}
     for row in re.finditer(r'<div class="price-row-dl"[^>]*>(.*?)</a>', page, re.S):
         r = row.group(1)
@@ -288,11 +296,30 @@ def fo_brand_offers(site, today):
 
 
 # ---------- sample ----------
+def ends(s):
+    """(start, end, stay) of a sailing from its port line: "Southampton", "St. Kitts to Southampton",
+    "Southampton with New York Stay" → stay "New York"."""
+    p = s.get("port") or ""
+    stay = " ".join(re.findall(r"(?i)\bwith (.+?) stays?\b", p))
+    route = re.sub(r"(?i)\s+with\s+.*$", "", p).strip()
+    a, _, b = route.partition(" to ")
+    return a.strip(), (b or a).strip(), stay
+
+
 def competes(s):
-    """No-fly from a UK port, or a Caribbean sailing sold from the UK with flights ("no-fly" / "fly-caribbean")."""
-    if s.get("uk") and not s.get("fly"):
+    """What Ambassador competes with (Sam, 15 Oct 2026, after fly-cruises from Valencia showed up):
+    "no-fly" = starts AND ends at a UK port, no flight and no hotel stay abroad (one-way crossings and
+    "with New York Stay" packages need a flight home); "fly-caribbean" = a Caribbean sailing that starts in the
+    Caribbean, or sails between the UK and the Caribbean (as Ambassador's own Tilbury–Barbados crossings), sold with
+    or without flights. Everything else (Mediterranean fly-cruises, Florida, Hawaii, South America…) is left out."""
+    a, b, stay = ends(s)
+    uk = lambda x: bool(x) and bool(UK_PORTS.search(x)) and not AIR.search(x)
+    ukA = uk(a) or (s.get("source") == "fredolsencruises" and s.get("uk") and not s.get("fly") and a == (s.get("port") or ""))
+    ukB = uk(b) or (ukA and a == b)
+    if not s.get("fly") and ukA and ukB and not (stay and not uk(stay)):
         return "no-fly"
-    if s.get("carib") and (s.get("fly") or (s.get("port") and CARIB.search(s["port"]))):
+    cA, cB = bool(a and CARIB.search(a)), bool(b and CARIB.search(b))
+    if s.get("carib") and ((cA and (cB or ukB)) or (ukA and cB)) and not (stay and not (CARIB.search(stay) or uk(stay))):
         return "fly-caribbean"
     return None
 
@@ -343,7 +370,7 @@ def main():
         r = old or {"line": line, "first_seen": today, "prices": {}, "offers": {}}
         if not old:
             note(kind="new", line=line, id=sid, title=s.get("title"))
-        r.update({k: s.get(k) for k in ("url", "source", "title", "ship", "port", "uk", "fly", "carib", "segment", "departure_date", "nights", "code", "fare") if s.get(k) is not None})
+        r.update({k: s.get(k) for k in ("url", "source", "title", "ship", "port", "flights", "uk", "fly", "carib", "segment", "departure_date", "nights", "code", "fare") if s.get(k) is not None})
         r["last_seen"], r["checked_at"] = today, at
         r.pop("gone", None)
         for occ, cab in (s.get("prices") or {}).items():

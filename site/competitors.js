@@ -113,7 +113,7 @@ function renderPrices(box){
       <button type="button" class="linkbtn" id="cp-csv">Download CSV</button>`})}
     ${list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Nights</th><th class="num">From pp</th><th class="num">Per night</th><th class="num">7 days</th><th>Offers</th></tr></thead><tbody>
       ${(showAll ? list : list.slice(0, 300)).map(({r, p, pn, chg}) => `<tr>
-        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${segOf(r) === "fly-caribbean" ? ' <span class="chip">fly-Caribbean</span>' : ""}</div></td>
+        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${r.flights ? ` · flights from ${esc(r.flights)}` : ""}${segOf(r) === "fly-caribbean" ? ' <span class="chip">fly-Caribbean</span>' : ""}</div></td>
         <td>${day(r.departure_date)}</td><td class="num">${r.nights || "–"}</td>
         <td class="num">${gbp(p.p)}${p.was ? `<div class="sub"><s>${gbp(p.was)}</s></div>` : ""}${p.fare ? `<div class="sub">${esc(p.fare)}</div>` : ""}</td>
         <td class="num">${pn ? gbp(pn) : "–"}</td>
