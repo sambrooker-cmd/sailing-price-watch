@@ -1,14 +1,17 @@
 {
  "date": "2026-10-15",
- "count": 223,
+ "count": 222,
  "new": [],
  "removed": [
   "A12639",
   "A32650",
-  "A22630BR"
+  "A22630BR",
+  "A32650",
+  "A12627"
  ],
  "returned": [
-  "A32650"
+  "A32650",
+  "A22630BR"
  ],
  "drops": [
   {
@@ -256,6 +259,9 @@
   "A32651": [
    "feed price £1,599 differs from cheapest cabin on the page £1,899 (the page price is used)"
   ],
+  "A22633": [
+   "feed price £299 differs from cheapest cabin on the page £399 (the page price is used)"
+  ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
   ],
@@ -270,9 +276,6 @@
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
-  ],
-  "A22706PO": [
-   "feed price £1,039 differs from cheapest cabin on the page £989 (the page price is used)"
   ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
@@ -1655,7 +1658,14 @@
   }
  ],
  "cabin_eligible": [],
- "promo_added": [],
+ "promo_added": [
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-15T10:07:16Z"
+  }
+ ],
  "promo_ended": [
   {
    "id": "A12639",
@@ -1721,6 +1731,12 @@
    "feed": 1039,
    "page": 989,
    "at": "2026-10-15T09:30:54Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 299,
+   "page": 399,
+   "at": "2026-10-15T10:07:16Z"
   }
  ],
  "feed_gap_fixed": [
@@ -1975,6 +1991,13 @@
    "page": 299,
    "how": "matches the website",
    "at": "2026-10-15T09:30:54Z"
+  },
+  {
+   "id": "A22706PO",
+   "feed": 1039,
+   "page": 989,
+   "how": "matches the website",
+   "at": "2026-10-15T10:07:16Z"
   }
  ],
  "lead_source_switch": [],
@@ -1984,6 +2007,7 @@
   "2026-10-15T05:07:17Z",
   "2026-10-15T08:07:16Z",
   "2026-10-15T09:07:15Z",
-  "2026-10-15T09:30:54Z"
+  "2026-10-15T09:30:54Z",
+  "2026-10-15T10:07:16Z"
  ]
 }
