@@ -268,7 +268,7 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
 ## Competitor offers: newsletters and live ads (15 Oct 2026, Sam: "build 1 and 2")
 Sam found the scraped offers unreliable (old, marketing lines rather than promotions, no click-through). The
 **Competitor offers** page now leads with:
-- **Their live ads**: per brand (P&O, Princess, Cunard, Marella, Saga, Fred. Olsen, MSC, Royal Caribbean, Celebrity;
+- **Their live ads** (own menu page **Competitors → Competitor ads** since 15 Oct 2026, Sam; `renderAds`, needs no price data; Competitor offers points to it): per brand (P&O, Princess, Cunard, Marella, Saga, Fred. Olsen, MSC, Royal Caribbean, Celebrity;
   `BRANDS` in `site/competitors.js`) links to the Meta Ad Library (name search, UK) and Google's Ads Transparency
   Center (by domain, UK). Links only: nothing is read from those pages.
 - **From their newsletters** (`offers_inbox.py`): a team mailbox signed up by hand to the brands' marketing emails
