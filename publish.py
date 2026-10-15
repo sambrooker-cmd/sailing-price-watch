@@ -21,6 +21,7 @@ has to understand the shape of the data:
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
   pricewatch/comp-current, comp-<line>, comp-runs   competitor prices and offers (competitors.py), once it has run
+  pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
@@ -146,6 +147,14 @@ def documents():
                 break
             runs.append(r)
         docs["comp-runs"] = {"runs": runs}
+    # Competitor newsletters (offers_inbox.py): each email's brand, subject, date, links and offers, not its text
+    inbox = ROOT / "state" / "competitors" / "inbox.json"
+    if inbox.exists():
+        i = load(inbox)
+        docs["comp-inbox"] = {"fetched_at": i.get("fetched_at"), "emails": sorted(
+            ({k: e.get(k) for k in ("line", "brand", "subject", "preheader", "date", "view", "promotion", "offers", "by")}
+             | {"links": (e.get("links") or [])[:6]} for e in (i.get("emails") or {}).values()),
+            key=lambda e: e["date"], reverse=True)[:400]}
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
