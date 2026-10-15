@@ -5,7 +5,14 @@
  "removed": [],
  "returned": [],
  "drops": [],
- "rises": [],
+ "rises": [
+  {
+   "id": "R280508",
+   "from": 679,
+   "to": 699,
+   "at": "2026-10-15T08:07:49Z"
+  }
+ ],
  "eligible": [],
  "flags": {
   "R261116": [
@@ -15,7 +22,7 @@
    "the page shows from €789 but booking's cheapest is €909"
   ],
   "R280508": [
-   "the page shows from €569 but booking's cheapest is €679"
+   "the page shows from €569 but booking's cheapest is €699"
   ],
   "R280528": [
    "the page shows from €1,159 but booking's cheapest is €1,739"
@@ -28,8 +35,34 @@
   ]
  },
  "cabin_drops": [],
- "cabin_rises": [],
- "cabin_sold_out": [],
+ "cabin_rises": [
+  {
+   "id": "R261228",
+   "cabin": "solo.balcony",
+   "from": 2339,
+   "to": 3539,
+   "at": "2026-10-15T08:07:49Z"
+  },
+  {
+   "id": "R280508",
+   "cabin": "twin.ocean_view",
+   "from": 679,
+   "to": 699,
+   "at": "2026-10-15T08:07:49Z"
+  }
+ ],
+ "cabin_sold_out": [
+  {
+   "id": "R280705",
+   "cabin": "solo.inside",
+   "at": "2026-10-15T08:07:49Z"
+  },
+  {
+   "id": "R280716",
+   "cabin": "solo.inside",
+   "at": "2026-10-15T08:07:49Z"
+  }
+ ],
  "cabin_back": [],
  "cabin_eligible": [],
  "promo_added": [],
@@ -42,6 +75,7 @@
  "reported": [],
  "checks": [
   "2026-10-15T00:22:56Z",
-  "2026-10-15T05:07:51Z"
+  "2026-10-15T05:07:51Z",
+  "2026-10-15T08:07:49Z"
  ]
 }
