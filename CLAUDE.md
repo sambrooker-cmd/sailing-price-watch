@@ -218,7 +218,13 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   (`UK_PORTS`); **fly-Caribbean** = a Caribbean sailing (`CARIB` in the title, port or Planet Cruise itinerary) sold
   from the UK with flights (a UK-airport package such as Planet Cruise's "London Airports"), departing from a Caribbean
   island (P&O, Fred. Olsen and Ambassador base ships there for UK guests), or any Marella Caribbean holiday. Florida
-  cruise-only sailings and Mediterranean/other fly-cruises are left out. Departures at least `MIN_DAYS` = 7 ahead, no
+  cruise-only sailings and Mediterranean/other fly-cruises are left out. **Tightened 15 Oct 2026** (Sam saw MSC "from Valencia with
+  Stay" listed as no-fly: Planet Cruise gives a fly-cruise package's departure as the UK airport, "London Heathrow", which
+  matched "London"): a departure matching `AIR` (airport, Heathrow, Gatwick, Manchester…) is a flight (`flights`, shown as
+  "flights from …"), the cruise's own start/end come from the title; `competes()` uses `ends()` (start, end, stay):
+  no-fly = starts and ends at a UK port with no stay abroad (one-way crossings and "with New York Stay" packages are
+  out); fly-Caribbean = starts in the Caribbean, or sails between the UK and the Caribbean. On 15 Oct 2026's data:
+  26 sailings dropped (Valencia, Barcelona, Florida, Hawaii, Buenos Aires, QM2 New York stays), 5 moved to fly-Caribbean. Departures at least `MIN_DAYS` = 7 ahead, no
   upper limit. Each candidate page is read once to see whether it competes; ones that don't are kept in `tried` and
   never read again (up to `NEW_PER_RUN` = 80 new pages a line a day, Fred. Olsen's ~180 on day one, so the lists are
   discovered within about a week); competing ones (`sample` in state, kept for continuity) are read every day, and a
