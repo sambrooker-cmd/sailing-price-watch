@@ -389,6 +389,9 @@ details.cs[open]>summary .cs-sum{display:none}
 .mp-story-cta{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#fff;color:#1c1e21;font:700 13px Helvetica,Arial,sans-serif;padding:8px 16px;border-radius:18px}
 .mp-empty{padding:40px 12px;text-align:center;color:#65676b;font-size:14px}
 @media (max-width:860px){.ac{grid-template-columns:1fr}.ac-main{position:static;order:-1}}
+/* Email cards: the options column stays on screen while the cards scroll past, scrolling on its own (Sam, 15 Oct 2026) */
+@media (min-width:861px){#ecards .ac-side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin}
+  #ecards .ac-main{position:static}}
 /* Saved ads and emails (site/saved.js) */
 dialog.saved{width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);border:1px solid var(--rule);padding:16px 20px 20px;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
 dialog.saved:not([open]){display:none}
