@@ -2317,12 +2317,1915 @@
    "line": "fredolsen",
    "id": "fo:t2817",
    "title": "Scenic Highlights of the Norwegian Fjords"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:381735",
+   "cabin": "twin.inside",
+   "old": 776,
+   "new": 854
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:381739",
+   "cabin": "twin.inside",
+   "old": 2902,
+   "new": 2901
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:381739",
+   "cabin": "twin.outside",
+   "old": 3867,
+   "new": 3866
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:381739",
+   "cabin": "twin.balcony",
+   "old": 4021,
+   "new": 4020
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:381739",
+   "cabin": "twin.suite",
+   "old": 6662,
+   "new": 6661
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:402387",
+   "cabin": "twin.balcony",
+   "old": 897,
+   "new": 869
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:402398",
+   "cabin": "twin.outside",
+   "old": 679,
+   "new": 670
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:402371",
+   "cabin": "twin.outside",
+   "old": 969,
+   "new": 1017
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:402371",
+   "cabin": "twin.balcony",
+   "old": 1204,
+   "new": 1156
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:402371",
+   "cabin": "twin.suite",
+   "old": 1281,
+   "new": 1330
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:381737",
+   "cabin": "twin.outside",
+   "old": 951,
+   "new": 1171
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:402394",
+   "cabin": "twin.balcony",
+   "old": 916,
+   "new": 945
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:402404",
+   "cabin": "twin.inside",
+   "old": 621,
+   "new": 573
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:402404",
+   "cabin": "twin.suite",
+   "old": 1781,
+   "new": 1684
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:427933",
+   "cabin": "twin.balcony",
+   "old": 1235,
+   "new": 1253
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455201",
+   "cabin": "twin.inside",
+   "old": 1121,
+   "new": 1144
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455201",
+   "cabin": "twin.outside",
+   "old": 1218,
+   "new": 1240
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:455201",
+   "cabin": "twin.balcony",
+   "old": 1500,
+   "new": 1384
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455238",
+   "cabin": "twin.inside",
+   "old": 1212,
+   "new": 1265
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455238",
+   "cabin": "twin.outside",
+   "old": 1453,
+   "new": 1506
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455238",
+   "cabin": "twin.balcony",
+   "old": 2070,
+   "new": 2123
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455238",
+   "cabin": "twin.suite",
+   "old": 3798,
+   "new": 3852
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:481879",
+   "cabin": "twin.inside",
+   "old": 2522,
+   "new": 2551
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "offer_added",
+   "line": "po",
+   "id": "pc:481935",
+   "offer": "Pre register now! All guests receive a 10% reduction when booking Select price + extra 5% on us on all fare types & all sailings + £1pp low deposit!"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "offer_ended",
+   "line": "po",
+   "id": "pc:481935",
+   "offer": "Pre register now! All guests receive a 10% reduction when booking Select price + extra 5% on us on all fare types & all sailings!"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:427929",
+   "cabin": "twin.balcony",
+   "old": 1061,
+   "new": 1129
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:427872",
+   "cabin": "twin.inside",
+   "old": 971,
+   "new": 922
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:455227",
+   "cabin": "twin.inside",
+   "old": 1212,
+   "new": 1115
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:455227",
+   "cabin": "twin.balcony",
+   "old": 1484,
+   "new": 1436
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "po",
+   "id": "pc:455227",
+   "cabin": "twin.suite",
+   "old": 2982,
+   "new": 2886
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:381746",
+   "cabin": "twin.inside",
+   "old": 820,
+   "new": 897
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455225",
+   "cabin": "twin.inside",
+   "old": 1115,
+   "new": 1170
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455225",
+   "cabin": "twin.outside",
+   "old": 1164,
+   "new": 1198
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455225",
+   "cabin": "twin.balcony",
+   "old": 1350,
+   "new": 1404
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "po",
+   "id": "pc:455225",
+   "cabin": "twin.suite",
+   "old": 2838,
+   "new": 2892
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "offer_added",
+   "line": "po",
+   "id": "pc:481919",
+   "offer": "Pre register now! All guests receive a 10% reduction when booking Select price + extra 5% on us on all fare types & all sailings + £1pp low deposit!"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "offer_ended",
+   "line": "po",
+   "id": "pc:481919",
+   "offer": "Pre register now! All guests receive a 10% reduction when booking Select price + extra 5% on us on all fare types & all sailings!"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381756",
+   "title": "Grand Mediterranean cruise from Southampton, 26 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381745",
+   "title": "Northern Europe cruise from Southampton, 27 March 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402349",
+   "title": "Norwegian Fjords cruise from Southampton, 10 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402382",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 8 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402373",
+   "title": "Norwegian Fjords cruise from Southampton, 25 September 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402376",
+   "title": "Northern Europe cruise from Southampton, 16 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427867",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 17 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427890",
+   "title": "Eastern Caribbean from Barbados, 10 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427903",
+   "title": "Eastern Caribbean from Barbados, 22 January 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:475858",
+   "title": "Half Term Scandinavia Cruise Break from Southampton, 12 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427918",
+   "title": "Caribbean Transatlantic from Barbados, 17 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:454964",
+   "title": "Norwegian Fjords cruise from Southampton, 29 April 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:455239",
+   "title": "Spain and Italy cruise from Southampton, 30 September 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:455234",
+   "title": "Canary Islands and Portugal cruise from Southampton, 14 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481886",
+   "title": "Eastern Caribbean from St. Kitts, 13 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481892",
+   "title": "Eastern Caribbean from Barbados, 8 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481932",
+   "title": "Rotterdam Cruise Break from Southampton, 26 January 2029"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481920",
+   "title": "Caribbean Transatlantic from Barbados to Southampton, 16 March 2029"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:381743",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 27 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402350",
+   "title": "Norwegian Fjords cruise from Southampton, 17 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402389",
+   "title": "Norwegian Fjords cruise from Southampton, 14 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402377",
+   "title": "Half Term Southern cruise break from Southampton, 23 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427922",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 20 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427891",
+   "title": "Eastern Caribbean from Barbados, 11 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427930",
+   "title": "Belgium cruise from Southampton, 22 January 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:475857",
+   "title": "Belgium, Rotterdam & Hamburg from Southampton, 19 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427919",
+   "title": "Caribbean Transatlantic from Barbados, 18 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:454988",
+   "title": "Half Term Northern Europe cruise from Southampton, 21 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481874",
+   "title": "Western Europe Cruise Break from Southampton, 14 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481893",
+   "title": "Eastern Caribbean from Barbados, 9 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481933",
+   "title": "Northern Cruise Break from Southampton, 30 January 2029"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481921",
+   "title": "Caribbean Transatlantic from Barbados to Southampton, 17 March 2029"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402380",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 17 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402390",
+   "title": "Norwegian Fjords cruise from Southampton, 21 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427877",
+   "title": "Caribbean Transatlantic from Southampton, 30 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427886",
+   "title": "Eastern Caribbean from Barbados, 26 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427924",
+   "title": "Belgium and Netherlands cruise from Southampton, 11 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427931",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 25 January 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427874",
+   "title": "France and Belgium cruise from Southampton, 22 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427873",
+   "title": "Spain, Portugal and Canary Islands cruise from Southampton, 19 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481873",
+   "title": "Canary Islands, Cape Verde, Morocco & Portugal from Southampton, 27 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481875",
+   "title": "Canary Islands & Portugal from Southampton, 18 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481925",
+   "title": "Amsterdam & Bruges Cruise Break from Southampton, 9 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481938",
+   "title": "Baltic Cities from Southampton, 24 March 2029"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402384",
+   "title": "Norwegian Fjords cruise from Southampton, 23 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402383",
+   "title": "Southern cruise from Southampton, 22 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427887",
+   "title": "Eastern Caribbean from Barbados, 27 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427925",
+   "title": "Belgium and France cruise from Southampton, 16 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:475856",
+   "title": "Rotterdam Short Break from Southampton, 26 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427936",
+   "title": "Western Europe cruise from Southampton, 25 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481880",
+   "title": "Caribbean Transatlantic from Southampton to Barbados, 28 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481887",
+   "title": "Eastern Caribbean from Antigua, 18 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481894",
+   "title": "Eastern Caribbean from St. Kitts, 11 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402351",
+   "title": "Norwegian Fjords cruise from Southampton, 24 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427879",
+   "title": "Caribbean Transatlantic from Southampton, 30 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427888",
+   "title": "Eastern Caribbean from St. Kitts, 29 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427926",
+   "title": "France cruise from Southampton, 20 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427875",
+   "title": "Central Mediterranean cruise from Southampton, 27 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481881",
+   "title": "Caribbean Transatlantic from Southampton to Barbados, 28 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481888",
+   "title": "Eastern Caribbean from Barbados, 24 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481926",
+   "title": "Amsterdam Cruise Break from Southampton, 14 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:402388",
+   "title": "Norwegian Fjords cruise from Southampton, 30 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427880",
+   "title": "Caribbean Transatlantic from Southampton, 30 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427928",
+   "title": "Baltic Cities cruise from Southampton, 31 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481882",
+   "title": "Caribbean Transatlantic from Southampton to St. Kitts, 28 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481889",
+   "title": "Eastern Caribbean from Barbados, 25 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481927",
+   "title": "France Cruise Break from Southampton, 18 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:427920",
+   "title": "Spanish cruise from Southampton, 30 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481883",
+   "title": "Caribbean Transatlantic from Southampton to Antigua, 28 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481923",
+   "title": "Spain Cruise Break from Southampton, 25 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481878",
+   "title": "Christmas & New Year Canary Islands, Portugal & Spain from Southampton, 21 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:455235",
+   "title": "Canary Islands and Portugal cruise from Southampton, 28 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481890",
+   "title": "Eastern Caribbean from St. Kitts, 27 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481928",
+   "title": "Christmas Northern Cruise Break from Southampton, 22 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481876",
+   "title": "Spain & France Cruise Break from Southampton, 30 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481898",
+   "title": "Eastern Caribbean from St. Kitts, 25 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:481929",
+   "title": "New Years Baltic Cities from Southampton, 29 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "po",
+   "id": "pc:365558",
+   "title": "Canary Islands and Madeira cruise from Southampton, 26 October 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:425987",
+   "cabin": "twin.inside",
+   "old": 1395,
+   "new": 1389
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:425987",
+   "cabin": "twin.outside",
+   "old": 1559,
+   "new": 1553
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:425987",
+   "cabin": "twin.balcony",
+   "old": 1559,
+   "new": 1553
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:425987",
+   "cabin": "twin.suite",
+   "old": 1962,
+   "new": 1957
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "princess",
+   "id": "pc:408178",
+   "cabin": "twin.outside",
+   "old": 1972
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:408189",
+   "cabin": "twin.inside",
+   "old": 1875,
+   "new": 1865
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:408189",
+   "cabin": "twin.outside",
+   "old": 2797,
+   "new": 2787
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:408189",
+   "cabin": "twin.balcony",
+   "old": 2797,
+   "new": 2787
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:408189",
+   "cabin": "twin.suite",
+   "old": 3373,
+   "new": 3363
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "princess",
+   "id": "pc:408199",
+   "cabin": "twin.inside",
+   "old": 1502,
+   "new": 1507
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "princess",
+   "id": "pc:408199",
+   "cabin": "twin.balcony",
+   "old": 2145,
+   "new": 2150
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "princess",
+   "id": "pc:408199",
+   "cabin": "twin.outside",
+   "old": 2146,
+   "new": 2151
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "princess",
+   "id": "pc:408199",
+   "cabin": "twin.suite",
+   "old": 2385,
+   "new": 2390
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:444871",
+   "cabin": "twin.inside",
+   "old": 1704,
+   "new": 1693
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:444871",
+   "cabin": "twin.balcony",
+   "old": 1801,
+   "new": 1788
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "princess",
+   "id": "pc:444871",
+   "cabin": "twin.suite",
+   "old": 2454,
+   "new": 2441
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:389043",
+   "title": "Southern Caribbean cruise from San Juan, 3 January 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:389044",
+   "title": "Southern Caribbean cruise from San Juan, 3 January 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408390",
+   "title": "Oktoberfest European Capitals cruise from Southampton, 22 September 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:408391",
+   "title": "Oktoberfest European Capitals cruise from Southampton, 4 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:459126",
+   "title": "British Isles with France and Belfast cruise from Southampton, 5 June 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:459131",
+   "title": "British Isles with France and Belfast cruise from Southampton, 6 August 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "princess",
+   "id": "pc:389054",
+   "title": "Southern Caribbean cruise from San Juan, 7 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:401058",
+   "cabin": "twin.balcony",
+   "old": 625,
+   "new": 614
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "cunard",
+   "id": "pc:356710",
+   "cabin": "twin.balcony",
+   "old": 1009,
+   "new": 1487
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:356715",
+   "cabin": "twin.inside",
+   "old": 1222,
+   "new": 1212
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "cunard",
+   "id": "pc:401063",
+   "cabin": "twin.suite",
+   "old": 10088
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:379986",
+   "cabin": "twin.balcony",
+   "old": 2526,
+   "new": 2476
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "cunard",
+   "id": "pc:356711",
+   "cabin": "twin.outside",
+   "old": 1115
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "cunard",
+   "id": "pc:441012",
+   "cabin": "twin.inside",
+   "old": 1499
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:401053",
+   "cabin": "twin.inside",
+   "old": 1921,
+   "new": 1776
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:401053",
+   "cabin": "twin.outside",
+   "old": 2674,
+   "new": 2500
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "cunard",
+   "id": "pc:401053",
+   "cabin": "twin.balcony",
+   "old": 2712,
+   "new": 2519
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:356602",
+   "title": "Azores, Portugal and Spain cruise from Southampton, 1 November 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:379927",
+   "title": "Atlantic Islands cruise from Southampton, 4 December 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427187",
+   "title": "Canary Islands cruise from Southampton, 4 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427191",
+   "title": "Spain, Italy and Morocco cruise from Southampton, 12 March 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:379955",
+   "title": "Hamburg and Bruges cruise from Southampton, 2 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397854",
+   "title": "Norwegian Fjords cruise from Southampton, 2 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:406559",
+   "title": "Le Havre and Zeebrugge cruise from Southampton, 1 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397851",
+   "title": "Spain and Portugal cruise from Southampton, 3 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429093",
+   "title": "Zeebrugge, Rotterdam and Hamburg cruise from Southampton, 4 January 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429034",
+   "title": "Canary Islands cruise from Southampton, 1 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429040",
+   "title": "Norway and Northern Lights cruise from Southampton, 5 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429042",
+   "title": "Norwegian Fjords cruise from Southampton, 2 April 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:455851",
+   "title": "Norwegian Fjords cruise from Southampton, 2 July 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:455865",
+   "title": "Norway and Northern Lights cruise from Southampton, 1 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:456061",
+   "title": "Canary Islands cruise from Southampton, 5 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:455872",
+   "title": "Canary Islands cruise from Southampton, 3 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:356610",
+   "title": "Hamburg, Rotterdam and Zeebrugge cruise from Southampton, 3 January 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427188",
+   "title": "Short break to Rotterdam and Zeebrugge cruise from Southampton, 16 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427193",
+   "title": "Norwegian Fjords cruise from Southampton, 4 April 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427196",
+   "title": "Spain, Portugal and Morocco cruise from Southampton to Barcelona, 2 May 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397849",
+   "title": "Norway and Northern Lights cruise from Southampton, 9 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:397881",
+   "title": "Canary Islands cruise from Southampton, 5 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429043",
+   "title": "Spain and France cruise from Southampton, 9 April 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:455849",
+   "title": "Norwegian Fjords cruise from Southampton, 4 June 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:456057",
+   "title": "Morocco, Spain and Italy cruise from Southampton, 1 September 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:456059",
+   "title": "Azores, Portugal, Morocco and Spain cruise from Southampton, 4 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:455870",
+   "title": "Canary Islands cruise from Southampton, 15 November 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:456064",
+   "title": "Rotterdam and Zeebrugge cruise from Southampton, 13 December 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:427189",
+   "title": "France and Spain cruise from Southampton, 21 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:406547",
+   "title": "Norway and Denmark cruise from Southampton, 6 June 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:406550",
+   "title": "Norway and Denmark cruise from Southampton, 4 July 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "cunard",
+   "id": "pc:429012",
+   "title": "Portugal, Spain and Morocco cruise from Southampton, 4 January 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "marella",
+   "id": "pc:415158",
+   "title": "Tropical Isles & Caribbean Charms from La Romana, 29 December 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "msc",
+   "id": "pc:453023",
+   "cabin": "twin.balcony",
+   "old": 1229,
+   "new": 1179
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "msc",
+   "id": "pc:360275",
+   "cabin": "twin.balcony",
+   "old": 1035
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "msc",
+   "id": "pc:429258",
+   "cabin": "twin.msc_yacht_club",
+   "old": 4773,
+   "new": 5044
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "msc",
+   "id": "pc:461598",
+   "cabin": "twin.msc_yacht_club",
+   "old": 2871,
+   "new": 2959
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "msc",
+   "id": "pc:461600",
+   "cabin": "twin.msc_yacht_club",
+   "old": 3596,
+   "new": 3706
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "msc",
+   "id": "pc:461592",
+   "cabin": "twin.balcony",
+   "old": 1158,
+   "new": 1124
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "msc",
+   "id": "pc:461592",
+   "cabin": "twin.msc_yacht_club",
+   "old": 3025,
+   "new": 2935
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469655",
+   "title": "Southern Caribbean from Barbados, 8 July 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469663",
+   "title": "Southern Caribbean from Barbados, 14 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446739",
+   "title": "Northern Pearls cruise from Southampton, 20 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:461591",
+   "title": "France, Portugal & Spain from Southampton, 24 June 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:461593",
+   "title": "France, Portugal & Spain from Southampton, 23 September 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:404558",
+   "title": "Northern Pearls cruise from Southampton, 6 November 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469645",
+   "title": "Southern Caribbean from Barbados, 3 December 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:404590",
+   "title": "Northern Pearls cruise from Southampton, 5 February 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:404594",
+   "title": "Northern Pearls cruise from Southampton, 5 March 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:429243",
+   "title": "Norwegian Fjords cruise from Southampton, 5 June 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:429257",
+   "title": "Spain and France cruise from Southampton, 4 September 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446729",
+   "title": "Northern Pearls cruise from Southampton, 14 November 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446732",
+   "title": "Northern Pearls cruise from Southampton, 5 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446740",
+   "title": "Northern Pearls cruise from Southampton, 27 February 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446743",
+   "title": "Northern Pearls cruise from Southampton, 19 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:461583",
+   "title": "Canary Islands & Portugal from Southampton, 30 September 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469656",
+   "title": "Southern Caribbean from Barbados, 22 July 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469659",
+   "title": "Southern Caribbean from Barbados, 19 August 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446725",
+   "title": "Northern Pearls cruise from Southampton, 19 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446744",
+   "title": "Northern Pearls cruise from Southampton, 26 March 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:469654",
+   "title": "Southern Caribbean from Barbados, 10 June 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:429250",
+   "title": "Spain and Morocco cruise from Southampton, 24 July 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:429254",
+   "title": "Norway, Denmark and Belgium cruise from Southampton, 11 September 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:429260",
+   "title": "Spain and France cruise from Southampton, 23 October 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:446733",
+   "title": "Northern Pearls cruise from Southampton, 12 December 2027"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "msc",
+   "id": "pc:404562",
+   "title": "Northern Pearls cruise from Southampton, 4 December 2026"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "celebrity",
+   "id": "pc:471266",
+   "title": "Iceland & Norway from Southampton, 3 June 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "celebrity",
+   "id": "pc:471277",
+   "title": "Canaries & Portugal from Southampton, 5 October 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "celebrity",
+   "id": "pc:471270",
+   "title": "Norwegian Fjords & Arctic Circle from Southampton, 8 July 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "new",
+   "line": "celebrity",
+   "id": "pc:471263",
+   "title": "Norwegian Fjords from Southampton, 5 May 2028"
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "ambassador",
+   "id": "pc:380173",
+   "cabin": "twin.outside",
+   "old": 846
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:380125",
+   "cabin": "twin.inside",
+   "old": 3089,
+   "new": 3203
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410258",
+   "cabin": "twin.inside",
+   "old": 1432,
+   "new": 1547
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410258",
+   "cabin": "twin.outside",
+   "old": 1768,
+   "new": 1883
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410258",
+   "cabin": "twin.suite",
+   "old": 3275,
+   "new": 3390
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410281",
+   "cabin": "twin.inside",
+   "old": 1240,
+   "new": 1355
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410281",
+   "cabin": "twin.outside",
+   "old": 1442,
+   "new": 1557
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410281",
+   "cabin": "twin.balcony",
+   "old": 2546,
+   "new": 2661
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "ambassador",
+   "id": "pc:410281",
+   "cabin": "twin.suite",
+   "old": 2805,
+   "new": 2920
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:t2708",
+   "cabin": "solo.single",
+   "old": 1749
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "fredolsen",
+   "id": "fo:around-the-world-s2702",
+   "cabin": "twin.inside",
+   "old": 13499,
+   "new": 14499
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "fredolsen",
+   "id": "fo:around-the-world-s2702",
+   "cabin": "solo.inside",
+   "old": 25648,
+   "new": 27548
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:canary-islands-fleet-fiesta-s2630",
+   "cabin": "twin.inside",
+   "old": 2049,
+   "new": 1999
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:canary-islands-fleet-fiesta-s2630",
+   "cabin": "solo.suite",
+   "old": 6823,
+   "new": 6561
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:canary-islands-fleet-fiesta-s2630",
+   "cabin": "solo.inside",
+   "old": 3893,
+   "new": 3798
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:caribbean-christmas-island-hopping-s2632",
+   "cabin": "twin.inside",
+   "old": 4449
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:caribbean-christmas-island-hopping-s2632",
+   "cabin": "solo.inside",
+   "old": 8453
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:caribbean-christmas-island-hopping-s2632",
+   "cabin": "solo.single",
+   "old": 6699
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "fredolsen",
+   "id": "fo:l2702",
+   "cabin": "solo.single",
+   "old": 1619,
+   "new": 2209
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:s2631a",
+   "cabin": "twin.suite",
+   "old": 1649,
+   "new": 1599
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:s2631a",
+   "cabin": "solo.suite",
+   "old": 2886,
+   "new": 2398
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:s2717",
+   "cabin": "twin.outside",
+   "old": 3999,
+   "new": 3799
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:t2705",
+   "cabin": "twin.terrace",
+   "old": 3299
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "cabin_off",
+   "line": "fredolsen",
+   "id": "fo:t2705",
+   "cabin": "solo.terrace",
+   "old": 6268
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:t2706",
+   "cabin": "twin.suite",
+   "old": 3299,
+   "new": 2549
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_drop",
+   "line": "fredolsen",
+   "id": "fo:t2706",
+   "cabin": "solo.suite",
+   "old": 4124,
+   "new": 3186
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "fredolsen",
+   "id": "fo:t2724",
+   "cabin": "twin.inside",
+   "old": 1449,
+   "new": 1499
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "kind": "price_rise",
+   "line": "fredolsen",
+   "id": "fo:t2724",
+   "cabin": "solo.inside",
+   "old": 2753,
+   "new": 2848
   }
  ],
  "checks": [
   {
    "at": "2026-10-15T00:24:07Z",
    "pages": 817,
+   "problems": []
+  },
+  {
+   "at": "2026-10-15T09:57:46Z",
+   "pages": 886,
    "problems": []
   }
  ]
