@@ -452,8 +452,14 @@ const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise
 const download = (href, name) => { const a = document.createElement("a"); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
 
 // ---------- page ----------
+// The options column stays on screen while the cards scroll past (Sam, 15 Oct 2026; CSS in index.html, desktop
+// only) and scrolls on its own: its position is kept when the page redraws, and picking another card brings that
+// card's options into view.
+let drawnSel = -1;
 function draw(){
   const it = st.items, cur = it[sel];
+  const oldSide = root.querySelector(".ac-side"), keep = oldSide ? oldSide.scrollTop : 0, picked = drawnSel !== -1 && drawnSel !== sel;
+  drawnSel = sel;
   root.innerHTML = `<div class="ac">
     <div class="ac-side">
       ${draftsBlock()}
@@ -498,6 +504,12 @@ function draw(){
       }).join("")}</div>
     </div></div>`;
   note = "";
+  const side = root.querySelector(".ac-side"), ed = root.querySelector("#ec-editor");
+  if (side) {
+    side.scrollTop = keep;
+    // a different card picked: show its options (only scrolls the column when it scrolls on its own, i.e. on desktop)
+    if (picked && ed && side.scrollHeight > side.clientHeight) side.scrollTop += ed.getBoundingClientRect().top - side.getBoundingClientRect().top - 8;
+  }
   wire();
   paint();
 }
@@ -524,7 +536,7 @@ function priceBlock(it){
 }
 function editor(it){
   const s = sailing(it.id), hint = captionHint(it.photo, it.id);
-  return `<div class="ac-block">
+  return `<div class="ac-block" id="ec-editor">
     <h3>${esc(s.title)}</h3>
     ${priceBlock(it)}
     ${FR ? `<p class="sub">Links go to the sailing's page on ambassadorcroisieres.fr.</p>` : `<div class="ac-row" role="group" aria-label="Link to"><span class="ac-lab">Link to</span>
