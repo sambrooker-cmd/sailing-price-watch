@@ -72,6 +72,32 @@ jobs:
           gh workflow run competitors.yml --ref "$GITHUB_REF_NAME"
           echo "Started the competitor check."
 
+      # Competitor offers from their own newsletters (Sam, 15 Oct 2026): a team mailbox signed up to their marketing
+      # emails, read read-only every check; skipped until the OFFERS_IMAP_* secrets exist. See offers_inbox.py.
+      - name: Competitor newsletters
+        id: inbox
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          OFFERS_IMAP_USER: ${{ secrets.OFFERS_IMAP_USER }}
+          OFFERS_IMAP_PASSWORD: ${{ secrets.OFFERS_IMAP_PASSWORD }}
+          OFFERS_IMAP_HOST: ${{ vars.OFFERS_IMAP_HOST }}
+        run: python offers_inbox.py fetch
+
+      # Claude (on Sam's plan) turns each new newsletter into its offers; without it the simple rules' offers stay.
+      # The repo variable OFFERS_CLAUDE = off turns this off.
+      - name: Read new newsletters with Claude
+        if: always() && steps.inbox.outputs.pending != '' && steps.inbox.outputs.pending != '0' && vars.OFFERS_CLAUDE != 'off'
+        continue-on-error: true
+        timeout-minutes: 20
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then echo "No CLAUDE_CODE_OAUTH_TOKEN: the rules' offers are kept."; exit 0; fi
+          export CLAUDE_CODE_OAUTH_TOKEN="$(printf %s "$CLAUDE_CODE_OAUTH_TOKEN" | tr -d '[:space:]')"
+          npm install -g @anthropic-ai/claude-code@2.1.296 --no-audit --no-fund
+          python offers_inbox.py extract
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms

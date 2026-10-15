@@ -257,7 +257,31 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   fly-Caribbean against our fly-cruises, linked to its detail
   view, sorted where we're dearest first; CSV; and **Ambassador at Planet Cruise vs our website**: the agent's price per
   cabin type for our own sailings, matched by ship and date). Not done: Saga; iglu (the
-  same data as Planet Cruise); a newsletter mailbox (Sam: later).
+  same data as Planet Cruise).
+
+## Competitor offers: newsletters and live ads (15 Oct 2026, Sam: "build 1 and 2")
+Sam found the scraped offers unreliable (old, marketing lines rather than promotions, no click-through). The
+**Competitor offers** page now leads with:
+- **Their live ads**: per brand (P&O, Princess, Cunard, Marella, Saga, Fred. Olsen, MSC, Royal Caribbean, Celebrity;
+  `BRANDS` in `site/competitors.js`) links to the Meta Ad Library (name search, UK) and Google's Ads Transparency
+  Center (by domain, UK). Links only: nothing is read from those pages.
+- **From their newsletters** (`offers_inbox.py`): a team mailbox signed up by hand to the brands' marketing emails
+  (receiving emails the brands send us is not covered by their website terms). Hourly workflow step "Competitor
+  newsletters" (`fetch`): IMAP over SSL, inbox opened **read-only** (EXAMINE, `BODY.PEEK`: nothing marked read, moved
+  or deleted), emails from the last `DAYS` = 30 whose sender matches a brand; never opens a link or loads an image.
+  Keeps subject, preheader, date, text, the "view in browser" link and the email's own links (unsubscribe, social and
+  preference links dropped). Simple rules pick offer-like lines and an end date first ("found by rules: check"); then
+  "Read new newsletters with Claude" (`extract`, up to `PER_RUN` = 25 a check, on Sam's plan via
+  `CLAUDE_CODE_OAUTH_TOKEN`, model `claude-opus-5-5`, no tools, `--json-schema`) decides whether it's a promotion and
+  lists the offers; its answer is checked (`checked`: a link must be one of the email's own, an end date a real
+  date). → `state/competitors/inbox.json` (kept `KEEP_DAYS` = 90) → `publish.py` `pricewatch/comp-inbox` (no email
+  text, newest 400). Page: grouped by brand, last 30/90 days, View email / Offer page links, "ends" chips, non-offer
+  emails folded away. Fred. Olsen's deals pages and Planet Cruise's agent lines (now folded, secondary) stay below.
+- **Setup (Sam, one-off)**: a new mailbox, Gmail recommended (Microsoft 365 usually blocks IMAP passwords) with 2-Step
+  Verification and an **app password**; repo secrets `OFFERS_IMAP_USER` (the address) and `OFFERS_IMAP_PASSWORD` (the
+  app password; spaces are removed), and repo variable `OFFERS_IMAP_HOST` only if not Gmail (default
+  `imap.gmail.com`). Then sign it up on each brand's website. Until the secrets exist the step is skipped and the page
+  says the inbox isn't set up. Repo variable `OFFERS_CLAUDE` = `off` keeps the rules only (no plan usage).
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
