@@ -864,10 +864,81 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+    "base_title": "Atlantic Horizons and Caribbean Discovery",
+    "ship": "Renaissance",
+    "port": "London Tilbury",
+    "flight_from": "Heathrow",
+    "nights": 24,
+    "departure_date": "2026-10-29",
+    "price": 1349,
+    "promos": [],
+    "nectar": "Collect up to 50,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+    "fp": "0a69ffbc75b0",
+    "made_at": "2026-10-15T13:09:23Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=8bac3bd3-3e92-475f-83aa-165174c42919",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
+      "kb": 312
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=fa0ae3e1-a513-46d3-875a-2aba82ff23d5",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
+      "kb": 400
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=675c711f-5d16-4648-8e27-699647e1bcea",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
+      "kb": 426
+     }
+    }
+   }
   },
   "A22630BR": {
    "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Delights of Western France & Spain Explorer",
+     "base_title": "Delights of Western France & Spain Explorer",
+     "ship": "Ambition",
+     "port": "Bristol Royal Portbury",
+     "flight_from": null,
+     "nights": 9,
+     "departure_date": "2026-11-02",
+     "price": 1279,
+     "promos": [
+      "Up to £200 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
+     "fp": "e48f1b9c08b2",
+     "made_at": "2026-10-15T12:09:33Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=24182370-62ca-4e3b-a8c2-e509b75bff13",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
+       "kb": 287
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=84a9b7b4-45c9-4788-afab-a4520c337abd",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
+       "kb": 359
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=cf7dbe57-e0a8-4e3b-b601-2174efebc550",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
+       "kb": 444
+      }
+     },
+     "out_of_date_since": "2026-10-15T13:09:23Z"
+    },
     {
      "design": "2026-10-12",
      "title": "Delights of Western France & Spain Explorer",
@@ -1349,43 +1420,7 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Delights of Western France & Spain Explorer",
-    "base_title": "Delights of Western France & Spain Explorer",
-    "ship": "Ambition",
-    "port": "Bristol Royal Portbury",
-    "flight_from": null,
-    "nights": 9,
-    "departure_date": "2026-11-02",
-    "price": 1279,
-    "promos": [
-     "Up to £200 Onboard Credit · ends 23 Nov"
-    ],
-    "nectar": "Collect up to 30,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
-    "fp": "e48f1b9c08b2",
-    "made_at": "2026-10-15T12:09:33Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=24182370-62ca-4e3b-a8c2-e509b75bff13",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
-      "kb": 287
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=84a9b7b4-45c9-4788-afab-a4520c337abd",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
-      "kb": 359
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=cf7dbe57-e0a8-4e3b-b601-2174efebc550",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
-      "kb": 444
-     }
-    }
-   }
+   ]
   },
   "A22631BR": {
    "old": [
@@ -1658,6 +1693,43 @@
      "flight_from": "Heathrow",
      "nights": 14,
      "departure_date": "2026-11-22",
+     "price": 1899,
+     "promos": [
+      "30% Off Upper Class seats"
+     ],
+     "nectar": "Collect up to 50,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/8bb03dffb8/shutterstock_1369657820-promenade-marina-bridgetown-barbados_1920x1080.png",
+     "fp": "d58523388d0d",
+     "made_at": "2026-10-15T09:09:36Z",
+     "reason": "price £1,899 → £1,599",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_1x1.jpg?alt=media&token=0707f08c-a54e-4a9b-8b28-d33eb0715950",
+       "path": "pricewatch-cards/A32651/d58523388d0d_1x1.jpg",
+       "kb": 266
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_4x5.jpg?alt=media&token=9ae869cb-f7fe-4346-8111-c889a182d0c5",
+       "path": "pricewatch-cards/A32651/d58523388d0d_4x5.jpg",
+       "kb": 319
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_9x16.jpg?alt=media&token=24260376-0cd3-4788-b9c8-576a9bb50f13",
+       "path": "pricewatch-cards/A32651/d58523388d0d_9x16.jpg",
+       "kb": 363
+      }
+     },
+     "out_of_date_since": "2026-10-15T13:09:23Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Tropical Treasures (Heathrow Airport)",
+     "base_title": "Tropical Treasures",
+     "ship": "Renaissance",
+     "port": "Bridgetown, Barbados",
+     "flight_from": "Heathrow",
+     "nights": 14,
+     "departure_date": "2026-11-22",
      "price": 1599,
      "promos": [
       "30% Off Upper Class seats"
@@ -1881,29 +1953,29 @@
     "flight_from": "Heathrow",
     "nights": 14,
     "departure_date": "2026-11-22",
-    "price": 1899,
+    "price": 1599,
     "promos": [
      "30% Off Upper Class seats"
     ],
     "nectar": "Collect up to 50,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/8bb03dffb8/shutterstock_1369657820-promenade-marina-bridgetown-barbados_1920x1080.png",
-    "fp": "d58523388d0d",
-    "made_at": "2026-10-15T09:09:36Z",
-    "reason": "price £1,599 → £1,899",
+    "fp": "b65f22b6aaf0",
+    "made_at": "2026-10-15T13:09:23Z",
+    "reason": "price £1,899 → £1,599",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_1x1.jpg?alt=media&token=0707f08c-a54e-4a9b-8b28-d33eb0715950",
-      "path": "pricewatch-cards/A32651/d58523388d0d_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fb65f22b6aaf0_1x1.jpg?alt=media&token=349e1869-bb0b-4a13-b0d4-2d1d87262ab5",
+      "path": "pricewatch-cards/A32651/b65f22b6aaf0_1x1.jpg",
       "kb": 266
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_4x5.jpg?alt=media&token=9ae869cb-f7fe-4346-8111-c889a182d0c5",
-      "path": "pricewatch-cards/A32651/d58523388d0d_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fb65f22b6aaf0_4x5.jpg?alt=media&token=f7c7ef18-5ee5-4ae6-8094-3028c35fb316",
+      "path": "pricewatch-cards/A32651/b65f22b6aaf0_4x5.jpg",
       "kb": 319
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fd58523388d0d_9x16.jpg?alt=media&token=24260376-0cd3-4788-b9c8-576a9bb50f13",
-      "path": "pricewatch-cards/A32651/d58523388d0d_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32651%2Fb65f22b6aaf0_9x16.jpg?alt=media&token=c7e00a4c-933b-42e2-be03-adf3ff3aa80c",
+      "path": "pricewatch-cards/A32651/b65f22b6aaf0_9x16.jpg",
       "kb": 363
      }
     }
@@ -5957,6 +6029,43 @@
      "flight_from": null,
      "nights": 9,
      "departure_date": "2027-04-19",
+     "price": 929,
+     "promos": [
+      "Up to £200 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/ccd7d3eaf9/st_malo_france_2000x1333_1.jpg",
+     "fp": "06673fa48010",
+     "made_at": "2026-10-12T14:49:31Z",
+     "reason": "price £929 → £1,049",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_1x1.jpg?alt=media&token=4a705eac-74ee-4e8a-b5b2-da331f45e6f2",
+       "path": "pricewatch-cards/A22707PO/06673fa48010_1x1.jpg",
+       "kb": 335
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_4x5.jpg?alt=media&token=1fcb279a-ff2c-4088-bdcb-a46dc4cff482",
+       "path": "pricewatch-cards/A22707PO/06673fa48010_4x5.jpg",
+       "kb": 425
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_9x16.jpg?alt=media&token=d8d6e102-f570-4c2f-90d0-9e637f60268b",
+       "path": "pricewatch-cards/A22707PO/06673fa48010_9x16.jpg",
+       "kb": 511
+      }
+     },
+     "out_of_date_since": "2026-10-15T13:09:23Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Seaside Charms: Brittany, Normandy & Guernsey",
+     "base_title": "Seaside Charms: Brittany, Normandy & Guernsey",
+     "ship": "Ambition",
+     "port": "Portsmouth",
+     "flight_from": null,
+     "nights": 9,
+     "departure_date": "2027-04-19",
      "price": 939,
      "promos": [
       "Up to £200 Onboard Credit · ends 23 Nov"
@@ -5995,30 +6104,30 @@
     "flight_from": null,
     "nights": 9,
     "departure_date": "2027-04-19",
-    "price": 929,
+    "price": 1049,
     "promos": [
      "Up to £200 Onboard Credit · ends 23 Nov"
     ],
     "nectar": "Collect up to 30,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/ccd7d3eaf9/st_malo_france_2000x1333_1.jpg",
-    "fp": "06673fa48010",
-    "made_at": "2026-10-12T14:49:31Z",
-    "reason": "price £939 → £929",
+    "fp": "11f6b38313cc",
+    "made_at": "2026-10-15T13:09:23Z",
+    "reason": "price £929 → £1,049",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_1x1.jpg?alt=media&token=4a705eac-74ee-4e8a-b5b2-da331f45e6f2",
-      "path": "pricewatch-cards/A22707PO/06673fa48010_1x1.jpg",
-      "kb": 335
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F11f6b38313cc_1x1.jpg?alt=media&token=f49babba-fe0e-4fad-834b-9c6572b1f7a1",
+      "path": "pricewatch-cards/A22707PO/11f6b38313cc_1x1.jpg",
+      "kb": 333
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_4x5.jpg?alt=media&token=1fcb279a-ff2c-4088-bdcb-a46dc4cff482",
-      "path": "pricewatch-cards/A22707PO/06673fa48010_4x5.jpg",
-      "kb": 425
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F11f6b38313cc_4x5.jpg?alt=media&token=70f65406-7c5d-4658-8435-17a519060ffb",
+      "path": "pricewatch-cards/A22707PO/11f6b38313cc_4x5.jpg",
+      "kb": 423
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F06673fa48010_9x16.jpg?alt=media&token=d8d6e102-f570-4c2f-90d0-9e637f60268b",
-      "path": "pricewatch-cards/A22707PO/06673fa48010_9x16.jpg",
-      "kb": 511
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22707PO%2F11f6b38313cc_9x16.jpg?alt=media&token=1f433da0-0258-4c94-aae7-7f3e35df0ffa",
+      "path": "pricewatch-cards/A22707PO/11f6b38313cc_9x16.jpg",
+      "kb": 510
      }
     }
    }
@@ -15228,6 +15337,41 @@
      "flight_from": null,
      "nights": 3,
      "departure_date": "2026-12-14",
+     "price": 579,
+     "promos": [],
+     "nectar": "Collect up to 14,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
+     "fp": "0a6555080207",
+     "made_at": "2026-10-14T15:08:09Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_1x1.jpg?alt=media&token=3d34a2c6-529d-4013-be83-f3074ff3e13a",
+       "path": "pricewatch-cards/A22637/0a6555080207_1x1.jpg",
+       "kb": 312
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_4x5.jpg?alt=media&token=97ac3068-7ece-4e11-b9d3-a830027e8c55",
+       "path": "pricewatch-cards/A22637/0a6555080207_4x5.jpg",
+       "kb": 430
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_9x16.jpg?alt=media&token=b96329f8-f9eb-4817-9d90-40448bf53bc5",
+       "path": "pricewatch-cards/A22637/0a6555080207_9x16.jpg",
+       "kb": 544
+      }
+     },
+     "out_of_date_since": "2026-10-15T13:09:23Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Christmas Markets of Holland & Belgium",
+     "base_title": "Christmas Markets of Holland & Belgium",
+     "ship": "Ambition",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 3,
+     "departure_date": "2026-12-14",
      "price": 429,
      "promos": [],
      "nectar": "Collect up to 14,000 Nectar points",
@@ -15499,41 +15643,7 @@
      },
      "out_of_date_since": "2026-10-13T10:08:11Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Christmas Markets of Holland & Belgium",
-    "base_title": "Christmas Markets of Holland & Belgium",
-    "ship": "Ambition",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 3,
-    "departure_date": "2026-12-14",
-    "price": 579,
-    "promos": [],
-    "nectar": "Collect up to 14,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/0896663b32/brugges_festive_3_2000x1333.png",
-    "fp": "0a6555080207",
-    "made_at": "2026-10-14T15:08:09Z",
-    "reason": "price £429 → £579",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_1x1.jpg?alt=media&token=3d34a2c6-529d-4013-be83-f3074ff3e13a",
-      "path": "pricewatch-cards/A22637/0a6555080207_1x1.jpg",
-      "kb": 312
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_4x5.jpg?alt=media&token=97ac3068-7ece-4e11-b9d3-a830027e8c55",
-      "path": "pricewatch-cards/A22637/0a6555080207_4x5.jpg",
-      "kb": 430
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22637%2F0a6555080207_9x16.jpg?alt=media&token=b96329f8-f9eb-4817-9d90-40448bf53bc5",
-      "path": "pricewatch-cards/A22637/0a6555080207_9x16.jpg",
-      "kb": 544
-     }
-    }
-   }
+   ]
   },
   "A22638": {
    "old": [
@@ -15718,5 +15828,5 @@
    ]
   }
  },
- "updated_at": "2026-10-15T12:09:33Z"
+ "updated_at": "2026-10-15T13:09:23Z"
 }

@@ -1,12 +1,14 @@
 {
  "date": "2026-10-15",
- "count": 51,
+ "count": 52,
  "new": [],
  "removed": [
   "R261016",
   "R270403"
  ],
- "returned": [],
+ "returned": [
+  "R270403"
+ ],
  "drops": [
   {
    "id": "R280508",
@@ -77,6 +79,13 @@
    "from": 1379,
    "to": 1649,
    "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270110",
+   "from": 579,
+   "to": 659,
+   "mix": "inside → obstructed",
+   "at": "2026-10-15T13:07:47Z"
   }
  ],
  "eligible": [],
@@ -86,6 +95,9 @@
   ],
   "R261207": [
    "the page shows from €789 but booking's cheapest is €909"
+  ],
+  "R270110": [
+   "the page shows from €579 but booking's cheapest is €659"
   ],
   "R270912B": [
    "the page shows from €1,379 but booking's cheapest is €1,649"
@@ -269,6 +281,13 @@
    "from": 2569,
    "to": 3079,
    "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.inside",
+   "from": 579,
+   "to": 869,
+   "at": "2026-10-15T13:07:47Z"
   }
  ],
  "cabin_sold_out": [
@@ -316,6 +335,16 @@
    "id": "R270501",
    "cabin": "solo.ocean_view",
    "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.balcony",
+   "at": "2026-10-15T13:07:47Z"
+  },
+  {
+   "id": "R280804",
+   "cabin": "solo.inside",
+   "at": "2026-10-15T13:07:47Z"
   }
  ],
  "cabin_back": [
@@ -357,7 +386,20 @@
   }
  ],
  "cabin_eligible": [],
- "promo_added": [],
+ "promo_added": [
+  {
+   "id": "R270403",
+   "offer": "tag339",
+   "name": "Formule Plus",
+   "at": "2026-10-15T13:07:47Z"
+  },
+  {
+   "id": "R270403",
+   "offer": "tag417",
+   "name": "🚢 Larguez les amarres",
+   "at": "2026-10-15T13:07:47Z"
+  }
+ ],
  "promo_ended": [
   {
    "id": "R261016",
@@ -392,6 +434,12 @@
    "feed": 1379,
    "page": 1649,
    "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270110",
+   "feed": 579,
+   "page": 659,
+   "at": "2026-10-15T13:07:47Z"
   }
  ],
  "feed_gap_fixed": [],
@@ -406,6 +454,7 @@
   "2026-10-15T10:07:48Z",
   "2026-10-15T11:07:48Z",
   "2026-10-15T11:12:13Z",
-  "2026-10-15T12:07:53Z"
+  "2026-10-15T12:07:53Z",
+  "2026-10-15T13:07:47Z"
  ]
 }
