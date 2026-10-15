@@ -1,8 +1,10 @@
 {
  "date": "2026-10-15",
- "count": 53,
+ "count": 52,
  "new": [],
- "removed": [],
+ "removed": [
+  "R261016"
+ ],
  "returned": [],
  "drops": [
   {
@@ -66,9 +68,6 @@
  ],
  "eligible": [],
  "flags": {
-  "R261016": [
-   "the page couldn't be read: HTTP Error 404: Not Found"
-  ],
   "R261116": [
    "the page shows from €789 but booking's cheapest is €989"
   ],
@@ -225,7 +224,20 @@
  ],
  "cabin_eligible": [],
  "promo_added": [],
- "promo_ended": [],
+ "promo_ended": [
+  {
+   "id": "R261016",
+   "offer": "tag332",
+   "name": "Formule Plus",
+   "at": "2026-10-15T11:12:13Z"
+  },
+  {
+   "id": "R261016",
+   "offer": "tag232",
+   "name": "DERNIÈRE CHANCE",
+   "at": "2026-10-15T11:12:13Z"
+  }
+ ],
  "promo_changed": [],
  "nectar_changes": [],
  "feed_gap_new": [],
@@ -239,6 +251,7 @@
   "2026-10-15T09:07:34Z",
   "2026-10-15T09:31:16Z",
   "2026-10-15T10:07:48Z",
-  "2026-10-15T11:07:48Z"
+  "2026-10-15T11:07:48Z",
+  "2026-10-15T11:12:13Z"
  ]
 }

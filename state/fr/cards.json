@@ -12,6 +12,44 @@
      "flight_from": null,
      "nights": 12,
      "departure_date": "2026-10-16",
+     "price": 1459,
+     "promos": [
+      "Formule Plus",
+      "Dernière chance"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/6ee3e7e0-62e4-43ca-9be4-6f997428946f?width=2000&format=jpg&quality=85",
+     "fp": "ec5ec1dbda64",
+     "made_at": "2026-10-15T09:33:22Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_1x1.jpg?alt=media&token=588e31dc-8c73-48af-8179-8a019dfba9b7",
+       "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_1x1.jpg",
+       "kb": 298
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_4x5.jpg?alt=media&token=5ff6c01d-bfed-4356-b891-aec4bf49e42d",
+       "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_4x5.jpg",
+       "kb": 350
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_9x16.jpg?alt=media&token=acf8937a-f1aa-4ae7-8172-39e47a9f63f6",
+       "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_9x16.jpg",
+       "kb": 419
+      }
+     },
+     "out_of_date_since": "2026-10-15T11:13:18Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Saveurs de l'Atlantique",
+     "base_title": "Saveurs de l'Atlantique",
+     "ship": "Renaissance",
+     "port": "Marseille",
+     "flight_from": null,
+     "nights": 12,
+     "departure_date": "2026-10-16",
      "price": 1549,
      "promos": [
       "Formule Plus",
@@ -117,44 +155,7 @@
      },
      "out_of_date_since": "2026-10-14T19:21:06Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Saveurs de l'Atlantique",
-    "base_title": "Saveurs de l'Atlantique",
-    "ship": "Renaissance",
-    "port": "Marseille",
-    "flight_from": null,
-    "nights": 12,
-    "departure_date": "2026-10-16",
-    "price": 1459,
-    "promos": [
-     "Formule Plus",
-     "Dernière chance"
-    ],
-    "nectar": "",
-    "photo": "https://cms.ambassadorcroisieres.fr/assets/6ee3e7e0-62e4-43ca-9be4-6f997428946f?width=2000&format=jpg&quality=85",
-    "fp": "ec5ec1dbda64",
-    "made_at": "2026-10-15T09:33:22Z",
-    "reason": "price 1 549 € → 1 459 €",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_1x1.jpg?alt=media&token=588e31dc-8c73-48af-8179-8a019dfba9b7",
-      "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_1x1.jpg",
-      "kb": 298
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_4x5.jpg?alt=media&token=5ff6c01d-bfed-4356-b891-aec4bf49e42d",
-      "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_4x5.jpg",
-      "kb": 350
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261016%2Fec5ec1dbda64_9x16.jpg?alt=media&token=acf8937a-f1aa-4ae7-8172-39e47a9f63f6",
-      "path": "pricewatch-cards/fr/R261016/ec5ec1dbda64_9x16.jpg",
-      "kb": 419
-     }
-    }
-   }
+   ]
   },
   "R261031": {
    "old": [],
@@ -2520,5 +2521,5 @@
    }
   }
  },
- "updated_at": "2026-10-15T11:09:39Z"
+ "updated_at": "2026-10-15T11:13:18Z"
 }
