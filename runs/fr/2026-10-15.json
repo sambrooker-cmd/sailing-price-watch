@@ -11,6 +11,22 @@
    "to": 679,
    "claim": null,
    "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261016",
+   "from": 1549,
+   "to": 1459,
+   "mix": "promenade → ocean_view",
+   "claim": null,
+   "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R261218",
+   "from": 1299,
+   "to": 1199,
+   "mix": "ocean_view → obstructed",
+   "claim": null,
+   "at": "2026-10-15T09:31:16Z"
   }
  ],
  "rises": [
@@ -33,6 +49,13 @@
    "to": 1299,
    "mix": "obstructed → ocean_view",
    "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R280508",
+   "from": 679,
+   "to": 859,
+   "mix": "ocean_view → inside",
+   "at": "2026-10-15T09:31:16Z"
   }
  ],
  "eligible": [],
@@ -44,7 +67,7 @@
    "the page shows from €789 but booking's cheapest is €909"
   ],
   "R280508": [
-   "the page shows from €569 but booking's cheapest is €679"
+   "the page shows from €569 but booking's cheapest is €859"
   ],
   "R280528": [
    "the page shows from €1,159 but booking's cheapest is €1,739"
@@ -64,6 +87,14 @@
    "to": 679,
    "claim": null,
    "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261116",
+   "cabin": "twin.balcony",
+   "from": 2419,
+   "to": 2049,
+   "claim": null,
+   "at": "2026-10-15T09:31:16Z"
   }
  ],
  "cabin_rises": [
@@ -80,6 +111,20 @@
    "from": 679,
    "to": 699,
    "at": "2026-10-15T08:07:49Z"
+  },
+  {
+   "id": "R280508",
+   "cabin": "twin.ocean_view",
+   "from": 679,
+   "to": 1019,
+   "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R280508",
+   "cabin": "twin.balcony",
+   "from": 1109,
+   "to": 1669,
+   "at": "2026-10-15T09:31:16Z"
   }
  ],
  "cabin_sold_out": [
@@ -115,6 +160,18 @@
    "cabin": "solo.inside",
    "p": 1159,
    "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261016",
+   "cabin": "twin.ocean_view",
+   "p": 1459,
+   "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R261218",
+   "cabin": "twin.obstructed",
+   "p": 1199,
+   "at": "2026-10-15T09:31:16Z"
   }
  ],
  "cabin_eligible": [],
@@ -130,6 +187,7 @@
   "2026-10-15T00:22:56Z",
   "2026-10-15T05:07:51Z",
   "2026-10-15T08:07:49Z",
-  "2026-10-15T09:07:34Z"
+  "2026-10-15T09:07:34Z",
+  "2026-10-15T09:31:16Z"
  ]
 }

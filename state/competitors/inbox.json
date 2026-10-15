@@ -115,16 +115,34 @@
    "imap_key": "<94d3eb73-c773-43a8-9bf9-633bfbab1f03.6ba642e2-3be2-47e6-8ec5-720e66fa6552@email.princess.com>",
    "offers": [
     {
-     "offer": "$50 onboard credit to use on your next voyage — just for signing up",
+     "offer": "Enjoy a $50 onboard credit to use on your next voyage — just for signing up",
      "ends": "",
-     "applies_to": "your next voyage",
+     "applies_to": "next voyage",
      "link": "https://data.email.princess.com/ee/v1/click?params=v1.likVMXag1cUUsQjH-CCb8iAtPEMLwUv6xLkbBuyo1oXNwFS6TPduS6XMmUUvR9nIsqAUdo2ps8mCdGrlJ_M-sNl3pCkvEgXQNZqm_qRGht0JTSnAYWFgufV3BQ7ArLTB5MVy0nl8HiIlxLT3RGwYgI9Cj1ihUXMxpHrtNCV5mRriOQ--r9LLl6dHEliLCSXKSfXgtVvjUoJuUx12aFLkKXolslenkVPxovLfT-8UueYh5oSVpOKxNV29S2D54hQpQBsbItVwNzfApLSlUl5Zei-HOXwYv0acfbiZ7xesIAr3BX5TVA_pwvPKGi1aqv0h4O_2eBXyoFKpnT7731BgeegvtBp0uAedbzMyvSOVjHG6&pid=v1.YwF09K3SSIjztOlX0Gl3VuIw4JEGZLeX2cIBKF5uY2kAR0jHxyE05LHfVZlQbP4gOPhpKW6ykEtM2xw9&tuid=6a906458e1d8c820c44c36c2&configId=28fad2ab-0382-49a1-a139-75dcf09d5a4a"
     }
    ],
    "by": "claude",
    "pending": false,
    "promotion": true,
-   "read_at": "2026-10-15T09:09:04Z"
+   "read_at": "2026-10-15T09:32:53Z",
+   "id": "bc36d8b56eddd72b",
+   "kind": "welcome or account",
+   "summary": "Princess welcomes a new subscriber, gives a $50 onboard credit for signing up and asks them to finish setting up their account and browse destinations.",
+   "headline": "Welcome aboard, Dave! Your journey starts now.",
+   "cta": "PLAN YOUR ADVENTURE",
+   "destinations": [
+    "Alaska",
+    "Caribbean",
+    "Europe",
+    "Mexico",
+    "Canada & New England",
+    "Japan"
+   ],
+   "from_price": null,
+   "html": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fbc36d8b56eddd72b.html?alt=media&token=903cf75e-433c-4100-a48d-2d9e26d8f519",
+   "thumb": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fbc36d8b56eddd72b_thumb.jpg?alt=media&token=89ad34ae-5650-4e17-9013-bf0c10b48f8e",
+   "path": "pricewatch-emails/2026-10/bc36d8b56eddd72b",
+   "height": 5719
   },
   "<B678QTXLKUU4.XZ4Z8Y695WXW1@cunard.co.uk>": {
    "msgid": "<B678QTXLKUU4.XZ4Z8Y695WXW1@cunard.co.uk>",
@@ -175,7 +193,18 @@
    "by": "claude",
    "pending": false,
    "promotion": false,
-   "read_at": "2026-10-15T09:08:56Z"
+   "read_at": "2026-10-15T09:32:43Z",
+   "id": "1cfc2a310b64f5d8",
+   "kind": "welcome or account",
+   "summary": "Cunard asks a new subscriber to confirm their email subscription by clicking a button.",
+   "headline": "Thank you",
+   "cta": "Subscribe »",
+   "destinations": [],
+   "from_price": null,
+   "html": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2F1cfc2a310b64f5d8.html?alt=media&token=488fbcb5-1730-448e-b793-78478376064e",
+   "thumb": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2F1cfc2a310b64f5d8_thumb.jpg?alt=media&token=da41ce9e-6e12-4d3a-947e-25acfece6ad0",
+   "path": "pricewatch-emails/2026-10/1cfc2a310b64f5d8",
+   "height": 1000
   },
   "<ewXOkDc03VMjXNBBGJfgCbw2DGGdTcJx@rt.msccruises.co.uk>": {
    "msgid": "<ewXOkDc03VMjXNBBGJfgCbw2DGGdTcJx@rt.msccruises.co.uk>",
@@ -214,7 +243,18 @@
    "by": "claude",
    "pending": false,
    "promotion": false,
-   "read_at": "2026-10-15T09:08:52Z"
+   "read_at": "2026-10-15T09:32:37Z",
+   "id": "a50baa4f5f6e25e7",
+   "kind": "welcome or account",
+   "summary": "MSC Cruises welcomes a new newsletter subscriber and asks them to click a link to confirm their subscription.",
+   "headline": "Welcome to MSC Cruises!",
+   "cta": "CONFIRM YOUR SUBSCRIPTION",
+   "destinations": [],
+   "from_price": null,
+   "html": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fa50baa4f5f6e25e7.html?alt=media&token=b8815c82-d03f-4dba-8b12-39407b4e1e27",
+   "thumb": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fa50baa4f5f6e25e7_thumb.jpg?alt=media&token=4fa598a4-51d8-412b-9f3b-050fa59393c0",
+   "path": "pricewatch-emails/2026-10/a50baa4f5f6e25e7",
+   "height": 1000
   },
   "<zcb.3z7bc8c5acbee09b01ce1ef8249520bb39.12458046cf8b77a4.1792054589704@mail1.fredolsencruises.zcsend.eu>": {
    "msgid": "<zcb.3z7bc8c5acbee09b01ce1ef8249520bb39.12458046cf8b77a4.1792054589704@mail1.fredolsencruises.zcsend.eu>",
@@ -313,8 +353,19 @@
    "by": "claude",
    "pending": false,
    "promotion": false,
-   "read_at": "2026-10-15T09:08:49Z"
+   "read_at": "2026-10-15T09:32:31Z",
+   "id": "e79a4c05178e8423",
+   "kind": "welcome or account",
+   "summary": "Fred. Olsen thanks a new subscriber for signing up to its emails and points them to its website to learn about its smaller ships and destinations.",
+   "headline": "Thank you for signing up to receive Fred. Olsen emails. It’s great to have you on board!",
+   "cta": "Find out more about us ▸",
+   "destinations": [],
+   "from_price": null,
+   "html": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fe79a4c05178e8423.html?alt=media&token=0c1edbea-7be8-4de6-8933-11c0a3ea0b71",
+   "thumb": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-emails%2F2026-10%2Fe79a4c05178e8423_thumb.jpg?alt=media&token=c3de2018-b70e-49d1-bbe6-5e253549ab7d",
+   "path": "pricewatch-emails/2026-10/e79a4c05178e8423",
+   "height": 2224
   }
  },
- "fetched_at": "2026-10-15T09:08:39Z"
+ "fetched_at": "2026-10-15T09:32:24Z"
 }

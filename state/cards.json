@@ -877,6 +877,43 @@
      "flight_from": null,
      "nights": 9,
      "departure_date": "2026-11-02",
+     "price": 1279,
+     "promos": [
+      "Up to £200 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
+     "fp": "e48f1b9c08b2",
+     "made_at": "2026-10-14T15:08:09Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=b24bf88c-024f-4dc9-b3dd-badafa0f099b",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
+       "kb": 287
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=d338f6b6-3776-4de6-a547-fcfd9bb43757",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
+       "kb": 359
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=b1c1241b-457e-4672-a45e-1243e54b725c",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
+       "kb": 444
+      }
+     },
+     "out_of_date_since": "2026-10-15T09:33:19Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Delights of Western France & Spain Explorer",
+     "base_title": "Delights of Western France & Spain Explorer",
+     "ship": "Ambition",
+     "port": "Bristol Royal Portbury",
+     "flight_from": null,
+     "nights": 9,
+     "departure_date": "2026-11-02",
      "price": 879,
      "promos": [
       "Up to £200 Onboard Credit · ends 23 Nov"
@@ -1275,43 +1312,7 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Delights of Western France & Spain Explorer",
-    "base_title": "Delights of Western France & Spain Explorer",
-    "ship": "Ambition",
-    "port": "Bristol Royal Portbury",
-    "flight_from": null,
-    "nights": 9,
-    "departure_date": "2026-11-02",
-    "price": 1279,
-    "promos": [
-     "Up to £200 Onboard Credit · ends 23 Nov"
-    ],
-    "nectar": "Collect up to 30,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
-    "fp": "e48f1b9c08b2",
-    "made_at": "2026-10-14T15:08:09Z",
-    "reason": "price £879 → £1,279",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=b24bf88c-024f-4dc9-b3dd-badafa0f099b",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
-      "kb": 287
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=d338f6b6-3776-4de6-a547-fcfd9bb43757",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
-      "kb": 359
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=b1c1241b-457e-4672-a45e-1243e54b725c",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
-      "kb": 444
-     }
-    }
-   }
+   ]
   },
   "A22631BR": {
    "old": [
@@ -1846,6 +1847,41 @@
      "flight_from": null,
      "nights": 4,
      "departure_date": "2026-11-27",
+     "price": 299,
+     "promos": [],
+     "nectar": "Collect up to 14,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/f4f81d1b29/shutterstock_104862086-zeebrugge_1920x1080.jpg",
+     "fp": "d4cde932a0f5",
+     "made_at": "2026-10-15T09:09:36Z",
+     "reason": "price £299 → £399",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_1x1.jpg?alt=media&token=0046e2b9-a5b1-4b9f-bf01-60d608f35694",
+       "path": "pricewatch-cards/A22633/d4cde932a0f5_1x1.jpg",
+       "kb": 407
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_4x5.jpg?alt=media&token=880e6a14-ee93-4594-a341-fb8c2644e8d2",
+       "path": "pricewatch-cards/A22633/d4cde932a0f5_4x5.jpg",
+       "kb": 477
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_9x16.jpg?alt=media&token=9c64b095-0135-4b29-933b-0e8269b7bac9",
+       "path": "pricewatch-cards/A22633/d4cde932a0f5_9x16.jpg",
+       "kb": 570
+      }
+     },
+     "out_of_date_since": "2026-10-15T09:33:19Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Weekend Escape to Holland & Belgium",
+     "base_title": "Weekend Escape to Holland & Belgium",
+     "ship": "Ambition",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 4,
+     "departure_date": "2026-11-27",
      "price": 399,
      "promos": [],
      "nectar": "Collect up to 14,000 Nectar points",
@@ -2162,27 +2198,27 @@
     "flight_from": null,
     "nights": 4,
     "departure_date": "2026-11-27",
-    "price": 299,
+    "price": 399,
     "promos": [],
     "nectar": "Collect up to 14,000 Nectar points",
     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/f4f81d1b29/shutterstock_104862086-zeebrugge_1920x1080.jpg",
-    "fp": "d4cde932a0f5",
-    "made_at": "2026-10-15T09:09:36Z",
-    "reason": "price £399 → £299",
+    "fp": "fe8e870b133b",
+    "made_at": "2026-10-15T09:33:19Z",
+    "reason": "price £299 → £399",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_1x1.jpg?alt=media&token=0046e2b9-a5b1-4b9f-bf01-60d608f35694",
-      "path": "pricewatch-cards/A22633/d4cde932a0f5_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Ffe8e870b133b_1x1.jpg?alt=media&token=be16858a-a40b-4cc2-9f42-fb37603b4376",
+      "path": "pricewatch-cards/A22633/fe8e870b133b_1x1.jpg",
       "kb": 407
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_4x5.jpg?alt=media&token=880e6a14-ee93-4594-a341-fb8c2644e8d2",
-      "path": "pricewatch-cards/A22633/d4cde932a0f5_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Ffe8e870b133b_4x5.jpg?alt=media&token=44488799-1860-4562-b0e3-8893c4e05dec",
+      "path": "pricewatch-cards/A22633/fe8e870b133b_4x5.jpg",
       "kb": 477
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Fd4cde932a0f5_9x16.jpg?alt=media&token=9c64b095-0135-4b29-933b-0e8269b7bac9",
-      "path": "pricewatch-cards/A22633/d4cde932a0f5_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22633%2Ffe8e870b133b_9x16.jpg?alt=media&token=f09df065-f58f-44bc-9f9e-49d95dad0c01",
+      "path": "pricewatch-cards/A22633/fe8e870b133b_9x16.jpg",
       "kb": 570
      }
     }
@@ -15572,5 +15608,5 @@
    }
   }
  },
- "updated_at": "2026-10-15T09:09:36Z"
+ "updated_at": "2026-10-15T09:33:19Z"
 }

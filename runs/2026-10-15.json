@@ -4,9 +4,12 @@
  "new": [],
  "removed": [
   "A12639",
+  "A32650",
+  "A22630BR"
+ ],
+ "returned": [
   "A32650"
  ],
- "returned": [],
  "drops": [
   {
    "id": "A22633",
@@ -239,12 +242,19 @@
    "from": 1589,
    "to": 1749,
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "from": 299,
+   "to": 399,
+   "mix": "inside → ocean_view",
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A22633": [
-   "feed price £399 differs from cheapest cabin on the page £299 (the page price is used)"
+  "A32651": [
+   "feed price £1,599 differs from cheapest cabin on the page £1,899 (the page price is used)"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
@@ -260,6 +270,9 @@
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A22706PO": [
+   "feed price £1,039 differs from cheapest cabin on the page £989 (the page price is used)"
   ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
@@ -314,6 +327,21 @@
     "held_days": 1
    },
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A12727",
+   "cabin": "twin.balcony",
+   "from": 2839,
+   "to": 2819,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 2839,
+    "now": 2819,
+    "since": "2026-10-15",
+    "held_days": 0
+   },
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "cabin_rises": [
@@ -1555,6 +1583,13 @@
    "from": 1589,
    "to": 1749,
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A12707",
+   "cabin": "twin.balcony",
+   "from": 2499,
+   "to": 2659,
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "cabin_sold_out": [
@@ -1587,6 +1622,16 @@
    "id": "A22822DD",
    "cabin": "twin.balcony",
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "cabin": "twin.inside",
+   "at": "2026-10-15T09:30:54Z"
+  },
+  {
+   "id": "A22702",
+   "cabin": "solo.inside",
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "cabin_back": [
@@ -1601,6 +1646,12 @@
    "cabin": "twin.inside",
    "p": 1499,
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A12637",
+   "cabin": "solo.inside",
+   "p": 3399,
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "cabin_eligible": [],
@@ -1611,6 +1662,12 @@
    "offer": "c8971712-3959-4cfb-8c1a-7c7a390d0288",
    "name": "Free Bottle Of Bubbles",
    "at": "2026-10-15T00:22:38Z"
+  },
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "promo_changed": [],
@@ -1652,6 +1709,18 @@
    "feed": 399,
    "page": 299,
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A32651",
+   "feed": 1599,
+   "page": 1899,
+   "at": "2026-10-15T09:30:54Z"
+  },
+  {
+   "id": "A22706PO",
+   "feed": 1039,
+   "page": 989,
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "feed_gap_fixed": [
@@ -1899,6 +1968,13 @@
    "page": 1589,
    "how": "matches the website",
    "at": "2026-10-15T09:07:15Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 399,
+   "page": 299,
+   "how": "matches the website",
+   "at": "2026-10-15T09:30:54Z"
   }
  ],
  "lead_source_switch": [],
@@ -1907,6 +1983,7 @@
   "2026-10-15T00:22:38Z",
   "2026-10-15T05:07:17Z",
   "2026-10-15T08:07:16Z",
-  "2026-10-15T09:07:15Z"
+  "2026-10-15T09:07:15Z",
+  "2026-10-15T09:30:54Z"
  ]
 }
