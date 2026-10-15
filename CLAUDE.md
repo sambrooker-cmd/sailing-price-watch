@@ -224,7 +224,9 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   "flights from …"), the cruise's own start/end come from the title; `competes()` uses `ends()` (start, end, stay):
   no-fly = starts and ends at a UK port with no stay abroad (one-way crossings and "with New York Stay" packages are
   out); fly-Caribbean = starts in the Caribbean, or sails between the UK and the Caribbean. On 15 Oct 2026's data:
-  26 sailings dropped (Valencia, Barcelona, Florida, Hawaii, Buenos Aires, QM2 New York stays), 5 moved to fly-Caribbean. Departures at least `MIN_DAYS` = 7 ahead, no
+  26 sailings dropped (Valencia, Barcelona, Florida, Hawaii, Buenos Aires, QM2 New York stays), 5 moved to fly-Caribbean. After the forced re-run 11 more
+  were found with a port line of just "Southampton" but a title saying "… from Southampton to Barcelona" or "Niagara Falls & New
+  York Stays with …": `ends()` now also reads the end port and any stays from the title (only the words after "with"). Departures at least `MIN_DAYS` = 7 ahead, no
   upper limit. Each candidate page is read once to see whether it competes; ones that don't are kept in `tried` and
   never read again (up to `NEW_PER_RUN` = 80 new pages a line a day, Fred. Olsen's ~180 on day one, so the lists are
   discovered within about a week); competing ones (`sample` in state, kept for continuity) are read every day, and a
