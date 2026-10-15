@@ -4,13 +4,35 @@
  "new": [],
  "removed": [],
  "returned": [],
- "drops": [],
+ "drops": [
+  {
+   "id": "R280508",
+   "from": 699,
+   "to": 679,
+   "claim": null,
+   "at": "2026-10-15T09:07:34Z"
+  }
+ ],
  "rises": [
   {
    "id": "R280508",
    "from": 679,
    "to": 699,
    "at": "2026-10-15T08:07:49Z"
+  },
+  {
+   "id": "R261016",
+   "from": 1459,
+   "to": 1549,
+   "mix": "ocean_view → promenade",
+   "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261218",
+   "from": 1199,
+   "to": 1299,
+   "mix": "obstructed → ocean_view",
+   "at": "2026-10-15T09:07:34Z"
   }
  ],
  "eligible": [],
@@ -22,7 +44,7 @@
    "the page shows from €789 but booking's cheapest is €909"
   ],
   "R280508": [
-   "the page shows from €569 but booking's cheapest is €699"
+   "the page shows from €569 but booking's cheapest is €679"
   ],
   "R280528": [
    "the page shows from €1,159 but booking's cheapest is €1,739"
@@ -34,7 +56,16 @@
    "the page shows from €919 but booking's cheapest is €1,079"
   ]
  },
- "cabin_drops": [],
+ "cabin_drops": [
+  {
+   "id": "R280508",
+   "cabin": "twin.ocean_view",
+   "from": 699,
+   "to": 679,
+   "claim": null,
+   "at": "2026-10-15T09:07:34Z"
+  }
+ ],
  "cabin_rises": [
   {
    "id": "R261228",
@@ -61,9 +92,31 @@
    "id": "R280716",
    "cabin": "solo.inside",
    "at": "2026-10-15T08:07:49Z"
+  },
+  {
+   "id": "R261016",
+   "cabin": "twin.ocean_view",
+   "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261218",
+   "cabin": "twin.obstructed",
+   "at": "2026-10-15T09:07:34Z"
+  },
+  {
+   "id": "R261228",
+   "cabin": "solo.inside",
+   "at": "2026-10-15T09:07:34Z"
   }
  ],
- "cabin_back": [],
+ "cabin_back": [
+  {
+   "id": "R280705",
+   "cabin": "solo.inside",
+   "p": 1159,
+   "at": "2026-10-15T09:07:34Z"
+  }
+ ],
  "cabin_eligible": [],
  "promo_added": [],
  "promo_ended": [],
@@ -76,6 +129,7 @@
  "checks": [
   "2026-10-15T00:22:56Z",
   "2026-10-15T05:07:51Z",
-  "2026-10-15T08:07:49Z"
+  "2026-10-15T08:07:49Z",
+  "2026-10-15T09:07:34Z"
  ]
 }
