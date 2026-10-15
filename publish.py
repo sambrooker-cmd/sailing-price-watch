@@ -21,6 +21,7 @@ has to understand the shape of the data:
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
   pricewatch/comp-current, comp-<line>, comp-runs   competitor prices and offers (competitors.py), once it has run
+  pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
   pricewatch/comp-emails-YYYY-MM-1 / -2  the email library: that half month's competitor emails (links to their copies in Storage)
 
@@ -152,6 +153,26 @@ def documents():
                 break
             runs.append(r)
         docs["comp-runs"] = {"runs": runs}
+    # Competitors' live Facebook/Instagram ads in the UK (meta_ads.py): a summary, and one document of ads per brand
+    meta = ROOT / "state" / "competitors" / "meta_ads.json"
+    if meta.exists():
+        m = load(meta)
+        by = {}
+        for aid, r in (m.get("ads") or {}).items():
+            by.setdefault(r["brand"], []).append({"id": aid, **{k: r.get(k) for k in ("page", "start", "stop", "created", "first_seen",
+                                                  "last_seen", "ended", "body", "title", "desc", "caption", "platforms")}})
+        for brand, ads in by.items():
+            ads.sort(key=lambda a: (a.get("ended") or "", a.get("start") or ""), reverse=True)
+            doc = {"ads": ads}
+            while len(json.dumps(doc, ensure_ascii=False).encode()) > 800_000 and ads:   # keep well inside Firestore's limit
+                for a in ads:
+                    a["body"] = [b[:200] for b in (a.get("body") or [])][:1]
+                if len(json.dumps(doc, ensure_ascii=False).encode()) > 800_000:
+                    del ads[-max(1, len(ads) // 10):]
+            docs[f"comp-meta-{brand}"] = doc
+        docs["comp-meta"] = {k: m.get(k) for k in ("read_on", "fetched_at", "counts", "problems")} | {
+            "pages": {k: list((v.get("ids") or {}).values()) for k, v in (m.get("pages") or {}).items()},
+            "parts": sorted(f"comp-meta-{b}" for b in by)}
     # Competitor newsletters (offers_inbox.py): each email's brand, subject, date, links and offers, not its text
     inbox = ROOT / "state" / "competitors" / "inbox.json"
     if inbox.exists():

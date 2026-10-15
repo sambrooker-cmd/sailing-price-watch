@@ -294,23 +294,104 @@ function renderVs(box){
     matched.map(({r, p, pn, m, d}) => [lineName(r.line), r.title, r.ship, r.departure_date, r.nights, p.p, Math.round(pn), m.best.title, m.best.id, m.best.date, m.best.nights, m.best.pr[occ][st.cabin], Math.round(m.pn), d, r.url])));
 }
 
-// Competitor ads (Sam, 15 Oct 2026: "give the competitor live ads section its own view in the nav"): each brand's ads
-// in Meta's Ad Library and Google's Ads Transparency Center (UK). Links only: Meta's terms forbid collecting from the
-// Ad Library by machine, its API only covers ads shown in the EU and political ads, and Google's centre has no API.
+// Competitor ads (Sam, 15 Oct 2026: "give the competitor live ads section its own view in the nav"): each brand's
+// live Facebook and Instagram ads in the UK from Meta's Ad Library API (meta_ads.py, once a day, once the token is
+// added), grouped where the wording is the same, with links to Meta's and Google's libraries per brand. The ads'
+// pictures aren't copied: "View ad" opens each in Meta's own library.
+let M, mLoading = null, adShown = 40;
+const adSt = {q: "", when: "", live: "live"};
+const adLink = id => `https://www.facebook.com/ads/library/?id=${encodeURIComponent(id)}`;
+const daysSince = d => d ? Math.max(0, Math.round((Date.now() - Date.parse(d + "T12:00:00Z")) / 864e5)) : null;
 function renderAds(box){
+  if (M === undefined) {
+    box.innerHTML = `<p class="loading">Loading competitor ads…</p>`;
+    mLoading = mLoading || ctx.readJson("comp-meta").then(async m => {
+      const parts = await Promise.all((m.parts || []).map(p => ctx.readJson(p).catch(() => ({ads: []}))));
+      return {...m, ads: parts.flatMap((x, i) => (x.ads || []).map(a => ({...a, brand: m.parts[i].slice(10)})))};
+    }).catch(() => null);
+    mLoading.then(m => { M = m; renderAds(box); });
+    return;
+  }
   const pickLine = k => !st.line || k === st.line;
+  const week = isoDaysAgo(7), month = isoDaysAgo(30);
+  const live = a => !a.ended;
+  const ads = M ? M.ads : [];
+  const words = adSt.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const list = ads.filter(a => pickLine(a.brand) && (adSt.live === "live" ? live(a) : !live(a) && a.ended >= month)
+    && (!adSt.when || (a.start || a.first_seen) >= (adSt.when === "7" ? week : month))
+    && words.every(w => [a.page, ...(a.body || []), ...(a.title || []), ...(a.desc || [])].join(" ").toLowerCase().includes(w)));
+  // Same wording = one group (brands run many versions of an ad: sizes, pictures, audiences)
+  const groups = {};
+  for (const a of list) {
+    const k = [a.brand, (a.body || [])[0] || "", (a.title || [])[0] || ""].join("|");
+    (groups[k] = groups[k] || []).push(a);
+  }
+  const G = Object.values(groups).map(g => ({ads: g.sort((x, y) => (x.start || "").localeCompare(y.start || "")), first: g[0]}))
+    .sort((x, y) => (y.ads.at(-1).start || "").localeCompare(x.ads.at(-1).start || ""));
+  const brandRow = ([k, n, d]) => {
+    const mine = ads.filter(a => a.brand === k), on = mine.filter(live);
+    const longest = Math.max(0, ...on.map(a => daysSince(a.start) || 0));
+    return `<tr><td><b>${esc(n)}</b>${M && M.pages && (M.pages[k] || []).length ? `<div class="sub">${esc(M.pages[k].join(", "))}</div>` : ""}</td>
+      ${M ? `<td class="num">${on.length}</td><td class="num">${on.filter(a => (a.start || a.first_seen) >= week).length}</td>
+      <td class="num">${mine.filter(a => a.ended && a.ended >= week).length}</td><td class="num">${on.length ? longest + " days" : "–"}</td>` : ""}
+      <td><a href="${esc(metaLib(n))}" target="_blank" rel="noopener noreferrer">Meta Ad Library</a></td>
+      <td><a href="${esc(googleAds(d))}" target="_blank" rel="noopener noreferrer">Google</a> <span class="sub">${esc(d)}</span></td></tr>`;
+  };
+  const card = g => {
+    const a = g.first, n = g.ads.length, since = g.ads[0].start || g.ads[0].first_seen, plats = [...new Set(g.ads.flatMap(x => x.platforms || []))];
+    return `<div class="ma-card">
+      <div class="ma-top"><b>${esc(brandName(a.brand))}</b>${a.page && a.page !== brandName(a.brand) ? ` <span class="sub">· ${esc(a.page)}</span>` : ""}
+        <span class="sub">${live(a) ? `running ${daysSince(since)} day${daysSince(since) === 1 ? "" : "s"}, since ${day(since)}` : `ended ${day(a.ended)}`}</span></div>
+      ${(a.title || [])[0] ? `<p class="ma-h">${esc(a.title[0])}</p>` : ""}
+      ${(a.body || [])[0] ? `<p class="ma-b">${esc(a.body[0])}</p>` : ""}
+      ${(a.desc || [])[0] ? `<p class="sub">${esc(a.desc[0])}</p>` : ""}
+      <div class="ma-foot"><span class="sub">${n > 1 ? `${n} versions · ` : ""}${esc(plats.map(p => p[0].toUpperCase() + p.slice(1).replace(/_/g, " ")).join(", "))}</span>
+        <span>${g.ads.slice(0, 3).map((x, i) => `<a href="${esc(adLink(x.id))}" target="_blank" rel="noopener noreferrer">View ad${n > 1 ? ` ${i + 1}` : ""}</a>`).join(" · ")}${n > 3 ? ` <span class="sub">+${n - 3}</span>` : ""}</span></div>
+    </div>`;
+  };
+  if (!document.getElementById("ma-css")) {
+    const c = document.createElement("style"); c.id = "ma-css";
+    c.textContent = `.ma-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+      .ma-card{border:1px solid var(--rule);padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+      .ma-top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;justify-content:space-between}
+      .ma-h{margin:0;font-weight:600}
+      .ma-b{margin:0;font-size:14px;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+      .ma-b.open{-webkit-line-clamp:unset;display:block}
+      .ma-foot a{color:var(--allium)}
+      .ma-foot{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:space-between;margin-top:auto;padding-top:6px;border-top:1px solid var(--rule);font-size:13px}`;
+    document.head.appendChild(c);
+  }
+  const opt = (v, cur, l) => `<option value="${v}"${v === cur ? " selected" : ""}>${l}</option>`;
   box.innerHTML = `
-    <p class="note" style="margin:0 0 12px">The ads each brand is running now, in Meta's and Google's own public libraries, for the UK. Each link opens the
-      library already searched for that brand.</p>
-    <div class="controls"><select id="ad-line" aria-label="Brand"><option value="">All brands</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
-    <div class="tablewrap"><table class="ptable"><thead><tr><th>Brand</th><th>Facebook and Instagram</th><th>Google (Search, YouTube, display)</th></tr></thead><tbody>
-      ${BRANDS.filter(([k]) => pickLine(k)).map(([k, n, d]) => `<tr><td><b>${esc(n)}</b></td>
-        <td><a href="${esc(metaLib(n))}" target="_blank" rel="noopener noreferrer">Meta Ad Library</a></td>
-        <td><a href="${esc(googleAds(d))}" target="_blank" rel="noopener noreferrer">Ads Transparency Center</a> <span class="sub">${esc(d)}</span></td></tr>`).join("")}
+    <p class="note" style="margin:0 0 12px">${M ? `Their live Facebook and Instagram ads in the UK, from Meta's Ad Library (read ${esc(M.read_on ? day(M.read_on) : "–")}). Ads with the same wording are grouped; "View ad" opens each in Meta's library, with its picture or video.`
+      : `Their ads in Meta's and Google's own public libraries, for the UK. Facebook and Instagram ads appear here too once the Meta Ad Library token is added (CLAUDE.md, "Competitor ads").`}</p>
+    <div class="controls">
+      <select id="ad-line" aria-label="Brand"><option value="">All brands</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      ${M ? `<input type="search" id="ad-q" placeholder="Search the ads' words" value="${esc(adSt.q)}" aria-label="Search the ads">
+      <select id="ad-live" aria-label="Live or ended">${opt("live", adSt.live, "Running now")}${opt("ended", adSt.live, "Ended in the last 30 days")}</select>
+      <select id="ad-when" aria-label="Started">${opt("", adSt.when, "Started any time")}${opt("7", adSt.when, "Started in the last 7 days")}${opt("30", adSt.when, "Started in the last 30 days")}</select>
+      <button type="button" class="linkbtn" id="ad-csv">Download CSV</button>` : ""}
+    </div>
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Brand</th>${M ? `<th class="num">Live UK ads</th><th class="num">New, 7 days</th><th class="num">Ended, 7 days</th><th class="num">Longest running</th>` : ""}<th>Facebook and Instagram</th><th>Google (Search, YouTube, display)</th></tr></thead><tbody>
+      ${BRANDS.filter(([k]) => pickLine(k)).map(brandRow).join("")}
     </tbody></table></div>
-    <p class="note">Meta searches by name: pick the brand's own page in its results (it then lists only that page's ads). Google's centre lists
-      the advertiser behind the domain; Marella's Google ads are under TUI's. Links only: nothing is read from these libraries.</p>`;
-  box.querySelector("#ad-line").addEventListener("change", e => { st.line = e.target.value; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(x){} renderAds(box); });
+    <p class="note">The library links open each brand already searched: on Meta pick the brand's own page in its results; Marella's Google ads are under TUI's domain.
+      ${M && (M.problems || []).length ? `<br><b>Last read:</b> ${esc(M.problems.join("; "))}` : ""}</p>
+    ${M ? `<h3 style="margin:20px 0 8px;font-size:15px">${adSt.live === "live" ? "Running now" : "Ended in the last 30 days"} <span class="sub">(${list.length} ad${list.length === 1 ? "" : "s"}, ${G.length} different)</span></h3>
+      ${G.length ? `<div class="ma-grid">${G.slice(0, adShown).map(card).join("")}</div>
+        ${G.length > adShown ? `<p class="note">Showing ${adShown} of ${G.length}. <button type="button" class="linkbtn" id="ad-more">Show more</button></p>` : ""}`
+      : `<div class="empty"><p>No ads match.</p></div>`}` : ""}`;
+  const rerender = () => renderAds(box);
+  box.querySelector("#ad-line").addEventListener("change", e => { st.line = e.target.value; adShown = 40; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(x){} rerender(); });
+  const q = box.querySelector("#ad-q");
+  q && q.addEventListener("input", () => { adSt.q = q.value; clearTimeout(q._t); q._t = setTimeout(() => { rerender(); const n = box.querySelector("#ad-q"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
+  box.querySelector("#ad-live") && box.querySelector("#ad-live").addEventListener("change", e => { adSt.live = e.target.value; adShown = 40; rerender(); });
+  box.querySelector("#ad-when") && box.querySelector("#ad-when").addEventListener("change", e => { adSt.when = e.target.value; adShown = 40; rerender(); });
+  box.querySelector("#ad-more") && box.querySelector("#ad-more").addEventListener("click", () => { adShown += 40; rerender(); });
+  box.querySelectorAll(".ma-b").forEach(b => b.addEventListener("click", () => b.classList.toggle("open")));
+  box.querySelector("#ad-csv") && box.querySelector("#ad-csv").addEventListener("click", () =>
+    csvDownload(`competitor-ads-${new Date().toISOString().slice(0, 10)}.csv`, ["Brand", "Page", "Started", "Ended", "Days running", "Headline", "Text", "Description", "Platforms", "View ad"],
+      list.map(a => [brandName(a.brand), a.page, a.start, a.ended || "", a.ended ? "" : daysSince(a.start), (a.title || [])[0] || "", (a.body || [])[0] || "", (a.desc || [])[0] || "", (a.platforms || []).join("; "), adLink(a.id)])));
 }
 
 const PAGES = {prices: renderPrices, offers: renderOffers, vs: renderVs, ads: renderAds};

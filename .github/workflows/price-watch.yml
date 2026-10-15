@@ -98,6 +98,16 @@ jobs:
           npm install -g @anthropic-ai/claude-code@2.1.296 --no-audit --no-fund
           python offers_inbox.py extract
 
+      # Competitors' live Facebook/Instagram ads in the UK from Meta's Ad Library API (Sam, 15 Oct 2026), once a UK day;
+      # skipped until the META_AD_LIBRARY_TOKEN secret exists. See meta_ads.py.
+      - name: Competitor ads (Meta Ad Library)
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          META_AD_LIBRARY_TOKEN: ${{ secrets.META_AD_LIBRARY_TOKEN }}
+          META_API_VERSION: ${{ vars.META_API_VERSION }}
+        run: python meta_ads.py
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms
@@ -261,6 +271,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: .github/issue.sh "Was/now cards withdrawn — $(TZ=Europe/London date +%F)" out/wasnow_ended.md
+
+      - name: Open issue if the Meta ad library token needs renewing
+        if: always() && hashFiles('out/meta_ads_problem.md') != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .github/issue.sh "Competitor ads: Meta token needs renewing" out/meta_ads_problem.md
 
       - name: Open issue if cards failed
         if: steps.cardrun.outcome == 'failure'
