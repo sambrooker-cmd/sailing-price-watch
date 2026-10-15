@@ -271,6 +271,22 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
 - **Their live ads** (own menu page **Competitors → Competitor ads** since 15 Oct 2026, Sam; `renderAds`, needs no price data; Competitor offers points to it): per brand (P&O, Princess, Cunard, Marella, Saga, Fred. Olsen, MSC, Royal Caribbean, Celebrity;
   `BRANDS` in `site/competitors.js`) links to the Meta Ad Library (name search, UK) and Google's Ads Transparency
   Center (by domain, UK). Links only: nothing is read from those pages.
+- **Facebook and Instagram ads from Meta's Ad Library API** (`meta_ads.py`, Sam, 15 Oct 2026: "grab them from ad libraries";
+  Sam set up a Meta developer account; checked 15 Oct 2026: the API returns all kinds of ads shown in the UK and EU, kept a
+  year after they stop; no pictures/videos: downloading them from the library's pages would be collecting from the site,
+  which Meta's terms forbid). Hourly workflow step "Competitor ads (Meta Ad Library)", once a UK day (`read_on`; `--force`),
+  `continue-on-error`: each brand's own Facebook page(s) found by a name search whose page name must match in full
+  (`BRANDS`, e.g. `^P&O Cruises( UK)?$`, so fan and agent pages are left out; re-found weekly; `meta_pages.json`
+  {"<brand>": ["<page id>"]} fixes them by hand), then every ACTIVE ad they've shown in the UK (`ad_reached_countries` GB,
+  100 a request, at most `MAX_CALLS` = 120 a run): page, start/stop, words (body cut to 600, headline, description),
+  platforms; an ad no longer active → `ended`; ended ads dropped after `KEEP_DAYS` = 120. → `state/competitors/meta_ads.json`
+  → `publish.py` `pricewatch/comp-meta` (summary) + `comp-meta-<brand>`. The token is repo secret `META_AD_LIBRARY_TOKEN`
+  (Graph API Explorer → Generate Access Token → Access Token Debugger → Extend: ~60 days); `ad_snapshot_url` carries the
+  token, so it is never requested or stored ("View ad" = facebook.com/ads/library/?id=<id>). Rejected token or refused
+  access → `out/meta_ads_problem.md` → "Competitor ads: Meta token needs renewing" issue with the fix. Optional repo variable
+  `META_API_VERSION` (e.g. v23.0; empty = the app's default). Page **Competitor ads**: per brand live UK ads, new and ended
+  in 7 days, longest running, library links; ads grouped where the wording is the same ("N versions", View ad 1–3),
+  filters (brand, words, running now / ended in 30 days, started in 7/30 days), CSV. Tested 15 Oct 2026 against a fake API.
 - **From their newsletters** (`offers_inbox.py`): a team mailbox signed up by hand to the brands' marketing emails
   (receiving emails the brands send us is not covered by their website terms). Hourly workflow step "Competitor
   newsletters" (`fetch`): IMAP over SSL, inbox opened **read-only** (EXAMINE, `BODY.PEEK`: nothing marked read, moved
