@@ -608,6 +608,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="comp-offers"><p class="loading">Loading competitor offers…</p></div>
   </section>
 
+  <section aria-labelledby="h-compemails">
+    <h2 id="h-compemails"><span class="mini amber"></span>Competitor emails</h2>
+    <div id="comp-emails"><p class="loading">Loading competitor emails…</p></div>
+  </section>
+
   <section aria-labelledby="h-compvs">
     <h2 id="h-compvs"><span class="mini"></span>Ambassador vs competitors</h2>
     <div id="comp-vs"><p class="loading">Loading…</p></div>
@@ -2025,6 +2030,7 @@ const auth = getAuth(firebaseApp);
     promos: '<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
     comp: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 4l-5 4-5-3-5 4"/>',
     compoffers: '<path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/>',
+    compemails: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/>',
     compvs: '<path d="M4 6h7M4 12h5M4 18h7M20 6h-5M20 12h-7M20 18h-5"/><path d="M12 3v18"/>',
     coverage: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
     feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
@@ -2045,7 +2051,7 @@ const auth = getAuth(firebaseApp);
   // France (stage 2, 14 Oct 2026): Cards and the Ad creator in French; Google Ads and email pages follow in stage 3
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
-  const FR_HIDE = ["rules", "comp", "compoffers", "compvs"];
+  const FR_HIDE = ["rules", "comp", "compoffers", "compemails", "compvs"];
   const COMP = {comp: "prices", compoffers: "offers", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2059,6 +2065,7 @@ const auth = getAuth(firebaseApp);
     // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; UK only)
     ["comp", "Competitor prices", ["h-comp"], "Competitors"],
     ["compoffers", "Competitor offers", ["h-compoffers"], "Competitors"],
+    ["compemails", "Competitor emails", ["h-compemails"], "Competitors"],   // the email library (Sam, 15 Oct 2026)
     ["compvs", "Vs Ambassador", ["h-compvs"], "Competitors"],
     ["cards", "Cards", ["h-cards"], "Creative"],
     ["ads", "Ad creator", ["h-ads"], "Creative"],
@@ -2100,6 +2107,7 @@ const auth = getAuth(firebaseApp);
     if (v === "ecards") mountEcards();
     if (v === "gads") mountGads();
     if (COMP[v]) mountComp(v);
+    if (v === "compemails") mountCompEmails();
     if (scroll) window.scrollTo({top: 0});
     renderTrends();
     const b = document.querySelector(`#sidenav button[data-view="${v}"]`);
@@ -2209,6 +2217,15 @@ const auth = getAuth(firebaseApp);
       await compModule.mount(box, {state, cabins, readJson, esc}, COMP[v]);
     } catch (e) { box.innerHTML = `<p class="err">The competitors page couldn't load: ${esc(e.message)}</p>`; }
   }
+  // Competitor emails (site/compemails.js): the library of the competitors' marketing emails
+  let ceModule = null;
+  async function mountCompEmails(){
+    if (!state || FR) return;
+    try {
+      ceModule = ceModule || await import("./compemails.js?v=__BUILD__");
+      await ceModule.mount($("comp-emails"), {readJson, esc});
+    } catch (e) { $("comp-emails").innerHTML = `<p class="err">The email library couldn't load: ${esc(e.message)}</p>`; }
+  }
   let ecardsMounted = false, ecardsModule = null;
   async function mountEcards(){
     if (!state || ecardsMounted) return;
@@ -2295,6 +2312,7 @@ const auth = getAuth(firebaseApp);
     if (view === "email") mountEmail();
     if (view === "ecards") mountEcards();
     if (COMP[view]) mountComp(view);
+    if (view === "compemails") mountCompEmails();
     if (view === "gads") mountGads();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));

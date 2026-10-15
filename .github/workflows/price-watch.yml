@@ -129,7 +129,7 @@ jobs:
         run: python cards_sync.py plan --market fr
 
       - name: Install the card renderer
-        if: always() && ((steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0') || (steps.frcards.outputs.todo != '' && steps.frcards.outputs.todo != '0'))
+        if: always() && ((steps.cards.outputs.todo != '' && steps.cards.outputs.todo != '0') || (steps.frcards.outputs.todo != '' && steps.frcards.outputs.todo != '0') || (steps.inbox.outputs.unarchived != '' && steps.inbox.outputs.unarchived != '0'))
         continue-on-error: true
         run: |
           pip install playwright==1.56.0
@@ -155,6 +155,21 @@ jobs:
         run: |
           pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
           python cards_sync.py run --market fr
+
+      # The email library (Sam, 15 Oct 2026): each new competitor email, made safe to view, and a thumbnail of it go to
+      # Storage for the Competitors → Competitor emails page; emails older than two years are deleted. See offers_inbox.py.
+      - name: Add new emails to the email library
+        if: always() && steps.inbox.outputs.unarchived != '' && steps.inbox.outputs.unarchived != '0'
+        continue-on-error: true
+        timeout-minutes: 20
+        env:
+          OFFERS_IMAP_USER: ${{ secrets.OFFERS_IMAP_USER }}
+          OFFERS_IMAP_PASSWORD: ${{ secrets.OFFERS_IMAP_PASSWORD }}
+          OFFERS_IMAP_HOST: ${{ vars.OFFERS_IMAP_HOST }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
+          python offers_inbox.py archive
 
       # Claude Code looks over new or remade cards and lists any that need a person's eye (Sam, 12 Oct 2026).
       # Runs on Sam's Claude plan (CLAUDE_CODE_OAUTH_TOKEN, from `claude setup-token`), not a paid API key;

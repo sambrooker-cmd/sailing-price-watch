@@ -282,6 +282,25 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
   app password; spaces are removed), and repo variable `OFFERS_IMAP_HOST` only if not Gmail (default
   `imap.gmail.com`). Then sign it up on each brand's website. Until the secrets exist the step is skipped and the page
   says the inbox isn't set up. Repo variable `OFFERS_CLAUDE` = `off` keeps the rules only (no plan usage).
+  Set up by Sam, 15 Oct 2026 (Gmail with an app password; signed up to all nine brands).
+- **Competitor emails: the email library** (Sam, 15 Oct 2026: "a library of competitor emails to be able to view,
+  filter, compare etc for the email team"; menu Competitors → Competitor emails, `site/compemails.js`, UK only, everyone
+  on the allowlist). Workflow step "Add new emails to the email library" (`offers_inbox.py archive`, after the card
+  steps, sharing their browser install; `continue-on-error`) reads each new email again (read-only, by IMAP UID, else
+  Message-ID), makes it safe (`safe_html`: scripts, frames, forms, event handlers, javascript: links, refresh/base
+  tags and 1 px tracking pixels removed; unsubscribe/preference links switched off, `data-spw-off`) and uploads it with
+  a thumbnail (top 1,400 px at half size, JPEG) to Storage `pricewatch-emails/<YYYY-MM>/<id>.html` / `_thumb.jpg`
+  (~100 KB an email; free allowance). Pictures inside the emails stay on the brands' servers (copying them would pass
+  the free allowance). Kept `LIBRARY_DAYS` = 730 (text only `KEEP_DAYS` = 90), then deleted with their files; at most
+  `ARCHIVE_PER_RUN` = 40 a check, 3 tries each. Claude's answer (same call as the offers) also gives `kind` (`KINDS`),
+  `summary`, `headline`, `cta`, `destinations`, `from_price` (kept only if the email quotes that £ figure:
+  `checked_meta`); without Claude `rule_meta` (`DEST` regions). → `publish.py` `pricewatch/comp-emails-YYYY-MM-1/-2`
+  (`LIBRARY_FIELDS`, rewritten only when changed; listed in `comp-inbox` `parts`). Page: filters (words, brand, type,
+  destination, offers, period up to 2 years, sort, remembered `spw-comp-emails`), "How each brand sends" (emails, a
+  week, % with an offer, Mon–Sun counts, usual UK send time, mostly which types, latest), pictures or list, the viewer
+  (the email in a sandboxed frame without scripts and a CSP allowing only pictures/styles/fonts, Desktop 680 / Phone
+  390, previous/next, details, links, View in browser), Compare (2–4 side by side, scaled, with a row-by-row table),
+  CSV. Tested 15 Oct 2026 with fake mailbox data (nothing published).
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
