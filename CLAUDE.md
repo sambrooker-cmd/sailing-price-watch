@@ -324,6 +324,24 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
   390, previous/next, details, links, View in browser), Compare (2–4 side by side, scaled, with a row-by-row table),
   CSV. Tested 15 Oct 2026 with fake mailbox data (nothing published).
 
+## Speed and growth (15 Oct 2026, Sam: "sometimes gets stuck on a loading screen or takes ages… future proof it")
+Measured: drawing is fast (0.6 s first render, every page under 0.5 s with the data in hand); the waits were the network.
+- **Saved lists no longer block pages**: the Ad creator, Email creator and Email cards waited for the `saved` function
+  (a cold start after a quiet spell takes seconds; no time limit, so a hang meant "Loading…" for good). `saved.js`
+  `sharedStore().load()` now runs in the background with `TIMEOUT_MS` = 12 s; the page draws at once with "Loading saved
+  …" in the saved bar; save/rename/delete wait for it (`ready`), so nothing is saved to the browser by mistake.
+- **Functions**: `maxInstances` 2 → 10 (at 256 MiB a copy answers one request at a time; copies cost nothing idle; the
+  daily limits still cap use).
+- **Documents never outgrow Firestore**: `publish.py` `split()` moves the biggest dict/list of any document over
+  `SPLIT_AT` = 600 KB into parts `<name>~1…` (`{"_split": [...]}` in its place; unchanged parts not rewritten);
+  `index.html` `readJson` reassembles, so every page (and make_video.py's stand-in page) reads them as before.
+  current.json grows ~7 KB a day (would have hit the 1 MiB limit, and stopped publishing, in about 3 months); comp-po
+  grows as P&O sailings are found.
+- **Start-up**: after 15 s still "Loading the latest prices…", the gate says so (slow connection, VPN or work network
+  filter) with a Reload button.
+Not done (options): caching the data in the browser between visits; keeping a function copy always warm (costs a few
+pounds a month).
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute

@@ -56,12 +56,14 @@ export async function mount(el, ctx){
   // Trustpilot widget: Trustpilot's own artwork in site/trustpilot/, listed in widget.json
   // {"as_of": "YYYY-MM-DD", "images": [{"file", "label"}]}. Until it exists the tick box is shown but off. (Not for France.)
   if (!FR) try { const r = await fetch("trustpilot/widget.json", {cache: "no-store"}); if (r.ok) TP = await r.json(); } catch(e){}
-  store = await sharedStore({kind: "ad", localKey: DRAFTS, field: "ad", idToken: ID}).load();
+  // The saved list loads in the background (it can take a few seconds when its function has been idle): the page
+  // draws at once and the saved bar says "Loading saved ads…" until it arrives (15 Oct 2026)
+  store = sharedStore({kind: "ad", localKey: DRAFTS, field: "ad", idToken: ID});
+  store.load().then(() => { if (draftId && !store.all()[draftId]) { draftId = null; save(); } draw(); });
   // The ad left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026: a card whose
   // claim had ended was switched to standard without a word)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.cards)) { const n = normalise(d); ad = n.ad; draftId = d._draft || null;
     if (n.msgs.length) { note = `Since this ad was last open: ${n.msgs.join(". ")}.`; save(); } } } catch(e){}
-  if (draftId && !store.all()[draftId]) draftId = null;   // saved in this browser before, or deleted since
   if (ctx.shared) await openShared(ctx.shared); else draw();
   if (ctx.add) addSailing(ctx.add);
   loadVideos();
@@ -379,6 +381,7 @@ function setStrip(c, k, on){
 }
 
 function draftsBlock(){
+  if (!store || store.loading) return `<div class="ac-block"><p class="sub" style="margin:0">Loading saved ads…</p></div>`;
   const all = drafts(), ids = Object.keys(all);
   const cur = draftId && all[draftId], mine = cur && store.mine(draftId), oldHere = Object.keys(store ? store.localOnly() : {}).length;
   return `<div class="ac-block">

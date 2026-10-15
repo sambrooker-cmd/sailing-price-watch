@@ -87,11 +87,13 @@ export async function mount(el, ctx){
   const sym = document.getElementById("amb-logo");
   if (FR) LOGO_SVG = await (await fetch("logo-fr.svg")).text();   // the colour Ambassador Croisières logo
   else if (sym) LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${sym.getAttribute("viewBox")}" style="--lp:${COL.allium};--lc:#009165">${sym.innerHTML}</svg>`;
-  store = await sharedStore({kind: "email", localKey: DRAFTS, field: "email", idToken: ID}).load();
+  // The saved list loads in the background (it can take a few seconds when its function has been idle): the page
+  // draws at once and the saved bar says "Loading saved emails…" until it arrives (15 Oct 2026)
+  store = sharedStore({kind: "email", localKey: DRAFTS, field: "email", idToken: ID});
+  store.load().then(() => { if (draftId && !store.all()[draftId]) { draftId = null; save(); } draw(); });
   // The email left open in this browser is brought up to date too, and says so (was/now rehearsal, 14 Oct 2026)
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.items)) { const n = normalise(d); em = n.em; draftId = d._draft || null;
     if (n.msgs.length) { note = esc(`Since this email was last open: ${n.msgs.join(". ")}.`); save(); } } } catch(e){}
-  if (draftId && !store.all()[draftId]) draftId = null;
   if (ctx.shared) await openShared(ctx.shared); else draw();
 }
 
@@ -144,6 +146,7 @@ async function saveDraft(asNew){
   save(); draw();
 }
 function draftsBlock(){
+  if (!store || store.loading) return `<div class="ac-block"><p class="sub" style="margin:0">Loading saved emails…</p></div>`;
   const all = drafts(), ids = Object.keys(all);
   const cur = draftId && all[draftId], mine = cur && store.mine(draftId), oldHere = Object.keys(store ? store.localOnly() : {}).length;
   return `<div class="ac-block">

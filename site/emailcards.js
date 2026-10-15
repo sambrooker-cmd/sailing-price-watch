@@ -47,7 +47,10 @@ export async function mount(el, ctx){
   if (FR) { KEY = "spw-email-cards-fr"; GRADES = GRADES_FR; }
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};   // index.html passes the sailings map
   T = ctx.terms || null;   // promotion T&Cs read from the website (terms.py)
-  store = await sharedStore({kind: "ecards", localKey: DRAFTS, field: "cards", idToken: ID}).load();
+  // The saved list loads in the background (it can take a few seconds when its function has been idle): the page
+  // draws at once and the saved bar says "Loading saved card sets…" until it arrives (15 Oct 2026)
+  store = sharedStore({kind: "ecards", localKey: DRAFTS, field: "cards", idToken: ID});
+  store.load().then(() => { if (draftId && !store.all()[draftId]) { draftId = null; save(); } draw(); });
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || "null");
     if (d && Array.isArray(d.items)) {
@@ -55,7 +58,6 @@ export async function mount(el, ctx){
       if (n.msgs.length) { note = esc(`Since these cards were last open: ${n.msgs.join("; ")}.`); save(); }
     }
   } catch(e){}
-  if (draftId && !drafts()[draftId]) draftId = null;
   draw();
   if (ctx.add) addSailing(ctx.add);
 }
@@ -111,6 +113,7 @@ async function saveDraft(asNew){
   save(); draw();
 }
 function draftsBlock(){
+  if (!store || store.loading) return `<div class="ac-block"><p class="sub" style="margin:0">Loading saved card sets…</p></div>`;
   const all = drafts(), ids = Object.keys(all);
   const cur = draftId && all[draftId], mine = cur && store.mine(draftId), oldHere = Object.keys(store ? store.localOnly() : {}).length;
   const stale = ids.filter(id => normalise(all[id].cards).issues.length).length;

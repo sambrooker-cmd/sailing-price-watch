@@ -190,14 +190,44 @@ def documents():
         docs["comp-inbox"] = {"fetched_at": i.get("fetched_at"), "parts": sorted(lib, reverse=True), "emails": [
             {k: e.get(k) for k in ("line", "brand", "subject", "preheader", "date", "view", "promotion", "offers", "by")}
             | {"links": (e.get("links") or [])[:6]} for e in recent][:400]}
+    docs = {k: v for name, data in docs.items() for k, v in split(name, data).items()}
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         if len(s.encode()) > MAX_BYTES:
             raise SystemExit(f"pricewatch/{name} is {len(s.encode()):,} bytes, too close to Firestore's 1 MiB limit")
         out[name] = {"json": s, "updated": (data.get("updated") if name in ("fr-current", "fr-cabins") else None) or cur.get("updated", "")}
-        if name.startswith(("runs-", "fr-runs-", "comp-emails-")):
+        if name.startswith(("runs-", "fr-runs-", "comp-emails-")) or "~" in name:
             out[name]["sha"] = hashlib.sha256(s.encode()).hexdigest()
+    return out
+
+
+SPLIT_AT = 600_000   # documents bigger than this are split (15 Oct 2026: current.json grows ~7 KB a day)
+
+
+def split(name, data):
+    """{name: data} or, for a document over SPLIT_AT, the document with its biggest dict or list moved into parts
+    "<name>~1", "<name>~2", … ({"_split": [part names]} in its place). index.html readJson puts it back together,
+    so every page reads it as before, however long the history grows (Firestore's limit is 1 MiB a document)."""
+    size = lambda x: len(json.dumps(x, ensure_ascii=False, separators=(",", ":")).encode())
+    if not isinstance(data, dict) or size(data) <= SPLIT_AT:
+        return {name: data}
+    key = max((k for k, v in data.items() if isinstance(v, (dict, list)) and v), key=lambda k: size(data[k]), default=None)
+    if key is None:
+        return {name: data}
+    items = list(data[key].items()) if isinstance(data[key], dict) else list(data[key])
+    parts, cur, n = [], [], 0
+    for it in items:
+        b = size(it)
+        if cur and n + b > SPLIT_AT * 0.8:
+            parts.append(cur); cur, n = [], 0
+        cur.append(it); n += b
+    if cur:
+        parts.append(cur)
+    names = [f"{name}~{i + 1}" for i in range(len(parts))]
+    out = {name: {**data, key: {"_split": names}}}
+    for nm, chunk in zip(names, parts):
+        out[nm] = {"part": dict(chunk) if isinstance(data[key], dict) else chunk}
     return out
 
 

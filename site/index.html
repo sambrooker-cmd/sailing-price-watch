@@ -2272,15 +2272,34 @@ const auth = getAuth(firebaseApp);
     } catch (e) { emailMounted = false; $("emailc").innerHTML = `<p class="err">The email creator couldn't load: ${esc(e.message)}</p>`; }
   }
 
-  const readJson = async name => {
+  const readOne = async name => {
     const snap = await getDoc(doc(fdb, "pricewatch", name));
     if (!snap.exists()) throw Object.assign(new Error("missing " + name), {code: "missing"});
     return JSON.parse(snap.data().json);
+  };
+  // A document too big for one Firestore document is published in parts (publish.py split, 15 Oct 2026):
+  // {"_split": ["<name>~1", …]} in place of its biggest dict or list; the parts are read together and put back.
+  const readJson = async name => {
+    const d = await readOne(name);
+    if (d && typeof d === "object") for (const [k, v] of Object.entries(d)) {
+      if (v && Array.isArray(v._split)) {
+        const parts = (await Promise.all(v._split.map(readOne))).map(x => x.part);
+        d[k] = Array.isArray(parts[0]) ? parts.flat() : Object.assign({}, ...parts);
+      }
+    }
+    return d;
   };
 
   onAuthStateChanged(auth, async user => {
     if (!user) { gate("Sign in with the Google account you use for the Digital Team Planner.", {signin: true}); return; }
     gate("Loading the latest prices…");
+    // A slow or blocked connection used to leave a silent "Loading…" (15 Oct 2026): after 15 s say so, with a Reload button
+    const slow = setTimeout(() => {
+      if ($("gate").hidden || $("gate-slow") || $("gate-msg").textContent !== "Loading the latest prices…") return;
+      $("gate").insertAdjacentHTML("beforeend", `<p class="note" id="gate-slow">This is taking longer than usual. A slow connection, a VPN or a work network
+        filter can hold it up. <button type="button" class="btn quiet" id="gate-reload">Reload</button></p>`);
+      $("gate-reload").addEventListener("click", () => location.reload());
+    }, 15000);
     let allowed;
     try { allowed = (await getDoc(doc(fdb, "allowlist", user.email))).exists(); }
     catch (e) { gate(`Couldn't check access: ${e.message}`, {signout: true}); return; }
@@ -2311,6 +2330,7 @@ const auth = getAuth(firebaseApp);
            `The price data couldn't load: ${e.message}`, {signout: true});
       return;
     }
+    clearTimeout(slow);
     $("gate").hidden = true; $("app").hidden = false;
     applyAccess(user.email);
     render();
