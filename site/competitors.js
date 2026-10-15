@@ -208,15 +208,9 @@ function renderOffers(box){
   box.innerHTML = `
     <div class="controls"><select id="of-line" aria-label="Brand"><option value="">All brands</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
 
-    <h3 style="margin:6px 0 8px;font-size:15px">Their live ads</h3>
-    <div class="tablewrap"><table class="ptable"><thead><tr><th>Brand</th><th>Facebook and Instagram</th><th>Google (Search, YouTube, display)</th></tr></thead><tbody>
-      ${BRANDS.filter(([k]) => pickLine(k)).map(([k, n, d]) => `<tr><td><b>${esc(n)}</b></td>
-        <td><a href="${esc(metaLib(n))}" target="_blank" rel="noopener noreferrer">Meta Ad Library</a></td>
-        <td><a href="${esc(googleAds(d))}" target="_blank" rel="noopener noreferrer">Ads Transparency Center</a> <span class="sub">${esc(d)}</span></td></tr>`).join("")}
-    </tbody></table></div>
-    <p class="note">The ads each brand is running now, in Meta's and Google's own public libraries (UK). Meta searches by name: pick the brand's own page in its results. Marella's Google ads are under TUI's domain. Links only: nothing is read from these pages.</p>
+    <p class="note" style="margin:0 0 6px">Their live ads in Meta's and Google's own libraries are on <b>Competitor ads</b>.</p>
 
-    <h3 style="margin:22px 0 8px;font-size:15px">From their newsletters</h3>
+    <h3 style="margin:14px 0 8px;font-size:15px">From their newsletters</h3>
     ${inboxHtml}
     <p class="note">The brands' own marketing emails to a team mailbox, read every hour. Offers are picked out of each email (by Claude, or by simple rules marked "check"); "View email" opens the brand's own web version and "Offer page" the link from the email.</p>
 
@@ -300,12 +294,32 @@ function renderVs(box){
     matched.map(({r, p, pn, m, d}) => [lineName(r.line), r.title, r.ship, r.departure_date, r.nights, p.p, Math.round(pn), m.best.title, m.best.id, m.best.date, m.best.nights, m.best.pr[occ][st.cabin], Math.round(m.pn), d, r.url])));
 }
 
-const PAGES = {prices: renderPrices, offers: renderOffers, vs: renderVs};
+// Competitor ads (Sam, 15 Oct 2026: "give the competitor live ads section its own view in the nav"): each brand's ads
+// in Meta's Ad Library and Google's Ads Transparency Center (UK). Links only: Meta's terms forbid collecting from the
+// Ad Library by machine, its API only covers ads shown in the EU and political ads, and Google's centre has no API.
+function renderAds(box){
+  const pickLine = k => !st.line || k === st.line;
+  box.innerHTML = `
+    <p class="note" style="margin:0 0 12px">The ads each brand is running now, in Meta's and Google's own public libraries, for the UK. Each link opens the
+      library already searched for that brand.</p>
+    <div class="controls"><select id="ad-line" aria-label="Brand"><option value="">All brands</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Brand</th><th>Facebook and Instagram</th><th>Google (Search, YouTube, display)</th></tr></thead><tbody>
+      ${BRANDS.filter(([k]) => pickLine(k)).map(([k, n, d]) => `<tr><td><b>${esc(n)}</b></td>
+        <td><a href="${esc(metaLib(n))}" target="_blank" rel="noopener noreferrer">Meta Ad Library</a></td>
+        <td><a href="${esc(googleAds(d))}" target="_blank" rel="noopener noreferrer">Ads Transparency Center</a> <span class="sub">${esc(d)}</span></td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="note">Meta searches by name: pick the brand's own page in its results (it then lists only that page's ads). Google's centre lists
+      the advertiser behind the domain; Marella's Google ads are under TUI's. Links only: nothing is read from these libraries.</p>`;
+  box.querySelector("#ad-line").addEventListener("change", e => { st.line = e.target.value; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(x){} renderAds(box); });
+}
 
-// mount(box, ctx, page): page = "prices" | "offers" | "vs"; the data is read once and shared by the three pages
+const PAGES = {prices: renderPrices, offers: renderOffers, vs: renderVs, ads: renderAds};
+
+// mount(box, ctx, page): page = "prices" | "offers" | "vs" | "ads"; the data is read once and shared by the pages
 export async function mount(box, c, page){
   ctx = c; esc = c.esc;
   try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch(e){}
+  if (page === "ads") return renderAds(box);   // links only: needs none of the price data
   if (!C){
     box.innerHTML = `<p class="loading">Loading competitor prices…</p>`;
     // comp-current holds the list of per-line parts (comp-po, comp-cunard, …) with the sailings
