@@ -299,6 +299,8 @@ function bookingLink(it){
 function words(it){
   const s = sailing(it.id), f = fareOf(it);
   return {title: s.title.toUpperCase(), date: FR ? frDate(s.r.departure_date) : longDate(s.r.departure_date),
+          // Cruise code under the ship (Sam, 15 Oct 2026: "add the cruise code to the email cards… just as text"; on the card itself)
+          code: FR ? `Code croisière ${it.id}` : `Cruise code ${it.id}`,
           nights: FR ? `${s.r.nights} nuits au départ de ${String(s.r.port || "").split(",")[0].trim()}` : `${s.r.nights} nights departing ${s.fly ? s.fly + " Airport" : s.r.port}`, ship: s.r.ship,
           button: f.label || (FR ? `À partir de ${money(s.price)}/pers.` : `From ${money(s.price)}pp`), link: it.linkTo === "booking" ? bookingLink(it) : pageLink(it),
           pageLink: pageLink(it), bookingLink: bookingLink(it), basis: f.basis,
@@ -366,12 +368,13 @@ async function renderCard(it, size){
     img{display:block;width:${c.w}px;height:auto}
     .t{margin:14px 0 10px;font-weight:700;font-size:${c.title}px;line-height:1.3;color:#6B207D;text-transform:uppercase}
     .d{margin:0 0 16px;font-size:14px;line-height:1.45}
+    .k{font-size:12px;color:#5E5465}
     .b{display:inline-block;background:#6B207D;color:#fff;font-size:15px;padding:10px 16px;border-radius:6px}</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"><\/script>
     <script>window.ready=async()=>{await document.fonts.ready;await Promise.all([...document.images].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r;})));};
     window.toPng=()=>htmlToImage.toPng(document.getElementById('card'),{pixelRatio:${c.scale},cacheBust:false,backgroundColor:'#F1ECE7'});<\/script></head>
     <body><div id="card"><img src="${pic}" alt=""><p class="t">${esc(w.title)}</p>
-    <p class="d">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}</p>${wasLine(w, "d", "margin:0 0 8px")}<span class="b">${esc(w.button)}</span></div></body></html>`;
+    <p class="d">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}<br><span class="k">${esc(w.code)}</span></p>${wasLine(w, "d", "margin:0 0 8px")}<span class="b">${esc(w.button)}</span></div></body></html>`;
   if (made.has(doc)) return made.get(doc);
   const f = document.createElement("iframe");
   f.style.cssText = `position:fixed;left:-${c.w + 100}px;top:0;width:${c.w + 8}px;height:900px;border:0`;
@@ -426,7 +429,7 @@ function cardHtml(it, size, url){
 <td align="center" valign="top" style="padding:0 4px 24px;text-align:center">
 <a href="${esc(w.link)}" target="_blank"><img src="${esc(url)}" width="${pw}" alt="${esc(sailing(it.id).title)}" style="display:block;width:${pw}px;max-width:100%;height:auto;border:0"></a>
 <p style="margin:14px 0 10px;font-family:${F};font-weight:700;font-size:${wide ? 16 : 15}px;line-height:1.3;color:#6B207D;text-transform:uppercase">${esc(sailing(it.id).title)}</p>
-<p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:#1B1220">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}</p>
+<p style="margin:0 0 16px;font-family:${F};font-size:14px;line-height:1.45;color:#1B1220">${esc(w.date)}<br>${esc(w.nights)}<br>${esc(w.ship)}<br><span style="font-size:12px;color:#5E5465">${esc(w.code)}</span></p>
 ${wasLine(w, "", `margin:0 0 8px;font-family:${F};font-size:14px;color:#1B1220`)}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr><td bgcolor="#6B207D" style="background:#6B207D;border-radius:6px">
 <a href="${esc(w.link)}" target="_blank" style="display:inline-block;padding:10px 16px;font-family:${F};font-size:15px;color:#ffffff;text-decoration:none;border-radius:6px">${esc(w.button)}</a></td></tr></table>
 </td></tr></table>`;
@@ -483,7 +486,7 @@ function draw(){
         const w = words(x);
         return `<figure class="ec-card${i === sel ? " on" : ""}" data-i="${i}">
           <div class="ec-pics">${outputs().map(o => `<div class="ec-pic ec-${o.split("-")[0]}${o.endsWith("-card") ? " ec-whole" : ""}"><img data-pic="${i}:${o}" alt="${esc(outLabel(o))} for ${esc(w.title)}"></div>`).join("")}</div>
-          ${st.kinds.card ? "" : `<figcaption><b class="ec-t">${esc(w.title)}</b><span>${esc(w.date)}</span><span>${esc(w.nights)}</span><span>${esc(w.ship)}</span>
+          ${st.kinds.card ? "" : `<figcaption><b class="ec-t">${esc(w.title)}</b><span>${esc(w.date)}</span><span>${esc(w.nights)}</span><span>${esc(w.ship)}</span><span class="sub">${esc(w.code)}</span>
             <span class="ec-btn">${esc(w.button)}</span></figcaption>`}
           <div class="ec-acts">
             <div>${outputs().map(o => `<button type="button" class="btn sm" data-dl="${i}:${o}">Download ${esc(outLabel(o).toLowerCase())}</button>`).join("")}</div>
