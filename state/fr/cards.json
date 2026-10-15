@@ -288,6 +288,44 @@
      "flight_from": null,
      "nights": 11,
      "departure_date": "2026-12-07",
+     "price": 989,
+     "promos": [
+      "Formule Plus -50%",
+      "Supplément Solo offert"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/b79960e2-81c7-431a-906a-82374ad96206?width=2000&format=jpg&quality=85",
+     "fp": "fbff5bf75ffa",
+     "made_at": "2026-10-15T15:10:41Z",
+     "reason": "price 989 € → 909 €",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_1x1.jpg?alt=media&token=871ec911-4acc-4850-b31e-899f187defa0",
+       "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_1x1.jpg",
+       "kb": 233
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_4x5.jpg?alt=media&token=8f1ef649-9a4a-4cfa-9073-51ccb4a1ee48",
+       "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_4x5.jpg",
+       "kb": 271
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_9x16.jpg?alt=media&token=314d09aa-138c-47f1-9753-f39f79ce6b9b",
+       "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_9x16.jpg",
+       "kb": 329
+      }
+     },
+     "out_of_date_since": "2026-10-15T16:09:13Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Parfums des Caraïbes",
+     "base_title": "Parfums des Caraïbes",
+     "ship": "Renaissance",
+     "port": "Pointe-à-Pitre, Guadeloupe",
+     "flight_from": null,
+     "nights": 11,
+     "departure_date": "2026-12-07",
      "price": 909,
      "promos": [
       "Formule Plus -50%",
@@ -327,30 +365,30 @@
     "flight_from": null,
     "nights": 11,
     "departure_date": "2026-12-07",
-    "price": 989,
+    "price": 909,
     "promos": [
      "Formule Plus -50%",
      "Supplément Solo offert"
     ],
     "nectar": "",
     "photo": "https://cms.ambassadorcroisieres.fr/assets/b79960e2-81c7-431a-906a-82374ad96206?width=2000&format=jpg&quality=85",
-    "fp": "fbff5bf75ffa",
-    "made_at": "2026-10-15T15:10:41Z",
-    "reason": "price 909 € → 989 €",
+    "fp": "28ba4fcf121b",
+    "made_at": "2026-10-15T16:09:13Z",
+    "reason": "price 989 € → 909 €",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_1x1.jpg?alt=media&token=871ec911-4acc-4850-b31e-899f187defa0",
-      "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_1x1.jpg",
-      "kb": 233
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_1x1.jpg?alt=media&token=5ffa5275-917b-4da5-8379-76f793614b02",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_1x1.jpg",
+      "kb": 232
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_4x5.jpg?alt=media&token=8f1ef649-9a4a-4cfa-9073-51ccb4a1ee48",
-      "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_4x5.jpg?alt=media&token=5e33c6cf-66c8-47c9-9882-45db5258d7b7",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_4x5.jpg",
       "kb": 271
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2Ffbff5bf75ffa_9x16.jpg?alt=media&token=314d09aa-138c-47f1-9753-f39f79ce6b9b",
-      "path": "pricewatch-cards/fr/R261207/fbff5bf75ffa_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR261207%2F28ba4fcf121b_9x16.jpg?alt=media&token=2181aed0-352a-487b-a9e7-7df1ed2a05ae",
+      "path": "pricewatch-cards/fr/R261207/28ba4fcf121b_9x16.jpg",
       "kb": 329
      }
     }
@@ -2830,5 +2868,5 @@
    }
   }
  },
- "updated_at": "2026-10-15T15:10:41Z"
+ "updated_at": "2026-10-15T16:09:13Z"
 }

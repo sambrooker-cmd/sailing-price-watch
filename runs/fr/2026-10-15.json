@@ -48,6 +48,14 @@
    "mix": "ocean_view → inside",
    "claim": null,
    "at": "2026-10-15T15:07:33Z"
+  },
+  {
+   "id": "R261207",
+   "from": 989,
+   "to": 909,
+   "mix": "ocean_view → obstructed",
+   "claim": null,
+   "at": "2026-10-15T16:07:38Z"
   }
  ],
  "rises": [
@@ -124,7 +132,7 @@
    "the page shows from €789 but booking's cheapest is €989"
   ],
   "R261207": [
-   "the page shows from €789 but booking's cheapest is €989"
+   "the page shows from €789 but booking's cheapest is €909"
   ],
   "R261218": [
    "the page shows from €1,029 but booking's cheapest is €1,199"
@@ -177,6 +185,22 @@
    "to": 579,
    "claim": null,
    "at": "2026-10-15T14:07:50Z"
+  },
+  {
+   "id": "R261228",
+   "cabin": "twin.balcony",
+   "from": 3449,
+   "to": 2339,
+   "claim": null,
+   "at": "2026-10-15T16:07:38Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.ocean_view",
+   "from": 3769,
+   "to": 3669,
+   "claim": null,
+   "at": "2026-10-15T16:07:38Z"
   }
  ],
  "cabin_rises": [
@@ -326,6 +350,20 @@
    "from": 579,
    "to": 869,
    "at": "2026-10-15T13:07:47Z"
+  },
+  {
+   "id": "R270208",
+   "cabin": "solo.balcony",
+   "from": 1609,
+   "to": 2429,
+   "at": "2026-10-15T16:07:38Z"
+  },
+  {
+   "id": "R270610",
+   "cabin": "twin.obstructed",
+   "from": 1829,
+   "to": 2189,
+   "at": "2026-10-15T16:07:38Z"
   }
  ],
  "cabin_sold_out": [
@@ -408,6 +446,11 @@
    "id": "R261207",
    "cabin": "twin.obstructed",
    "at": "2026-10-15T15:07:33Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.balcony",
+   "at": "2026-10-15T16:07:38Z"
   }
  ],
  "cabin_back": [
@@ -464,6 +507,12 @@
    "cabin": "twin.inside",
    "p": 1049,
    "at": "2026-10-15T15:07:33Z"
+  },
+  {
+   "id": "R261207",
+   "cabin": "twin.obstructed",
+   "p": 909,
+   "at": "2026-10-15T16:07:38Z"
   }
  ],
  "cabin_eligible": [],
@@ -565,6 +614,7 @@
   "2026-10-15T12:07:53Z",
   "2026-10-15T13:07:47Z",
   "2026-10-15T14:07:50Z",
-  "2026-10-15T15:07:33Z"
+  "2026-10-15T15:07:33Z",
+  "2026-10-15T16:07:38Z"
  ]
 }

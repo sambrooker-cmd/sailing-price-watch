@@ -918,6 +918,43 @@
      "nectar": "Collect up to 30,000 Nectar points",
      "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
      "fp": "e48f1b9c08b2",
+     "made_at": "2026-10-15T14:09:31Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=10751adb-9d48-4cc0-9744-45d4be15df27",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
+       "kb": 287
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=14405791-50b6-4690-a58f-5a9d872e5a86",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
+       "kb": 359
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=5b1e694b-582b-4b00-a2ff-b713d092204a",
+       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
+       "kb": 444
+      }
+     },
+     "out_of_date_since": "2026-10-15T16:09:12Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Delights of Western France & Spain Explorer",
+     "base_title": "Delights of Western France & Spain Explorer",
+     "ship": "Ambition",
+     "port": "Bristol Royal Portbury",
+     "flight_from": null,
+     "nights": 9,
+     "departure_date": "2026-11-02",
+     "price": 1279,
+     "promos": [
+      "Up to £200 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
+     "fp": "e48f1b9c08b2",
      "made_at": "2026-10-15T12:09:33Z",
      "reason": "left the ad feed",
      "files": {
@@ -1420,43 +1457,7 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Delights of Western France & Spain Explorer",
-    "base_title": "Delights of Western France & Spain Explorer",
-    "ship": "Ambition",
-    "port": "Bristol Royal Portbury",
-    "flight_from": null,
-    "nights": 9,
-    "departure_date": "2026-11-02",
-    "price": 1279,
-    "promos": [
-     "Up to £200 Onboard Credit · ends 23 Nov"
-    ],
-    "nectar": "Collect up to 30,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
-    "fp": "e48f1b9c08b2",
-    "made_at": "2026-10-15T14:09:31Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=10751adb-9d48-4cc0-9744-45d4be15df27",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
-      "kb": 287
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=14405791-50b6-4690-a58f-5a9d872e5a86",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
-      "kb": 359
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=5b1e694b-582b-4b00-a2ff-b713d092204a",
-      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
-      "kb": 444
-     }
-    }
-   }
+   ]
   },
   "A22631BR": {
    "old": [
@@ -16046,5 +16047,5 @@
    ]
   }
  },
- "updated_at": "2026-10-15T15:10:35Z"
+ "updated_at": "2026-10-15T16:09:12Z"
 }
