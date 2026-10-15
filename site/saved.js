@@ -85,40 +85,57 @@ export function openSaved(o){
 // the browser's own storage (as before) and says so. Items saved in this browser before can be moved across once.
 // The data is the ad or email itself: no prices (always the latest) and no uploaded photos.
 const SAVED_FN = "https://us-central1-promotions-planner.cloudfunctions.net/saved";
+// Speed (15 Oct 2026): the pages no longer wait for this list before drawing. load() runs in the background with a
+// time limit (TIMEOUT_MS: the function may need a few seconds to start after a quiet spell), `loading` is true until it
+// answers, and save/rename/delete wait for it, so nothing is saved to the browser by mistake while it's still loading.
+const TIMEOUT_MS = 12000;
 export function sharedStore({kind, localKey, field, idToken}){
-  let items = {}, me = "", shared = false, problem = "";
+  let items = {}, me = "", shared = false, problem = "", loading = false, ready = Promise.resolve();
   const local = () => { try { return JSON.parse(localStorage.getItem(localKey) || "{}") || {}; } catch(e) { return {}; } };
   const setLocal = d => { try { localStorage.setItem(localKey, JSON.stringify(d)); return true; } catch(e) { return false; } };
   async function call(method, body){
     const tok = idToken ? await idToken() : "";
-    const r = await fetch(method === "GET" ? `${SAVED_FN}?kind=${kind}` : SAVED_FN, {method,
-      headers: {Authorization: `Bearer ${tok}`, ...(body ? {"Content-Type": "application/json"} : {})}, body: body ? JSON.stringify(body) : undefined});
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    let r;
+    try {
+      r = await fetch(method === "GET" ? `${SAVED_FN}?kind=${kind}` : SAVED_FN, {method, signal: ctl.signal,
+        headers: {Authorization: `Bearer ${tok}`, ...(body ? {"Content-Type": "application/json"} : {})}, body: body ? JSON.stringify(body) : undefined});
+    } catch (e) { throw new Error(e.name === "AbortError" ? "The saved list took too long to answer" : "The saved list can't be reached"); }
+    finally { clearTimeout(t); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(j.error || `The saved list answered ${r.status}`), {status: r.status});
     return j;
   }
   const fromServer = x => { let data = null; try { data = JSON.parse(x.data); } catch(e){} return [x.id, {name: x.name, saved_at: x.saved_at, by: x.by, [field]: data}]; };
   return {
-    get shared(){ return shared; }, get me(){ return me; }, get problem(){ return problem; },
-    all: () => shared ? items : local(),
+    get shared(){ return shared; }, get me(){ return me; }, get problem(){ return problem; }, get loading(){ return loading; },
+    all: () => shared ? items : loading ? {} : local(),
     mine: id => !shared || (items[id] && items[id].by === me),
     localOnly: () => shared ? local() : {},   // saved in this browser before the shared list: offered to move across
-    async load(){
-      try { const j = await call("GET"); me = j.me; items = Object.fromEntries(j.items.map(fromServer).filter(([, v]) => v[field])); shared = true; problem = ""; }
-      catch(e) { shared = false; problem = e.status === 401 || e.status === 403 ? e.message : "The shared saved list can't be reached, so saving uses this browser only for now."; }
-      return this;
+    load(){   // returns a promise; the store can be used (and drawn as "loading") straight away
+      loading = true;
+      ready = (async () => {
+        try { const j = await call("GET"); me = j.me; items = Object.fromEntries(j.items.map(fromServer).filter(([, v]) => v[field])); shared = true; problem = ""; }
+        catch(e) { shared = false; problem = e.status === 401 || e.status === 403 ? e.message : "The shared saved list can't be reached, so saving uses this browser only for now."; }
+        finally { loading = false; }
+        return this;
+      })();
+      return ready;
     },
     async save(id, name, data){   // id null = new; returns the id
+      await ready;
       if (!shared) { const all = local(); id = id || "d" + Date.now().toString(36); all[id] = {name, saved_at: new Date().toISOString(), [field]: data}; if (!setLocal(all)) throw new Error("This browser's storage is full or blocked."); return id; }
       const j = await call("POST", {op: "save", kind, id: id || undefined, name, data: JSON.stringify(data)});
       items[j.id] = {name, saved_at: j.saved_at, by: (items[j.id] || {}).by || me, [field]: data};
       return j.id;
     },
     async rename(id, name){
+      await ready;
       if (!shared) { const all = local(); if (all[id]) { all[id].name = name; setLocal(all); } return; }
       await call("POST", {op: "rename", id, name}); if (items[id]) items[id].name = name;
     },
     async remove(id){
+      await ready;
       if (!shared) { const all = local(); delete all[id]; setLocal(all); return; }
       await call("POST", {op: "delete", id}); delete items[id];
     },

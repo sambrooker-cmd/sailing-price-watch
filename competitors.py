@@ -303,6 +303,13 @@ def ends(s):
     stay = " ".join(re.findall(r"(?i)\bwith (.+?) stays?\b", p))
     route = re.sub(r"(?i)\s+with\s+.*$", "", p).strip()
     a, _, b = route.partition(" to ")
+    # The title can say more than the port line (15 Oct 2026: "… cruise from Southampton to Barcelona" and "Niagara
+    # Falls & New York Stays with Westbound Transatlantic Crossing from Southampton" had a port line of just "Southampton")
+    t = re.sub(r"\s*\|.*$", "", re.sub(r",\s*\d{1,2} \w+ \d{4}\s*$", "", s.get("title") or ""))
+    m = re.search(r" from (.+?) to (.+?)(?: with |$)", t)
+    if m and not b and m.group(1).strip().lower() == a.strip().lower():
+        b = m.group(2).strip()
+    stay = " ".join([stay] + [re.split(r"(?i)\bwith ", x)[-1] for x in re.findall(r"(?i)(?:^|\bwith )([^,|]+?) stays?\b", t)]).strip()
     return a.strip(), (b or a).strip(), stay
 
 

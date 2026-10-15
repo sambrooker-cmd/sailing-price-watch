@@ -224,7 +224,9 @@ Google Ads and Draft with Claude in French. The tracker's own screens stay in En
   "flights from …"), the cruise's own start/end come from the title; `competes()` uses `ends()` (start, end, stay):
   no-fly = starts and ends at a UK port with no stay abroad (one-way crossings and "with New York Stay" packages are
   out); fly-Caribbean = starts in the Caribbean, or sails between the UK and the Caribbean. On 15 Oct 2026's data:
-  26 sailings dropped (Valencia, Barcelona, Florida, Hawaii, Buenos Aires, QM2 New York stays), 5 moved to fly-Caribbean. Departures at least `MIN_DAYS` = 7 ahead, no
+  26 sailings dropped (Valencia, Barcelona, Florida, Hawaii, Buenos Aires, QM2 New York stays), 5 moved to fly-Caribbean. After the forced re-run 11 more
+  were found with a port line of just "Southampton" but a title saying "… from Southampton to Barcelona" or "Niagara Falls & New
+  York Stays with …": `ends()` now also reads the end port and any stays from the title (only the words after "with"). Departures at least `MIN_DAYS` = 7 ahead, no
   upper limit. Each candidate page is read once to see whether it competes; ones that don't are kept in `tried` and
   never read again (up to `NEW_PER_RUN` = 80 new pages a line a day, Fred. Olsen's ~180 on day one, so the lists are
   discovered within about a week); competing ones (`sample` in state, kept for continuity) are read every day, and a
@@ -323,6 +325,24 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
   (the email in a sandboxed frame without scripts and a CSP allowing only pictures/styles/fonts, Desktop 680 / Phone
   390, previous/next, details, links, View in browser), Compare (2–4 side by side, scaled, with a row-by-row table),
   CSV. Tested 15 Oct 2026 with fake mailbox data (nothing published).
+
+## Speed and growth (15 Oct 2026, Sam: "sometimes gets stuck on a loading screen or takes ages… future proof it")
+Measured: drawing is fast (0.6 s first render, every page under 0.5 s with the data in hand); the waits were the network.
+- **Saved lists no longer block pages**: the Ad creator, Email creator and Email cards waited for the `saved` function
+  (a cold start after a quiet spell takes seconds; no time limit, so a hang meant "Loading…" for good). `saved.js`
+  `sharedStore().load()` now runs in the background with `TIMEOUT_MS` = 12 s; the page draws at once with "Loading saved
+  …" in the saved bar; save/rename/delete wait for it (`ready`), so nothing is saved to the browser by mistake.
+- **Functions**: `maxInstances` 2 → 10 (at 256 MiB a copy answers one request at a time; copies cost nothing idle; the
+  daily limits still cap use).
+- **Documents never outgrow Firestore**: `publish.py` `split()` moves the biggest dict/list of any document over
+  `SPLIT_AT` = 600 KB into parts `<name>~1…` (`{"_split": [...]}` in its place; unchanged parts not rewritten);
+  `index.html` `readJson` reassembles, so every page (and make_video.py's stand-in page) reads them as before.
+  current.json grows ~7 KB a day (would have hit the 1 MiB limit, and stopped publishing, in about 3 months); comp-po
+  grows as P&O sailings are found.
+- **Start-up**: after 15 s still "Loading the latest prices…", the gate says so (slow connection, VPN or work network
+  filter) with a Reload button.
+Not done (options): caching the data in the browser between visits; keeping a function copy always warm (costs a few
+pounds a month).
 
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.

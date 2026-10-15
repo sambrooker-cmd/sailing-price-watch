@@ -73,7 +73,7 @@ async function dispatch(ref, workflow, inputs, what){
 
 exports.makeVideo = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"], secrets: [GH],
-  maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
+  maxInstances: 10, memory: "256MiB", timeoutSeconds: 30,
 }, async (req, res) => {
   const email = await allowedUser(req, res);
   if (!email) return;
@@ -123,7 +123,7 @@ const EMAIL_MAX_IMAGES = 16, EMAIL_MAX_BYTES = 900 * 1024, EMAIL_DAY_LIMIT = 300
 
 exports.emailImages = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"],
-  maxInstances: 2, memory: "512MiB", timeoutSeconds: 60,
+  maxInstances: 10, memory: "512MiB", timeoutSeconds: 60,
 }, async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
   const email = await allowedUser(req, res);
@@ -175,11 +175,14 @@ exports.emailImages = onRequest({
 // GET ?kind=ad → {me, items}. POST {op: "save", kind, id?, name, data} → {id, saved_at}; {op: "rename", id, name};
 // {op: "delete", id}. Everyone can open and copy anything; only the person who saved an item can save over,
 // rename or delete it.
+// maxInstances 10 (was 2, 15 Oct 2026): at 256 MiB each copy answers one request at a time, so 2 made a queue
+// once a few people used the tracker together. Copies only exist while busy (no cost when idle); the daily limits
+// below still cap use.
 // ecards: saved sets of Email cards (Sam, 15 Oct 2026: "map out each email send")
 const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email", "ecards"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
 exports.saved = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"],
-  maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
+  maxInstances: 10, memory: "256MiB", timeoutSeconds: 30,
 }, async (req, res) => {
   const email = await allowedUser(req, res);
   if (!email) return;
@@ -241,7 +244,7 @@ const DRAFT_DAY_LIMIT = 60;     // drafts a day for everyone together (each is a
 const DRAFT_STUCK_MIN = 10;     // a draft still "queued" after this never started on GitHub
 exports.drafts = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"], secrets: [GH],
-  maxInstances: 2, memory: "256MiB", timeoutSeconds: 30,
+  maxInstances: 10, memory: "256MiB", timeoutSeconds: 30,
 }, async (req, res) => {
   const email = await allowedUser(req, res);
   if (!email) return;
