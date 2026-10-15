@@ -56,10 +56,19 @@
    "to": 859,
    "mix": "ocean_view → inside",
    "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R270303",
+   "from": 969,
+   "to": 1049,
+   "at": "2026-10-15T11:07:48Z"
   }
  ],
  "eligible": [],
  "flags": {
+  "R261016": [
+   "the page couldn't be read: HTTP Error 404: Not Found"
+  ],
   "R261116": [
    "the page shows from €789 but booking's cheapest is €989"
   ],
@@ -125,6 +134,20 @@
    "from": 1109,
    "to": 1669,
    "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R270303",
+   "cabin": "twin.inside",
+   "from": 969,
+   "to": 1049,
+   "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R270501",
+   "cabin": "twin.ocean_view",
+   "from": 2379,
+   "to": 2449,
+   "at": "2026-10-15T11:07:48Z"
   }
  ],
  "cabin_sold_out": [
@@ -157,6 +180,21 @@
    "id": "R270522",
    "cabin": "twin.suite",
    "at": "2026-10-15T10:07:48Z"
+  },
+  {
+   "id": "R261116",
+   "cabin": "twin.promenade",
+   "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R261127",
+   "cabin": "twin.promenade",
+   "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R270501",
+   "cabin": "solo.ocean_view",
+   "at": "2026-10-15T11:07:48Z"
   }
  ],
  "cabin_back": [
@@ -177,6 +215,12 @@
    "cabin": "twin.obstructed",
    "p": 1199,
    "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R270522",
+   "cabin": "twin.suite",
+   "p": 5709,
+   "at": "2026-10-15T11:07:48Z"
   }
  ],
  "cabin_eligible": [],
@@ -194,6 +238,7 @@
   "2026-10-15T08:07:49Z",
   "2026-10-15T09:07:34Z",
   "2026-10-15T09:31:16Z",
-  "2026-10-15T10:07:48Z"
+  "2026-10-15T10:07:48Z",
+  "2026-10-15T11:07:48Z"
  ]
 }

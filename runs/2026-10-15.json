@@ -1,17 +1,20 @@
 {
  "date": "2026-10-15",
- "count": 222,
+ "count": 223,
  "new": [],
  "removed": [
   "A12639",
   "A32650",
   "A22630BR",
   "A32650",
-  "A12627"
+  "A12627",
+  "A22630BR"
  ],
  "returned": [
   "A32650",
-  "A22630BR"
+  "A22630BR",
+  "A32650",
+  "A12627"
  ],
  "drops": [
   {
@@ -266,6 +269,7 @@
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
+   "feed price £759 differs from cheapest cabin on the page £739 (the page price is used)",
    "feed image looks like campaign art (may contain text)"
   ],
   "A32653M": [
@@ -273,6 +277,9 @@
   ],
   "A32653": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12701": [
+   "feed price £3,499 differs from cheapest cabin on the page £3,369 (the page price is used)"
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
@@ -282,6 +289,9 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12734": [
+   "feed price £229 differs from cheapest cabin on the page £189 (the page price is used)"
   ]
  },
  "cabin_drops": [
@@ -1678,6 +1688,12 @@
    "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
    "name": "Up to £200 Onboard Credit",
    "at": "2026-10-15T09:30:54Z"
+  },
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-15T11:07:14Z"
   }
  ],
  "promo_changed": [],
@@ -1737,6 +1753,24 @@
    "feed": 299,
    "page": 399,
    "at": "2026-10-15T10:07:16Z"
+  },
+  {
+   "id": "A12634",
+   "feed": 759,
+   "page": 739,
+   "at": "2026-10-15T11:07:14Z"
+  },
+  {
+   "id": "A12701",
+   "feed": 3499,
+   "page": 3369,
+   "at": "2026-10-15T11:07:14Z"
+  },
+  {
+   "id": "A12734",
+   "feed": 229,
+   "page": 189,
+   "at": "2026-10-15T11:07:14Z"
   }
  ],
  "feed_gap_fixed": [
@@ -2008,6 +2042,7 @@
   "2026-10-15T08:07:16Z",
   "2026-10-15T09:07:15Z",
   "2026-10-15T09:30:54Z",
-  "2026-10-15T10:07:16Z"
+  "2026-10-15T10:07:16Z",
+  "2026-10-15T11:07:14Z"
  ]
 }
