@@ -18,7 +18,8 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const longDate = iso => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
 const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric", timeZone: "UTC"});
 let KEY = "spw-email-cards";
-const MAX = 24;   // several cards at once again (Sam, 13 Oct 2026, after a day of one at a time)
+const MAX = 50;   // several cards at once again (Sam, 13 Oct 2026, after a day of one at a time); 24 → 50 (Sam, 15 Oct 2026)
+const ZIP_PICS = 60;   // pictures a zip: more are split into parts, so the browser never holds hundreds of large PNGs at once
 // Sizes and type measured from the team's HubSpot pictures (13 Oct 2026)
 const SIZES = {standard: {label: "Standard", note: "1200 × 924, for 3-across tiles", w: 1200, h: 924, badge: 44, cap: 46},
                wide: {label: "Wide", note: "2400 × 924, for full-width sailings", w: 2400, h: 924, badge: 44, cap: 46}};
@@ -539,15 +540,26 @@ async function zip(){
   const btn = root.querySelector("#ec-zip"), status = root.querySelector("#ec-status");
   btn.disabled = true;
   try {
-    const JSZip = await loadZip(), z = new JSZip(), sizes = outputs(), used = new Set();
+    const JSZip = await loadZip(), sizes = outputs(), used = new Set(), total = st.items.length * sizes.length;
+    const parts = Math.ceil(total / ZIP_PICS), base = `email-cards_${FR ? "fr_" : ""}${today}`;
     const text = [`Email card text, prices as checked ${shortDate(today)}, subject to availability`, ""];
-    let n = 0;
+    let z = new JSZip(), n = 0, inZip = 0, part = 1;
+    // A big set downloads as several zips ("part 1 of 3"…), each with up to ZIP_PICS pictures; the text, CSV and
+    // T&Cs go in the last one
+    const flush = async () => {
+      status.textContent = parts > 1 ? `Zipping part ${part} of ${parts}…` : "Zipping…";
+      const url = URL.createObjectURL(await z.generateAsync({type: "blob"}));
+      download(url, parts > 1 ? `${base}_part-${part}-of-${parts}.zip` : `${base}.zip`);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);   // free each part once it has downloaded
+      z = new JSZip(); inZip = 0; part++;
+    };
     for (const [i, it] of st.items.entries()) {
       const names = [];
       for (const k of sizes) {
-        status.textContent = `Making pictures ${++n} of ${st.items.length * sizes.length}…`;
+        status.textContent = `Making pictures ${++n} of ${total}…`;
         let name = fileName(it, k); while (used.has(name)) name = name.replace(/\.png$/, " 2.png"); used.add(name);
         z.file(name, (await make(it, k)).split(",")[1], {base64: true}); names.push(name);
+        if (++inZip >= ZIP_PICS && n < total) await flush();
       }
       text.push(`${i + 1}. ${copyText(it)}`, ...names.map(f => `   Picture: ${f}`), "");
     }
@@ -555,9 +567,8 @@ async function zip(){
     const withBadges = st.items.filter(x => badgesOf(x).length);
     if (withBadges.length) z.file("offer-terms.txt", withBadges.map(termsText).join("\n\n"));
     z.file("cards.csv", csvText());
-    status.textContent = "Zipping…";
-    download(URL.createObjectURL(await z.generateAsync({type: "blob"})), `email-cards_${FR ? "fr_" : ""}${today}.zip`);
-    note = `Downloaded ${st.items.length * sizes.length} pictures. Prices as checked ${shortDate(today)}.`;
+    await flush();
+    note = `Downloaded ${total} pictures${parts > 1 ? ` in ${parts} zips (up to ${ZIP_PICS} pictures each; the text, CSV and T&Cs are in the last)` : ""}. Prices as checked ${shortDate(today)}.`;
   } catch(e) { note = esc(`The zip couldn't be made: ${e.message}`); }
   draw();
 }
