@@ -1,9 +1,10 @@
 {
  "date": "2026-10-15",
- "count": 52,
+ "count": 51,
  "new": [],
  "removed": [
-  "R261016"
+  "R261016",
+  "R270403"
  ],
  "returned": [],
  "drops": [
@@ -64,6 +65,18 @@
    "from": 969,
    "to": 1049,
    "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R270726",
+   "from": 2699,
+   "to": 2969,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "from": 1379,
+   "to": 1649,
+   "at": "2026-10-15T12:07:53Z"
   }
  ],
  "eligible": [],
@@ -73,6 +86,9 @@
   ],
   "R261207": [
    "the page shows from €789 but booking's cheapest is €909"
+  ],
+  "R270912B": [
+   "the page shows from €1,379 but booking's cheapest is €1,649"
   ],
   "R280508": [
    "the page shows from €569 but booking's cheapest is €859"
@@ -103,6 +119,14 @@
    "to": 2049,
    "claim": null,
    "at": "2026-10-15T09:31:16Z"
+  },
+  {
+   "id": "R270501",
+   "cabin": "twin.ocean_view",
+   "from": 2449,
+   "to": 2379,
+   "claim": null,
+   "at": "2026-10-15T12:07:53Z"
   }
  ],
  "cabin_rises": [
@@ -147,6 +171,104 @@
    "from": 2379,
    "to": 2449,
    "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R270219",
+   "cabin": "twin.balcony",
+   "from": 1749,
+   "to": 2579,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270605",
+   "cabin": "twin.balcony",
+   "from": 1109,
+   "to": 1239,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.inside",
+   "from": 2699,
+   "to": 2969,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.obstructed",
+   "from": 3109,
+   "to": 3419,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.ocean_view",
+   "from": 3419,
+   "to": 3769,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.inside",
+   "from": 1379,
+   "to": 1649,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.obstructed",
+   "from": 1679,
+   "to": 2019,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.ocean_view",
+   "from": 1769,
+   "to": 2119,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.promenade",
+   "from": 2009,
+   "to": 2409,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.balcony",
+   "from": 2519,
+   "to": 3029,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "twin.suite",
+   "from": 3259,
+   "to": 3909,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "solo.inside",
+   "from": 1499,
+   "to": 1799,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "solo.ocean_view",
+   "from": 1819,
+   "to": 2179,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270912B",
+   "cabin": "solo.balcony",
+   "from": 2569,
+   "to": 3079,
+   "at": "2026-10-15T12:07:53Z"
   }
  ],
  "cabin_sold_out": [
@@ -220,6 +342,18 @@
    "cabin": "twin.suite",
    "p": 5709,
    "at": "2026-10-15T11:07:48Z"
+  },
+  {
+   "id": "R261116",
+   "cabin": "twin.promenade",
+   "p": 1609,
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R261127",
+   "cabin": "twin.promenade",
+   "p": 1459,
+   "at": "2026-10-15T12:07:53Z"
   }
  ],
  "cabin_eligible": [],
@@ -236,11 +370,30 @@
    "offer": "tag232",
    "name": "DERNIÈRE CHANCE",
    "at": "2026-10-15T11:12:13Z"
+  },
+  {
+   "id": "R270403",
+   "offer": "tag339",
+   "name": "Formule Plus",
+   "at": "2026-10-15T12:07:53Z"
+  },
+  {
+   "id": "R270403",
+   "offer": "tag417",
+   "name": "🚢 Larguez les amarres",
+   "at": "2026-10-15T12:07:53Z"
   }
  ],
  "promo_changed": [],
  "nectar_changes": [],
- "feed_gap_new": [],
+ "feed_gap_new": [
+  {
+   "id": "R270912B",
+   "feed": 1379,
+   "page": 1649,
+   "at": "2026-10-15T12:07:53Z"
+  }
+ ],
  "feed_gap_fixed": [],
  "lead_source_switch": [],
  "reported": [],
@@ -252,6 +405,7 @@
   "2026-10-15T09:31:16Z",
   "2026-10-15T10:07:48Z",
   "2026-10-15T11:07:48Z",
-  "2026-10-15T11:12:13Z"
+  "2026-10-15T11:12:13Z",
+  "2026-10-15T12:07:53Z"
  ]
 }

@@ -1349,7 +1349,43 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Delights of Western France & Spain Explorer",
+    "base_title": "Delights of Western France & Spain Explorer",
+    "ship": "Ambition",
+    "port": "Bristol Royal Portbury",
+    "flight_from": null,
+    "nights": 9,
+    "departure_date": "2026-11-02",
+    "price": 1279,
+    "promos": [
+     "Up to £200 Onboard Credit · ends 23 Nov"
+    ],
+    "nectar": "Collect up to 30,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/153270705d/santander_shutterstock_2041368176_1920x1080.jpg",
+    "fp": "e48f1b9c08b2",
+    "made_at": "2026-10-15T12:09:33Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_1x1.jpg?alt=media&token=24182370-62ca-4e3b-a8c2-e509b75bff13",
+      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_1x1.jpg",
+      "kb": 287
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_4x5.jpg?alt=media&token=84a9b7b4-45c9-4788-afab-a4520c337abd",
+      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_4x5.jpg",
+      "kb": 359
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22630BR%2Fe48f1b9c08b2_9x16.jpg?alt=media&token=cf7dbe57-e0a8-4e3b-b601-2174efebc550",
+      "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
+      "kb": 444
+     }
+    }
+   }
   },
   "A22631BR": {
    "old": [
@@ -15623,6 +15659,41 @@
      "nectar": "Collect up to 75,000 Nectar points",
      "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/01141cc4f3/assos-town-kefalonia-greece_2000x1333.png",
      "fp": "c7ed54288801",
+     "made_at": "2026-10-15T11:09:34Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_1x1.jpg?alt=media&token=78c7a734-2613-4706-b2a8-44a6394fce73",
+       "path": "pricewatch-cards/A12627/c7ed54288801_1x1.jpg",
+       "kb": 304
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_4x5.jpg?alt=media&token=47b59162-879f-47c2-a2d5-afa09550a0eb",
+       "path": "pricewatch-cards/A12627/c7ed54288801_4x5.jpg",
+       "kb": 368
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_9x16.jpg?alt=media&token=429700af-6d6c-4c6d-aebd-5e5a88b9cfa3",
+       "path": "pricewatch-cards/A12627/c7ed54288801_9x16.jpg",
+       "kb": 459
+      }
+     },
+     "out_of_date_since": "2026-10-15T12:09:33Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Gems of the Adriatic & Mediterranean Autumn Sun",
+     "base_title": "Gems of the Adriatic & Mediterranean Autumn Sun",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 31,
+     "departure_date": "2026-11-03",
+     "price": 2699,
+     "promos": [],
+     "nectar": "Collect up to 75,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/01141cc4f3/assos-town-kefalonia-greece_2000x1333.png",
+     "fp": "c7ed54288801",
      "made_at": "2026-10-15T09:09:36Z",
      "reason": "left the ad feed",
      "files": {
@@ -15644,42 +15715,8 @@
      },
      "out_of_date_since": "2026-10-15T10:09:20Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Gems of the Adriatic & Mediterranean Autumn Sun",
-    "base_title": "Gems of the Adriatic & Mediterranean Autumn Sun",
-    "ship": "Ambience",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 31,
-    "departure_date": "2026-11-03",
-    "price": 2699,
-    "promos": [],
-    "nectar": "Collect up to 75,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/01141cc4f3/assos-town-kefalonia-greece_2000x1333.png",
-    "fp": "c7ed54288801",
-    "made_at": "2026-10-15T11:09:34Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_1x1.jpg?alt=media&token=78c7a734-2613-4706-b2a8-44a6394fce73",
-      "path": "pricewatch-cards/A12627/c7ed54288801_1x1.jpg",
-      "kb": 304
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_4x5.jpg?alt=media&token=47b59162-879f-47c2-a2d5-afa09550a0eb",
-      "path": "pricewatch-cards/A12627/c7ed54288801_4x5.jpg",
-      "kb": 368
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12627%2Fc7ed54288801_9x16.jpg?alt=media&token=429700af-6d6c-4c6d-aebd-5e5a88b9cfa3",
-      "path": "pricewatch-cards/A12627/c7ed54288801_9x16.jpg",
-      "kb": 459
-     }
-    }
-   }
+   ]
   }
  },
- "updated_at": "2026-10-15T11:09:34Z"
+ "updated_at": "2026-10-15T12:09:33Z"
 }

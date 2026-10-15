@@ -832,44 +832,46 @@
    }
   },
   "R270403": {
-   "old": [],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Rivages de l'Atlantique",
-    "base_title": "Rivages de l'Atlantique",
-    "ship": "Renaissance",
-    "port": "Dunkerque",
-    "flight_from": null,
-    "nights": 11,
-    "departure_date": "2027-04-03",
-    "price": 739,
-    "promos": [
-     "Formule Plus",
-     "Larguez les amarres"
-    ],
-    "nectar": "",
-    "photo": "https://cms.ambassadorcroisieres.fr/assets/59a7842b-2d7e-4127-aaf3-9967889b17ed?width=2000&format=jpg&quality=85",
-    "fp": "611da52b978c",
-    "made_at": "2026-10-14T16:09:26Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_1x1.jpg?alt=media&token=c56d92dd-2ba5-470e-9591-677f364676f6",
-      "path": "pricewatch-cards/fr/R270403/611da52b978c_1x1.jpg",
-      "kb": 213
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Rivages de l'Atlantique",
+     "base_title": "Rivages de l'Atlantique",
+     "ship": "Renaissance",
+     "port": "Dunkerque",
+     "flight_from": null,
+     "nights": 11,
+     "departure_date": "2027-04-03",
+     "price": 739,
+     "promos": [
+      "Formule Plus",
+      "Larguez les amarres"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/59a7842b-2d7e-4127-aaf3-9967889b17ed?width=2000&format=jpg&quality=85",
+     "fp": "611da52b978c",
+     "made_at": "2026-10-14T16:09:26Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_1x1.jpg?alt=media&token=c56d92dd-2ba5-470e-9591-677f364676f6",
+       "path": "pricewatch-cards/fr/R270403/611da52b978c_1x1.jpg",
+       "kb": 213
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_4x5.jpg?alt=media&token=7689e2c2-4ffb-4fcd-8fdb-95ab273d5bc7",
+       "path": "pricewatch-cards/fr/R270403/611da52b978c_4x5.jpg",
+       "kb": 242
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_9x16.jpg?alt=media&token=ab670416-30d7-4623-8767-d848baabe577",
+       "path": "pricewatch-cards/fr/R270403/611da52b978c_9x16.jpg",
+       "kb": 287
+      }
      },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_4x5.jpg?alt=media&token=7689e2c2-4ffb-4fcd-8fdb-95ab273d5bc7",
-      "path": "pricewatch-cards/fr/R270403/611da52b978c_4x5.jpg",
-      "kb": 242
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270403%2F611da52b978c_9x16.jpg?alt=media&token=ab670416-30d7-4623-8767-d848baabe577",
-      "path": "pricewatch-cards/fr/R270403/611da52b978c_9x16.jpg",
-      "kb": 287
-     }
+     "out_of_date_since": "2026-10-15T12:09:37Z"
     }
-   }
+   ]
   },
   "R270414": {
    "old": [],
@@ -1272,7 +1274,46 @@
    }
   },
   "R270726": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Soleil de Minuit et fjords de Norvège",
+     "base_title": "Soleil de Minuit et fjords de Norvège",
+     "ship": "Renaissance",
+     "port": "Dunkerque",
+     "flight_from": null,
+     "nights": 14,
+     "departure_date": "2027-07-26",
+     "price": 2699,
+     "promos": [
+      "Formule Plus",
+      "Larguez les amarres"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/32d84b2e-f391-4ac6-bbc4-e06ac5d785da?width=2000&format=jpg&quality=85",
+     "fp": "db8161194297",
+     "made_at": "2026-10-14T16:09:26Z",
+     "reason": "price 2 699 € → 2 969 €",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_1x1.jpg?alt=media&token=d34371d1-dab9-4ea2-9a8b-d9f063e16c61",
+       "path": "pricewatch-cards/fr/R270726/db8161194297_1x1.jpg",
+       "kb": 221
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_4x5.jpg?alt=media&token=b73826d2-2d92-4a53-ab1f-109c0a761b4f",
+       "path": "pricewatch-cards/fr/R270726/db8161194297_4x5.jpg",
+       "kb": 274
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_9x16.jpg?alt=media&token=2fe9b776-3b9d-4d36-8e13-d4c2c3873cbb",
+       "path": "pricewatch-cards/fr/R270726/db8161194297_9x16.jpg",
+       "kb": 312
+      }
+     },
+     "out_of_date_since": "2026-10-15T12:09:37Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Soleil de Minuit et fjords de Norvège",
@@ -1282,30 +1323,30 @@
     "flight_from": null,
     "nights": 14,
     "departure_date": "2027-07-26",
-    "price": 2699,
+    "price": 2969,
     "promos": [
      "Formule Plus",
      "Larguez les amarres"
     ],
     "nectar": "",
     "photo": "https://cms.ambassadorcroisieres.fr/assets/32d84b2e-f391-4ac6-bbc4-e06ac5d785da?width=2000&format=jpg&quality=85",
-    "fp": "db8161194297",
-    "made_at": "2026-10-14T16:09:26Z",
-    "reason": "new",
+    "fp": "a6b515fd64a7",
+    "made_at": "2026-10-15T12:09:37Z",
+    "reason": "price 2 699 € → 2 969 €",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_1x1.jpg?alt=media&token=d34371d1-dab9-4ea2-9a8b-d9f063e16c61",
-      "path": "pricewatch-cards/fr/R270726/db8161194297_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fa6b515fd64a7_1x1.jpg?alt=media&token=c598833f-fa5c-43c5-9c2b-7247739772a1",
+      "path": "pricewatch-cards/fr/R270726/a6b515fd64a7_1x1.jpg",
       "kb": 221
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_4x5.jpg?alt=media&token=b73826d2-2d92-4a53-ab1f-109c0a761b4f",
-      "path": "pricewatch-cards/fr/R270726/db8161194297_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fa6b515fd64a7_4x5.jpg?alt=media&token=9e8cadea-a7b0-488d-b157-fa45fe2a102d",
+      "path": "pricewatch-cards/fr/R270726/a6b515fd64a7_4x5.jpg",
       "kb": 274
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fdb8161194297_9x16.jpg?alt=media&token=2fe9b776-3b9d-4d36-8e13-d4c2c3873cbb",
-      "path": "pricewatch-cards/fr/R270726/db8161194297_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270726%2Fa6b515fd64a7_9x16.jpg?alt=media&token=33563c6b-a4d5-4d15-b1c6-1903eb65d33e",
+      "path": "pricewatch-cards/fr/R270726/a6b515fd64a7_9x16.jpg",
       "kb": 312
      }
     }
@@ -1432,7 +1473,46 @@
    }
   },
   "R270912B": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Joyaux de la Norvège",
+     "base_title": "Joyaux de la Norvège",
+     "ship": "Renaissance",
+     "port": "Dunkerque",
+     "flight_from": null,
+     "nights": 11,
+     "departure_date": "2027-09-12",
+     "price": 1379,
+     "promos": [
+      "Formule Plus",
+      "Larguez les amarres"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/764d4361-9e0f-4359-a2bb-736b2cf1418a?width=2000&format=jpg&quality=85",
+     "fp": "862a744fbcc6",
+     "made_at": "2026-10-14T16:09:26Z",
+     "reason": "price 1 379 € → 1 649 €",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_1x1.jpg?alt=media&token=1d8eb619-ec2b-4df6-b543-db35b835b645",
+       "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_1x1.jpg",
+       "kb": 251
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_4x5.jpg?alt=media&token=2d41d549-787f-4b69-8b58-17355e25084e",
+       "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_4x5.jpg",
+       "kb": 294
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_9x16.jpg?alt=media&token=0e456ab6-3bf0-4ceb-9c6d-fb037c7e8ba1",
+       "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_9x16.jpg",
+       "kb": 373
+      }
+     },
+     "out_of_date_since": "2026-10-15T12:09:37Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Joyaux de la Norvège",
@@ -1442,30 +1522,30 @@
     "flight_from": null,
     "nights": 11,
     "departure_date": "2027-09-12",
-    "price": 1379,
+    "price": 1649,
     "promos": [
      "Formule Plus",
      "Larguez les amarres"
     ],
     "nectar": "",
     "photo": "https://cms.ambassadorcroisieres.fr/assets/764d4361-9e0f-4359-a2bb-736b2cf1418a?width=2000&format=jpg&quality=85",
-    "fp": "862a744fbcc6",
-    "made_at": "2026-10-14T16:09:26Z",
-    "reason": "new",
+    "fp": "3678bee789c9",
+    "made_at": "2026-10-15T12:09:37Z",
+    "reason": "price 1 379 € → 1 649 €",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_1x1.jpg?alt=media&token=1d8eb619-ec2b-4df6-b543-db35b835b645",
-      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F3678bee789c9_1x1.jpg?alt=media&token=3f8e1c72-234c-4e06-8f86-9dadf355c148",
+      "path": "pricewatch-cards/fr/R270912B/3678bee789c9_1x1.jpg",
       "kb": 251
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_4x5.jpg?alt=media&token=2d41d549-787f-4b69-8b58-17355e25084e",
-      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F3678bee789c9_4x5.jpg?alt=media&token=574ab3ba-3fd6-4be2-af63-65a125cbbdbb",
+      "path": "pricewatch-cards/fr/R270912B/3678bee789c9_4x5.jpg",
       "kb": 294
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F862a744fbcc6_9x16.jpg?alt=media&token=0e456ab6-3bf0-4ceb-9c6d-fb037c7e8ba1",
-      "path": "pricewatch-cards/fr/R270912B/862a744fbcc6_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270912B%2F3678bee789c9_9x16.jpg?alt=media&token=5bbe9757-7a2a-4819-bbc7-7a50d861afba",
+      "path": "pricewatch-cards/fr/R270912B/3678bee789c9_9x16.jpg",
       "kb": 373
      }
     }
@@ -2521,5 +2601,5 @@
    }
   }
  },
- "updated_at": "2026-10-15T11:13:18Z"
+ "updated_at": "2026-10-15T12:09:37Z"
 }
