@@ -22,19 +22,24 @@ has to understand the shape of the data:
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
   pricewatch/comp-current, comp-<line>, comp-runs   competitor prices and offers (competitors.py), once it has run
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
+  pricewatch/comp-emails-YYYY-MM-1 / -2  the email library: that half month's competitor emails (links to their copies in Storage)
 
 Usage:
   FIREBASE_SERVICE_ACCOUNT='<service account JSON>' python publish.py
   python publish.py --dry-run     # build the documents and print their sizes only
 """
-import argparse, time, hashlib, json, os, sys
+import argparse, datetime, time, hashlib, json, os, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 PROJECT = "promotions-planner"
 MAX_RUNS = 90
 RUNS_BYTES = 600_000
-MAX_BYTES = 900_000  # Firestore's limit is 1 MiB per document; stop well short of it
+MAX_BYTES = 900_000
+# What the email library page shows of each competitor email (offers_inbox.py)
+LIBRARY_FIELDS = ("id", "line", "brand", "sender", "subject", "preheader", "date", "view", "promotion", "offers", "by",
+                  "kind", "summary", "headline", "cta", "destinations", "from_price", "n_links", "n_images", "kb",
+                  "html", "thumb", "height")  # Firestore's limit is 1 MiB per document; stop well short of it
 
 
 def load(p):
@@ -151,17 +156,26 @@ def documents():
     inbox = ROOT / "state" / "competitors" / "inbox.json"
     if inbox.exists():
         i = load(inbox)
-        docs["comp-inbox"] = {"fetched_at": i.get("fetched_at"), "emails": sorted(
-            ({k: e.get(k) for k in ("line", "brand", "subject", "preheader", "date", "view", "promotion", "offers", "by")}
-             | {"links": (e.get("links") or [])[:6]} for e in (i.get("emails") or {}).values()),
-            key=lambda e: e["date"], reverse=True)[:400]}
+        em = sorted((i.get("emails") or {}).values(), key=lambda e: e["date"], reverse=True)
+        recent = [e for e in em if e["date"] >= (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=90)).isoformat()[:19]]
+        # The email library (Competitors → Competitor emails): one document per half month (as the runs archive),
+        # rewritten only when it changes
+        lib = {}
+        for e in em:
+            if e.get("html"):
+                lib.setdefault(f"{e['date'][:7]}-{1 if int(e['date'][8:10]) <= 15 else 2}", []).append({k: e.get(k) for k in LIBRARY_FIELDS} | {"links": (e.get("links") or [])[:10]})
+        for month, es in lib.items():
+            docs[f"comp-emails-{month}"] = {"part": month, "emails": es}
+        docs["comp-inbox"] = {"fetched_at": i.get("fetched_at"), "parts": sorted(lib, reverse=True), "emails": [
+            {k: e.get(k) for k in ("line", "brand", "subject", "preheader", "date", "view", "promotion", "offers", "by")}
+            | {"links": (e.get("links") or [])[:6]} for e in recent][:400]}
     out = {}
     for name, data in docs.items():
         s = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         if len(s.encode()) > MAX_BYTES:
             raise SystemExit(f"pricewatch/{name} is {len(s.encode()):,} bytes, too close to Firestore's 1 MiB limit")
         out[name] = {"json": s, "updated": (data.get("updated") if name in ("fr-current", "fr-cabins") else None) or cur.get("updated", "")}
-        if name.startswith(("runs-", "fr-runs-")):
+        if name.startswith(("runs-", "fr-runs-", "comp-emails-")):
             out[name]["sha"] = hashlib.sha256(s.encode()).hexdigest()
     return out
 
