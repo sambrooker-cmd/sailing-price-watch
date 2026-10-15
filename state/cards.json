@@ -12,6 +12,44 @@
      "flight_from": null,
      "nights": 3,
      "departure_date": "2026-10-15",
+     "price": 519,
+     "promos": [
+      "Free Bottle Of Bubbles · ends 14 Oct"
+     ],
+     "nectar": "Collect up to 14,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2001x1001/749807bf61/jenny-and-kate-girl-s-weekender-2000x1000-2.png",
+     "layout": "campaign-matched",
+     "fp": "7a8268872aa5",
+     "made_at": "2026-10-14T13:08:17Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_1x1.jpg?alt=media&token=8d964440-8ce5-4344-ad00-9e0899b12892",
+       "path": "pricewatch-cards/A12639/7a8268872aa5_1x1.jpg",
+       "kb": 167
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_4x5.jpg?alt=media&token=33e23d5e-f6a0-4a23-8c72-4530ad84a328",
+       "path": "pricewatch-cards/A12639/7a8268872aa5_4x5.jpg",
+       "kb": 270
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_9x16.jpg?alt=media&token=98bd20e4-377a-4e5f-9225-4ec33f877a44",
+       "path": "pricewatch-cards/A12639/7a8268872aa5_9x16.jpg",
+       "kb": 258
+      }
+     },
+     "out_of_date_since": "2026-10-15T00:24:34Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Weekend Escape to Amsterdam",
+     "base_title": "Weekend Escape to Amsterdam",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 3,
+     "departure_date": "2026-10-15",
      "price": 549,
      "promos": [
       "Free Bottle Of Bubbles · ends 14 Oct"
@@ -458,44 +496,7 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Weekend Escape to Amsterdam",
-    "base_title": "Weekend Escape to Amsterdam",
-    "ship": "Ambience",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 3,
-    "departure_date": "2026-10-15",
-    "price": 519,
-    "promos": [
-     "Free Bottle Of Bubbles · ends 14 Oct"
-    ],
-    "nectar": "Collect up to 14,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2001x1001/749807bf61/jenny-and-kate-girl-s-weekender-2000x1000-2.png",
-    "layout": "campaign-matched",
-    "fp": "7a8268872aa5",
-    "made_at": "2026-10-14T13:08:17Z",
-    "reason": "price £549 → £519",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_1x1.jpg?alt=media&token=8d964440-8ce5-4344-ad00-9e0899b12892",
-      "path": "pricewatch-cards/A12639/7a8268872aa5_1x1.jpg",
-      "kb": 167
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_4x5.jpg?alt=media&token=33e23d5e-f6a0-4a23-8c72-4530ad84a328",
-      "path": "pricewatch-cards/A12639/7a8268872aa5_4x5.jpg",
-      "kb": 270
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12639%2F7a8268872aa5_9x16.jpg?alt=media&token=98bd20e4-377a-4e5f-9225-4ec33f877a44",
-      "path": "pricewatch-cards/A12639/7a8268872aa5_9x16.jpg",
-      "kb": 258
-     }
-    }
-   }
+   ]
   },
   "A22629BR": {
    "old": [],
@@ -14230,5 +14231,5 @@
    }
   }
  },
- "updated_at": "2026-10-14T15:08:09Z"
+ "updated_at": "2026-10-15T00:24:34Z"
 }
