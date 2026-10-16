@@ -432,7 +432,7 @@ How the website's pages are built (read 16 Oct 2026; Storyblok CMS rendered by A
 `cruise-codes`, `count`, `sort-by` date:asc, `use-solo-pricing`) → H2 text sections → FAQs → terms; **blog posts** (266 under
 /blog/) = date, H1, intro, H2 sections with pictures, "READ MORE:" internal links, closing call to action, ~1,300 words; no
 schema.org markup on either (FAQPage / BlogPosting / ItemList are an easy SEO win). Titles "… | Ambassador".
-`site/pagemaker.js` (Creative → **Pages and blog**, UK only, "Prototype" chip): starting points from the tracker's data, no AI:
+`site/pagemaker.js` (SEO → **Pages and blog**, its own menu section since 16 Oct 2026; UK only, "Prototype" chip): starting points from the tracker's data, no AI:
 landing = destination/port (region via `comptrend.regionOf`, port, no-fly/fly, months, ship), campaign or offer (sailings by
 cruise code), month or season; blog = "10 reasons to…", destination guide, sailing spotlight. Fills SEO title, meta
 description, address, H1, intro, sections (the brand section from the messaging matrix), FAQs from the facts (from price,
