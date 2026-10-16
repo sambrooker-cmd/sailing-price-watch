@@ -138,8 +138,9 @@ def read(page, url):
     ports = [d for d in days if d and not re.match(r"(?i)en mer|navigation|journ[ée]e en mer", d)]
     title, operator = g(r'<h1 class="package-title">(.*?)</h1>'), g(r'class="to-label">(.*?)</div>')
     line = "msc" if re.search(r"(?i)\bmsc\b", operator + " " + title) else "costa" if re.search(r"(?i)costa", operator + " " + title) else plain(operator).split()[0] if operator else "other"
-    ship = re.search(r"(?i)\b((?:msc|costa)\s+[a-zà-ÿ]+)", title)
-    return {"line": line, "operator": operator, "title": title, "ship": ship.group(1).title() if ship else "",
+    title = re.sub(r"\bMsc\b", "MSC", title)   # Havas title-cases names ("Msc Magnifica")
+    ship = re.search(r"(?i)\b((?:msc|costa)\s+(?:world\s+)?[a-zà-ÿ]+)", title)   # "MSC World Asia" is two words after MSC
+    return {"line": line, "operator": operator, "title": title, "ship": re.sub(r"\bMsc\b", "MSC", ship.group(1).title()) if ship else "",
             "price": p, "nights": int(nights.group(1)) if nights else None,
             "start": ports[0] if ports else "", "end": ports[-1] if ports else "",
             "ports": ports[:20], "region": g(r'class="breadcrumb-product">(.*?)</div>')}
