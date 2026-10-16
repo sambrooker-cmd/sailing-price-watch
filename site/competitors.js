@@ -7,6 +7,8 @@
 // Read-only: what competitors.py recorded (pricewatch/comp-current, comp-runs) beside our own saved state.
 // Fred. Olsen's prices are its own; the other lines' are Planet Cruise's (an agent: its own discounts and "was" figures).
 
+import {collect, baselines, TYPES, TYPE_LABEL} from "./offerkit.js?v=__BUILD__";
+
 const CABINS = [["inside", "Inside"], ["outside", "Outside"], ["balcony", "Balcony"], ["suite", "Suite"]];
 // Our cabin grades → the comparable types
 const OURS = {inside: "inside", ocean_view: "outside", balcony: "balcony", suite: "suite"};
@@ -15,7 +17,7 @@ const KEY = "spw-comp";
 const LINES = {fredolsen: "Fred. Olsen", po: "P&O Cruises", princess: "Princess Cruises", cunard: "Cunard", marella: "Marella Cruises",
   msc: "MSC Cruises", royal: "Royal Caribbean", celebrity: "Celebrity Cruises", ambassador: "Ambassador (at Planet Cruise)"};
 let C, R, I = null, our, ctx, esc, loading = null;
-const st = {line: "", cabin: "inside", occ: "twin", month: "", seg: "", sort: "date", vsSort: "gap"};
+const st = {otype: "", line: "", cabin: "inside", occ: "twin", month: "", seg: "", sort: "date", vsSort: "gap"};
 let showAll = false;
 // No-fly from a UK port, or fly-Caribbean (competitors.py `segment`; older records: the fly flag)
 const segOf = r => r.segment || (r.fly ? "fly-caribbean" : "no-fly");
@@ -23,6 +25,7 @@ const SEGS = {"no-fly": "No-fly from the UK", "fly-caribbean": "Fly-Caribbean"};
 
 const gbp = v => v == null ? "–" : "£" + Math.round(v).toLocaleString("en-GB");
 const day = iso => { if (!iso) return "–"; const [y, m, d] = iso.split("-").map(Number); return `${d} ${MON[m - 1]} ${y}`; };
+const iso = d => d.toISOString().slice(0, 10);
 const isoDaysAgo = n => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
 const last = segs => segs && segs.length ? segs[segs.length - 1] : null;
 const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
@@ -158,77 +161,132 @@ const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
 const brandName = k => (BRANDS.find(b => b[0] === k) || [, lineName(k)])[1];
 let inboxDays = 30;
 
+// Competitor offers (Sam, 16 Oct 2026: "needs improvement"; picked all four): who's offering what (a grid of brands
+// against offer types, Ambassador first), what's new and ended this week, every live offer cleaned up (site/offerkit.js:
+// merged, typed, valued, expired and out-of-date ones caught, our onboard credit tiers as one row), a timeline of when
+// each ran, and the newsletters themselves.
+const SRC = {email: "newsletter", deals: "deals page", agent: "Planet Cruise", ours: "our website"};
+const brandRows = items => ["ambassador", ...BRANDS.map(b => b[0])].filter(k => items.some(x => x.brand === k));
+const brandLabel = k => k === "ambassador" ? "Ambassador" : brandName(k);
+const fmtValue = x => Object.values(x.value || {}).map(v => v.text).join(" · ");
+// Our onboard credit tiers ("Up to £100 … £800 Onboard Credit", by cabin grade) as one row
+function groupOurs(items){
+  const tiers = items.filter(x => x.brand === "ambassador" && x.types.length === 1 && x.types[0] === "obc" && x.value.obc);
+  if (tiers.length < 2) return items;
+  const live = tiers.filter(x => x.live), vals = live.map(x => x.value.obc.n).sort((a, b) => a - b);
+  const g = {...tiers[0], text: "Onboard credit, by cabin grade", desc: live.map(x => x.text).join(" · "), live: live.length > 0,
+    n: live.reduce((a, x) => a + x.n, 0), first: tiers.map(x => x.first).sort()[0], last: live.length ? null : tiers.map(x => x.last).sort().pop(),
+    ends: live.map(x => x.ends).filter(Boolean).sort()[0] || null,
+    value: vals.length ? {obc: {text: `up to £${vals[0].toLocaleString("en-GB")} – £${vals[vals.length - 1].toLocaleString("en-GB")}`, n: vals[vals.length - 1]}} : {}};
+  return [g, ...items.filter(x => !tiers.includes(x))];
+}
+const reach = x => x.of ? `on ${x.n} of ${x.of} sailing${x.of === 1 ? "" : "s"}` : x.sources.includes("deals") ? "brand-wide (deals page)" : x.sources.includes("email") ? "in their newsletter" : "";
+
 function renderOffers(box){
-  const today = new Date().toISOString().slice(0, 10);
-  const pickLine = k => !st.line || k === st.line;
-  // 1. Their newsletters (offers_inbox.py)
-  const emails = ((I && I.emails) || []).filter(e => pickLine(e.line) && e.date.slice(0, 10) >= isoDaysAgo(inboxDays));
-  const promo = emails.filter(e => e.promotion && (e.offers || []).length), other = emails.filter(e => !(e.promotion && (e.offers || []).length));
-  const byBrand = {};
-  for (const e of promo) (byBrand[e.line] = byBrand[e.line] || []).push(e);
-  const endsWords = o => !o.ends ? "" : o.ends < today ? `<span class="sub" style="text-decoration:line-through">ended ${day(o.ends)}</span>` : `<span class="chip">ends ${day(o.ends)}</span>`;
-  const emailRow = e => `<tr><td>${day(e.date.slice(0, 10))}</td>
-    <td style="white-space:normal">${safeUrl(e.view) ? `<a href="${esc(e.view)}" target="_blank" rel="noopener noreferrer"><b>${esc(e.subject)}</b></a>` : `<b>${esc(e.subject)}</b>`}
-      ${e.by === "rules" ? ` <span class="sub" title="Read by simple rules, not Claude: check it">(found by rules: check)</span>` : ""}
-      <ul style="margin:6px 0 0 18px;padding:0">${(e.offers || []).map(o => `<li style="margin:2px 0">${esc(o.offer)}${o.applies_to ? ` <span class="sub">· ${esc(o.applies_to)}</span>` : ""} ${endsWords(o)}${safeUrl(o.link) ? ` · <a href="${esc(o.link)}" target="_blank" rel="noopener noreferrer">Offer page</a>` : ""}</li>`).join("")}</ul></td>
-    <td>${safeUrl(e.view) ? `<a href="${esc(e.view)}" target="_blank" rel="noopener noreferrer">View email</a>` : `<span class="sub">no web version</span>`}</td></tr>`;
-  const inboxHtml = !I ? `<div class="empty"><p><b>The newsletter inbox isn't set up yet.</b> Once a team mailbox is signed up to the competitors' emails and its
-      details are added to GitHub (CLAUDE.md, "Competitor newsletters"), each brand's offers appear here, with the email and the offer page to click through to.</p></div>`
+  const today = new Date().toISOString().slice(0, 10), wk = isoDaysAgo(7), month = isoDaysAgo(30);
+  const onSale = Object.values(ctx.state.sailings || {}).filter(s => !s.removed).length;
+  const all = groupOurs(collect({C, I, S: ctx.state, today, onSale}));
+  const base = baselines(all);
+  const pickB = x => !st.line || x.brand === st.line || (st.line === "ambassador" && x.brand === "ambassador");
+  const pickT = x => !st.otype || x.types.includes(st.otype);
+  const live = all.filter(x => x.live && !x.stale);
+
+  // 1. Who's offering what: brands × offer types (Ambassador first), the headline value and the widest reach
+  const rows = brandRows(live);
+  const cell = (b, t) => {
+    const xs = live.filter(x => x.brand === b && x.types.includes(t));
+    if (!xs.length) return `<td class="num sub">–</td>`;
+    const vals = xs.map(x => x.value[t]).filter(Boolean).sort((p, q) => t === "deposit" ? p.n - q.n : q.n - p.n);
+    const head = vals[0] ? vals[0].text : xs.length === 1 ? (xs[0].text.length > 28 ? xs[0].text.slice(0, 26) + "…" : xs[0].text) : `${xs.length} offers`;
+    const top = xs.reduce((a, x) => x.of && x.n / x.of > (a.of ? a.n / a.of : -1) ? x : a, xs[0]);
+    return `<td class="num"><button type="button" class="linkbtn" data-cell="${esc(b)}|${t}" title="${esc(xs.map(x => "• " + x.text).join("\n"))}" style="text-align:right">${esc(head)}</button>
+      <div class="sub">${top.of ? `${Math.round(top.n / top.of * 100)}% of sailings` : esc(SRC[top.sources[0]] || "")}${xs.length > 1 ? ` · ${xs.length} offers` : ""}</div></td>`;
+  };
+  const grid = rows.length ? `<div class="tablewrap"><table class="ptable" style="min-width:980px"><thead><tr><th>Brand</th>${TYPES.map(([k, l]) => `<th class="num">${esc(l)}</th>`).join("")}</tr></thead><tbody>
+    ${rows.map(b => `<tr${b === "ambassador" ? ' style="font-weight:600;background:var(--bg-alt)"' : ""}><td>${esc(brandLabel(b))}</td>${TYPES.map(([t]) => cell(b, t)).join("")}</tr>`).join("")}
+    </tbody></table></div><p class="note">The best figure each brand offers of that kind (the biggest credit or saving, the smallest deposit) and how widely: the share of its sailings we read that carry it. Click a figure to see those offers below. Planet Cruise's lines are the agent's, which can include its own deals.</p>`
+    : `<div class="empty"><p>No live offers recorded yet.</p></div>`;
+
+  // 2. New and ended in the last 7 days (offers already running when recording began aren't "new")
+  // New: first seen after recording began for that brand; for Planet Cruise, only when it appeared on a sailing we were
+  // already reading (sailings found that day bring offers that were already running)
+  const isNew = x => x.live && x.first >= wk && (x.sources.includes("agent") ? x.fresh && x.fresh >= wk : x.sources.some(s => x.first > (base[s + "|" + x.brand] || "")));
+  const newOn = x => x.sources.includes("agent") ? x.fresh : x.first;
+  const fresh = all.filter(x => isNew(x) && pickB(x)).sort((a, b) => newOn(b).localeCompare(newOn(a)));
+  const gone = all.filter(x => !x.live && x.last && x.last >= wk && pickB(x)).sort((a, b) => b.last.localeCompare(a.last));
+  const line = (x, d, w) => `<tr><td>${day(d)}</td><td>${esc(brandLabel(x.brand))}</td><td style="white-space:normal"><b>${esc(x.text)}</b>${x.expired ? ` <span class="sub">(its own wording says it ended)</span>` : ""}<div class="sub">${esc(x.types.map(t => TYPE_LABEL[t]).join(" · "))} · ${esc(x.sources.map(s => SRC[s]).join(", "))}</div></td><td><span class="chip"${w === "ended" ? ' style="border-color:var(--muted)"' : ""}>${w}</span></td></tr>`;
+  const week = fresh.length || gone.length ? `<div class="tablewrap"><table class="ptable"><tbody>${fresh.map(x => line(x, newOn(x), "new")).join("")}${gone.map(x => line(x, x.last, "ended")).join("")}</tbody></table></div>`
+    : `<div class="empty"><p>Nothing started or ended in the last 7 days${st.line ? " for this brand" : ""}.</p></div>`;
+
+  // 3. Every live offer, cleaned up (filters: brand, type); ended ones in the last 30 days folded underneath
+  const listed = live.filter(x => pickB(x) && pickT(x)).sort((a, b) => (a.brand === "ambassador" ? -1 : b.brand === "ambassador" ? 1 : brandLabel(a.brand).localeCompare(brandLabel(b.brand))) || (b.of ? b.n / b.of : 0) - (a.of ? a.n / a.of : 0));
+  const old = all.filter(x => pickB(x) && pickT(x) && (x.stale || (!x.live && x.last && x.last >= month)));
+  const offerRow = x => `<tr><td>${esc(brandLabel(x.brand))}</td>
+    <td style="white-space:normal"><b>${esc(x.text)}</b>${x.desc && x.desc !== x.text ? `<div class="sub">${esc(x.desc.length > 170 ? x.desc.slice(0, 168) + "…" : x.desc)}</div>` : ""}
+      ${x.stale ? `<div class="sub" style="color:var(--warn)">This page quotes ${day(x.stale)}: probably an old offer still online</div>` : ""}
+      <div style="margin-top:3px">${x.types.map(t => `<span class="chip" style="font-weight:500">${esc(TYPE_LABEL[t])}</span>`).join(" ")}</div></td>
+    <td class="num">${esc(fmtValue(x)) || "–"}</td>
+    <td>${esc(reach(x))}<div class="sub">${esc(x.sources.map(s => SRC[s]).join(", "))}</div></td>
+    <td>${day(x.first)}${x.ends ? `<div class="sub">${x.ends < today ? "ended" : "ends"} ${day(x.ends)}</div>` : ""}${!x.live && x.last ? `<div class="sub">ended ${day(x.last)}</div>` : ""}</td>
+    <td>${x.emails && x.emails[0] && safeUrl(x.emails[0].view) ? `<a href="${esc(x.emails[0].view)}" target="_blank" rel="noopener noreferrer">Email</a>` : ""}${safeUrl(x.links[0]) && x.brand !== "ambassador" ? ` <a href="${esc(x.links[0])}" target="_blank" rel="noopener noreferrer">${x.sources.includes("agent") ? "A sailing" : "Page"}</a>` : ""}</td></tr>`;
+  const head = `<thead><tr><th>Brand</th><th>Offer</th><th class="num">Value</th><th>Where</th><th>Since</th><th></th></tr></thead>`;
+
+  // 4. Timeline: when each offer ran, per brand (bars from first seen to ended, or today)
+  const start = [isoDaysAgo(30), ...all.map(x => x.first).filter(Boolean)].sort()[0];
+  const span = Math.max(1, (Date.parse(today) - Date.parse(start)) / 864e5);
+  const pos = d => Math.max(0, Math.min(100, (Date.parse(d) - Date.parse(start)) / 864e5 / span * 100));
+  const ticks = []; for (let d = new Date(start + "T12:00:00Z"); iso(d) <= today; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1, 12))) if (iso(d) > start) ticks.push(iso(d));
+  const tl = brandRows(all.filter(pickB)).map(b => {
+    const xs = all.filter(x => x.brand === b && x.first && pickT(x)).sort((p, q) => p.first.localeCompare(q.first)).slice(0, 15);
+    return xs.length ? `<details style="margin:6px 0"${st.line || b === "ambassador" ? " open" : ""}><summary style="font-size:13px;font-weight:600">${esc(brandLabel(b))} <span class="sub">· ${xs.length} offer${xs.length === 1 ? "" : "s"}</span></summary>${xs.map(x => {
+      const l = pos(x.first), r = pos(x.live ? today : x.last || today);
+      return `<div style="display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:10px;align-items:center;margin:2px 0;font-size:12px">
+        <span title="${esc(x.text)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.text)}</span>
+        <span style="position:relative;height:12px;background:var(--bg-alt)"><span title="${esc(`${day(x.first)} – ${x.live ? "now" : day(x.last)}`)}" style="position:absolute;top:2px;bottom:2px;left:${l}%;width:${Math.max(1, r - l)}%;background:${x.live ? "var(--c1)" : "var(--muted)"}"></span></span></div>`;
+    }).join("")}</details>` : "";
+  }).join("");
+  const axis = `<div style="display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:10px;font-size:11px;color:var(--muted)"><span></span><span style="position:relative;height:14px">
+    <span style="position:absolute;left:0">${day(start)}</span>${ticks.map(d => `<span style="position:absolute;left:${pos(d)}%;transform:translateX(-50%)">${MON[+d.slice(5, 7) - 1]}</span>`).join("")}<span style="position:absolute;right:0">today</span></span></div>`;
+
+  // 5. The newsletters themselves (each email, its offers, its web version)
+  const emails = ((I && I.emails) || []).filter(e => pickB({brand: e.line}) && e.date.slice(0, 10) >= isoDaysAgo(inboxDays));
+  const mails = !I ? `<div class="empty"><p><b>The newsletter inbox isn't set up yet.</b> Once a team mailbox is signed up to the competitors' emails and its details are added to GitHub (CLAUDE.md, "Competitor newsletters"), their offers appear here.</p></div>`
     : `<div class="controls"><select id="ib-days" aria-label="Received"><option value="30"${inboxDays === 30 ? " selected" : ""}>Last 30 days</option><option value="90"${inboxDays === 90 ? " selected" : ""}>Last 90 days</option></select>
-        <span class="sub">Mailbox last read ${esc(I.fetched_at ? I.fetched_at.slice(0, 16).replace("T", " ") + " UTC" : "–")}</span></div>
-      ${promo.length ? Object.keys(byBrand).sort((a, b) => brandName(a).localeCompare(brandName(b))).map(k => `
-        <h4 style="margin:14px 0 6px;font-size:14px">${esc(brandName(k))} <span class="sub">· ${byBrand[k].length} email${byBrand[k].length === 1 ? "" : "s"} with offers</span></h4>
-        <div class="tablewrap"><table class="ptable"><thead><tr><th>Sent</th><th>Email and its offers</th><th></th></tr></thead><tbody>${byBrand[k].map(emailRow).join("")}</tbody></table></div>`).join("")
-        : `<div class="empty"><p>No offer emails in this period${st.line ? " for this brand" : ""}.</p></div>`}
-      ${other.length ? `<details style="margin-top:10px"><summary class="sub">${other.length} other email${other.length === 1 ? "" : "s"} (not offers: news, inspiration, welcome emails)</summary>
-        <div class="tablewrap"><table class="ptable"><tbody>${other.map(e => `<tr><td>${day(e.date.slice(0, 10))}</td><td>${esc(brandName(e.line))}</td><td style="white-space:normal">${safeUrl(e.view) ? `<a href="${esc(e.view)}" target="_blank" rel="noopener noreferrer">${esc(e.subject)}</a>` : esc(e.subject)}</td></tr>`).join("")}</tbody></table></div></details>` : ""}`;
-
-  // 2. Fred. Olsen's own deals pages (competitors.py)
-  const brand = Object.entries(C.brand_offers || {}).filter(([k]) => pickLine(k)).flatMap(([k, o]) => Object.entries(o).map(([t, e]) => ({line: k, t, ...e})));
-
-  // 3. Planet Cruise's per-sailing lines (agent copy: secondary, in a closed section), each with a sailing it's on
-  const all = live().map(([, r]) => r).filter(r => pickLine(r.line) && r.line !== "ambassador");
-  const agent = {};
-  for (const r of all) for (const o of liveOffers(r)) {
-    if (/(?:ends?|until)\s+\d{1,2}(?:st|nd|rd|th)?\s+\w+\s+(\d{4})/i.test(o)) {   // "offer ends 30th September 2026": skip if past
-      const m = o.match(/(\d{1,2})(?:st|nd|rd|th)?\s+(\w+)\s+(\d{4})/); const d = m && new Date(`${m[1]} ${m[2]} ${m[3]}`);
-      if (d && !isNaN(d) && d.toISOString().slice(0, 10) < today) continue;
-    }
-    const k = r.line + "|" + o;
-    (agent[k] = agent[k] || {line: r.line, o, n: 0, url: r.url}).n++;
-  }
-
-  // 4. Ambassador's own live promotions (our website)
-  const S = ctx.state, count = {};
-  for (const s of Object.values(S.sailings || {})) if (!s.removed)
-    for (const [o, sp] of Object.entries(s.promos || {})) if (sp.length && sp[sp.length - 1][1] == null) count[o] = (count[o] || 0) + 1;
-  const ours = Object.entries(count).sort((a, b) => b[1] - a[1]).map(([o, n]) => ({name: ((S.offers || {})[o] || {}).name || o, desc: ((S.offers || {})[o] || {}).desc, n}));
-  const onSale = Object.values(S.sailings || {}).filter(s => !s.removed).length;
+        <span class="sub">Mailbox last read ${esc(I.fetched_at ? I.fetched_at.slice(0, 16).replace("T", " ") + " UTC" : "–")} · every email, with pictures, is in <b>Competitor emails</b></span></div>
+      ${emails.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sent</th><th>Brand</th><th>Email</th><th>Offers in it</th></tr></thead><tbody>
+        ${emails.map(e => `<tr><td>${day(e.date.slice(0, 10))}</td><td>${esc(brandName(e.line))}</td>
+          <td style="white-space:normal">${safeUrl(e.view) ? `<a href="${esc(e.view)}" target="_blank" rel="noopener noreferrer">${esc(e.subject)}</a>` : esc(e.subject)}${e.by === "rules" ? ` <span class="sub">(found by rules: check)</span>` : ""}</td>
+          <td style="white-space:normal">${e.promotion && (e.offers || []).length ? (e.offers || []).map(o => esc(o.offer)).join("<br>") : `<span class="sub">${esc(e.kind || "no offer")}</span>`}</td></tr>`).join("")}
+      </tbody></table></div>` : `<div class="empty"><p>No emails in this period${st.line ? " from this brand" : ""}.</p></div>`}`;
 
   box.innerHTML = `
-    <div class="controls"><select id="of-line" aria-label="Brand"><option value="">All brands</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
-
-    <p class="note" style="margin:0 0 6px">Their live ads in Meta's and Google's own libraries are on <b>Competitor ads</b>.</p>
-
-    <h3 style="margin:14px 0 8px;font-size:15px">From their newsletters</h3>
-    ${inboxHtml}
-    <p class="note">The brands' own marketing emails to a team mailbox, read every hour. Offers are picked out of each email (by Claude, or by simple rules marked "check"); "View email" opens the brand's own web version and "Offer page" the link from the email.</p>
-
-    ${brand.some(b => !b.ended) ? `<h3 style="margin:22px 0 8px;font-size:15px">Fred. Olsen's deals pages</h3>
-      <div class="tablewrap"><table class="ptable"><tbody>${brand.filter(b => !b.ended).map(b => `<tr><td style="white-space:normal"><a href="${esc(safeUrl(b.url))}" target="_blank" rel="noopener noreferrer"><b>${esc(b.t)}</b></a>${b.text ? `<div class="sub">${esc(b.text)}</div>` : ""}</td><td>since ${day(b.first_seen)}</td></tr>`).join("")}</tbody></table></div>` : ""}
-
-    ${Object.keys(agent).length ? `<details style="margin-top:18px"><summary><b>Agent offers at Planet Cruise</b> <span class="sub">(${Object.keys(agent).length}: the agent's own lines on the sailings we read, often its marketing; secondary)</span></summary>
-      <div class="tablewrap"><table class="ptable"><thead><tr><th>Line</th><th>Offer line</th><th class="num">Sailings</th><th></th></tr></thead><tbody>
-      ${Object.values(agent).sort((a, b) => lineName(a.line).localeCompare(lineName(b.line)) || b.n - a.n).map(o => `<tr><td>${esc(lineName(o.line))}</td><td style="white-space:normal">${esc(o.o)}</td><td class="num">${o.n}</td><td><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener noreferrer">A sailing with it</a></td></tr>`).join("")}
-      </tbody></table></div></details>` : ""}
-
-    <h3 style="margin:22px 0 8px;font-size:15px">Ambassador's own offers now (our website)</h3>
-    ${ours.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Promotion</th><th class="num">Sailings</th></tr></thead><tbody>
-      ${ours.map(o => `<tr><td style="white-space:normal"><b>${esc(o.name)}</b>${o.desc ? `<div class="sub">${esc(o.desc.length > 160 ? o.desc.slice(0, 158) + "…" : o.desc)}</div>` : ""}</td><td class="num">${o.n} of ${onSale}</td></tr>`).join("")}
-    </tbody></table></div>` : `<div class="empty"><p>No promotions live on our sailings.</p></div>`}`;
-  box.querySelector("#of-line").addEventListener("change", e => { st.line = e.target.value; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(x){} renderOffers(box); });
+    <div class="controls">
+      <select id="of-line" aria-label="Brand"><option value="">All brands</option><option value="ambassador"${st.line === "ambassador" ? " selected" : ""}>Ambassador</option>${BRANDS.map(([k, n]) => `<option value="${k}"${st.line === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      <select id="of-type" aria-label="Offer type"><option value="">Every kind of offer</option>${TYPES.map(([k, l]) => `<option value="${k}"${st.otype === k ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      <button type="button" class="linkbtn" id="of-csv">Download CSV</button>
+    </div>
+    <p class="note" style="margin:0 0 6px">From their newsletters, Fred. Olsen's deals pages, the offer lines on every competing sailing at Planet Cruise, and our own website. Recording began ${day(Object.values(base).sort()[0])} (Planet Cruise's lines from 14–16 Oct). Their live ads are on <b>Competitor ads</b>.</p>
+    <h3 style="margin:14px 0 8px;font-size:15px">Who's offering what</h3>${grid}
+    <h3 style="margin:22px 0 8px;font-size:15px">New and ended in the last 7 days</h3>${week}
+    <h3 id="of-list" style="margin:22px 0 8px;font-size:15px">Every live offer${st.otype ? `: ${esc(TYPE_LABEL[st.otype].toLowerCase())}` : ""}</h3>
+    ${listed.length ? `<div class="tablewrap"><table class="ptable">${head}<tbody>${listed.map(offerRow).join("")}</tbody></table></div>` : `<div class="empty"><p>No live offers match.</p></div>`}
+    ${old.length ? `<details style="margin-top:10px"><summary class="sub">${old.length} ended in the last 30 days, or probably out of date</summary><div class="tablewrap"><table class="ptable">${head}<tbody>${old.map(offerRow).join("")}</tbody></table></div></details>` : ""}
+    <h3 style="margin:22px 0 8px;font-size:15px">When each offer ran</h3>
+    ${tl ? axis + tl + `<p class="note">From the day each offer was first seen to the day it ended (coloured bars are still running; grey ones have ended). Offers already running when recording began start on that day.</p>` : `<div class="empty"><p>Nothing to show yet.</p></div>`}
+    <h3 style="margin:22px 0 8px;font-size:15px">Their newsletters</h3>${mails}`;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(x){} };
+  box.querySelector("#of-line").addEventListener("change", e => { st.line = e.target.value; save(); renderOffers(box); });
+  box.querySelector("#of-type").addEventListener("change", e => { st.otype = e.target.value; save(); renderOffers(box); });
+  box.querySelectorAll("[data-cell]").forEach(b => b.addEventListener("click", () => {
+    [st.line, st.otype] = b.dataset.cell.split("|"); save(); renderOffers(box);
+    box.querySelector("#of-list").scrollIntoView({behavior: "smooth", block: "start"});
+  }));
   const dsel = box.querySelector("#ib-days");
   if (dsel) dsel.addEventListener("change", e => { inboxDays = +e.target.value; renderOffers(box); });
+  box.querySelector("#of-csv").addEventListener("click", () => csvDownload(`competitor-offers-${today}.csv`,
+    ["Brand", "Offer", "Detail", "Types", "Value", "Live", "Sailings with it", "Sailings read", "Seen in", "First seen", "Ended", "Ends (its own date)", "Out of date", "Link"],
+    [...listed, ...old].map(x => [brandLabel(x.brand), x.text, x.desc, x.types.map(t => TYPE_LABEL[t]).join("; "), fmtValue(x), x.live ? "yes" : "no", x.of ? x.n : "", x.of || "",
+      x.sources.map(s => SRC[s]).join("; "), x.first, x.live ? "" : x.last, x.ends, x.stale ? `quotes ${x.stale}` : "", x.links[0] || ""])));
 }
 
 // ---------- Vs Ambassador ----------
