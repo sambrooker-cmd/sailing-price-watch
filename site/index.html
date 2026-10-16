@@ -2060,7 +2060,8 @@ const auth = getAuth(firebaseApp);
   // France (stage 2, 14 Oct 2026): Cards and the Ad creator in French; Google Ads and email pages follow in stage 3
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
-  const FR_HIDE = ["rules", "comp", "compoffers", "compads", "compemails", "compvs"];
+  // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2071,7 +2072,7 @@ const auth = getAuth(firebaseApp);
     ["trends", "Trends", ["h-trends"], "Prices"],
     ["changes", "What changed", ["h-changes"], "Prices"],
     ["promos", "Live promotions", ["h-promos"], "Prices"],
-    // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; UK only)
+    // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; France: prices and vs only)
     ["comp", "Competitor prices", ["h-comp"], "Competitors"],
     ["compoffers", "Competitor offers", ["h-compoffers"], "Competitors"],
     ["compads", "Competitor ads", ["h-compads"], "Competitors"],   // their live ads in Meta's and Google's libraries (Sam, 15 Oct 2026)
@@ -2096,6 +2097,8 @@ const auth = getAuth(firebaseApp);
   if (FR && $("h-feedgap")) $("h-feedgap").lastChild.textContent = "Cruise pages vs booking prices";
   if (FR && $("h-coverage")) $("h-coverage").lastChild.textContent = "Cruise list vs sitemap";
   if (FR && $("h-ads")) $("h-ads").lastChild.textContent = "Ad creator · France";
+  if (FR && $("h-comp")) $("h-comp").lastChild.textContent = "Competitor prices · France";
+  if (FR && $("h-compvs")) $("h-compvs").lastChild.textContent = "Ambassador Croisières vs competitors";
   if (FR && $("k-kind")) $("k-kind").hidden = true;   // no fly-cruises from UK airports
   // France has one ship and no fly-cruises from UK airports: no ship buttons or fly filter
   if (FR) { const sg = document.querySelector('.seg[aria-label="Ship"]'); if (sg) sg.hidden = true; if ($("f-kind")) $("f-kind").hidden = true; ship = ""; filt.kind = ""; }
@@ -2220,10 +2223,10 @@ const auth = getAuth(firebaseApp);
   // (the three share their filters)
   let compModule = null;
   async function mountComp(v){
-    if (!state || FR || !COMP[v]) return;
+    if (!state || !COMP[v] || (FR && FR_HIDE.includes(v))) return;
     const box = $("comp-" + COMP[v]);
     try {
-      compModule = compModule || await import("./competitors.js?v=__BUILD__");
+      compModule = compModule || await import(FR ? "./competitors_fr.js?v=__BUILD__" : "./competitors.js?v=__BUILD__");
       await compModule.mount(box, {state, cabins, readJson, esc}, COMP[v]);
     } catch (e) { box.innerHTML = `<p class="err">The competitors page couldn't load: ${esc(e.message)}</p>`; }
   }

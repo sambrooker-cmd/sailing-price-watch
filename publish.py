@@ -21,6 +21,7 @@ has to understand the shape of the data:
                       the same for France (state/fr, runs/fr; Sam, 14 Oct 2026), once its first check has run
   pricewatch/terms, coverage, cards, adkit (and fr-terms, fr-coverage, fr-cards, fr-adkit)
   pricewatch/comp-current, comp-<line>, comp-runs   competitor prices and offers (competitors.py), once it has run
+  pricewatch/fr-comp, fr-comp-runs   France: MSC and Costa itineraries from French ports at Havas Voyages (competitors_fr.py)
   pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
   pricewatch/comp-emails-YYYY-MM-1 / -2  the email library: that half month's competitor emails (links to their copies in Storage)
@@ -153,6 +154,21 @@ def documents():
                 break
             runs.append(r)
         docs["comp-runs"] = {"runs": runs}
+    # France's competitors (competitors_fr.py, 16 Oct 2026): MSC and Costa itineraries from French ports at Havas Voyages
+    # (~150 itineraries: one document; split() looks after it if it grows), and the last 60 days' changes
+    frc = ROOT / "state" / "fr" / "competitors.json"
+    if frc.exists():
+        c = load(frc)
+        docs["fr-comp"] = {k: v for k, v in c.items() if k != "tried"}
+        runs, size = [], 0
+        for f in sorted((ROOT / "runs" / "fr" / "competitors").glob("*.json"), reverse=True)[:60]:
+            r = load(f)
+            r = {"date": r.get("date"), "changes": r.get("changes", [])}
+            size += len(json.dumps(r))
+            if size > 300_000:
+                break
+            runs.append(r)
+        docs["fr-comp-runs"] = {"runs": runs}
     # Competitors' live Facebook/Instagram ads in the UK (meta_ads.py): a summary, and one document of ads per brand
     meta = ROOT / "state" / "competitors" / "meta_ads.json"
     if meta.exists():

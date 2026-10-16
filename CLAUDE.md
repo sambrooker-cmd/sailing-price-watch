@@ -326,6 +326,45 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
   390, previous/next, details, links, View in browser), Compare (2–4 side by side, scaled, with a row-by-row table),
   CSV. Tested 15 Oct 2026 with fake mailbox data (nothing published).
 
+## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
+**Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
+**MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
+Caribbean too, at other prices). Not read: MSC's own site (blocks, 401), Costa's own site (no website terms, but prices
+only by JavaScript), Club Med, Royal Caribbean, Celebrity, Celestyal (terms forbid); every French agent except Havas:
+**Croisierenet / Croisières.fr** ("à des fins personnelles et en aucune manière à des fins commerciales"; Sam asked
+for Croisières.fr on 16 Oct 2026 and was told it needs their written permission or legal sign-off: not built),
+abcroisière / Promovacances / PromoCroisière (Karavel: database extraction banned), Selectour, Carrefour Voyages
+(forbid), Croisiland (no prices in its pages), lastminute / E.Leclerc / Directours (Cloudflare blocks). **Havas
+Voyages** (havas-voyages.fr) has no website terms of use (its "Informations légales" are company details only; its
+booking and offer conditions say nothing about using the site), robots.txt allows the cruise pages (not /ajax/, /serp?,
+/account), no block: read as Planet Cruise is in the UK. French database law (CPI L.342-1) still covers systematic
+reading: Sam's legal sign-off as for the UK. Notes: scratchpad only (not in the repo).
+- `competitors_fr.py` (in `competitors.yml` after the UK check, step "Read French competitor prices (Havas Voyages)",
+  `if: always()`, `continue-on-error`, own "France competitor check FAILED" issue; commits `state/fr/competitors.json`
+  and `runs/fr/competitors/`): `competitors.Site` (robots.txt before every request, `PAUSE` 2 s, `Accept-Language`
+  fr-FR). Cruise pages from `sitemap_produits.xml` (`/c-croisiere/`, ~730; it is ~7 MB, sometimes cut off or a
+  "Maintenance Page" 504: retried, and a cut-off sitemap never marks anything gone). Its addresses carry an apostrophe
+  ("cote-d'azur-…") that the server rejects with 400: dropped. `slug_rank`: Costa's addresses start with the departure
+  region and town (`FRENCH_SLUG`), MSC's (and some Costa ones) with a country on the route and "-0-", so those are read
+  once to see where they depart (~380 candidates, `NEW_PER_RUN` = 150 a day, then `tried`). A page gives (HTML only):
+  `to-label` (line), h1 title, ship, "Réf" (the id), `final-price` "À partir de 139€ TTC /personne", `package-time`
+  nights, the day-by-day `cruise-day-title` ports (MSC's are UTF-8 encoded twice: `fix`). **No dates and no cabin
+  types** (the "Dates et tarifs" box loads by JavaScript through /ajax/, disallowed): one from price per itinerary.
+  `competes`: starts and ends at a French port (`PORTS`: med / north / antilles), as ours (round trips from Dunkerque,
+  Marseille, Pointe-à-Pitre and a few between them); one-way trips ending abroad (Marseille → Naples) and crossings
+  (Las Palmas → Guadeloupe) are out. Record per itinerary: line, ship, title, start/end, ports, area, nights, link,
+  `prices` segments {p, from}; `gone` on 404 / no price / no longer in a complete sitemap (dropped after 60 days).
+  Runs: price_drop / price_rise / new / gone. Safety stop: under half the pages read → nothing saved, exit 2.
+- `publish.py`: `pricewatch/fr-comp` (without `tried`) and `fr-comp-runs` (60 days, ≤ 300 KB).
+- Tracker page, France: **Competitor prices** and **Vs Ambassador** shown (`FR_HIDE` no longer hides them; headings
+  "Competitor prices · France", "Ambassador Croisières vs competitors"); `site/competitors_fr.js` (own filters
+  `spw-comp-fr`: line, area, length 2–4 / 5–8 / 9+ nights, sort). Prices page: tiles, every itinerary (from € pp, per
+  night, 7-day change, link to Havas), what changed, CSV. Vs page: median price per night by area and length, ours
+  (cheapest twin cabin, `segments`, sailings on sale; Dunkerque → north, Marseille → med, Pointe-à-Pitre → antilles)
+  against MSC and Costa, and each itinerary against our cheapest per night in the same area within 3 nights' length at
+  any date ("Havas's pages give no dates"), dearest first, CSV. Competitor offers / ads / emails stay UK only.
+  Tested 16 Oct 2026 against the live site (discovery runs on a scratch copy; nothing committed).
+
 ## Design system v4.3 (16 Oct 2026, Sam: "make sure these changes are pushed to all aspects of this app")
 Sam updated the "Ambassador Cruise Line" design system (claude.ai artifact XAtqddrEMdLfjbSyPFLXVz) to Brand Guidelines
 v4.3 and the FINAL messaging matrix (14 Oct 2026; its `messaging.md` section). Checked across the app: colours (all hex
@@ -406,6 +445,7 @@ pounds a month).
 | Feed vs website (in `tracker.py`, `daily.py`, `site/index.html`) | **Ad feed price vs website** (Sam, 13 Oct 2026, after hearing the feed is refreshed daily): each check compares the feed's price (`feed_price_pp`) with the page's cheapest twin cabin (only when the page's prices were read). A difference → per sailing `feed_gap` {feed, page, since, seen, reported} (UTC check times); run lists `feed_gap_new` / `feed_gap_fixed`; fixed ones (matching again, or left the feed) kept 30 days in state `feed_gaps_fixed`. `daily.py` `feed_gap_report`: once a gap has lasted `FEED_GAP_HOURS` = 3 it's reported once → `out/feed_gaps.md` → a "Feed prices don't match the website — DATE" issue (one a day, comments after). Tracker page **Checks → Feed vs website** (count badge): current gaps, largest first, feed-lower ones highlighted (the ads show a price guests can't get), CSV download, fixed in the last 7 days. Recorded only: never part of claims, never changes the feed or any ad account |
 | `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
+| `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
