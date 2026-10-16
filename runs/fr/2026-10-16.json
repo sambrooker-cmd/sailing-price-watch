@@ -41,6 +41,13 @@
    "mix": "inside → ocean_view",
    "claim": null,
    "at": "2026-10-16T11:07:10Z"
+  },
+  {
+   "id": "R270501",
+   "from": 1919,
+   "to": 1649,
+   "claim": null,
+   "at": "2026-10-16T21:07:36Z"
   }
  ],
  "rises": [
@@ -82,9 +89,6 @@
  "eligible": [],
  "flags": {
   "R261116": [
-   "the page shows from €789 but booking's cheapest is €989"
-  ],
-  "R261207": [
    "the page shows from €789 but booking's cheapest is €989"
   ],
   "R261218": [
@@ -178,6 +182,38 @@
    "to": 2879,
    "claim": null,
    "at": "2026-10-16T16:07:36Z"
+  },
+  {
+   "id": "R270425",
+   "cabin": "solo.ocean_view",
+   "from": 1169,
+   "to": 1159,
+   "claim": null,
+   "at": "2026-10-16T21:07:36Z"
+  },
+  {
+   "id": "R270501",
+   "cabin": "twin.inside",
+   "from": 1919,
+   "to": 1649,
+   "claim": null,
+   "at": "2026-10-16T21:07:36Z"
+  },
+  {
+   "id": "R270821",
+   "cabin": "twin.ocean_view",
+   "from": 1899,
+   "to": 1849,
+   "claim": null,
+   "at": "2026-10-16T21:07:36Z"
+  },
+  {
+   "id": "R280705",
+   "cabin": "solo.inside",
+   "from": 1159,
+   "to": 1139,
+   "claim": null,
+   "at": "2026-10-16T21:07:36Z"
   }
  ],
  "cabin_rises": [
@@ -354,6 +390,11 @@
    "id": "R270513",
    "cabin": "solo.inside",
    "at": "2026-10-16T17:59:41Z"
+  },
+  {
+   "id": "R261207",
+   "cabin": "solo.inside",
+   "at": "2026-10-16T21:07:36Z"
   }
  ],
  "cabin_back": [
@@ -386,6 +427,18 @@
    "cabin": "solo.balcony",
    "p": 2809,
    "at": "2026-10-16T16:07:36Z"
+  },
+  {
+   "id": "R270513",
+   "cabin": "solo.inside",
+   "p": 1259,
+   "at": "2026-10-16T21:07:36Z"
+  },
+  {
+   "id": "R280716",
+   "cabin": "solo.inside",
+   "p": 1229,
+   "at": "2026-10-16T21:07:36Z"
   }
  ],
  "cabin_eligible": [],
@@ -517,6 +570,13 @@
    "page": 659,
    "how": "matches the website",
    "at": "2026-10-16T11:07:10Z"
+  },
+  {
+   "id": "R261207",
+   "feed": 789,
+   "page": 989,
+   "how": "matches the website",
+   "at": "2026-10-16T21:07:36Z"
   }
  ],
  "lead_source_switch": [],
@@ -534,6 +594,7 @@
   "2026-10-16T14:07:41Z",
   "2026-10-16T15:07:36Z",
   "2026-10-16T16:07:36Z",
-  "2026-10-16T17:59:41Z"
+  "2026-10-16T17:59:41Z",
+  "2026-10-16T21:07:36Z"
  ]
 }
