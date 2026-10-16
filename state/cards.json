@@ -499,43 +499,45 @@
    ]
   },
   "A22629BR": {
-   "old": [],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Norway's Land of the Northern Lights",
-    "base_title": "Norway's Land of the Northern Lights",
-    "ship": "Ambition",
-    "port": "Bristol Royal Portbury",
-    "flight_from": null,
-    "nights": 17,
-    "departure_date": "2026-10-16",
-    "price": 1349,
-    "promos": [
-     "Up to £400 Onboard Credit · ends 23 Nov"
-    ],
-    "nectar": "Collect up to 50,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/219e1276bd/northern_lights_narvik_norway_2000x1333.jpg",
-    "fp": "e7b2a734c253",
-    "made_at": "2026-10-12T14:20:12Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_1x1.jpg?alt=media&token=a7747fd1-5340-4869-9836-ef819fed3758",
-      "path": "pricewatch-cards/A22629BR/e7b2a734c253_1x1.jpg",
-      "kb": 185
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Norway's Land of the Northern Lights",
+     "base_title": "Norway's Land of the Northern Lights",
+     "ship": "Ambition",
+     "port": "Bristol Royal Portbury",
+     "flight_from": null,
+     "nights": 17,
+     "departure_date": "2026-10-16",
+     "price": 1349,
+     "promos": [
+      "Up to £400 Onboard Credit · ends 23 Nov"
+     ],
+     "nectar": "Collect up to 50,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/219e1276bd/northern_lights_narvik_norway_2000x1333.jpg",
+     "fp": "e7b2a734c253",
+     "made_at": "2026-10-12T14:20:12Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_1x1.jpg?alt=media&token=a7747fd1-5340-4869-9836-ef819fed3758",
+       "path": "pricewatch-cards/A22629BR/e7b2a734c253_1x1.jpg",
+       "kb": 185
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_4x5.jpg?alt=media&token=57fa6817-7850-4a58-8b57-c67b70436c9c",
+       "path": "pricewatch-cards/A22629BR/e7b2a734c253_4x5.jpg",
+       "kb": 210
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_9x16.jpg?alt=media&token=57b8a86a-a430-47f4-aaf6-c131c8006925",
+       "path": "pricewatch-cards/A22629BR/e7b2a734c253_9x16.jpg",
+       "kb": 259
+      }
      },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_4x5.jpg?alt=media&token=57fa6817-7850-4a58-8b57-c67b70436c9c",
-      "path": "pricewatch-cards/A22629BR/e7b2a734c253_4x5.jpg",
-      "kb": 210
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA22629BR%2Fe7b2a734c253_9x16.jpg?alt=media&token=57b8a86a-a430-47f4-aaf6-c131c8006925",
-      "path": "pricewatch-cards/A22629BR/e7b2a734c253_9x16.jpg",
-      "kb": 259
-     }
+     "out_of_date_since": "2026-10-16T00:13:10Z"
     }
-   }
+   ]
   },
   "A12626": {
    "old": [
@@ -6612,7 +6614,41 @@
      },
      "out_of_date_since": "2026-10-14T09:07:59Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Chocolates & Lace: Mini Cruise to Medieval Bruges",
+    "base_title": "Chocolates & Lace: Mini Cruise to Medieval Bruges",
+    "ship": "Ambience",
+    "port": "London Tilbury",
+    "flight_from": null,
+    "nights": 2,
+    "departure_date": "2027-05-01",
+    "price": 499,
+    "promos": [],
+    "nectar": "",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/4d5256f97d/27-11-2023_zeebrugge_selected-edited_gde_2252_1920x1080.jpg",
+    "fp": "e8cc4b28f6f0",
+    "made_at": "2026-10-16T00:13:10Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_1x1.jpg?alt=media&token=d1796657-5766-4085-b173-25c48cf2c6ab",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_1x1.jpg",
+      "kb": 385
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_4x5.jpg?alt=media&token=41b382f3-5f0c-4532-abf8-3aeb1e3966cb",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_4x5.jpg",
+      "kb": 431
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12709%2Fe8cc4b28f6f0_9x16.jpg?alt=media&token=045ccb49-01ae-40e1-b772-4a7ae1ff03ad",
+      "path": "pricewatch-cards/A12709/e8cc4b28f6f0_9x16.jpg",
+      "kb": 504
+     }
+    }
+   }
   },
   "A12710": {
    "old": [
@@ -16119,5 +16155,5 @@
    ]
   }
  },
- "updated_at": "2026-10-15T21:09:24Z"
+ "updated_at": "2026-10-16T00:13:10Z"
 }

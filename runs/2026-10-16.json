@@ -1,0 +1,74 @@
+{
+ "date": "2026-10-16",
+ "count": 223,
+ "new": [],
+ "removed": [
+  "A22629BR"
+ ],
+ "returned": [
+  "A12709"
+ ],
+ "drops": [],
+ "rises": [],
+ "eligible": [],
+ "flags": {
+  "A22633": [
+   "feed price £299 differs from cheapest cabin on the page £399 (the page price is used)"
+  ],
+  "A12630": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12634": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A32653M": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A32653": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12706": [
+   "feed price £1,089 differs from cheapest cabin on the page £1,589 (the page price is used)"
+  ],
+  "A22705": [
+   "feed image looks like campaign art (may contain text)"
+  ],
+  "A12709": [
+   "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A12712": [
+   "feed image looks like campaign art (may contain text)"
+  ]
+ },
+ "cabin_drops": [],
+ "cabin_rises": [],
+ "cabin_sold_out": [],
+ "cabin_back": [],
+ "cabin_eligible": [],
+ "promo_added": [],
+ "promo_ended": [
+  {
+   "id": "A22629BR",
+   "offer": "991789db-008b-4e9f-b5a9-a0cac87457fd",
+   "name": "Up to £400 Onboard Credit",
+   "at": "2026-10-16T00:10:41Z"
+  }
+ ],
+ "promo_changed": [],
+ "nectar_changes": [],
+ "feed_gap_new": [],
+ "feed_gap_fixed": [
+  {
+   "id": "A22723NC",
+   "feed": 909,
+   "page": 899,
+   "how": "matches the website",
+   "at": "2026-10-16T00:10:41Z"
+  }
+ ],
+ "lead_source_switch": [],
+ "reported": [],
+ "checks": [
+  "2026-10-16T00:10:41Z"
+ ]
+}
