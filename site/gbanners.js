@@ -114,19 +114,27 @@ html,body{width:${w}px;height:${h}px;overflow:hidden;background:#6B207D}
     const ph = Math.round(h * 0.5);
     css = `#card{flex-direction:column}.ph{width:${w}px;height:${ph}px}
 .scrim{position:absolute;left:0;right:0;top:0;height:46px;background:linear-gradient(rgba(56,8,67,.7),rgba(56,8,67,0))}
-.logo{position:absolute;left:10px;top:9px;height:${Math.round(w * 0.055)}px}
+.logo{position:absolute;left:10px;top:9px;height:${Math.max(16, Math.round(w * 0.07))}px}
 .panel{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:8px 12px 10px;gap:4px;min-height:0}
 .name{font-size:${Math.round(w * 0.055)}px}.meta{font-size:${Math.round(w * 0.04)}px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:${Math.round(w * 0.045)}px}`;
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:${Math.round(w * 0.045)}px}
+.row .price{flex:0 1 auto;min-width:0}.row .cta{flex:none;padding:.5em 1em}`;
     body = `${pic(w, ph)}<div class="scrim"></div>${logo}<div class="panel"><div><p class="name fit2" data-max="${Math.round(w * 0.055)}">${esc(d.title)}</p><p class="meta">${esc(when)} · ${esc(where)}</p></div><div class="row">${price}${button}</div></div>`;
   } else if (kind === "tower") {
-    const ph = Math.round(h * 0.42), f = w / 160;
+    // skyscrapers (160×600, 300×600; Sam, 16 Oct 2026: the logo was squashed to nothing and the button crowded the
+    // price): the logo on the photo (as the rectangles), the name and details under it, then the price and button
+    // together at the bottom with room around them. Sizes follow the width, capped so 300 wide isn't oversized.
+    const f = Math.min(w / 160, 1.5), narrow = w < 200, ph = Math.round(h * (narrow ? 0.44 : 0.4)), lw = Math.round(w * (w >= 250 ? 0.52 : 0.66));
     css = `#card{flex-direction:column}.ph{width:${w}px;height:${ph}px}
-.logo{height:${Math.round(14 * f)}px;margin:${Math.round(14 * f)}px auto 0}
-.panel{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:space-between;padding:${Math.round(10 * f)}px ${Math.round(10 * f)}px ${Math.round(16 * f)}px;min-height:0}
-.name{font-size:${Math.round(15 * f)}px}.meta{font-size:${Math.round(11 * f)}px;margin-top:${Math.round(6 * f)}px}
-.price{font-size:${Math.round(13 * f)}px}.cta{font-size:${Math.round(12 * f)}px}`;
-    body = `${pic(w, ph)}<div class="panel"><div><p class="name fit2" data-max="${Math.round(15 * f)}" data-lines="3">${esc(d.title)}</p><p class="meta">${esc(when)}<br>${esc(where)}</p></div>${price}${button}${logo}</div>`;
+.scrim{position:absolute;left:0;right:0;top:0;height:${Math.round(ph * 0.38)}px;background:linear-gradient(rgba(56,8,67,.75),rgba(56,8,67,0))}
+.logo{position:absolute;left:50%;transform:translateX(-50%);top:${Math.round(12 * f)}px;width:${lw}px}
+.logo svg{width:100%;height:auto}
+.panel{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:${Math.round(16 * f)}px ${Math.round(12 * f)}px ${Math.round(20 * f)}px;min-height:0}
+.panel>*{flex:none}
+.name{font-size:${Math.round(17 * f)}px}.meta{font-size:${Math.round(12 * f)}px;margin-top:${Math.round(8 * f)}px}
+.bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:${Math.round(14 * f)}px;padding-top:${Math.round(10 * f)}px}
+.price{font-size:${Math.round(13 * f)}px}.cta{font-size:${Math.round(13 * f)}px;padding:.6em 1.5em}`;
+    body = `${pic(w, ph)}<div class="scrim"></div>${logo}<div class="panel"><div><p class="name fit2" data-max="${Math.round(17 * f)}" data-lines="${narrow ? 4 : 3}">${esc(d.title)}</p><p class="meta">${esc(when)}<br>${esc(where)}</p></div><div class="bottom">${price}${button}</div></div>`;
   } else if (kind === "bill") {
     // billboard (970×250): photo on the left, then logo, name, details, price and button stacked
     const pw = Math.round(w * 0.4);
@@ -157,9 +165,10 @@ function fit(){
     while ((el.scrollHeight > lh() * lines + 1 || el.scrollWidth > el.clientWidth + 1) && s > 8) { s -= .5; el.style.fontSize = s + 'px'; }
   });
   const card = document.getElementById('card'); let k = 1;
-  const over = () => [...card.querySelectorAll('.panel,.text,.price,.cta,.row')].some(e => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1)
-    || [...card.children].some(e => { const r = e.getBoundingClientRect(); return r.right > ${w} + .5 || r.bottom > ${h} + .5; });
-  while (over() && k > .6) { k -= .04; card.style.fontSize = ''; card.querySelectorAll('.meta,.price,.cta').forEach(e => { e.style.fontSize = (parseFloat(getComputedStyle(e).fontSize) * .96) + 'px'; }); }
+  // Anything spilling out of its box, or any element (the button included) past the banner's edge
+  const over = () => [...card.querySelectorAll('.panel,.text,.price,.cta,.row,.bottom')].some(e => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1)
+    || [...card.querySelectorAll('.panel *,.text *,.row *,.price,.cta')].some(e => { const r = e.getBoundingClientRect(); return r.width && (r.right > ${w} + .5 || r.bottom > ${h} + .5); });
+  while (over() && k > .6) { k -= .04; card.style.fontSize = ''; card.querySelectorAll('.meta,.price,.cta,.name').forEach(e => { e.style.fontSize = (parseFloat(getComputedStyle(e).fontSize) * .96) + 'px'; }); }
 }
 </script>${runtime(w, w)}</body></html>`;
 }
