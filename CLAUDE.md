@@ -326,6 +326,25 @@ Sam found the scraped offers unreliable (old, marketing lines rather than promot
   390, previous/next, details, links, View in browser), Compare (2–4 side by side, scaled, with a row-by-row table),
   CSV. Tested 15 Oct 2026 with fake mailbox data (nothing published).
 
+## Competitor offers page, rebuilt (16 Oct 2026, Sam: "needs improvement"; picked grid, new/ended, clean-up, timeline)
+`site/offerkit.js` `collect()` gathers every offer into one list (brand, wording, `types`, `value`, sources, reach "on N
+of M sailings", first seen, ended, own end date) from the newsletters (`email`), Fred. Olsen's deals pages (`deals`),
+Planet Cruise's lines on every sailing (`agent`; Ambassador-at-Planet-Cruise left out) and our own promotions (`ours`),
+merged by brand and wording (`keyOf`: case, punctuation, asterisks). `TYPES`: onboard credit, discounts, low deposit,
+free extras, past guests, solo/children/family, transfers and flights, flash/late/launch. Not offers (no type, or
+`NOT_OFFER`: "Book the Select Price fare…", "Book this deal online") are dropped; a saving on flights or flight seats is a
+travel offer, not a discount (`FLIGHT_SAVING`). `valueOf`: biggest credit / % or £ saving ("save up to £750", "£550 cabin
+savings", never "£1pp deposit"), smallest deposit. `endsIn`: an end date in the wording ("Must end Mon 12th Oct", "Book by
+… 20th October 2026"; year assumed) → past = ended (`expired`); `staleSince`: a dd/mm/yy date over 60 days old ("price
+correct at time of send 05/02/26") → "probably an old offer", kept out of the grid. Page (`renderOffers` in
+competitors.js; filters brand incl. Ambassador, offer type `st.otype`; CSV): **Who's offering what** (brands × types,
+Ambassador first; best figure and share of sailings; clicking one filters the list), **New and ended in the last 7 days**
+(new = first seen after recording began for that brand and source (`baselines`, "source|brand"); for Planet Cruise only
+when it appeared on a sailing already being read (`fresh`), since sailings found later bring offers already running),
+**Every live offer** (our onboard credit tiers grouped as one row, `groupOurs`; ended / out-of-date folded), **When each
+offer ran** (bars per brand, folded except Ambassador or the chosen brand), **Their newsletters** (each email and its
+offers; pictures in Competitor emails).
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
