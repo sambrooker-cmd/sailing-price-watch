@@ -1612,7 +1612,46 @@
    }
   },
   "R270623": {
-   "old": [],
+   "old": [
+    {
+     "design": "2026-10-12",
+     "title": "Trésors de l'Atlantique",
+     "base_title": "Trésors de l'Atlantique",
+     "ship": "Renaissance",
+     "port": "Marseille",
+     "flight_from": null,
+     "nights": 12,
+     "departure_date": "2027-06-23",
+     "price": 829,
+     "promos": [
+      "Formule Plus",
+      "Larguez les amarres"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/c4615108-6957-4d80-97fd-1f906c4f27e6?width=2000&format=jpg&quality=85",
+     "fp": "dff03395220c",
+     "made_at": "2026-10-14T16:09:26Z",
+     "reason": "photo changed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_1x1.jpg?alt=media&token=840f3930-cd09-47f3-a698-75f198af1c9e",
+       "path": "pricewatch-cards/fr/R270623/dff03395220c_1x1.jpg",
+       "kb": 259
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_4x5.jpg?alt=media&token=67fd7c9b-6f59-4880-a7a9-306984f843a5",
+       "path": "pricewatch-cards/fr/R270623/dff03395220c_4x5.jpg",
+       "kb": 309
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_9x16.jpg?alt=media&token=349ed6f1-aec6-4b4d-b378-11660c550f13",
+       "path": "pricewatch-cards/fr/R270623/dff03395220c_9x16.jpg",
+       "kb": 365
+      }
+     },
+     "out_of_date_since": "2026-10-16T13:57:53Z"
+    }
+   ],
    "current": {
     "design": "2026-10-12",
     "title": "Trésors de l'Atlantique",
@@ -1628,25 +1667,25 @@
      "Larguez les amarres"
     ],
     "nectar": "",
-    "photo": "https://cms.ambassadorcroisieres.fr/assets/c4615108-6957-4d80-97fd-1f906c4f27e6?width=2000&format=jpg&quality=85",
-    "fp": "dff03395220c",
-    "made_at": "2026-10-14T16:09:26Z",
-    "reason": "new",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/73af147e-a92a-4edb-afd7-210373a5c7db?width=2000&format=jpg&quality=85",
+    "fp": "5c411c926305",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "photo changed",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_1x1.jpg?alt=media&token=840f3930-cd09-47f3-a698-75f198af1c9e",
-      "path": "pricewatch-cards/fr/R270623/dff03395220c_1x1.jpg",
-      "kb": 259
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2F5c411c926305_1x1.jpg?alt=media&token=10055cd2-cd6e-4eb0-a6af-453e7ab92d6c",
+      "path": "pricewatch-cards/fr/R270623/5c411c926305_1x1.jpg",
+      "kb": 226
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_4x5.jpg?alt=media&token=67fd7c9b-6f59-4880-a7a9-306984f843a5",
-      "path": "pricewatch-cards/fr/R270623/dff03395220c_4x5.jpg",
-      "kb": 309
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2F5c411c926305_4x5.jpg?alt=media&token=086b2654-9828-4674-b706-f229ab0a28e4",
+      "path": "pricewatch-cards/fr/R270623/5c411c926305_4x5.jpg",
+      "kb": 258
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2Fdff03395220c_9x16.jpg?alt=media&token=349ed6f1-aec6-4b4d-b378-11660c550f13",
-      "path": "pricewatch-cards/fr/R270623/dff03395220c_9x16.jpg",
-      "kb": 365
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270623%2F5c411c926305_9x16.jpg?alt=media&token=369d4140-e95d-46b2-b659-1e9cb486fa62",
+      "path": "pricewatch-cards/fr/R270623/5c411c926305_9x16.jpg",
+      "kb": 305
      }
     }
    }
@@ -3172,7 +3211,514 @@
      }
     }
    }
+  },
+  "R271109": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Odyssée Tropicale",
+    "base_title": "Odyssée Tropicale",
+    "ship": "Renaissance",
+    "port": "Dunkerque",
+    "flight_from": null,
+    "nights": 20,
+    "departure_date": "2027-11-09",
+    "price": 2519,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/046c3dbe-d565-4255-a61b-9a97ad2526e1?width=2000&format=jpg&quality=85",
+    "fp": "05757ad996b8",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271109%2F05757ad996b8_1x1.jpg?alt=media&token=58ead396-8b80-4f87-b185-517459dfd066",
+      "path": "pricewatch-cards/fr/R271109/05757ad996b8_1x1.jpg",
+      "kb": 211
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271109%2F05757ad996b8_4x5.jpg?alt=media&token=b183c871-b163-4d54-9afd-e24496b62aeb",
+      "path": "pricewatch-cards/fr/R271109/05757ad996b8_4x5.jpg",
+      "kb": 262
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271109%2F05757ad996b8_9x16.jpg?alt=media&token=8681e283-e7e4-4534-9e54-83edaef37985",
+      "path": "pricewatch-cards/fr/R271109/05757ad996b8_9x16.jpg",
+      "kb": 325
+     }
+    }
+   }
+  },
+  "R271129": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Horizons Tropicaux",
+    "base_title": "Horizons Tropicaux",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-11-29",
+    "price": 1539,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/c40728f8-1471-4792-ad48-92ff6fc5e0d5?width=2000&format=jpg&quality=85",
+    "fp": "0fd13a3da00a",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271129%2F0fd13a3da00a_1x1.jpg?alt=media&token=2105180c-c4b2-4913-bd71-c2b644b6d6aa",
+      "path": "pricewatch-cards/fr/R271129/0fd13a3da00a_1x1.jpg",
+      "kb": 273
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271129%2F0fd13a3da00a_4x5.jpg?alt=media&token=06fc4cc8-ee15-48fc-9d3e-7e2e52e85779",
+      "path": "pricewatch-cards/fr/R271129/0fd13a3da00a_4x5.jpg",
+      "kb": 317
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271129%2F0fd13a3da00a_9x16.jpg?alt=media&token=658bb34d-867e-486c-8d91-fe18606d3ae9",
+      "path": "pricewatch-cards/fr/R271129/0fd13a3da00a_9x16.jpg",
+      "kb": 371
+     }
+    }
+   }
+  },
+  "R271210": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Secrets des Caraïbes",
+    "base_title": "Secrets des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2027-12-10",
+    "price": 1399,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/61f9881a-c4c0-4174-8bb5-205163d24003?width=2000&format=jpg&quality=85",
+    "fp": "374300625801",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271210%2F374300625801_1x1.jpg?alt=media&token=b1fbfb49-669d-4402-903c-d48dc6e65444",
+      "path": "pricewatch-cards/fr/R271210/374300625801_1x1.jpg",
+      "kb": 203
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271210%2F374300625801_4x5.jpg?alt=media&token=f1482047-0ae9-469e-9521-caf4f719a857",
+      "path": "pricewatch-cards/fr/R271210/374300625801_4x5.jpg",
+      "kb": 249
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271210%2F374300625801_9x16.jpg?alt=media&token=e2093470-f87d-4ffa-b9fc-4a6a60d9d03c",
+      "path": "pricewatch-cards/fr/R271210/374300625801_9x16.jpg",
+      "kb": 286
+     }
+    }
+   }
+  },
+  "R271220": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Noël au rythme des Caraïbes",
+    "base_title": "Noël au rythme des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2027-12-20",
+    "price": 1959,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/2ac8dad4-a6ba-46dc-9a5f-b230ed08b41f?width=2000&format=jpg&quality=85",
+    "fp": "6f549fc60ad4",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271220%2F6f549fc60ad4_1x1.jpg?alt=media&token=0a90a516-2b93-440d-a54f-579f63baa740",
+      "path": "pricewatch-cards/fr/R271220/6f549fc60ad4_1x1.jpg",
+      "kb": 254
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271220%2F6f549fc60ad4_4x5.jpg?alt=media&token=84e4d347-1c7e-4f63-99f0-bb07c41fa038",
+      "path": "pricewatch-cards/fr/R271220/6f549fc60ad4_4x5.jpg",
+      "kb": 294
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271220%2F6f549fc60ad4_9x16.jpg?alt=media&token=dacf151d-8365-460a-8708-f083143184d7",
+      "path": "pricewatch-cards/fr/R271220/6f549fc60ad4_9x16.jpg",
+      "kb": 333
+     }
+    }
+   }
+  },
+  "R271231": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Nouvel An dans les Antilles",
+    "base_title": "Nouvel An dans les Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2027-12-31",
+    "price": 1549,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/82aee867-ce9f-485e-af53-fd2d861fe0fc?width=2000&format=jpg&quality=85",
+    "fp": "b15595c331b6",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271231%2Fb15595c331b6_1x1.jpg?alt=media&token=49d8b7fc-f430-431b-8d9d-87b43e1a89b3",
+      "path": "pricewatch-cards/fr/R271231/b15595c331b6_1x1.jpg",
+      "kb": 167
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271231%2Fb15595c331b6_4x5.jpg?alt=media&token=142e8441-7333-4c4b-bf7a-e4f7131d2bcc",
+      "path": "pricewatch-cards/fr/R271231/b15595c331b6_4x5.jpg",
+      "kb": 201
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR271231%2Fb15595c331b6_9x16.jpg?alt=media&token=f5daff9d-fbd0-41fe-9ee2-80d5194f301d",
+      "path": "pricewatch-cards/fr/R271231/b15595c331b6_9x16.jpg",
+      "kb": 236
+     }
+    }
+   }
+  },
+  "R280110": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Parfums des Caraïbes",
+    "base_title": "Parfums des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-01-10",
+    "price": 1699,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/efe5913b-2fc2-4632-9fec-d88736d8b679?width=2000&format=jpg&quality=85",
+    "fp": "fcda2ed16d0c",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280110%2Ffcda2ed16d0c_1x1.jpg?alt=media&token=c66e5c41-165b-4406-9fdd-9bc403f42e14",
+      "path": "pricewatch-cards/fr/R280110/fcda2ed16d0c_1x1.jpg",
+      "kb": 288
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280110%2Ffcda2ed16d0c_4x5.jpg?alt=media&token=2a9f6e9a-b71d-4572-8150-a6656661ffdc",
+      "path": "pricewatch-cards/fr/R280110/fcda2ed16d0c_4x5.jpg",
+      "kb": 355
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280110%2Ffcda2ed16d0c_9x16.jpg?alt=media&token=774b5414-a0db-4b81-8143-b37b51c9a2b2",
+      "path": "pricewatch-cards/fr/R280110/fcda2ed16d0c_9x16.jpg",
+      "kb": 400
+     }
+    }
+   }
+  },
+  "R280121": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Saveurs des Antilles",
+    "base_title": "Saveurs des Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-01-21",
+    "price": 1549,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/25d750e8-0b69-4b10-8753-3b64d289758d?width=2000&format=jpg&quality=85",
+    "fp": "5e91b2347034",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280121%2F5e91b2347034_1x1.jpg?alt=media&token=ddce528a-5a1f-4c79-9f42-fed5b109e42b",
+      "path": "pricewatch-cards/fr/R280121/5e91b2347034_1x1.jpg",
+      "kb": 170
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280121%2F5e91b2347034_4x5.jpg?alt=media&token=919fc677-9a5c-4127-bf20-60d50e0daf69",
+      "path": "pricewatch-cards/fr/R280121/5e91b2347034_4x5.jpg",
+      "kb": 210
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280121%2F5e91b2347034_9x16.jpg?alt=media&token=0a0a3246-938e-48e5-86bb-3d3ae4adb654",
+      "path": "pricewatch-cards/fr/R280121/5e91b2347034_9x16.jpg",
+      "kb": 244
+     }
+    }
+   }
+  },
+  "R280131": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Évasion Tropicale",
+    "base_title": "Évasion Tropicale",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-01-31",
+    "price": 1699,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/8942f402-93b5-4b13-9674-4862aa7073c8?width=2000&format=jpg&quality=85",
+    "fp": "d718fe412b02",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280131%2Fd718fe412b02_1x1.jpg?alt=media&token=6a9588a5-9d1e-40fc-aaac-1fbabf0d15f5",
+      "path": "pricewatch-cards/fr/R280131/d718fe412b02_1x1.jpg",
+      "kb": 246
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280131%2Fd718fe412b02_4x5.jpg?alt=media&token=7ac61ba0-fbba-4312-b531-7aaed98da756",
+      "path": "pricewatch-cards/fr/R280131/d718fe412b02_4x5.jpg",
+      "kb": 290
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280131%2Fd718fe412b02_9x16.jpg?alt=media&token=057e1285-e47e-47a4-8a4e-4e6fb01d03dc",
+      "path": "pricewatch-cards/fr/R280131/d718fe412b02_9x16.jpg",
+      "kb": 347
+     }
+    }
+   }
+  },
+  "R280211": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Trésors Exotiques",
+    "base_title": "Trésors Exotiques",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 10,
+    "departure_date": "2028-02-11",
+    "price": 1549,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/ea9e257c-7b67-4d5d-9c9b-0c758d706aa9?width=2000&format=jpg&quality=85",
+    "fp": "07b94a6963ba",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280211%2F07b94a6963ba_1x1.jpg?alt=media&token=57786d0f-4b22-4e25-a13e-e30ce24a8293",
+      "path": "pricewatch-cards/fr/R280211/07b94a6963ba_1x1.jpg",
+      "kb": 297
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280211%2F07b94a6963ba_4x5.jpg?alt=media&token=28a07276-394f-4b21-839b-9cae6a9fd00e",
+      "path": "pricewatch-cards/fr/R280211/07b94a6963ba_4x5.jpg",
+      "kb": 353
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280211%2F07b94a6963ba_9x16.jpg?alt=media&token=f856c4a7-0c91-4caa-82c2-6e610f5685f7",
+      "path": "pricewatch-cards/fr/R280211/07b94a6963ba_9x16.jpg",
+      "kb": 423
+     }
+    }
+   }
+  },
+  "R280221": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Plages de rêve et Carnaval",
+    "base_title": "Plages de rêve et Carnaval",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-02-21",
+    "price": 1489,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/0df9bf1e-f2ae-4b22-9345-3e68e12ee593?width=2000&format=jpg&quality=85",
+    "fp": "740382b96f8d",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280221%2F740382b96f8d_1x1.jpg?alt=media&token=ca154cac-bca2-404d-8cc8-748297b27ba5",
+      "path": "pricewatch-cards/fr/R280221/740382b96f8d_1x1.jpg",
+      "kb": 211
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280221%2F740382b96f8d_4x5.jpg?alt=media&token=d954cbd6-bfb2-4a88-b9ec-6f174f6b09f0",
+      "path": "pricewatch-cards/fr/R280221/740382b96f8d_4x5.jpg",
+      "kb": 250
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280221%2F740382b96f8d_9x16.jpg?alt=media&token=a6794ad3-9b0b-490f-872a-af2fc2943757",
+      "path": "pricewatch-cards/fr/R280221/740382b96f8d_9x16.jpg",
+      "kb": 275
+     }
+    }
+   }
+  },
+  "R280303": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Traditions des Caraïbes",
+    "base_title": "Traditions des Caraïbes",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 11,
+    "departure_date": "2028-03-03",
+    "price": 1699,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/7d8fda02-51a9-49c9-8735-a0369f89c3f6?width=2000&format=jpg&quality=85",
+    "fp": "6b5c6e5d4265",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280303%2F6b5c6e5d4265_1x1.jpg?alt=media&token=de37ddd3-53b3-4201-be0d-303d7aba8669",
+      "path": "pricewatch-cards/fr/R280303/6b5c6e5d4265_1x1.jpg",
+      "kb": 259
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280303%2F6b5c6e5d4265_4x5.jpg?alt=media&token=62491c01-2a09-4ba3-81e0-02770798bedb",
+      "path": "pricewatch-cards/fr/R280303/6b5c6e5d4265_4x5.jpg",
+      "kb": 288
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280303%2F6b5c6e5d4265_9x16.jpg?alt=media&token=afc21b56-e094-4560-b032-0f3162d11e03",
+      "path": "pricewatch-cards/fr/R280303/6b5c6e5d4265_9x16.jpg",
+      "kb": 357
+     }
+    }
+   }
+  },
+  "R280314": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Le Meilleur des Antilles",
+    "base_title": "Le Meilleur des Antilles",
+    "ship": "Renaissance",
+    "port": "Pointe-à-Pitre, Guadeloupe",
+    "flight_from": null,
+    "nights": 8,
+    "departure_date": "2028-03-14",
+    "price": 1239,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/969af931-f224-4f00-bd99-68caa4bc5099?width=2000&format=jpg&quality=85",
+    "fp": "e2aee41ee257",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280314%2Fe2aee41ee257_1x1.jpg?alt=media&token=dc594cec-795e-43ba-8534-62da0d651ce9",
+      "path": "pricewatch-cards/fr/R280314/e2aee41ee257_1x1.jpg",
+      "kb": 236
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280314%2Fe2aee41ee257_4x5.jpg?alt=media&token=f52735b3-3abb-431d-bde7-f751809a3a13",
+      "path": "pricewatch-cards/fr/R280314/e2aee41ee257_4x5.jpg",
+      "kb": 278
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280314%2Fe2aee41ee257_9x16.jpg?alt=media&token=8e5aa100-7755-41ce-9003-44c40a3837e0",
+      "path": "pricewatch-cards/fr/R280314/e2aee41ee257_9x16.jpg",
+      "kb": 308
+     }
+    }
+   }
+  },
+  "R280322": {
+   "old": [],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Paradis tropicaux et Transatlantique",
+    "base_title": "Paradis tropicaux et Transatlantique",
+    "ship": "Renaissance",
+    "port": "Fort-de-France, Martinique",
+    "flight_from": null,
+    "nights": 19,
+    "departure_date": "2028-03-22",
+    "price": 2399,
+    "promos": [
+     "Formule Plus"
+    ],
+    "nectar": "",
+    "photo": "https://cms.ambassadorcroisieres.fr/assets/7f1267b2-bd48-4853-9c73-7df47291857c?width=2000&format=jpg&quality=85",
+    "fp": "6b38e6d70dc8",
+    "made_at": "2026-10-16T13:57:53Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280322%2F6b38e6d70dc8_1x1.jpg?alt=media&token=3107d8a7-fae0-4824-9896-5063876c0292",
+      "path": "pricewatch-cards/fr/R280322/6b38e6d70dc8_1x1.jpg",
+      "kb": 241
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280322%2F6b38e6d70dc8_4x5.jpg?alt=media&token=6b5a05df-bd12-4fff-90f6-607a2666e177",
+      "path": "pricewatch-cards/fr/R280322/6b38e6d70dc8_4x5.jpg",
+      "kb": 293
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR280322%2F6b38e6d70dc8_9x16.jpg?alt=media&token=7b958e08-d606-46a0-9806-82eb5876401f",
+      "path": "pricewatch-cards/fr/R280322/6b38e6d70dc8_9x16.jpg",
+      "kb": 346
+     }
+    }
+   }
   }
  },
- "updated_at": "2026-10-16T13:09:47Z"
+ "updated_at": "2026-10-16T13:57:53Z"
 }

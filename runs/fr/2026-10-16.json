@@ -1,7 +1,21 @@
 {
  "date": "2026-10-16",
- "count": 52,
- "new": [],
+ "count": 65,
+ "new": [
+  "R271109",
+  "R271129",
+  "R271210",
+  "R271220",
+  "R271231",
+  "R280110",
+  "R280121",
+  "R280131",
+  "R280211",
+  "R280221",
+  "R280303",
+  "R280314",
+  "R280322"
+ ],
  "removed": [],
  "returned": [],
  "drops": [
@@ -148,6 +162,14 @@
    "to": 2039,
    "claim": null,
    "at": "2026-10-16T12:07:32Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.ocean_view",
+   "from": 3769,
+   "to": 3669,
+   "claim": null,
+   "at": "2026-10-16T13:55:31Z"
   }
  ],
  "cabin_rises": [
@@ -241,6 +263,20 @@
    "from": 3669,
    "to": 3769,
    "at": "2026-10-16T13:07:50Z"
+  },
+  {
+   "id": "R270118",
+   "cabin": "twin.ocean_view",
+   "from": 939,
+   "to": 959,
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280528",
+   "cabin": "twin.ocean_view",
+   "from": 2069,
+   "to": 2129,
+   "at": "2026-10-16T13:55:31Z"
   }
  ],
  "cabin_sold_out": [
@@ -273,6 +309,11 @@
    "id": "R270930",
    "cabin": "twin.grand_suite",
    "at": "2026-10-16T12:07:32Z"
+  },
+  {
+   "id": "R280508",
+   "cabin": "twin.grand_suite",
+   "at": "2026-10-16T13:55:31Z"
   }
  ],
  "cabin_back": [
@@ -320,6 +361,84 @@
    "offer": "tag421",
    "name": "Enfants gratuits*",
    "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R271109",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R271129",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R271210",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R271220",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R271231",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280110",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280121",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280131",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280211",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280221",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280303",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280314",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
+  },
+  {
+   "id": "R280322",
+   "offer": "tag331",
+   "name": "Formule Plus",
+   "at": "2026-10-16T13:55:31Z"
   }
  ],
  "promo_ended": [],
@@ -352,6 +471,7 @@
   "2026-10-16T10:07:33Z",
   "2026-10-16T11:07:10Z",
   "2026-10-16T12:07:32Z",
-  "2026-10-16T13:07:50Z"
+  "2026-10-16T13:07:50Z",
+  "2026-10-16T13:55:31Z"
  ]
 }
