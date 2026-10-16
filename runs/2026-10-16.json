@@ -1,6 +1,6 @@
 {
  "date": "2026-10-16",
- "count": 221,
+ "count": 224,
  "new": [],
  "removed": [
   "A22629BR",
@@ -10,6 +10,9 @@
  ],
  "returned": [
   "A12709",
+  "A22638",
+  "A32650M",
+  "A22630BR",
   "A22638"
  ],
  "drops": [
@@ -42,6 +45,21 @@
     "held_days": 1
    },
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A12704",
+   "from": 2229,
+   "to": 699,
+   "mix": "suite → inside",
+   "claim": {
+    "eligible": false,
+    "reason": "cheaper cabin grade came on sale (suite → inside), not a price cut",
+    "was": 2229,
+    "now": 699,
+    "since": "2026-10-16",
+    "held_days": 0
+   },
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "rises": [
@@ -63,15 +81,19 @@
    "from": 1569,
    "to": 1589,
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A22633",
+   "from": 299,
+   "to": 399,
+   "mix": "inside → ocean_view",
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "eligible": [],
  "flags": {
-  "A32651": [
-   "feed price £1,899 differs from cheapest cabin on the page £1,599 (the page price is used)"
-  ],
-  "A22633": [
-   "feed price £399 differs from cheapest cabin on the page £299 (the page price is used)"
+  "A32650M": [
+   "feed price £1,349 differs from cheapest cabin on the page £2,399 (the page price is used)"
   ],
   "A12630": [
    "feed image looks like campaign art (may contain text)"
@@ -86,7 +108,7 @@
    "feed image looks like campaign art (may contain text)"
   ],
   "A12704": [
-   "feed price £699 differs from cheapest cabin on the page £2,229 (the page price is used)"
+   "feed price £2,229 differs from cheapest cabin on the page £699 (the page price is used)"
   ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
@@ -96,6 +118,9 @@
   ],
   "A12712": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12801": [
+   "feed price £4,049 differs from cheapest cabin on the page £3,799 (the page price is used)"
   ]
  },
  "cabin_drops": [
@@ -106,6 +131,21 @@
    "to": 3639,
    "claim": null,
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A22823DD",
+   "cabin": "twin.suite",
+   "from": 4089,
+   "to": 3579,
+   "claim": {
+    "eligible": false,
+    "reason": "previous price held 0 days, needs 28",
+    "was": 4089,
+    "now": 3579,
+    "since": "2026-10-16",
+    "held_days": 0
+   },
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "cabin_rises": [
@@ -155,6 +195,31 @@
    "id": "A12704",
    "cabin": "twin.ocean_view",
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A32650M",
+   "cabin": "twin.inside",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A32650M",
+   "cabin": "twin.ocean_view",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A22633",
+   "cabin": "twin.inside",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A12701",
+   "cabin": "solo.ocean_view",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A22704",
+   "cabin": "solo.inside",
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "cabin_back": [
@@ -187,10 +252,47 @@
    "cabin": "twin.ocean_view",
    "p": 1249,
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A12704",
+   "cabin": "twin.inside",
+   "p": 699,
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A12704",
+   "cabin": "twin.ocean_view",
+   "p": 899,
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "cabin_eligible": [],
- "promo_added": [],
+ "promo_added": [
+  {
+   "id": "A32650M",
+   "offer": "6c2c8c3e-a96d-4bf7-88d4-c2f517363c3e",
+   "name": "20% OFF with code Manchester20",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A32650M",
+   "offer": "8e09b9ee-4ff3-46ea-b466-8c7e4ca1f486",
+   "name": "REDUCED OCEAN VIEW CABIN FARES",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A32650M",
+   "offer": "41c8ea6b-ee77-4b09-af19-288695181e66",
+   "name": "Free Regional Coach Service",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A22630BR",
+   "offer": "c9e4c1ce-a519-4a6b-9218-574cd9bfa3e9",
+   "name": "Up to £200 Onboard Credit",
+   "at": "2026-10-16T11:06:46Z"
+  }
+ ],
  "promo_ended": [
   {
    "id": "A22629BR",
@@ -218,6 +320,12 @@
    "from": 50000,
    "to": 30000,
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A12704",
+   "from": 50000,
+   "to": 30000,
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "feed_gap_new": [
@@ -232,6 +340,18 @@
    "feed": 1899,
    "page": 1599,
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A32650M",
+   "feed": 1349,
+   "page": 2399,
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A12801",
+   "feed": 4049,
+   "page": 3799,
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "feed_gap_fixed": [
@@ -248,6 +368,20 @@
    "page": 1589,
    "how": "matches the website",
    "at": "2026-10-16T10:07:14Z"
+  },
+  {
+   "id": "A32651",
+   "feed": 1899,
+   "page": 1599,
+   "how": "matches the website",
+   "at": "2026-10-16T11:06:46Z"
+  },
+  {
+   "id": "A22633",
+   "feed": 399,
+   "page": 299,
+   "how": "matches the website",
+   "at": "2026-10-16T11:06:46Z"
   }
  ],
  "lead_source_switch": [],
@@ -257,6 +391,7 @@
   "2026-10-16T05:07:15Z",
   "2026-10-16T08:07:16Z",
   "2026-10-16T09:07:17Z",
-  "2026-10-16T10:07:14Z"
+  "2026-10-16T10:07:14Z",
+  "2026-10-16T11:06:46Z"
  ]
 }
