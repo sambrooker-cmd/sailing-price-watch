@@ -19,6 +19,12 @@
    "to": 1869,
    "mix": "inside → obstructed",
    "at": "2026-10-16T08:07:40Z"
+  },
+  {
+   "id": "R270726",
+   "from": 2969,
+   "to": 3219,
+   "at": "2026-10-16T09:07:50Z"
   }
  ],
  "eligible": [],
@@ -63,6 +69,13 @@
    "from": 1609,
    "to": 2259,
    "at": "2026-10-16T08:07:40Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.inside",
+   "from": 2969,
+   "to": 3219,
+   "at": "2026-10-16T09:07:50Z"
   }
  ],
  "cabin_sold_out": [
@@ -77,9 +90,47 @@
    "at": "2026-10-16T08:07:40Z"
   }
  ],
- "cabin_back": [],
+ "cabin_back": [
+  {
+   "id": "R270219",
+   "cabin": "twin.promenade",
+   "p": 1369,
+   "at": "2026-10-16T09:07:50Z"
+  }
+ ],
  "cabin_eligible": [],
- "promo_added": [],
+ "promo_added": [
+  {
+   "id": "R261218",
+   "offer": "tag421",
+   "name": "Enfants gratuits*",
+   "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R261228",
+   "offer": "tag421",
+   "name": "Enfants gratuits*",
+   "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R270403",
+   "offer": "tag421",
+   "name": "Enfants gratuits*",
+   "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R270414",
+   "offer": "tag421",
+   "name": "Enfants gratuits*",
+   "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R270425",
+   "offer": "tag421",
+   "name": "Enfants gratuits*",
+   "at": "2026-10-16T09:07:50Z"
+  }
+ ],
  "promo_ended": [],
  "promo_changed": [],
  "nectar_changes": [],
@@ -90,6 +141,7 @@
  "checks": [
   "2026-10-16T00:11:04Z",
   "2026-10-16T05:07:39Z",
-  "2026-10-16T08:07:40Z"
+  "2026-10-16T08:07:40Z",
+  "2026-10-16T09:07:50Z"
  ]
 }
