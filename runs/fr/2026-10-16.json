@@ -4,7 +4,15 @@
  "new": [],
  "removed": [],
  "returned": [],
- "drops": [],
+ "drops": [
+  {
+   "id": "R270726",
+   "from": 3219,
+   "to": 2969,
+   "claim": null,
+   "at": "2026-10-16T10:07:33Z"
+  }
+ ],
  "rises": [
   {
    "id": "R261207",
@@ -25,6 +33,13 @@
    "from": 2969,
    "to": 3219,
    "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R270110",
+   "from": 579,
+   "to": 659,
+   "mix": "inside → obstructed",
+   "at": "2026-10-16T10:07:33Z"
   }
  ],
  "eligible": [],
@@ -37,6 +52,9 @@
   ],
   "R261218": [
    "the page shows from €1,029 but booking's cheapest is €1,199"
+  ],
+  "R270110": [
+   "the page shows from €579 but booking's cheapest is €659"
   ],
   "R270912B": [
    "the page shows from €1,379 but booking's cheapest is €1,649"
@@ -54,7 +72,24 @@
    "the page shows from €919 but booking's cheapest is €1,079"
   ]
  },
- "cabin_drops": [],
+ "cabin_drops": [
+  {
+   "id": "R270110",
+   "cabin": "twin.balcony",
+   "from": 1499,
+   "to": 999,
+   "claim": null,
+   "at": "2026-10-16T10:07:33Z"
+  },
+  {
+   "id": "R270726",
+   "cabin": "twin.inside",
+   "from": 3219,
+   "to": 2969,
+   "claim": null,
+   "at": "2026-10-16T10:07:33Z"
+  }
+ ],
  "cabin_rises": [
   {
    "id": "R270110",
@@ -76,6 +111,27 @@
    "from": 2969,
    "to": 3219,
    "at": "2026-10-16T09:07:50Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.inside",
+   "from": 579,
+   "to": 869,
+   "at": "2026-10-16T10:07:33Z"
+  },
+  {
+   "id": "R270219",
+   "cabin": "twin.balcony",
+   "from": 1749,
+   "to": 2579,
+   "at": "2026-10-16T10:07:33Z"
+  },
+  {
+   "id": "R270303",
+   "cabin": "twin.ocean_view",
+   "from": 1169,
+   "to": 1199,
+   "at": "2026-10-16T10:07:33Z"
   }
  ],
  "cabin_sold_out": [
@@ -88,6 +144,11 @@
    "id": "R270219",
    "cabin": "twin.promenade",
    "at": "2026-10-16T08:07:40Z"
+  },
+  {
+   "id": "R270522",
+   "cabin": "twin.suite",
+   "at": "2026-10-16T10:07:33Z"
   }
  ],
  "cabin_back": [
@@ -134,7 +195,14 @@
  "promo_ended": [],
  "promo_changed": [],
  "nectar_changes": [],
- "feed_gap_new": [],
+ "feed_gap_new": [
+  {
+   "id": "R270110",
+   "feed": 579,
+   "page": 659,
+   "at": "2026-10-16T10:07:33Z"
+  }
+ ],
  "feed_gap_fixed": [],
  "lead_source_switch": [],
  "reported": [],
@@ -142,6 +210,7 @@
   "2026-10-16T00:11:04Z",
   "2026-10-16T05:07:39Z",
   "2026-10-16T08:07:40Z",
-  "2026-10-16T09:07:50Z"
+  "2026-10-16T09:07:50Z",
+  "2026-10-16T10:07:33Z"
  ]
 }
