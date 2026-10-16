@@ -2304,7 +2304,8 @@ const auth = getAuth(firebaseApp);
     pagesMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./pagemaker.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("pages"), {state, adkit: kit});
+      await m.mount($("pages"), {state, adkit: kit,
+        idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { pagesMounted = false; $("pages").innerHTML = `<p class="err">The page creator couldn't load: ${esc(e.message)}</p>`; }
   }
   // Google Ads: images (and later copy and feeds) for Google Ads (site/googleads.js)

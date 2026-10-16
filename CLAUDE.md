@@ -444,8 +444,20 @@ paragraph/an H2/address, words (landing 300+, blog 800+), H2 count, alt text, in
 price of the page's sailings, reduction wording next to a price refused (was/now only from a live claim). **Exports**: "Copy
 for Storyblok" (every field labelled, the CruiseList's cruise codes, the JSON-LD), "Download HTML" (a standalone page to
 share for review), "Copy schema". Draft in the browser (`spw-pages`). Nothing is published.
-Not built (next phases, for Sam to choose): Draft with Claude for the sections (draft_job.py kind "page", as ads/emails/Google);
-shared saved pages (`saved` function kind "page"); Storyblok Management API to create a **draft** story (needs a Storyblok
+**Draft with Claude for pages** (Sam, 16 Oct 2026: "build Draft with Claude for pages"): a "Draft with Claude" section
+at the top of the page creator (`drafts.js` kind "page"). The request carries the page's outline (kind, starting point,
+keyword, H1, each text section's heading and guidance, the FAQ questions) and up to 24 of its sailings (with their live
+offers); the `drafts` function cleans and stores it (`page`, JSON); `draft_job.py` builds the facts from saved state as for
+ads, adds each of the first 8 sailings' **ports of call** from its page (`route_data.read_sailing`, `add_ports`), and asks
+Claude (Opus, Sam's plan, no tools, `PAGE_SCHEMA`, up to 9 minutes) for one draft: SEO title (≤ 60, "| Ambassador"),
+meta description (120–155), H1, intro, every section (blog 120–200 words, landing 70–140) and FAQs, using the keyword
+naturally, internal links only from `PAGE_LINKS`, places from general knowledge without precise figures, ports only
+from the facts. `check_page`: any part quoting a figure not in the facts (or reduction wording without a claim) is
+left empty with a note; the rest is kept. "Use this" fills the title, description, H1, intro, sections (in order)
+and FAQs; pictures, sailings and links stay. The page's £ check accepts the sailings' offer figures too. Tested 16 Oct
+2026: a Norway guide (5 sailings) drafted in 99 s, 834 words, nothing left out; the page flow against a stand-in
+function. Draft text workflow limit 10 → 15 minutes.
+Not built (next phases, for Sam to choose): shared saved pages (`saved` function kind "page"); Storyblok Management API to create a **draft** story (needs a Storyblok
 token and the space's component names; a person still publishes); keyword ideas (Semrush, if there's an API key); checks
 against the site's existing titles/addresses (sitemap) to avoid duplicates.
 

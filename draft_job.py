@@ -16,6 +16,12 @@ state (tracker.py claim_for, from run.json), exactly as the Ad creator offers it
 an option quoting a £ figure, percentage or points figure that isn't in the facts, or price-reduction wording
 without a live claim, is thrown away. Read-only: nothing here changes a price, a card, an ad or an email.
 
+Landing pages and blog posts (Sam, 16 Oct 2026, kind "page" from pagemaker.js): the page's outline (headings and what
+each section should cover) comes with the request; the facts are the page's sailings from saved state plus their ports
+of call read from their pages (route_data.read_sailing). One draft: SEO title, meta description, H1, intro, each
+section, FAQs; any part quoting a figure that isn't in the facts (or reduction wording without a claim) is left
+empty with a note, and the rest is kept.
+
 France (Sam, 14 Oct 2026, stage 3): a request with market "fr" (the France market's creators) is drafted in French
 for Ambassador Croisières from state/fr (euros, French tone of voice, its own small print), with the same checks:
 a € or % figure not in the facts, or price-reduction wording ("prix barré", "réduction", "au lieu de"…), throws an
@@ -112,6 +118,40 @@ GOOGLE_SCHEMA = {
                                                      for k in ("headlines", "long_headlines", "descriptions")}}}}},
 }
 GOOGLE_LIMITS = {"headlines": (30, 15), "long_headlines": (90, 5), "descriptions": (90, 4)}
+
+PAGE_TASK = """Write a {what} for ambassadorcruiseline.com, to be published by a person after editing.
+Focus keyword: "{keyword}". Use it naturally: in the SEO title, the meta description, the first sentence of the intro
+and at least one H2 (or a close variation). Don't stuff it.
+Return:
+- seo_title: at most 60 characters, ending " | Ambassador" (as the site's titles do),
+- meta_description: 120 to 155 characters, a complete sentence or two that makes someone want to click,
+- h1: the page heading{h1_note},
+- intro: {intro_words} words, one or two short paragraphs (blank line between paragraphs),
+- sections: exactly {n} sections, in this order, each with h2 (a heading; keep the one given unless it's empty) and
+  body ({body_words} words each; paragraphs separated by a blank line; a list may use lines starting "- "):
+{outline}
+- faq: {faq_note}
+Each section's guidance says what it should cover. Links: you may add up to {links} internal links inside bodies
+as [words](/path/), using only these paths: {paths}. Don't put headings inside a body.
+Places: describe the destinations from well-established general knowledge (landscapes, culture, food, history,
+the feel of a place), and only name ports from "ports_of_call" or the departure ports in the facts. Don't state
+precise figures that could be wrong (heights, distances, populations, years, temperatures, opening times), and
+don't describe excursions, restaurants, entertainment or anything else about Ambassador that isn't in the facts
+or the tone-of-voice notes. Prices only as "from £X per person" with a figure from the facts, based on two sharing."""
+PAGE_LINKS = ["/cruise-search/", "/no-fly-cruises/", "/deals/cruise-offers/", "/deals/cruises-of-the-week/",
+              "/cruise-types/festive-markets/", "/cruise-types/christmas-and-new-year-cruises/", "/cruise-types/mini-cruises/",
+              "/cruise-types/caribbean-no-fly-cruises/", "/cruise-types/winter-escapes/", "/cruise-types/themed-cruises/",
+              "/cruise-types/15-night-longer-cruises/", "/our-ships/", "/before-you-sail/", "/nectar/", "/blog/"]
+PAGE_SCHEMA = {
+    "type": "object", "additionalProperties": False, "required": ["seo_title", "meta_description", "h1", "intro", "sections", "faq"],
+    "properties": {
+        **{k: {"type": "string"} for k in ("seo_title", "meta_description", "h1", "intro")},
+        "sections": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["h2", "body"],
+                                                "properties": {"h2": {"type": "string"}, "body": {"type": "string"}}}},
+        "faq": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["q", "a"],
+                                           "properties": {"q": {"type": "string"}, "a": {"type": "string"}}}}},
+}
+MAX_PORT_READS = 8   # sailing pages read for their ports of call (route_data.read_sailing), one at a time
 
 EMAIL_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["options"],
@@ -289,6 +329,81 @@ def trim(s, n):
     return s if len(s) <= n else s[:n].rsplit(" ", 1)[0].rstrip(",;:-")
 
 
+def page_prompt(page, facts, brief, today):
+    blog = page.get("kind") == "blog"
+    secs = page.get("sections") or []
+    outline = "\n".join(f"  {i + 1}. heading: {json.dumps(x.get('h2') or '(write one)')}; guidance: {x.get('hint') or 'follow the heading'}"
+                        for i, x in enumerate(secs))
+    faq = page.get("faq") or []
+    faq_note = (f"answer these questions, in this order, in 30 to 70 words each (you may reword a question slightly): {json.dumps(faq)}"
+                if faq else "4 to 6 questions people search for about this, answered in 30 to 70 words each" if page.get("wantFaq") else "an empty list")
+    task = PAGE_TASK.format(
+        what=("blog post" if blog else "landing page") + f" ({page.get('template') or 'general'})", keyword=page.get("keyword") or "",
+        h1_note=f'; keep "{page["h1"]}" unless it reads badly' if page.get("h1") else "", intro_words="50 to 90" if blog else "40 to 80",
+        n=len(secs), body_words="120 to 200" if blog else "70 to 140", outline=outline or "  (none)", faq_note=faq_note,
+        links=3 if blog else 2, paths=", ".join(PAGE_LINKS))
+    summary = page_summary(facts)
+    return "\n\n".join(x for x in [VOICE, task, RULES, f"Today is {today}.",
+                                    "The sailings on this page, in total:\n" + json.dumps(summary, indent=1),
+                                    "Facts per sailing (from Ambassador's website, checked today):\n" + json.dumps(facts, indent=1),
+                                    f"The person's note: {brief}" if brief else "", "Answer only with the structured result."] if x)
+
+
+def page_summary(facts):
+    prices = [f["from_price_pp"] for f in facts]
+    nights = [f["nights"] for f in facts if f.get("nights")]
+    return {"sailings": len(facts), "lowest_from_price_pp": min(prices) if prices else None,
+            "nights": [min(nights), max(nights)] if nights else None,
+            "ships": sorted({f["ship"] for f in facts if f.get("ship")}),
+            "departures": sorted({f["type"] for f in facts})}
+
+
+def add_ports(facts):
+    """Ports of call for the first few sailings, from their pages (as the route videos read them)."""
+    import time
+    import route_data as rd
+    state = load("current.json")
+    for f in facts[:MAX_PORT_READS]:
+        try:
+            s = rd.read_sailing(f["code"], state)
+            ports = []
+            for d in s["days"]:
+                if d["type"] == "port" and d.get("name") and d["name"] not in ports:
+                    ports.append(d["name"])
+            f["ports_of_call"] = ports
+        except Exception as e:  # noqa: BLE001 - the page can still be drafted without them
+            print(f"ports for {f['code']} not read: {e}")
+        time.sleep(1)
+
+
+def check_page(o, facts, page):
+    """A page draft keeps every part that sticks to the facts; a part that doesn't is left empty, with a note."""
+    allowed, any_wn = figures(facts), any("was_now" in f for f in facts)
+    notes, out = [], {"label": "Draft"}
+    def ok(text, what):
+        why = problems(text, allowed, any_wn)
+        if why:
+            notes.append(f"{what} left out: it {'; '.join(why)}.")
+        return not why
+    t = no_amp(re.sub(r"\s+", " ", o.get("seo_title") or "")).strip()
+    out["seo_title"] = t if t and ok(t, "The SEO title") else ""
+    t = no_amp(re.sub(r"\s+", " ", o.get("meta_description") or "")).strip()
+    out["meta_description"] = t if t and ok(t, "The meta description") else ""
+    out["h1"] = no_amp(re.sub(r"\s+", " ", o.get("h1") or "")).strip()
+    para = lambda t: "\n\n".join(no_amp(p.strip()) for p in re.split(r"\n\s*\n", t or "") if p.strip())   # noqa: E731
+    out["intro"] = para(o.get("intro")) if ok(o.get("intro") or "", "The intro") else ""
+    secs = []
+    for i, x in enumerate((o.get("sections") or [])[:len(page.get("sections") or [])]):
+        h2 = no_amp(re.sub(r"\s+", " ", x.get("h2") or "")).strip()
+        body = para(x.get("body"))
+        secs.append({"h2": h2 if ok(h2, f"Section {i + 1}'s heading") else "", "body": body if ok(body, f"Section {i + 1} ({h2})") else ""})
+    out["sections"] = secs
+    out["faq"] = [{"q": no_amp(f.get("q") or "").strip(), "a": para(f.get("a"))} for f in (o.get("faq") or [])[:8]
+                  if f.get("q") and f.get("a") and ok(f"{f.get('q')} {f.get('a')}", f"The FAQ \"{(f.get('q') or '')[:50]}\"")]
+    out["words"] = len(re.findall(r"[\w’']+", " ".join([out["intro"], *[s["body"] for s in secs], *[f["a"] for f in out["faq"]]])))
+    return out, notes
+
+
 def prompt(kind, fmt, facts, brief, today, fr=False):
     n = len(facts)
     if kind == "ad":
@@ -307,11 +422,11 @@ def prompt(kind, fmt, facts, brief, today, fr=False):
                         "Answer only with the structured result."] if x)
 
 
-def run_claude(text, schema):
+def run_claude(text, schema, timeout=300):
     with tempfile.TemporaryDirectory() as d:   # an empty folder: it has nothing to read, and no tools anyway
         cmd = ["claude", "-p", text, "--model", MODEL, "--tools", "", "--permission-mode", "dontAsk",
                "--no-session-persistence", "--output-format", "json", "--json-schema", json.dumps(schema)]
-        p = subprocess.run(cmd, cwd=d, capture_output=True, text=True, timeout=300)
+        p = subprocess.run(cmd, cwd=d, capture_output=True, text=True, timeout=timeout)
     try:
         out = json.loads(p.stdout)
     except ValueError:
@@ -425,6 +540,16 @@ def main():
             raise RuntimeError("Drafting isn't set up yet: the Claude sign-in token is missing. Tell Sam.")
         tok = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]   # only its shape is logged, never the token
         print(f"Plan token: {len(tok)} characters, starts sk-ant-oat: {tok.startswith('sk-ant-oat')}")
+        if kind == "page":   # a landing page or blog post (pagemaker.js): one draft, kept part by part
+            page = json.loads(req.get("page") or "{}")
+            add_ports(facts)
+            draft, more = check_page(run_claude(page_prompt(page, facts, brief, today), PAGE_SCHEMA, timeout=540), facts, page)
+            for m in more:
+                print("left out:", m)
+            update(http, rid, status="done", options=[draft], notes=notes + more, model=MODEL, prices=today)
+            print(f"page draft saved for {rid}: {draft['words']} words")
+            cleanup(http)
+            return 0
         schema = AD_SCHEMA if kind == "ad" else GOOGLE_SCHEMA if kind == "google" else EMAIL_SCHEMA
         kept, dropped = check(kind, run_claude(prompt(kind, fmt, facts, brief, today, fr), schema).get("options"), facts, fr)
         for d in dropped:
