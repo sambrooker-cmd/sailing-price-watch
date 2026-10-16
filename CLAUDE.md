@@ -426,6 +426,29 @@ photo with a slow zoom; words over the ship default by destination, editable. UK
 - Tested 16 Oct 2026 (locally, nothing uploaded): A32651 (combined airports, all sizes), A12704 (Norway fjords, no-fly),
   A32650 (Tilbury → Caribbean, flies home); the page section against a stand-in function.
 
+## Landing pages and blog posts: PROTOTYPE (16 Oct 2026, Sam: "scope out and prototype landing and page blog creation functionality")
+How the website's pages are built (read 16 Oct 2026; Storyblok CMS rendered by Astro, server-side): **landing pages**
+(/cruise-types/…, /deals/…, /no-fly-cruises/…) = hero (H1 in capitals, subtitle) → `CruiseList` island (props `category` or
+`cruise-codes`, `count`, `sort-by` date:asc, `use-solo-pricing`) → H2 text sections → FAQs → terms; **blog posts** (266 under
+/blog/) = date, H1, intro, H2 sections with pictures, "READ MORE:" internal links, closing call to action, ~1,300 words; no
+schema.org markup on either (FAQPage / BlogPosting / ItemList are an easy SEO win). Titles "… | Ambassador".
+`site/pagemaker.js` (Creative → **Pages and blog**, UK only, "Prototype" chip): starting points from the tracker's data, no AI:
+landing = destination/port (region via `comptrend.regionOf`, port, no-fly/fly, months, ship), campaign or offer (sailings by
+cruise code), month or season; blog = "10 reasons to…", destination guide, sailing spotlight. Fills SEO title, meta
+description, address, H1, intro, sections (the brand section from the messaging matrix), FAQs from the facts (from price,
+ports, lengths, ships), the sailings list and photos from the ad kit; sections still to write show as amber hints. Block
+editor (section, picture, sailings, FAQs, read more, button; move/remove; `[words](/path/)` links, "- " lists), hero/picture
+picker with alt text (suggested from the file name), sailings by filters or picked by hand. Preview in the site's style
+(iframe, desktop / phone). **Checks**: title 30–60, description 120–155, keyword in title/description/H1/first
+paragraph/an H2/address, words (landing 300+, blog 800+), H2 count, alt text, internal links, every £ figure a current from
+price of the page's sailings, reduction wording next to a price refused (was/now only from a live claim). **Exports**: "Copy
+for Storyblok" (every field labelled, the CruiseList's cruise codes, the JSON-LD), "Download HTML" (a standalone page to
+share for review), "Copy schema". Draft in the browser (`spw-pages`). Nothing is published.
+Not built (next phases, for Sam to choose): Draft with Claude for the sections (draft_job.py kind "page", as ads/emails/Google);
+shared saved pages (`saved` function kind "page"); Storyblok Management API to create a **draft** story (needs a Storyblok
+token and the space's component names; a person still publishes); keyword ideas (Semrush, if there's an API key); checks
+against the site's existing titles/addresses (sitemap) to avoid duplicates.
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
@@ -546,6 +569,7 @@ pounds a month).
 | `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
+| `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
 | `route_data.py`, `route_video.py`, `route/`, `.github/workflows/route-video.yml`, `site/routevideo.js` | Route video per sailing (map, route, port photos, ship, end card, the template's music; 9:16, 4:5, 1:1): see "Route video per sailing (16 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
