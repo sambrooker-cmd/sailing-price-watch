@@ -84,8 +84,8 @@ MON3 = {m[:3]: i for m, i in MON.items()}
 
 class Site:
     """One host: robots.txt checked before every request, PAUSE between requests."""
-    def __init__(self, base):
-        self.base, self.last, self.count = base, 0.0, 0
+    def __init__(self, base, lang="en-GB"):
+        self.base, self.last, self.count, self.lang = base, 0.0, 0, lang
         self.rp = urllib.robotparser.RobotFileParser()
         try:
             self.rp.parse(self._get(base + "/robots.txt").splitlines())
@@ -98,7 +98,7 @@ class Site:
             time.sleep(wait)
         self.last = time.time()
         self.count += 1
-        req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en-GB"})
+        req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": self.lang})
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read().decode("utf-8", "replace")
