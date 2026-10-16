@@ -368,6 +368,22 @@ and `region`; `candidates(r)` = ours in the same month, ±3 nights, same no-fly/
   table and head to head (destination-aware; how many of theirs couldn't be placed is said), **Solo: us against Fred.
   Olsen** (month × cabin, ours vs theirs per night), Ambassador at Planet Cruise.
 
+## Google Ads: banner fixes and a Performance Max preview (16 Oct 2026, Sam: "build a preview viewer for the PMAX assets"; "this PMAX size doesn't look good, fix the logo size and the padding of the CTA")
+- **Banners** (`gbanners.js` `bannerDoc`): the skyscrapers (300×600, 160×600) are rebuilt: the logo sits on the photo
+  under a Palatyn scrim (it was at the bottom of a flex column and got squashed to nothing), name and details under it,
+  then the price and button together at the bottom with fixed spacing (`.bottom`, `margin-top:auto`); sizes follow
+  the width capped at 1.5× the 160 design (`f`), narrow ones get 4 lines for the name and a taller photo. Rectangles'
+  logo bigger (7% of the width, at least 16 px) and their button can't be pushed out; `fit()` now checks every element
+  against the banner's edges and shrinks the name too.
+- **Preview tab** (`site/gpreview.js` `previewHtml`, `googleads.js` `previewMain` / `wirePreview`): the chosen
+  sailing's assets in Google's placements, phone or desktop: Search (text ad with the Search headlines/descriptions,
+  display path, square image, sitelinks), Display (the responsive ad Google builds: landscape image, long headline,
+  description, logo, button; and the uploaded 728×90 / 320×50 and 300×250 banners on a page), YouTube in-feed and
+  Shorts (portrait image), Discover, Gmail (Promotions row and opened). Text from the Ad copy tab (edits kept), images
+  as the Images tab makes them (photo only or card design), the banner button text. "Show another mix" steps through
+  headline/description combinations (Google mixes them itself; the page says it's a guide, not Google's own preview).
+  The mock-ups' CSS is scoped (`.gp-dev` resets) so the tracker's styles don't leak in.
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the

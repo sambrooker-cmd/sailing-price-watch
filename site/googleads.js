@@ -7,6 +7,7 @@
 import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {gImageDoc, bannerDoc, logoDoc, RATIOS, BANNERS, LOGOS, BANNER_MAX_KB} from "./gbanners.js?v=__BUILD__";
+import {previewHtml, CHANNELS, CSS as PV_CSS} from "./gpreview.js?v=__BUILD__";
 import {copySet as copySetUK, stalePrices as staleUK, LIMITS, BUSINESS as BUSINESS_UK} from "./gcopy.js?v=__BUILD__";
 import {copySet as copySetFR, stalePrices as staleFR, BUSINESS as BUSINESS_FR, SITE as SITE_FR} from "./gcopy_fr.js?v=__BUILD__";
 import {frMoney} from "./adcards.js?v=__BUILD__";
@@ -37,7 +38,8 @@ function fresh(){
                         : {search: "Search - Cruises", pmax: "Performance Max - Cruises", dg: "Demand Gen - Cruises"},
           make: {photo: true, card: true, banners: true, logos: true}, feedSale: false,
           ratios: {landscape: true, square: true, portrait: true},
-          banners: Object.fromEntries(Object.keys(BANNERS).map(k => [k, true]))};
+          banners: Object.fromEntries(Object.keys(BANNERS).map(k => [k, true])),
+          pv: {channel: "all", device: "phone", n: 0, style: "photo"}};
 }
 
 export async function mount(el, ctx){
@@ -50,7 +52,7 @@ export async function mount(el, ctx){
     const d = JSON.parse(localStorage.getItem(KEY) || "null");
     if (d && Array.isArray(d.items)) {
       const f = fresh();
-      st = {...f, ...d, make: {...f.make, ...d.make}, ratios: {...f.ratios, ...d.ratios}, banners: {...f.banners, ...d.banners}};
+      st = {...f, ...d, make: {...f.make, ...d.make}, ratios: {...f.ratios, ...d.ratios}, banners: {...f.banners, ...d.banners}, pv: {...f.pv, ...(d.pv || {})}};
     }
   } catch(e){}
   const gone = st.items.filter(it => !sailing(it.id)).length, ended = st.items.filter(it => it.wasnow && sailing(it.id) && !claimOf(it)).length;
@@ -177,9 +179,9 @@ function draw(){
         <label class="ac-check"><input type="checkbox" data-gmake="logos"${st.make.logos ? " checked" : ""}> Square and landscape logos <span class="sub">(once per download)</span></label>`, false)}
     </div>
     <div class="ac-main">
-      <div class="ac-tabs g-tabs" role="tablist" aria-label="Google Ads">${[["images", "Images"], ["copy", "Ad copy"], ["feeds", "Feeds"]].map(([k, l]) =>
+      <div class="ac-tabs g-tabs" role="tablist" aria-label="Google Ads">${[["images", "Images"], ["copy", "Ad copy"], ["feeds", "Feeds"], ["preview", "Preview"]].map(([k, l]) =>
         `<button type="button" role="tab" class="ac-tab" data-gtab="${k}" aria-selected="${st.tab === k}"><span>${l}</span></button>`).join("")}</div>
-      ${st.tab === "copy" ? copyMain() : st.tab === "feeds" ? feedsMain() : `<div class="ac-actions">
+      ${st.tab === "copy" ? copyMain() : st.tab === "feeds" ? feedsMain() : st.tab === "preview" ? previewMain() : `<div class="ac-actions">
         <button type="button" class="btn" id="g-zip"${outs.length ? "" : " disabled"}>Download zip</button>
         <button type="button" class="btn quiet" id="g-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="g-status" aria-live="polite">${outs.length} image${outs.length === 1 ? "" : "s"} · prices as checked ${shortDate(today)}.${by ? ` <b>Was/now images: stop using by ${shortDate(by)}.</b>` : ""}</span>
@@ -190,7 +192,54 @@ function draw(){
     </div></div>`;
   note = "";
   wire();
-  if (st.tab === "copy") wireCopy(); else if (st.tab === "feeds") wireFeeds(); else paint();
+  if (st.tab === "copy") wireCopy(); else if (st.tab === "feeds") wireFeeds(); else if (st.tab === "preview") wirePreview(); else paint();
+}
+
+// ---------- Preview tab (Sam, 16 Oct 2026: "a preview viewer for the PMAX assets"; site/gpreview.js) ----------
+// The chosen sailing's assets in Google's placements: its Ad copy tab text (edited or suggested) and its images
+// (photo only or card design, the logo and the banners), drawn as the Images tab makes them.
+function pvSet(it){
+  const i = copyItem(it), x = {key: it.id, items: [i], url: i.link};
+  return {set: setOf(x), url: urlOf(x)};
+}
+function pvOutput(name, d){
+  if (name === "logo") return {type: "png", doc: () => logoDoc("square", LOGO)};
+  if (name.startsWith("b")) return {type: "jpeg", max: BANNER_MAX_KB, doc: () => bannerDoc(d, name.slice(1), LOGO, st.cta)};
+  return {type: "jpeg", doc: () => gImageDoc(d, name, st.pv.style, LOGO)};
+}
+function previewMain(){
+  const it = st.items[sel];
+  if (!it) return `<p class="sub">Add a sailing (left) to see its Performance Max ad in Google's placements.</p>`;
+  if (!document.getElementById("gp-css")) { const t = document.createElement("style"); t.id = "gp-css"; t.textContent = PV_CSS; document.head.appendChild(t); }
+  const s = sailing(it.id), {set, url} = pvSet(it), pv = st.pv;
+  const chip = (k, l, on, attr) => `<button type="button" class="ac-tab" ${attr}="${k}" aria-selected="${on}"><span>${esc(l)}</span></button>`;
+  return `<div class="ac-actions" style="flex-wrap:wrap;gap:8px">
+      ${st.items.length > 1 ? `<select id="pv-sailing" aria-label="Sailing">${st.items.map((x, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${esc(sailing(x.id).title)} (${esc(x.id)})</option>`).join("")}</select>` : `<b>${esc(s.title)}</b>`}
+      <select id="pv-style" aria-label="Images"><option value="photo"${pv.style === "photo" ? " selected" : ""}>Photo only images</option><option value="card"${pv.style === "card" ? " selected" : ""}>Card design images</option></select>
+      <button type="button" class="btn quiet" id="pv-mix">Show another mix</button>
+    </div>
+    <div class="ac-tabs" role="tablist" aria-label="Where" style="margin-top:8px">${CHANNELS.map(([k, l]) => chip(k, l, pv.channel === k, "data-pvch")).join("")}
+      <span style="flex:1"></span>${[["phone", "Phone"], ["desk", "Desktop"]].map(([k, l]) => chip(k, l, pv.device === k, "data-pvdev")).join("")}</div>
+    <p class="sub">A close guide, not Google's own preview: Google picks and mixes the headlines, descriptions and images itself (Show another mix steps through combinations) and its layouts change. Text from the Ad copy tab${st.copy[it.id] ? " (your edits)" : ""}, images as the Images tab makes them, button "${esc(st.cta)}".</p>
+    ${previewHtml({set, url, business: BUSINESS, cta: st.cta, channel: pv.channel, device: pv.device, n: pv.n, fr: FR, img: name => `<img data-gpv="${name}" alt="">`})}`;
+}
+let pvPass = 0;
+async function wirePreview(){
+  const $ = q => root.querySelector(q), save2 = () => { save(); draw(); };
+  const ss = $("#pv-sailing"); if (ss) ss.addEventListener("change", () => { sel = +ss.value; draw(); });
+  const sty = $("#pv-style"); if (sty) sty.addEventListener("change", () => { st.pv.style = sty.value; save2(); });
+  const mix = $("#pv-mix"); if (mix) mix.addEventListener("click", () => { st.pv.n++; save2(); });
+  root.querySelectorAll("[data-pvch]").forEach(b => b.addEventListener("click", () => { st.pv.channel = b.dataset.pvch; save2(); }));
+  root.querySelectorAll("[data-pvdev]").forEach(b => b.addEventListener("click", () => { st.pv.device = b.dataset.pvdev; save2(); }));
+  const it = st.items[sel]; if (!it) return;
+  // Each image once, in the order they appear, filling every place it's shown as soon as it's ready
+  const d = cardData(it), n = ++pvPass;
+  for (const name of [...new Set([...root.querySelectorAll("[data-gpv]")].map(i => i.dataset.gpv))]) {
+    let url = "";
+    try { url = (await render(pvOutput(name, d))).url; } catch(x) {}
+    if (n !== pvPass) return;
+    root.querySelectorAll(`[data-gpv="${name}"]`).forEach(img => { if (url) img.src = url; else img.alt = "Couldn't make this image"; });
+  }
 }
 
 function editor(it){
