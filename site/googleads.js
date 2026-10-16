@@ -25,7 +25,7 @@ const shortDate = iso => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB"
 let KEY = "spw-google";
 const MAX = 20;
 const GRADE = {inside: "Inside cabins", ocean_view: "Ocean view cabins", balcony: "Balcony cabins", suite: "Suites"};
-let CTAS = ["Book now", "Find out more", "View cruise", "Explore"];
+let CTAS = ["Book now", "Find out more", "Discover more", "View cruise"];   // button labels from the messaging matrix (14 Oct 2026), plus View cruise
 const CTAS_FR = ["Réserver", "En savoir plus", "Voir la croisière", "Découvrir"];
 // Campaign artwork carries its own words, which Google advises against on Performance Max images: start on a photo
 const CAMPAIGN = /cotw|dig-|carousel|boom-radio|weekender|back_to_|no-logo/i;
@@ -172,7 +172,7 @@ function draw(){
         <label class="ac-check"><input type="checkbox" data-gmake="banners"${st.make.banners ? " checked" : ""}> Make display banners <span class="sub">(each under ${BANNER_MAX_KB} KB)</span></label>
         <div class="g-sizes">${Object.entries(BANNERS).map(([k, n]) => `<label class="ac-check"><input type="checkbox" data-banner="${k}"${st.banners[k] ? " checked" : ""}${st.make.banners ? "" : " disabled"}> ${k} <span class="sub">${n}</span></label>`).join("")}</div>
         <label class="ac-lab" for="g-cta">Button on the banners</label>
-        <select id="g-cta">${CTAS.map(c => `<option${c === st.cta ? " selected" : ""}>${c}</option>`).join("")}</select>
+        <select id="g-cta">${(CTAS.includes(st.cta) ? CTAS : [...CTAS, st.cta]).map(c => `<option${c === st.cta ? " selected" : ""}>${c}</option>`).join("")}</select>
         <span class="ac-lab">Logos</span>
         <label class="ac-check"><input type="checkbox" data-gmake="logos"${st.make.logos ? " checked" : ""}> Square and landscape logos <span class="sub">(once per download)</span></label>`, false)}
     </div>

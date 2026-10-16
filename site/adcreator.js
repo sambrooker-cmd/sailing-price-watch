@@ -33,10 +33,13 @@ let store = null;                    // saved ads, shared by the team (saved.js 
 let S, CAB, KIT, LOGO, TP = null, root, today, ID = null;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
 const SITE = "https://www.ambassadorcruiseline.com/";
-let INTRO = {on: true, eyebrow: "", headline: "Where will you sail next?", cta: "Swipe to explore ›", useA: true,
-               mHeadline: "Where will you sail next?", mDesc: "", link: SITE};
-let END = {on: true, headline: "The warmest welcome at sea", cta: "Book your sailing", url: "ambassadorcruiseline.com", useA: true,
-             mHeadline: "Book your sailing", mDesc: "", link: SITE};
+// Words from the messaging matrix (design system, 14 Oct 2026; Brand Guidelines v4.3): the opening headline left blank
+// follows the chosen sailings' theme ("Welcome to hassle-free holidaying" for no-fly…, autoHeadline); the closing card
+// carries the line that cuts across every theme. Ads saved with other words keep them.
+let INTRO = {on: true, eyebrow: "", headline: "", cta: "Swipe to explore ›", useA: true,
+               mHeadline: "", mDesc: "", link: SITE};
+let END = {on: true, headline: "The warmest welcome at sea - because moments matter", cta: "Book your sailing today", url: "ambassadorcruiseline.com", useA: true,
+             mHeadline: "Book your sailing today", mDesc: "", link: SITE};
 // French opening and closing cards (the words can be changed per ad)
 const SITE_FR = "https://www.ambassadorcroisieres.fr/";
 // (no Ambassador A on the opening card by default: its only A is inside "naviguerez", which then breaks across lines)
@@ -318,6 +321,14 @@ function autoEyebrow(){
   }
   return ss.every(s => !s.fly) ? "No-fly cruises from UK ports" : ss.every(s => s.fly) ? "Fly-cruises from UK airports" : "Cruises from the UK";
 }
+// The opening headline, when left blank: the messaging matrix's creative headline for the chosen sailings
+// (no-fly, fly-cruise or a mix). France has its own default words (INTRO_FR), so this is UK only.
+function autoHeadline(){
+  const ss = ad.cards.map(c => sailing(c.id)).filter(Boolean);
+  return ss.length && ss.every(s => !s.fly) ? "Welcome to hassle-free holidaying"
+    : ss.length && ss.every(s => s.fly) ? "Welcome to fly-cruising without the fuss" : "Welcome to holidaying your way";
+}
+const introHead = () => ad.intro.headline || (FR ? INTRO_FR.headline : autoHeadline());
 const extras = () => ad.format === "carousel" ? (ad.intro.on ? 1 : 0) + (ad.end.on ? 1 : 0) : 0;
 const maxSailings = () => MAX_CARDS - extras();
 // Turning an opening/closing card on can push a carousel over Meta's 10 cards: take sailings off the end before the
@@ -334,8 +345,8 @@ function slides(){
     title: `${sailing(c.id).title} (${c.id})`, headline: c.headline, description: c.description, link: c.link,
     doc: size => cardDoc(cardData(c), size, LOGO)}));
   if (ad.format !== "carousel") return out;
-  if (ad.intro.on) out.unshift({kind: "intro", name: "opening", title: "Opening card", headline: ad.intro.mHeadline, description: ad.intro.mDesc, link: ad.intro.link,
-    doc: size => introDoc({...ad.intro, eyebrow: ad.intro.eyebrow || autoEyebrow()}, size, LOGO)});
+  if (ad.intro.on) out.unshift({kind: "intro", name: "opening", title: "Opening card", headline: ad.intro.mHeadline || introHead().slice(0, LIMITS.headline), description: ad.intro.mDesc, link: ad.intro.link,
+    doc: size => introDoc({...ad.intro, headline: introHead(), eyebrow: ad.intro.eyebrow || autoEyebrow()}, size, LOGO)});
   if (ad.end.on) out.push({kind: "end", name: "closing", title: "Closing card", headline: ad.end.mHeadline, description: ad.end.mDesc, link: ad.end.link,
     doc: size => endDoc(ad.end, size, LOGO)});
   return out;
@@ -347,10 +358,10 @@ function brandEditor(){
   return cs.section("ad-brand", "Opening and closing cards", `Opening card ${I.on ? "on" : "off"} · closing card ${E.on ? "on" : "off"}`, `
     <label class="ac-check"><input type="checkbox" id="in-on"${I.on ? " checked" : ""}> Opening card</label>
     ${I.on ? `<input id="in-eyebrow" value="${esc(I.eyebrow)}" placeholder="${esc(autoEyebrow() || "Small line above the headline")}" aria-label="Small line above the headline">
-      <input id="in-headline" value="${esc(I.headline)}" placeholder="Headline" aria-label="Opening headline">
+      <input id="in-headline" value="${esc(I.headline)}" placeholder="${esc(FR ? "Headline" : autoHeadline())}" aria-label="Opening headline">
       <input id="in-cta" value="${esc(I.cta)}" placeholder="Call to action (optional)" aria-label="Opening call to action">
       <label class="ac-check"><input type="checkbox" id="in-a"${I.useA ? " checked" : ""}> Use the Ambassador A for the first letter A</label>
-      <label class="ac-lab sm" for="in-mh">Under the card on Meta: headline</label><input id="in-mh" value="${esc(I.mHeadline)}">
+      <label class="ac-lab sm" for="in-mh">Under the card on Meta: headline</label><input id="in-mh" value="${esc(I.mHeadline)}" placeholder="${esc(introHead().slice(0, LIMITS.headline))}">
       <label class="ac-lab sm" for="in-md">Description</label><input id="in-md" value="${esc(I.mDesc)}">
       <label class="ac-lab sm" for="in-link">Link</label><input id="in-link" value="${esc(I.link)}" inputmode="url">` : ""}
     <label class="ac-check" style="margin-top:10px"><input type="checkbox" id="en-on"${E.on ? " checked" : ""}> Closing card</label>

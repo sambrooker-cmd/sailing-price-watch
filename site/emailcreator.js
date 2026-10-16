@@ -55,7 +55,7 @@ function fresh(){
           items: [], terms: SITE_FR + "offres", legal: LEGAL_FR, unsub: "",
           nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}, allBadges: false};
   return {subject: "", preheader: "", phone: "0333 920 1164",
-          hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Find your sailing", ctaLink: SITE,
+          hero: {photo: "", headline: "", sub: ""}, intro: "", cta: "Discover more", ctaLink: SITE,
           items: [], terms: SITE + "deals/cruise-offers/", legal: LEGAL, unsub: "",
           nectar: {on: false, pos: "intro", file: ""}, tp: {on: false, pos: "footer"}, allBadges: false};
 }
@@ -327,6 +327,10 @@ function images(){
 
 // ---------- the email ----------
 const F = "Quicksand,Arial,Helvetica,sans-serif";
+// Taviraj, the secondary typeface added in Brand Guidelines v4.3: "mainly alternative body copy for the French market",
+// never headings, 11pt (14.67px) minimum. French emails set the intro in it unless em.taviraj is false.
+const SERIF = "Taviraj,Georgia,'Times New Roman',serif";
+const bodyFont = () => FR && em.taviraj !== false ? SERIF : F;
 // Typed links: web, email, phone or an email platform's {{token}} only. Anything else (e.g. "javascript:")
 // is left out, here and in the preview (QA, 13 Oct 2026).
 const safeUrl = u => { u = String(u || "").trim(); return /^(https?:\/\/|mailto:|tel:|\{\{)/i.test(u) ? u : ""; };
@@ -401,7 +405,7 @@ function emailHtml(src){
 <html lang="${FR ? "fr" : "en"}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="x-apple-disable-message-reformatting"><title>${esc(em.subject || (FR ? "Ambassador Croisières" : "Ambassador Cruise Line"))}</title>
-<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;600;700&display=swap" rel="stylesheet"><!--<![endif]-->
+<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;600;700${bodyFont() === SERIF ? "&family=Taviraj:ital@0;1" : ""}&display=swap" rel="stylesheet"><!--<![endif]-->
 <style>body{margin:0;padding:0;background:#ffffff}img{border:0;line-height:100%;outline:none;text-decoration:none}a{color:${COL.allium}}
 @media only screen and (max-width:620px){.w600{width:100%!important}.pad{padding-left:16px!important;padding-right:16px!important}
 .tile{display:block!important;width:100%!important;padding:0 0 28px!important}.tile img{width:100%!important;max-width:376px!important;margin:0 auto}
@@ -418,7 +422,7 @@ function emailHtml(src){
 <tr><td class="nav" align="center" style="padding:0 10px 18px;font-family:${F};font-weight:700;font-size:15px;color:${COL.palatyn}">${NAV.map(([t, u]) => `<a href="${u}" target="_blank" style="color:${COL.palatyn};text-decoration:none">${t}</a>`).join(" | ")}</td></tr>
 ${src.hero ? heroRow(src.hero) : ""}
 ${strips("header", src)}
-${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${F};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
+${em.intro ? `<tr><td class="pad" align="center" style="padding:26px 50px 6px;font-family:${bodyFont()};font-size:16px;line-height:1.6;color:${COL.ink}">${em.intro.split(/\n+/).filter(Boolean).map(p => `<p style="margin:0 0 12px">${esc(p)}</p>`).join("")}</td></tr>` : ""}
 ${em.cta ? `<tr><td align="center" style="padding:8px 0 30px">${button(em.cta, safeUrl(em.ctaLink) || SITE, true)}</td></tr>` : `<tr><td style="padding:12px 0"></td></tr>`}
 ${strips("intro", src)}
 ${rows.join("\n")}
@@ -521,6 +525,7 @@ function draw(){
         <input id="em-pre" value="${esc(em.preheader)}" placeholder="One line that adds to the subject">
         <label class="ac-lab" for="em-intro">Intro</label>
         <textarea id="em-intro" rows="5" placeholder="A few lines introducing these sailings">${esc(em.intro)}</textarea>
+        ${FR ? `<label class="ac-check"><input type="checkbox" id="em-taviraj"${em.taviraj !== false ? " checked" : ""}> Intro in Taviraj <span class="sub">(the brand's secondary typeface, for French body copy)</span></label>` : ""}
         ${sugg.length ? `<details class="ac-sugg"><summary>Suggested intros (${sugg.length})</summary>
           <p class="sub">Built from these sailings' own facts in Ambassador's tone of voice.</p>
           ${sugg.map((o, i) => `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span><p>${esc(o.text)}</p><button type="button" class="btn quiet" data-use="${i}">Use this</button></div>`).join("")}</details>` : ""}
@@ -596,7 +601,8 @@ function wire(){
   const bind = (id, set) => { const el = $(id); el && el.addEventListener("input", () => { set(el.value); change(false); }); };
   bind("#em-subject", v => em.subject = v); bind("#em-pre", v => em.preheader = v);
   bind("#em-headline", v => em.hero.headline = v); bind("#em-sub", v => em.hero.sub = v);
-  bind("#em-intro", v => em.intro = v); bind("#em-cta", v => em.cta = v); bind("#em-ctalink", v => em.ctaLink = v);
+  bind("#em-intro", v => em.intro = v);
+  const tv = $("#em-taviraj"); tv && tv.addEventListener("change", () => { em.taviraj = tv.checked; change(true); }); bind("#em-cta", v => em.cta = v); bind("#em-ctalink", v => em.ctaLink = v);
   bind("#em-terms", v => em.terms = v); bind("#em-legal", v => em.legal = v); bind("#em-unsub", v => em.unsub = v); bind("#em-phone", v => em.phone = v);
   bind("#em-caption", v => em.items[sel].caption = v);
   const cnt = () => { const n = $("#em-n-subject"); if (n) n.textContent = em.subject ? `${em.subject.length} characters${em.subject.length > 60 ? ", may be cut short on phones" : ""}` : ""; };
