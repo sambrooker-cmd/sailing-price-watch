@@ -5451,6 +5451,43 @@
      "flight_from": null,
      "nights": 7,
      "departure_date": "2027-03-18",
+     "price": 699,
+     "promos": [
+      "Regional Coach Transfers"
+     ],
+     "nectar": "Collect up to 30,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/7b44db9b20/rs46871_eidfjord-2023-08-10-2023-08-10-eidfjord-selected-edited-9115.jpg",
+     "fp": "7d0978b64745",
+     "made_at": "2026-10-16T13:09:34Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_1x1.jpg?alt=media&token=8871c8e2-14c1-4e8f-82c2-3d5e56c4b2e7",
+       "path": "pricewatch-cards/A12704/7d0978b64745_1x1.jpg",
+       "kb": 322
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_4x5.jpg?alt=media&token=51b34b21-aebb-4ec4-bf76-5e5610b8ee96",
+       "path": "pricewatch-cards/A12704/7d0978b64745_4x5.jpg",
+       "kb": 376
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_9x16.jpg?alt=media&token=97eb03ad-e8eb-45db-95d0-220ed05cffc1",
+       "path": "pricewatch-cards/A12704/7d0978b64745_9x16.jpg",
+       "kb": 446
+      }
+     },
+     "out_of_date_since": "2026-10-16T16:09:02Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Springtime Fjordlands",
+     "base_title": "Springtime Fjordlands",
+     "ship": "Ambience",
+     "port": "London Tilbury",
+     "flight_from": null,
+     "nights": 7,
+     "departure_date": "2027-03-18",
      "price": 2229,
      "promos": [
       "Regional Coach Transfers"
@@ -5923,43 +5960,7 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Springtime Fjordlands",
-    "base_title": "Springtime Fjordlands",
-    "ship": "Ambience",
-    "port": "London Tilbury",
-    "flight_from": null,
-    "nights": 7,
-    "departure_date": "2027-03-18",
-    "price": 699,
-    "promos": [
-     "Regional Coach Transfers"
-    ],
-    "nectar": "Collect up to 30,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/7b44db9b20/rs46871_eidfjord-2023-08-10-2023-08-10-eidfjord-selected-edited-9115.jpg",
-    "fp": "7d0978b64745",
-    "made_at": "2026-10-16T13:09:34Z",
-    "reason": "price £2,229 → £699, Nectar points changed",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_1x1.jpg?alt=media&token=8871c8e2-14c1-4e8f-82c2-3d5e56c4b2e7",
-      "path": "pricewatch-cards/A12704/7d0978b64745_1x1.jpg",
-      "kb": 322
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_4x5.jpg?alt=media&token=51b34b21-aebb-4ec4-bf76-5e5610b8ee96",
-      "path": "pricewatch-cards/A12704/7d0978b64745_4x5.jpg",
-      "kb": 376
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_9x16.jpg?alt=media&token=97eb03ad-e8eb-45db-95d0-220ed05cffc1",
-      "path": "pricewatch-cards/A12704/7d0978b64745_9x16.jpg",
-      "kb": 446
-     }
-    }
-   }
+   ]
   },
   "A22704": {
    "old": [
@@ -16927,5 +16928,5 @@
    }
   }
  },
- "updated_at": "2026-10-16T15:09:25Z"
+ "updated_at": "2026-10-16T16:09:02Z"
 }
