@@ -10,6 +10,7 @@ import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {regionOf, photoWords} from "./comptrend.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
+import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
 
 const SITE = "https://www.ambassadorcruiseline.com";
 const KEY = "spw-pages";
@@ -42,7 +43,7 @@ const TEMPLATES = {
   blog: [["reasons", "\"10 reasons to…\" list"], ["guide", "Destination guide"], ["spotlight", "Sailing spotlight"]],
 };
 
-let root, ctx, st, today, kitOf;
+let root, ctx, st, today, kitOf, store, note = "";
 
 // ---------- data ----------
 function onSale(){
@@ -353,6 +354,86 @@ async function copy(text, btn){
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} }
 const cur = () => st.pages[st.kind];
 
+// ---------- saved pages (Sam, 16 Oct 2026, point 2): the team's shared list (saved.js, kind "page") ----------
+// The page itself is saved (words, outline, sailings filter or cruise codes, pictures); prices are never saved: the
+// preview always uses the latest. normalise() brings an older page up to date and lists what changed (`issues`).
+function normalise(page){
+  const p = JSON.parse(JSON.stringify(page)), issues = [], fixed = [], todo = [];
+  const sale = new Set(onSale().map(s => s.id));
+  if (p.codes) {
+    const gone = p.codes.filter(c => !sale.has(c));
+    if (gone.length) { p.codes = p.codes.filter(c => sale.has(c)); fixed.push(`${gone.length} sailing${gone.length === 1 ? "" : "s"} no longer on sale taken off (${gone.join(", ")})`); }
+  }
+  if (!listOf(p).length && p.blocks.some(b => b.type === "sailings")) todo.push("no sailings on sale match it any more");
+  const bad = checks(p).find(([l, t]) => l === "bad" && /£ figures/.test(t));
+  if (bad) todo.push(bad[1].replace(/^£ figures in the text that aren't a current from price or offer of these sailings: /, "prices in the text to change: ").replace(/\.$/, ""));
+  issues.push(...fixed, ...todo);
+  return {page: p, issues, fixed, todo};
+}
+const savedAll = () => store ? Object.fromEntries(Object.entries(store.all()).filter(([, d]) => d.page && d.page.blocks)) : {};
+async function savePage(asNew){
+  const p = cur(), all = savedAll(), id0 = st.saved[st.kind];
+  const id = asNew || (id0 && !store.mine(id0)) ? null : id0;   // someone else's: save your own copy
+  let name = id && all[id] ? all[id].name : "";
+  if (!id) {
+    name = prompt(asNew ? "Name the copy" : "Name this page", asNew && id0 && all[id0] ? `${all[id0].name} (copy)` : p.h1 || "Page");
+    if (!name || !name.trim()) return;
+    name = name.trim();
+  }
+  try { st.saved[st.kind] = await store.save(id, name, p); note = `Saved "${name}"${store.shared ? "" : " in this browser"}.`; }
+  catch(e) { note = `Couldn't save: ${e.message}`; }
+  save(); draw();
+}
+function openPage(d, id, msg){
+  const {page, fixed, todo} = normalise(d.page);
+  st.kind = page.kind; st.pages[page.kind] = page; st.saved[page.kind] = id;
+  note = msg + (fixed.length ? `. Brought up to date: ${fixed.join("; ")}` : "") + (todo.length ? `. Still to fix: ${todo.join("; ")}` : "") + ".";
+  save(); draw();
+}
+function savedBlock(){
+  if (!store || store.loading) return `<div class="ac-block"><p class="sub" style="margin:0">Loading saved pages…</p></div>`;
+  const all = savedAll(), ids = Object.keys(all), id = st.saved[st.kind], curSaved = id && all[id], mine = curSaved && store.mine(id);
+  const stale = ids.filter(i => normalise(all[i].page).issues.length).length, p = cur();
+  return `<div class="ac-block">
+    <h3>${curSaved ? esc(curSaved.name) : `Unsaved ${st.kind === "blog" ? "blog post" : "landing page"}`}</h3>
+    ${curSaved && !mine ? `<p class="sub" style="margin:0 0 6px">Saved by ${esc(curSaved.by)}. Save a copy to keep your own changes.</p>` : ""}
+    <div class="ac-row">
+      ${curSaved && !mine ? "" : `<button type="button" class="btn quiet sm" id="ps-save"${p ? "" : " disabled"}>${curSaved ? "Save" : "Save as…"}</button>`}
+      ${curSaved ? `<button type="button" class="btn quiet sm" id="ps-saveas">Save a copy…</button>` : ""}
+      <button type="button" class="btn quiet sm" id="ps-new"${p ? "" : " disabled"}>New ${st.kind === "blog" ? "blog post" : "page"}</button>
+    </div>
+    ${ids.length ? `<button type="button" class="btn quiet sm sv-open" id="ps-browse">Saved pages (${ids.length})${stale ? ` · ${stale} need${stale === 1 ? "s" : ""} updating` : ""}</button>` : ""}
+    ${store.problem ? `<p class="ac-note">${esc(store.problem)}</p>` : ""}
+    ${note ? `<p class="ac-note">${esc(note)}</p>` : ""}
+  </div>`;
+}
+function wireSaved(){
+  const $ = q => root.querySelector(q);
+  $("#ps-save") && $("#ps-save").addEventListener("click", () => savePage(false));
+  $("#ps-saveas") && $("#ps-saveas").addEventListener("click", () => savePage(true));
+  $("#ps-new") && $("#ps-new").addEventListener("click", () => {
+    if (!st.saved[st.kind] && !confirm("Start a new page? This one isn't saved.")) return;
+    st.pages[st.kind] = null; st.saved[st.kind] = null; note = ""; save(); draw();
+  });
+  $("#ps-browse") && $("#ps-browse").addEventListener("click", () => {
+    const all = savedAll();
+    openSaved({title: "Saved pages", noun: "page", current: st.saved[st.kind],
+      note: store.shared ? "Shared with everyone on the tracker. You can open or copy anyone's; only your own can be changed." : "",
+      items: Object.entries(all).map(([id, d]) => ({id, name: d.name, saved_at: d.saved_at, count: listOf(d.page).length,
+        thumb: d.page.hero ? cropUrl(d.page.hero, 120, 90) : "", by: d.by || "", mine: store.mine(id), issues: normalise(d.page).issues,
+        detail: `${d.page.kind === "blog" ? "Blog post" : "Landing page"} · ${d.page.h1}${d.page.keyword ? ` · "${d.page.keyword}"` : ""}`})),
+      onOpen: id => { const d = savedAll()[id]; if (d) openPage(d, id, `Opened "${d.name}"`); },
+      onCopy: async id => {
+        const d = savedAll()[id]; if (!d) return;
+        try { const name = `${d.name} (copy)`, nid = await store.save(null, name, JSON.parse(JSON.stringify(d.page))); openPage(d, nid, `Made a copy: "${name}"`); }
+        catch(e) { note = `Couldn't copy: ${e.message}`; draw(); }
+      },
+      onRename: async (id, name) => { try { await store.rename(id, name); } catch(e) { alert(`Couldn't rename: ${e.message}`); } draw(); },
+      onDelete: async id => { try { await store.remove(id); for (const k of ["landing", "blog"]) if (st.saved[k] === id) st.saved[k] = null; save(); } catch(e) { alert(`Couldn't delete: ${e.message}`); } draw(); },
+    });
+  });
+}
+
 function filterUI(f, prefix){
   const all = onSale(), regions = [...new Set(all.map(s => s.region).filter(Boolean))];
   const ports = [...new Set(all.map(s => s.flight_from ? "Flights from " + s.flight_from : s.port))].sort((a, b) => a.startsWith("Flights") - b.startsWith("Flights") || a.localeCompare(b));
@@ -401,7 +482,7 @@ function draw(){
       <p class="sub">${matches(st.f).length} sailings on sale match.${st.tpl[st.kind] === "spotlight" ? " The first one is the spotlight." : ""}</p>
       <button type="button" class="btn sm" id="pm-go">${p ? "Start again" : "Start"}</button>`, !p);
   if (!p) {
-    root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${start}</div><div class="ac-main"><div class="ac-block"><p class="sub">Pick a starting point on the left: the page is filled from the tracker's sailings (prices, ports, ships, lengths, photos), in the layout of the website's own ${st.kind === "blog" ? "blog posts" : "landing pages"}. Then rewrite the words, check the SEO list and copy it into Storyblok.</p></div></div></div>`;
+    root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${savedBlock()}${start}</div><div class="ac-main"><div class="ac-block"><p class="sub">Pick a starting point on the left: the page is filled from the tracker's sailings (prices, ports, ships, lengths, photos), in the layout of the website's own ${st.kind === "blog" ? "blog posts" : "landing pages"}. Then rewrite the words, check the SEO list and copy it into Storyblok.</p></div></div></div>`;
     return wire();
   }
   const settings = cs.section("pm-seo", "Address, SEO and top of page", `/${esc(p.slug)}/ · ${esc(p.seoTitle)}`, `
@@ -423,7 +504,7 @@ function draw(){
       ${p.blocks.map((b, i) => blockEditor(b, i, p.blocks.length)).join("")}
       <div class="pm-add"><span class="sub">Add:</span>${[["text", "Section"], ["image", "Picture"], ["sailings", "Sailings"], ["faq", "FAQs"], ["readmore", "Read more"], ["cta", "Button"]].map(([t, l]) => `<button type="button" class="btn quiet sm" data-add="${t}">${l}</button>`).join("")}</div>`, true);
   const draft = cs.section("pm-claude", "Draft with Claude", claude.block ? "writes the words for this outline" : "", claude.block("page", list.length ? "" : "Add some sailings first."), true);
-  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${draft}${settings}${sail}${blocks}${start}</div>
+  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${savedBlock()}${draft}${settings}${sail}${blocks}${start}</div>
     <div class="ac-main">
       <div class="ac-block"><div class="pm-bar"><div class="seg" role="group" aria-label="Preview size">${[["desk", "Desktop"], ["phone", "Phone"]].map(([k, t]) => `<button type="button" data-dev="${k}" aria-pressed="${st.dev === k}">${t}</button>`).join("")}</div>
         <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button></span></div>
@@ -439,15 +520,17 @@ function draw(){
 
 function wire(){
   cs.wire(root, draw);
+  wireSaved();
   const p = cur();
   const on = (sel, ev, fn) => root.querySelectorAll(sel).forEach(el => el.addEventListener(ev, e => fn(el, e)));
-  on("[data-kind]", "click", el => { st.kind = el.dataset.kind; save(); draw(); });
+  on("[data-kind]", "click", el => { st.kind = el.dataset.kind; note = ""; save(); draw(); });
   on("#pm-tpl", "change", el => { st.tpl[st.kind] = el.value; save(); draw(); });
   on("#pm-offer", "input", el => { st.offer = el.value; save(); });
   on("[id^=pm-f-]", "change", el => { st.f[el.dataset.f] = el.value; save(); draw(); });
   on("#pm-go", "click", () => {
     if (p && !confirm("Start again? This page's words will be replaced.")) return;
     st.pages[st.kind] = st.kind === "landing" ? landing(st.tpl.landing, {...st.f}, st.offer) : blog(st.tpl.blog, {...st.f});
+    st.saved[st.kind] = null; note = "";   // a new page, not the saved one
     save(); draw();
   });
   if (!p) return;
@@ -505,8 +588,11 @@ export async function mount(el, c){
   root = el; ctx = c;
   today = c.state.updated || new Date().toISOString().slice(0, 10);
   kitOf = id => (((c.adkit || {}).sailings) || {})[id];
-  st = {kind: "landing", tpl: {landing: "theme", blog: "reasons"}, f: {region: "norway", port: "", fly: "", from: "", to: "", ship: ""}, offer: "", pages: {landing: null, blog: null}, dev: "desk", find: ""};
-  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.pages) st = {...st, ...s, find: ""}; } catch(e) {}
+  st = {kind: "landing", tpl: {landing: "theme", blog: "reasons"}, f: {region: "norway", port: "", fly: "", from: "", to: "", ship: ""}, offer: "",
+        pages: {landing: null, blog: null}, saved: {landing: null, blog: null}, dev: "desk", find: ""};
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.pages) st = {...st, ...s, saved: {landing: null, blog: null, ...(s.saved || {})}, find: ""}; } catch(e) {}
+  store = sharedStore({kind: "page", localKey: "spw-pages-saved", field: "page", idToken: c.idToken});
+  store.load().then(() => { for (const k of ["landing", "blog"]) if (st.saved[k] && !store.all()[st.saved[k]]) st.saved[k] = null; save(); draw(); });
   draw();
 }
 

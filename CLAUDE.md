@@ -457,7 +457,15 @@ left empty with a note; the rest is kept. "Use this" fills the title, descriptio
 and FAQs; pictures, sailings and links stay. The page's £ check accepts the sailings' offer figures too. Tested 16 Oct
 2026: a Norway guide (5 sailings) drafted in 99 s, 834 words, nothing left out; the page flow against a stand-in
 function. Draft text workflow limit 10 → 15 minutes.
-Not built (next phases, for Sam to choose): shared saved pages (`saved` function kind "page"); Storyblok Management API to create a **draft** story (needs a Storyblok
+**Saved pages** (Sam, 16 Oct 2026, point 2): Save as… / Save / Save a copy… / New page and **Saved pages (N)** (the
+`saved.js` dialog, both page types together, "Landing page · H1 · keyword") in the team's shared list (`saved` function
+kind "page"; browser-only `spw-pages-saved` if it can't be reached), as the Ad creator: anyone can open or copy, only
+the person who saved one can change it. The whole page is saved, never prices. `normalise()` on opening: hand-picked
+sailings no longer on sale are taken off ("brought up to date"); no sailings matching, or £ figures in the text that
+aren't a current price or offer, are "still to fix"; both show as "Needs updating" in the list. `st.saved` keeps the
+open page's saved id per page type.
+Queued (Sam, 16 Oct 2026): keyword ideas from **Google Search Console** (Sam's choice over Semrush) and a check against
+the website's existing titles and addresses. Not built: Storyblok Management API to create a **draft** story (needs a Storyblok
 token and the space's component names; a person still publishes); keyword ideas (Semrush, if there's an API key); checks
 against the site's existing titles/addresses (sitemap) to avoid duplicates.
 
