@@ -9,6 +9,7 @@
 import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {regionOf, photoWords} from "./comptrend.js?v=__BUILD__";
+import * as claude from "./drafts.js?v=__BUILD__";
 
 const SITE = "https://www.ambassadorcruiseline.com";
 const KEY = "spw-pages";
@@ -306,9 +307,11 @@ function checks(p){
   const links = (textOf(p).match(/\]\((https?:\/\/(www\.)?ambassadorcruiseline\.com|\/)/g) || []).length + p.blocks.filter(b => ["readmore", "cta"].includes(b.type) && b.url).length;
   add(links >= 2 ? "ok" : "warn", `${links} internal link${links === 1 ? "" : "s"} (aim for 2+; [words](/no-fly-cruises/) in the text makes one).`);
   const list = listOf(p), prices = new Set(list.map(s => Math.round(s.price)));
+  // figures in the sailings' live offers ("up to £400 onboard credit") may be quoted too
+  const offerFigs = new Set(list.flatMap(s => ((kitOf(s.id) || {}).promos || []).flatMap(o => [...String(o).matchAll(/£\s?([\d,]+)/g)].map(m => +m[1].replace(/,/g, "")))));
   const quoted = [...textOf(p).matchAll(/£\s?([\d,]+)/g)].map(m => +m[1].replace(/,/g, ""));
-  const stale = quoted.filter(v => !prices.has(v) && !(p.blocks.some(b => b.type === "faq") && v === Math.min(...prices)));
-  add(stale.length ? "bad" : "ok", stale.length ? `Prices in the text that aren't a current from price of these sailings: ${[...new Set(stale)].map(money).join(", ")}.` : "Every price in the text is a current from price.");
+  const stale = quoted.filter(v => !prices.has(v) && !offerFigs.has(v));
+  add(stale.length ? "bad" : "ok", stale.length ? `£ figures in the text that aren't a current from price or offer of these sailings: ${[...new Set(stale)].map(money).join(", ")}.` : "Every £ figure in the text is a current from price or offer.");
   if (/\b(was|reduced|save|saving|now only)\b[^.]{0,30}£/i.test(textOf(p))) add("bad", "Reduction wording next to a price: was/now prices only ever come from a live claim (not on pages yet).");
   add(list.length ? "ok" : (p.blocks.some(b => b.type === "sailings") ? "bad" : "ok"), list.length ? `${list.length} sailing${list.length === 1 ? "" : "s"} on sale listed.` : "No sailings on sale match.");
   return out;
@@ -419,7 +422,8 @@ function draw(){
   const blocks = cs.section("pm-blocks", "Sections", `${p.blocks.length} blocks`, `
       ${p.blocks.map((b, i) => blockEditor(b, i, p.blocks.length)).join("")}
       <div class="pm-add"><span class="sub">Add:</span>${[["text", "Section"], ["image", "Picture"], ["sailings", "Sailings"], ["faq", "FAQs"], ["readmore", "Read more"], ["cta", "Button"]].map(([t, l]) => `<button type="button" class="btn quiet sm" data-add="${t}">${l}</button>`).join("")}</div>`, true);
-  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${settings}${sail}${blocks}${start}</div>
+  const draft = cs.section("pm-claude", "Draft with Claude", claude.block ? "writes the words for this outline" : "", claude.block("page", list.length ? "" : "Add some sailings first."), true);
+  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${draft}${settings}${sail}${blocks}${start}</div>
     <div class="ac-main">
       <div class="ac-block"><div class="pm-bar"><div class="seg" role="group" aria-label="Preview size">${[["desk", "Desktop"], ["phone", "Phone"]].map(([k, t]) => `<button type="button" data-dev="${k}" aria-pressed="${st.dev === k}">${t}</button>`).join("")}</div>
         <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button></span></div>
@@ -473,6 +477,26 @@ function wire(){
   on("[data-addcode]", "click", el => { p.codes.push(el.dataset.addcode); st.find = ""; save(); draw(); });
   on("[data-dev]", "click", el => { st.dev = el.dataset.dev; save(); draw(); });
   on("#pm-copy", "click", el => copy(storyblokText(p), el));
+  // Draft with Claude (drafts.js / draft_job.py kind "page"): the outline goes with the request; the facts come from
+  // the tracker's saved state. "Use this" fills the words and keeps the pictures, sailings and links.
+  claude.wire(root, "page", {ID: ctx.idToken, redraw: draw,
+    forWhat: () => `${p.kind === "blog" ? "blog post" : "landing page"} "${p.h1}"`,
+    body: () => ({format: p.kind, items: listOf(p).slice(0, 24).map(s => ({id: s.id, promos: ((kitOf(s.id) || {}).promos || []).slice(0, 2), nectar: false})),
+      page: {kind: p.kind, template: p.template, keyword: p.keyword, h1: p.h1,
+        sections: p.blocks.filter(b => b.type === "text").map(b => ({h2: b.h2 || "", hint: b.hint || ""})),
+        faq: p.blocks.filter(b => b.type === "faq").flatMap(b => (b.items || []).map(f => f.q)).filter(Boolean),
+        wantFaq: p.blocks.some(b => b.type === "faq")}}),
+    use: o => {
+      if (o.seo_title) p.seoTitle = o.seo_title;
+      if (o.meta_description) p.metaDesc = o.meta_description;
+      if (o.h1) p.h1 = o.h1;
+      if (o.intro) p.intro = o.intro;
+      const texts = p.blocks.filter(b => b.type === "text");
+      (o.sections || []).forEach((x, i) => { const b = texts[i]; if (!b) return; if (x.h2) b.h2 = x.h2; if (x.body) b.body = x.body; });
+      const fq = p.blocks.find(b => b.type === "faq");
+      if (fq && (o.faq || []).length) fq.items = o.faq.map(f => ({q: f.q, a: f.a}));
+      save(); draw();
+    }});
   on("#pm-schema", "click", el => copy(JSON.stringify(schema(p), null, 2), el));
   on("#pm-html", "click", () => download(`${p.slug.split("/").pop() || "page"}.html`, pageHtml(p, {forExport: true}), "text/html"));
 }

@@ -5,11 +5,12 @@
 // options are ready (usually 1 to 2 minutes). Nothing is used until someone presses "Use this".
 //
 // block(kind, notReady) → HTML (notReady: why it can't draft yet, said when the button is pressed, or ""); wire(root, kind, {ID, body: () => request, use: option => void, redraw: () => void}).
-// kind "ad": options {label, text}; kind "email": options {label, subject, preheader, headline, sub, intro}.
+// kind "ad": options {label, text}; kind "email": options {label, subject, preheader, headline, sub, intro};
+// kind "page" (pagemaker.js): one option {seo_title, meta_description, h1, intro, sections [{h2, body}], faq [{q, a}], words}.
 
 const FN = "https://us-central1-promotions-planner.cloudfunctions.net/drafts";
 const POLL_MS = 5000, GIVE_UP_MS = 6 * 60e3;
-const st = {ad: {}, email: {}, google: {}};
+const st = {ad: {}, email: {}, google: {}, page: {}};
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const ukDate = iso => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}) : "";
 const mins = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -27,11 +28,20 @@ async function call(ID, method, body, query){
 }
 
 function status(s){
-  if (s.busy) return `Claude is writing… ${mins(Date.now() - s.started)} <span class="sub">(usually 1 to 2 minutes; you can carry on meanwhile)</span>`;
+  if (s.busy) return `Claude is writing… ${mins(Date.now() - s.started)} <span class="sub">(usually ${s.kind === "page" ? "2 to 4" : "1 to 2"} minutes; you can carry on meanwhile)</span>`;
   return esc(s.msg || "");
 }
 
 function option(kind, o, i){
+  if (kind === "page") {   // a whole page: show what it fills, the page itself shows the words once used
+    const first = t => esc(String(t || "").split(/\n\s*\n/)[0].slice(0, 220));
+    return `<div class="ac-opt"><span class="ac-tag">Draft · about ${o.words || 0} words</span>
+      <p><b>SEO title:</b> ${esc(o.seo_title || "(kept as it is)")}<br><b>Description:</b> ${esc(o.meta_description || "(kept as it is)")}<br><b>H1:</b> ${esc(o.h1)}</p>
+      <p>${first(o.intro)}…</p>
+      <ol class="cl-lines">${(o.sections || []).map(x => `<li><b>${esc(x.h2 || "(no heading)")}</b> <span class="sub">${x.body ? (x.body.match(/\S+/g) || []).length + " words" : "left empty"}</span></li>`).join("")}</ol>
+      ${(o.faq || []).length ? `<p class="sub">${o.faq.length} FAQs</p>` : ""}
+      <button type="button" class="btn quiet" data-cuse="${i}">Use this</button> <span class="sub">Fills the page's title, description, H1, intro, sections and FAQs (its pictures, sailings and links stay).</span></div>`;
+  }
   if (kind === "google") {   // Google Ads copy (googleads.js): headlines, long headlines, descriptions
     const ul = (t, xs) => xs.length ? `<p class="ac-lab sm" style="margin:6px 0 2px">${t}</p><ul class="cl-lines">${xs.map(x => `<li>${esc(x)} <span class="sub">${x.length}</span></li>`).join("")}</ul>` : "";
     return `<div class="ac-opt"><span class="ac-tag">${esc(o.label)}</span>
@@ -52,10 +62,12 @@ function option(kind, o, i){
 }
 
 export function block(kind, notReady){
-  const s = st[kind], what = kind === "ad" ? "primary text" : kind === "google" ? "headline, long headline and description" : "subject line, preview text, header words and intro";
+  const s = st[kind], what = kind === "ad" ? "primary text" : kind === "google" ? "headline, long headline and description" :
+    kind === "page" ? "the SEO title, description, intro, every section and the FAQs" : "subject line, preview text, header words and intro";
   return `<div class="ac-sugg ac-claude" id="cl-${kind}">
     <p class="ac-lab" style="margin:0">Draft with Claude</p>
-    <p class="sub">Claude writes new ${what} options from these sailings' prices, dates, offers and Nectar points, in Ambassador's tone of voice. Read them before using them: Claude can get things wrong.</p>
+    <p class="sub">${kind === "page" ? `Claude writes ${what} for this outline, from these sailings' prices, dates, ships, departure ports and ports of call, in Ambassador's tone of voice. Any part quoting a figure that isn't in the facts is left empty. Read it all before using it: Claude can get things wrong, and descriptions of places need a human check.` :
+      `Claude writes new ${what} options from these sailings' prices, dates, offers and Nectar points, in Ambassador's tone of voice. Read them before using them: Claude can get things wrong.`}</p>
     <input id="cl-brief-${kind}" maxlength="300" value="${esc(s.brief || "")}" placeholder="Anything to steer it? (optional) e.g. lead on the Christmas markets, keep it short">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
       <button type="button" class="btn quiet" id="cl-go-${kind}"${s.busy ? " disabled" : ""} data-why="${esc(notReady || "")}">${s.options ? "Draft again" : "Draft with Claude"}</button>
@@ -76,7 +88,7 @@ export function wire(root, kind, {ID, body, use, redraw, forWhat}){
   box.querySelector(`#cl-go-${kind}`).addEventListener("click", async () => {
     const why = box.querySelector(`#cl-go-${kind}`).dataset.why;
     if (why) { box.querySelector(`#cl-st-${kind}`).textContent = why; return; }   // QA, 14 Oct 2026: it did nothing
-    Object.assign(s, {busy: true, started: Date.now(), msg: "", redraw});
+    Object.assign(s, {busy: true, started: Date.now(), msg: "", redraw, kind});
     redraw();
     try {
       const {id} = await call(ID, "POST", {...body(), kind, brief: s.brief || ""});

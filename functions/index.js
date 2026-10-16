@@ -253,8 +253,9 @@ exports.saved = onRequest({
 });
 
 // "Draft with Claude" in the Ad creator and Email creator (Sam, 14 Oct 2026, the free option: Claude Code on Sam's
-// plan in a GitHub run, not a paid API key). POST {kind: "ad" | "email", format, items: [{id, wasnow, promos,
-// nectar}], brief} → records pricewatch_drafts/<id> and starts the Draft text workflow (draft_job.py), which builds
+// plan in a GitHub run, not a paid API key); Google Ads (kind "google") and the page creator (kind "page", with the
+// page's outline in `page`) since. POST {kind: "ad" | "email" | "google" | "page", format, items: [{id, wasnow, promos,
+// nectar}], brief, page} → records pricewatch_drafts/<id> and starts the Draft text workflow (draft_job.py), which builds
 // the facts from the repo's saved state (never from what the browser sends), asks Claude and saves the options.
 // GET ?id= → {status, error, options, notes}: the page asks every few seconds until it's done.
 const DRAFTS = "pricewatch_drafts", DRAFT_WORKFLOW = "draft-text.yml";
@@ -279,7 +280,13 @@ exports.drafts = onRequest({
   }
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
   const b = req.body || {}, kind = String(b.kind || "");
-  if (!["ad", "email", "google"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  if (!["ad", "email", "google", "page"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  // Landing pages and blog posts (pagemaker.js, Sam 16 Oct 2026): the page's outline (headings and guidance to fill),
+  // cleaned and cut to size; the facts still come from the repo's state, never from here
+  const t = (v, n) => String(v || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
+  const pg = kind !== "page" ? null : (o => ({kind: o.kind === "blog" ? "blog" : "landing", template: t(o.template, 20), keyword: t(o.keyword, 80),
+    h1: t(o.h1, 120), sections: (Array.isArray(o.sections) ? o.sections : []).slice(0, 16).map(x => ({h2: t((x || {}).h2, 120), hint: t((x || {}).hint, 240)})),
+    faq: (Array.isArray(o.faq) ? o.faq : []).slice(0, 8).map(q => t(q, 160)).filter(Boolean), wantFaq: !!o.wantFaq}))(b.page || {});
   const items = (Array.isArray(b.items) ? b.items : []).slice(0, 24).map(x => ({
     id: String((x || {}).id || "").slice(0, 20), wasnow: x.wasnow ? String(x.wasnow).slice(0, 40) : null,
     promos: (Array.isArray(x.promos) ? x.promos : []).slice(0, 4).map(p => String(p).slice(0, 200)), nectar: x.nectar !== false}))
@@ -295,7 +302,7 @@ exports.drafts = onRequest({
   const ref = col.doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued", kind,
                  format: b.format === "single" ? "single" : "carousel", items: JSON.stringify(items),
-                 brief: String(b.brief || "").slice(0, 300),
+                 brief: String(b.brief || "").slice(0, 300), ...(pg ? {page: JSON.stringify(pg)} : {}),
                  market: b.market === "fr" ? "fr" : "uk"});   // France (Sam, 14 Oct 2026): draft_job.py reads state/fr
   const started = await dispatch(ref, DRAFT_WORKFLOW, {request: ref.id}, "draft");
   if (started !== true) return res.status(502).json({error: started});
