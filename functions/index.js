@@ -4,7 +4,10 @@
 // POST /makeVideo {code, title, cards}  → checks the Google sign-in and the allowlist, records the request in
 //   Firestore (pricewatch_videos/<id>) and starts the "Make video" GitHub workflow with the ad's code.
 //   The workflow (make_video.py, video_job.py) saves the MP4s to Storage and marks the request done.
-// GET /makeVideo → the last KEEP_DAYS days of requests, newest first, for the Ad creator's Videos list.
+// POST /makeVideo {kind: "route", sailing, airports, headline, line} → the same for a sailing's route video (Sam,
+//   16 Oct 2026): starts the "Route video" workflow (route_video.py) instead.
+// GET /makeVideo → the last KEEP_DAYS days of requests, newest first, for the Ad creator's Videos list and the
+//   Route videos in a sailing's detail view (each request has its kind).
 //
 // Deployed by .github/workflows/video-function.yml. The GitHub token (Actions: read and write on this repo
 // only) is the GITHUB_VIDEO_TOKEN secret in Secret Manager, set from the repo secret VIDEO_DISPATCH_TOKEN.
@@ -21,7 +24,7 @@ const crypto = require("crypto");
 initializeApp();
 const GH = defineSecret("GITHUB_VIDEO_TOKEN");
 const REPO = "sambrooker-cmd/sailing-price-watch";
-const WORKFLOW = "make-video.yml";
+const WORKFLOW = "make-video.yml", ROUTE_WORKFLOW = "route-video.yml";
 const COL = "pricewatch_videos";
 const DAY_LIMIT = 20;      // videos a day for everyone together (each run is about 4 GitHub minutes)
 const PER_PERSON = 2;      // requests one person can have waiting or running at once
@@ -88,14 +91,21 @@ exports.makeVideo = onRequest({
       const late = v.status === "queued" && v.at.toMillis() < stuck;
       return {id: d.id, by: v.by, at: iso(v.at), title: v.title || "", cards: v.cards || 0,
               status: late ? "failed" : v.status, error: late ? "It didn't start on GitHub. Try again." : (v.error || ""),
-              files: v.files || [], prices: v.prices || "", until: v.until || "", run: v.run || "", codes: v.codes || []};
+              files: v.files || [], prices: v.prices || "", until: v.until || "", run: v.run || "", codes: v.codes || [],
+              kind: v.kind || "ad", headline: v.headline || "", airports: v.airports || []};
     }), limit: DAY_LIMIT});
   }
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
 
   const b = req.body || {};
+  const route = b.kind === "route";
   const code = String(b.code || "");
-  if (!/^[A-Za-z0-9_-]{20,8000}$/.test(code)) return res.status(400).json({error: "That ad couldn't be read."});
+  const sailing = String(b.sailing || "").toUpperCase();
+  // the words go to GitHub as workflow inputs: plain text only, short
+  const words = v => String(v || "").replace(/[\u0000-\u001f"`$\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 90);
+  const airports = (Array.isArray(b.airports) ? b.airports : []).map(a => String(a).toUpperCase()).filter(a => /^[A-Z]{3}$/.test(a)).slice(0, 4);
+  if (route ? !/^[A-Z0-9]{4,12}$/.test(sailing) : !/^[A-Za-z0-9_-]{20,8000}$/.test(code))
+    return res.status(400).json({error: route ? "That sailing couldn't be read." : "That ad couldn't be read."});
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   const today = (await db.collection(COL).where("at", ">=", day).count().get()).data().count;
   if (today >= DAY_LIMIT) return res.status(429).json({error: `Today's ${DAY_LIMIT} videos have been made. Try again tomorrow.`});
@@ -105,6 +115,14 @@ exports.makeVideo = onRequest({
     return res.status(429).json({error: "You already have videos being made. Wait for those to finish."});
 
   const ref = db.collection(COL).doc();
+  if (route) {
+    const headline = words(b.headline), line = words(b.line);
+    await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued", kind: "route",
+                   title: String(b.title || sailing).slice(0, 200), cards: 0, codes: [sailing], headline, airports});
+    const started = await dispatch(ref, ROUTE_WORKFLOW, {sailing, airports: airports.join(","), headline, line, request: ref.id}, "route video");
+    if (started !== true) return res.status(502).json({error: started});
+    return res.json({id: ref.id});
+  }
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued",
                  title: String(b.title || "").slice(0, 200), cards: Math.min(12, Math.max(0, parseInt(b.cards, 10) || 0)),
                  // the ad's cruise codes, so the Ad creator lists only this ad's videos (Sam, 14 Oct 2026)

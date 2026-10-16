@@ -1,0 +1,105 @@
+name: Route video
+
+# A route video of one sailing (Sam, 16 Oct 2026; the A32651 Tropical Treasures video is the template): map with
+# the flights and the ship's route, port photos, the ship and the end card, with the template's music, in 9:16,
+# 4:5 and 1:1 (route_video.py). Usually started by the Route video button in a sailing's detail view on the
+# tracker page, through the Firebase function (functions/index.js), which fills in "request": the videos then go
+# to Storage and show under the sailing (video_job.py). Run by hand, get a zip on the run page.
+# Saves nothing to the repo and never touches Meta or any ad account.
+on:
+  workflow_dispatch:
+    inputs:
+      sailing:
+        description: "Cruise code, e.g. A32651"
+        required: true
+      airports:
+        description: "Airports for the planes, e.g. LHR,MAN (empty: the sailing's own)"
+        default: ""
+      headline:
+        description: "Words over the ship (empty: by destination, e.g. THE CARIBBEAN, THE WAY IT SHOULD FEEL.)"
+        default: ""
+      line:
+        description: "The line under them (empty: e.g. Smaller ship. Direct flight. Everything sorted.)"
+        default: ""
+      sizes:
+        description: "Sizes"
+        type: choice
+        default: "9x16,4x5,1x1"
+        options:
+          - "9x16,4x5,1x1"
+          - "9x16"
+          - "4x5"
+          - "1x1"
+      request:
+        description: "Leave empty (filled in by the tracker page's Route video button)"
+        default: ""
+
+run-name: ${{ format('Route video {0}{1}', inputs.sailing, inputs.request && ' for the tracker page' || '') }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: route-video-${{ inputs.sailing }}-${{ inputs.request }}
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # coastlines, port list and photos, downloaded once and kept between runs
+      - uses: actions/cache@v6
+        with:
+          path: img_cache/route
+          key: route-data-v1
+
+      - name: Install the video tools
+        run: |
+          pip install pillow==11.3.0 numpy==2.2.6 google-auth==2.40.3 requests==2.32.3
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Mark the request as started
+        if: inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py running "$REQUEST"
+
+      - name: Make the videos
+        env:
+          SAILING: ${{ inputs.sailing }}
+          AIRPORTS: ${{ inputs.airports }}
+          HEADLINE: ${{ inputs.headline }}
+          LINE: ${{ inputs.line }}
+          SIZES: ${{ inputs.sizes }}
+        run: |
+          python route_video.py "$SAILING" videos --airports "$AIRPORTS" --headline "$HEADLINE" --line "$LINE" --sizes "$SIZES"
+          cat videos/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save the videos for the tracker page
+        if: inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py done "$REQUEST" videos
+
+      - name: Mark the request as failed
+        if: failure() && inputs.request != ''
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python video_job.py failed "$REQUEST"
+
+      - uses: actions/upload-artifact@v7
+        if: always() && inputs.request == ''
+        with:
+          name: route-video-${{ inputs.sailing }}-${{ github.run_number }}
+          path: videos/
+          retention-days: 30
+          if-no-files-found: ignore

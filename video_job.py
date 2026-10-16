@@ -1,7 +1,7 @@
 """Status and storage for videos asked for from the tracker page's Make video button (Sam, 13 Oct 2026).
 
 The Firebase function (functions/index.js) records each request in Firestore pricewatch_videos/<id> and starts
-the Make video workflow with that id. The workflow calls:
+the Make video workflow (or, for a sailing's route video, the Route video workflow) with that id. The workflow calls:
   python video_job.py running ID          when it starts (adds the run's link)
   python video_job.py done ID OUTDIR      uploads OUTDIR/*.mp4 to Storage, lists them on the request
   python video_job.py failed ID           if anything went wrong
@@ -94,7 +94,8 @@ def done(http, rid, outdir):
     store.http = http
     files = []
     for name in info["files"]:
-        m = re.match(r"ad_(\w+)_([\d.]+)s\.mp4$", name)
+        # ad_9x16_6s.mp4 (make_video.py) or route_A32651_9x16_58s.mp4 (route_video.py)
+        m = re.search(r"_(\d+x\d+)_([\d.]+)s\.mp4$", name)
         path = f"{PREFIX}/{rid}/{name}"
         url = store.put(path, (out / name).read_bytes(), name, content_type="video/mp4")
         files.append({"name": name, "size": m.group(1), "length": m.group(2), "url": url, "path": path,
