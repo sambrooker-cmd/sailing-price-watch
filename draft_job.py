@@ -38,13 +38,22 @@ SMALL_PRINT = "Based on two sharing and subject to availability."
 LIMITS = {"headline": 28, "sub": 70, "subject": 70, "preheader": 110}
 
 VOICE = """You write marketing copy for Ambassador Cruise Line, a UK cruise line, in its tone of voice
-(Brand Guidelines v4.2, Content fundamentals):
+(Brand Guidelines v4.3 and its messaging matrix of 14 Oct 2026, from the Ambassador design system):
 - Welcoming: speak as "we" and "us", use contractions, ask a question that sparks curiosity; respectful, never pushy.
 - Trustworthy: factual and clear. Nothing exaggerated, nothing made up.
 - Wondrous: evocative words for places and moments; present continuous (-ing words) for energy.
 - Vocabulary: "Ambassador Cruise Line" in full the first time, then "Ambassador" (singular). Say "guests"
-  (not passengers or customers), "sailings" or "cruises", "ships". The ships are "Ambience", "Ambition" and
-  "Renaissance", never "The Ambience". No ampersands: write "and". British English spelling.
+  (not passengers or customers), "sailings" or "cruises", "ships" (never boats). The ships are "Ambience",
+  "Ambition" and "Renaissance", never "The Ambience" or "The Renaissance". Never "Ambassador Cruises",
+  "Ambassadors" or "ACL". "Eco-conscious", never "green". No ampersands: write "and". British English spelling.
+- Messaging matrix: headlines open "Welcome to…", by theme: no-fly cruises from UK ports "Welcome to hassle-free
+  holidaying" (or "Welcome to no-fly cruises that are more convenient"); fly-cruises "Welcome to fly-cruising
+  without the fuss"; a mix of both "Welcome to holidaying your way"; solo sailings "Have fun with friends old and
+  new". Weave in "affordable quality", "no-fly" (for no-fly sailings) and/or "the warmest welcome at sea - because
+  moments matter", the line that runs across every theme. Use these lines as written; don't overuse them (at most
+  one "Welcome to…" per option).
+- Proof points you may use, exactly as written and never rounded up: "94% of our guests would recommend
+  Ambassador"; Ambassador was named "best value at sea" by Cruise Critic.
 - No-fly cruises sail from UK ports (no airports, no queues); fly-cruises include flights from a UK airport.
 - Avoid clichés ("the holiday of a lifetime", "something for everyone") and exclamation marks."""
 
@@ -245,8 +254,9 @@ def claim(sid, key, r, cabins, k, price, today):
 
 def figures(facts):
     """The money, percentage and points figures the drafts may quote: prices, was/now figures, Nectar points and
-    the numbers in the offers themselves (not dates or nights, so "10%" can't pass because a date has a 10)."""
-    nums = set()
+    the numbers in the offers themselves (not dates or nights, so "10%" can't pass because a date has a 10), and the
+    brand's own proof point (94% would recommend)."""
+    nums = set(PROOF_FIGURES)
     for f in facts:
         wn = f.get("was_now") or {}
         for v in (f.get("from_price_pp"), f.get("nectar_points_up_to"), wn.get("was"), wn.get("now")):
@@ -257,6 +267,8 @@ def figures(facts):
     return nums
 
 
+# Brand proof points from the design system (Brand Guidelines v4.3), which a draft may quote as written
+PROOF_FIGURES = {"94"}
 MONEY = re.compile(r"£\s?(\d[\d,]*(?:\.\d+)?)|(\d[\d,]*(?:\.\d+)?)\s?%|(\d{1,3}(?:,\d{3})+)")
 REDUCTION = re.compile(r"\b(was\s*£|reduced|reduction|price (drop|cut)|now only|slashed|save £|cheaper than)", re.I)
 

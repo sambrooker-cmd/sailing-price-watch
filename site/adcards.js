@@ -307,9 +307,13 @@ export const cardAt = (d, w, h, logoSvg) => d.wasnow ? wasNow(d, w, h, logoSvg) 
 // o: {eyebrow, headline, cta, useA} for the opening card; {headline, cta, url, useA} for the closing one.
 const A_MASK = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='239.81 127.97 145.95 221.12'%3E%3Cpath d='M384.77 338.29C366.95 336.18 363.8 331.65 353.93 305.11 332.91 247.95 310.02 185.12 289.35 128.97L275.02 170 304.28 254.79 245.76 254.79 240.81 269.12 308.95 269.12C316.28 289.45 322.94 307.44 327.27 320.43 331.13 332 329.14 335.38 313.89 337.86L310.36 348.09 381.14 348.09C382.34 344.83 383.55 341.56 384.77 338.29Z'/%3E%3C/svg%3E")`;
 // The headline's first letter A becomes the Ambassador A (once per card, as the guidelines allow).
+// The word holding the A is kept on one line (a long headline such as "Welcome to hassle-free holidaying" broke at the A).
 function withA(text, useA){
-  const i = useA === false ? -1 : String(text || "").search(/a/i);
-  return i < 0 ? esc(text) : `${esc(text.slice(0, i))}<span class="a" role="img" aria-label="A"></span>${esc(text.slice(i + 1))}`;
+  text = String(text || "");
+  const i = useA === false ? -1 : text.search(/a/i);
+  if (i < 0) return esc(text);
+  const s = text.lastIndexOf(" ", i) + 1, e = (k => k < 0 ? text.length : k)(text.indexOf(" ", i));
+  return `${esc(text.slice(0, s))}<span style="white-space:nowrap">${esc(text.slice(s, i))}<span class="a" role="img" aria-label="A"></span>${esc(text.slice(i + 1, e))}</span>${esc(text.slice(e))}`;
 }
 function brandCard(w, h, LOGO, body, maxHead, centred){
   const story = h / w >= 1.7, top = story ? Math.round(h * 0.14) : 0, bottom = story ? Math.round(h * 0.20) : 0;

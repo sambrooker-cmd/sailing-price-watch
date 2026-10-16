@@ -2,7 +2,9 @@
 // Demand Gen, sitelinks and callouts, built from the chosen sailings' own facts with no AI, in Ambassador's tone of
 // voice (as adcopy.js: "Ambassador Cruise Line", guests, sailings, "and" not "&", factual, nothing invented). Every line
 // is checked against Google's character limits; anything longer is left out. A was/now price only appears when the
-// sailing has a live claim (passed in as wasnow), with the claim's own figures.
+// sailing has a live claim (passed in as wasnow), with the claim's own figures. Brand lines follow the design system's
+// messaging matrix (14 Oct 2026, Brand Guidelines v4.3): the "Welcome to…" headline for the sailings' theme (WELCOME) and
+// "the warmest welcome at sea - because moments matter", which cuts across every theme.
 //
 // copySet(items, {link}) → {rsa: {headlines, descriptions, path1, path2}, pmax: {headlines, longHeadlines, descriptions},
 //                           dg: {headlines, descriptions}, sitelinks: [{text, d1, d2, url}], callouts: []}
@@ -17,6 +19,10 @@ export const LIMITS = {
 export const BUSINESS = "Ambassador Cruise Line";
 const SITE = "https://www.ambassadorcruiseline.com/";
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// Messaging matrix creative headlines: no-fly cruises and regional ports, fly cruises, or a mix of both
+const WELCOME = {noFly: "Welcome to hassle-free holidaying", fly: "Welcome to fly-cruising without the fuss", mixed: "Welcome to holidaying your way"};
+const welcomeOf = (noFly, fly) => noFly ? WELCOME.noFly : fly ? WELCOME.fly : WELCOME.mixed;
+const BRAND_LINE = "Enjoy the warmest welcome at sea - because moments matter.";
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const money = v => "£" + Math.round(v).toLocaleString("en-GB");
 export const noAmp = t => String(t || "").replace(/\s*&\s*/g, " and ").replace(/\s+/g, " ").trim();
@@ -64,7 +70,7 @@ function single(i){
   const headlines = [name30, priceLine, `${i.nights}-night ${kind}`, i.fly ? `Flights from ${i.fly}` : `Sailing from ${i.port}`,
     `Departs ${day(i.departure_date)}`, `On board ${noAmp(i.ship)}`, BUSINESS, offer && offerName(offer),
     i.nectarPts && `Up to ${i.nectarPts.toLocaleString("en-GB")} Nectar points`, !i.fly && "No airports, no queues",
-    "The warmest welcome at sea", `${month(i.departure_date)} departure`, `${i.nights} nights from ${money(p)}pp`, "Book your sailing today",
+    "The warmest welcome at sea", welcomeOf(!i.fly, !!i.fly), "Because moments matter", `${month(i.departure_date)} departure`, `${i.nights} nights from ${money(p)}pp`, "Book your sailing today",
     !i.fly && "No-fly cruises from the UK", "Affordable quality cruising"];
   const descriptions = [
     `${t}: ${i.nights} nights on board ${noAmp(i.ship)}, ${where} on ${day(i.departure_date)}. ${priceLine}.`,
@@ -76,21 +82,21 @@ function single(i){
     offer && `Enjoy ${offerName(offer).toLowerCase().replace(/^up/, "up")} on this sailing. ${priceLine}, based on two sharing.`,
     i.nectarPts && `Collect up to ${i.nectarPts.toLocaleString("en-GB")} Nectar points when you book. ${priceLine}.`,
     wn && `Price reduced: now ${money(wn.now)}pp, was ${money(wn.was)}. Based on two sharing, subject to availability.`,
-    `Affordable quality and the warmest welcome at sea with ${BUSINESS}.`,
+    `Affordable quality and the warmest welcome at sea with ${BUSINESS}.`, BRAND_LINE,
     `Prices per person, based on two sharing and subject to availability. Book your sailing today.`];
   const longHeadlines = [
     `${t}: ${i.nights} nights ${where}, ${priceLine.charAt(0).toLowerCase() + priceLine.slice(1)}`,
     `${i.nights}-night ${kind} on board ${noAmp(i.ship)}, departing ${day(i.departure_date)}`,
     !i.fly && `No airports, no queues: sail from ${i.port} with ${BUSINESS}`,
     offer && `${offerName(offer)} on ${t}`,
-    `Discover ${t} with the warmest welcome at sea`];
+    `Discover ${t} with the warmest welcome at sea`, `${welcomeOf(!i.fly, !!i.fly)}: ${t}`, BRAND_LINE.slice(0, -1)];
   return {
     rsa: {headlines: fit(headlines, 30).slice(0, 15), descriptions: fit(descriptions, 90).slice(0, 4),
           path1: i.fly ? "Fly-Cruises" : "No-Fly-Cruises", path2: pathOf(placeWord(t) || month(i.departure_date))},
     pmax: {headlines: fit(headlines, 30).slice(0, 15), longHeadlines: fit(longHeadlines, 90).slice(0, 5),
            descriptions: [...fit([`${i.nights} nights ${where}. ${priceLine}.`, `${priceLine}. ${i.nights} nights on board ${noAmp(i.ship)}.`], 60).slice(0, 1), ...fit(descriptions, 90)].slice(0, 5)},
     dg: {headlines: fit([name40, `${i.nights}-night ${kind}, ${priceLine.toLowerCase()}`, `${t}`, `${i.nights}-night ${kind} on ${noAmp(i.ship)}`,
-                         priceLine, i.fly ? `Flights from ${i.fly}` : `No-fly from ${i.port}`, i.fly ? `Fly from ${i.fly}, ${priceLine.toLowerCase()}` : `Sail from ${i.port}, ${priceLine.toLowerCase()}`, "Where will you sail next?", "The warmest welcome at sea"], 40).slice(0, 5),
+                         priceLine, i.fly ? `Flights from ${i.fly}` : `No-fly from ${i.port}`, i.fly ? `Fly from ${i.fly}, ${priceLine.toLowerCase()}` : `Sail from ${i.port}, ${priceLine.toLowerCase()}`, welcomeOf(!i.fly, !!i.fly), "The warmest welcome at sea"], 40).slice(0, 5),
          descriptions: fit(descriptions, 90).slice(0, 5)},
     sitelinks: [{text: shortName(t, 25) || "This sailing", d1: `${i.nights} nights, ${priceLine.toLowerCase()}`, d2: `Departs ${day(i.departure_date)}`, url: i.link},
                 {text: "Cruise offers", d1: "Our latest offers and deals", d2: "Subject to availability", url: SITE + "deals/cruise-offers/"}],
@@ -109,7 +115,7 @@ function group(items){
   const offer = f.shared && offerName(f.shared);
   const headlines = [`${Kind} from ${money(f.min)}pp`, `${n} sailings to choose from`, BUSINESS, `Sailing ${from}`.replace("Sailing with", "With"),
     when && `Departing ${when}`, `${nights} at sea`, f.ships.length <= 2 && `On board ${ships}`, offer, f.nectar && `Up to ${f.nectar.toLocaleString("en-GB")} Nectar points`,
-    f.noFly && "No airports, no queues", "The warmest welcome at sea", "Where will you sail next?", "Book your sailing today", "Affordable quality cruising",
+    f.noFly && "No airports, no queues", "The warmest welcome at sea", welcomeOf(f.noFly, f.fly), "Because moments matter", "Book your sailing today", "Affordable quality cruising",
     f.noFly && "No-fly cruises from the UK", ...items.map(i => shortName(i.title, 30))];
   const descriptions = [
     `Choose from ${n} ${kind} ${from}, departing ${when}. From ${money(f.min)}pp.`,
@@ -119,16 +125,16 @@ function group(items){
     f.noFly && "No airports, no queues: your holiday starts the moment you step aboard.",
     offer && `Enjoy ${offer.toLowerCase()} on all ${n} of these sailings. From ${money(f.min)}pp.`,
     f.nectar && `Collect up to ${f.nectar.toLocaleString("en-GB")} Nectar points when you book. From ${money(f.min)}pp.`,
-    `Affordable quality and the warmest welcome at sea with ${BUSINESS}.`,
+    `Affordable quality and the warmest welcome at sea with ${BUSINESS}.`, BRAND_LINE,
     `Prices per person, based on two sharing and subject to availability. Book your sailing today.`];
   const longHeadlines = [`${Kind} ${from}, departing ${when}, from ${money(f.min)}pp`, `Choose from ${n} sailings of ${nights} with ${BUSINESS}`,
-    f.noFly && `No airports, no queues: ${kind} ${from}`, offer && `${offer} on ${n} sailings ${from}`, "Where will you sail next? The warmest welcome at sea awaits"];
+    f.noFly && `No airports, no queues: ${kind} ${from}`, offer && `${offer} on ${n} sailings ${from}`, `${welcomeOf(f.noFly, f.fly)}, ${from}`, BRAND_LINE.slice(0, -1)];
   return {
     rsa: {headlines: fit(headlines, 30).slice(0, 15), descriptions: fit(descriptions, 90).slice(0, 4),
           path1: f.fly ? "Fly-Cruises" : f.noFly ? "No-Fly-Cruises" : "Cruises", path2: f.first ? pathOf(`${MON[+f.first.slice(5, 7) - 1]}-${f.first.slice(0, 4)}`) : ""},
     pmax: {headlines: fit(headlines, 30).slice(0, 15), longHeadlines: fit(longHeadlines, 90).slice(0, 5),
            descriptions: [...fit([`${Kind} ${from}, from ${money(f.min)}pp.`, `${n} sailings, ${nights}, from ${money(f.min)}pp.`], 60).slice(0, 1), ...fit(descriptions, 90)].slice(0, 5)},
-    dg: {headlines: fit([`${Kind} from ${money(f.min)}pp`, `${n} ${kind} ${from}`, `${Kind}, departing ${when}`, "Where will you sail next?", "The warmest welcome at sea", offer], 40).slice(0, 5),
+    dg: {headlines: fit([`${Kind} from ${money(f.min)}pp`, `${n} ${kind} ${from}`, `${Kind}, departing ${when}`, welcomeOf(f.noFly, f.fly), "The warmest welcome at sea", offer], 40).slice(0, 5),
          descriptions: fit(descriptions, 90).slice(0, 5)},
     sitelinks: [...items.slice(0, 6).map(i => ({text: shortName(i.title, 25) || i.id, d1: `${i.nights} nights, from ${money(priceOf(i))}pp`, d2: `Departs ${day(i.departure_date)}`, url: i.link})).filter(s => s.text),
                 {text: "Cruise offers", d1: "Our latest offers and deals", d2: "Subject to availability", url: SITE + "deals/cruise-offers/"}],
