@@ -475,9 +475,18 @@ site's property → Settings → Users and permissions → Add user → the `fir
 address, **Restricted** (read-only). Page creator: "Keyword ideas from Search Console" section: searches sharing a word with
 the page's topic (keyword, H1, destination; `STOP` words left out) or a typed search, with impressions, clicks, average
 position ("page 2" from 11), the page of ours they land on; "Use as keyword", and "Add to FAQs" for questions.
-Queued: a check against the website's existing titles and addresses. Not built: Storyblok Management API to create a **draft** story (needs a Storyblok
-token and the space's component names; a person still publishes); keyword ideas (Semrush, if there's an API key); checks
-against the site's existing titles/addresses (sitemap) to avoid duplicates.
+**Duplicate check against the website** (Sam, 16 Oct 2026, point 5): `seo_pages.py`, hourly workflow step "Website pages
+for the duplicate check" once a UK day (`continue-on-error`): every sitemap page except /cruise/ (481 on 16 Oct 2026), title,
+meta description and H1 read (new pages first, each again after `REREAD_DAYS` = 7, at most `PER_RUN` = 150 a day, 0.5 s
+apart; dropped when they leave the sitemap; a sitemap under 50 pages changes nothing) → `state/seo/pages.json` {pages
+{"/path/": {t, d, h, r, s}}} → `publish.py` `pricewatch/seo-pages`. Page creator checks (`dupes`): same address or same
+SEO title (title before "|", normalised) = ✕; SEO title very like (word overlap ≥ 0.75, `STOP` words left out) or same H1 =
+warning; pages whose title/H1 has every word of the keyword = "already aimed at this keyword" (they'd compete in Google);
+listed under Checks with links, one row per page (`dupeRows`). First read 16 Oct 2026: the site already repeats titles
+("Cruise drinks packages" ×4, "Travel partners login" ×12, "Blog" ×3); a Norwegian Fjords landing page exists at
+/destinations/fjordland-cruises/ with 7 Norway blog posts on the same keyword.
+Not built: Storyblok Management API to create a **draft** story (needs a Storyblok token and the space's component
+names; a person still publishes); Semrush keyword data (needs an API key).
 
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
