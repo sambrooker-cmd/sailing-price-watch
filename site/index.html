@@ -2227,7 +2227,7 @@ const auth = getAuth(firebaseApp);
     const box = $("comp-" + COMP[v]);
     try {
       compModule = compModule || await import(FR ? "./competitors_fr.js?v=__BUILD__" : "./competitors.js?v=__BUILD__");
-      await compModule.mount(box, {state, cabins, readJson, esc}, COMP[v]);
+      await compModule.mount(box, {state, cabins, readJson, esc, getAdkit}, COMP[v]);
     } catch (e) { box.innerHTML = `<p class="err">The competitors page couldn't load: ${esc(e.message)}</p>`; }
   }
   // Competitor emails (site/compemails.js): the library of the competitors' marketing emails
