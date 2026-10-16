@@ -169,7 +169,7 @@ async function videoApi(method, body){
 }
 async function loadVideos(){
   clearTimeout(videoTimer);
-  try { videos = (await videoApi("GET")).videos || []; videoOff = false; }
+  try { videos = ((await videoApi("GET")).videos || []).filter(v => v.kind !== "route"); videoOff = false; }   // route videos show in the sailing's detail view
   catch(e) { if (!e.served) videoOff = true; }
   const box = root && root.querySelector("#ac-videos");
   if (box) box.outerHTML = videosBlock();

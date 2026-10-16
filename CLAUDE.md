@@ -384,6 +384,48 @@ and `region`; `candidates(r)` = ours in the same month, ±3 nights, same no-fly/
   headline/description combinations (Google mixes them itself; the page says it's a guide, not Google's own preview).
   The mock-ups' CSS is scoped (`.gp-dev` resets) so the tracker's styles don't leak in.
 
+## Route video per sailing (16 Oct 2026, Sam: "a route video per sailing, on each of the sailing cards using this as the template")
+Template: Sam's A32651 Tropical Treasures video (1080×1920, 64 s; three versions: Heathrow, Manchester, combined). Sam
+picked: the template's music; 9:16, 4:5 and 1:1; Renaissance reuses the template's ship clip, Ambience/Ambition their ship
+photo with a slow zoom; words over the ship default by destination, editable. UK only. No prices in the video.
+- `route_data.py`: the sailing page's Astro props (the hourly enrich reads the same pages): `Itinerary` items (port code,
+  name, country, times, the port's own photo `port.content.image`), FareSummary `search-data` (ship, `isFlyCruise`,
+  `flights[].airportCode`, `outbound` / `inbound` → `fly_out` / `fly_home`: A32650 sails from Tilbury and only flies
+  home). Port positions: **`route/ports.json`** (all 156 ports on sale on 16 Oct 2026, checked by hand: UN/LOCODE had
+  Belfast, Douglas, La Coruña, Getxo and Newcastle Tyne in the wrong places) → else UN/LOCODE (downloaded, flagged in the
+  run summary "placed from UN/LOCODE: look at the map") → else the port is left off (summary says so; add it to
+  ports.json). Coastlines: Natural Earth 1:10m land + minor islands (public domain), downloaded into `img_cache/route`
+  (kept between runs by actions/cache). `sea_route`: A* per leg on a land grid (land cells cost 60, not forbidden, so
+  ports deep in fjords work; cells near the coast cost a little more), pulled tight, Chaikin-smoothed.
+- `route_video.py` (PIL + ffmpeg, ~2 min a size on a laptop): scenes as the template: (fly out) UK map, planes leave the
+  airport(s) on great circles → plane lands at the first port → the voyage (purple capsule ship with the template's
+  pointed bow on a dotted route, camera following: `follow_rect` 5–10° of longitude across, ship kept inside 22% of the
+  edges; port dots and names; Pearl sea `SEA`, Aloe land `LAND`, Amber first port) → whole route → a photo per port
+  (each once, the page's port photos, up to 9, 1.6–2 s; name in spaced capitals over a purple fade: the island where the
+  country is the island, "BONAIRE", else the town, "for Bergen" → "BERGEN") → (fly home) planes into the UK airport(s)
+  → the ship (`route/renaissance.mp4`: the template's clip 53.2–57.7 s with its words painted out from the sky's edges;
+  else `site/ships/<ship>.jpg`) with the words fading in word by word → the template's end card (`route/end_*.png`
+  cut from its last frame: logo, tagline container, booking line, ABTA/ATOL/Nectar; purple bar), entered with a white
+  20° wipe. Land drawn fresh each frame (2× anti-aliased, coastline clamped to the frame) so it stays sharp at any zoom.
+  Length fitted under the music (`timeline`, ≤ ~60 s; music `route/music.m4a` from the template, faded out). Text in
+  Quicksand (`route/Quicksand.ttf`, OFL). Defaults: "<PLACE>, THE WAY IT SHOULD FEEL." (THE CARIBBEAN, THE FJORDS (THEY),
+  ICELAND, THE BALTIC, THE BRITISH ISLES, SPAIN AND PORTUGAL, THE MEDITERRANEAN, EUROPE) and "Smaller ship. Direct
+  flight. Everything sorted." (flies out) / "Smaller ship. Sail from <port>. Everything sorted.". Files
+  `route_<code>_<size>_<secs>s.mp4`, `info.json`, `summary.md`.
+- `.github/workflows/route-video.yml` (manual: cruise code, airports, words, sizes; or from the tracker page with
+  `request`) → `video_job.py` uploads to Storage `pricewatch-videos/<id>/` as the Ad creator's videos (30 days).
+  `functions/index.js` `makeVideo` takes `{kind: "route", sailing, airports, headline, line}` (words cleaned and cut to
+  90 characters; same daily limit of 20 and 2 waiting per person) and dispatches it; GET returns `kind`, `headline`,
+  `airports` (the Ad creator's Videos list leaves route videos out).
+- Tracker page: **Route video** section in a sailing's detail view (`site/routevideo.js`; UK, on sale): words over the
+  ship and the line under them (defaults shown in grey, from `comptrend.regionOf`), **Planes from** for fly-cruises
+  (default both airports, as the template's combined version: every fly-cruise has a Manchester twin, A32651 ↔ A32651M;
+  or either one), Make route video, and the sailing's route videos (both twins'), with downloads and ▶; checks every 20 s
+  while one is being made. If the function can't be reached it opens the GitHub workflow with what to type. The Cards
+  page has a "Route video" link per sailing that opens the detail view at that section.
+- Tested 16 Oct 2026 (locally, nothing uploaded): A32651 (combined airports, all sizes), A12704 (Norway fjords, no-fly),
+  A32650 (Tilbury → Caribbean, flies home); the page section against a stand-in function.
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
@@ -504,6 +546,7 @@ pounds a month).
 | `.github/workflows/feed-check.yml` | Manual only. Fetches the feed and landing pages and runs the safety checks without saving anything. First run 12 Oct 2026 from GitHub's runners: 220 sailings, 0 failed pages, safety check passed, so the booking site does not block GitHub |
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
+| `route_data.py`, `route_video.py`, `route/`, `.github/workflows/route-video.yml`, `site/routevideo.js` | Route video per sailing (map, route, port photos, ship, end card, the template's music; 9:16, 4:5, 1:1): see "Route video per sailing (16 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
 | `runs/*.json` | Daily change lists: 8, 9, 12 Oct (10–11 Oct were never recorded) |
