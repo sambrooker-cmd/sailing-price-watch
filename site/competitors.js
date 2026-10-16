@@ -8,6 +8,7 @@
 // Fred. Olsen's prices are its own; the other lines' are Planet Cruise's (an agent: its own discounts and "was" figures).
 
 import {collect, baselines, TYPES, TYPE_LABEL} from "./offerkit.js?v=__BUILD__";
+import {regionOf, photoWords, REGIONS, REGION_LABEL, priceOn, dayList, addDays, mondayOf, chainIndex, movesOf, lineChart, COLORS} from "./comptrend.js?v=__BUILD__";
 
 const CABINS = [["inside", "Inside"], ["outside", "Outside"], ["balcony", "Balcony"], ["suite", "Suite"]];
 // Our cabin grades → the comparable types
@@ -17,7 +18,7 @@ const KEY = "spw-comp";
 const LINES = {fredolsen: "Fred. Olsen", po: "P&O Cruises", princess: "Princess Cruises", cunard: "Cunard", marella: "Marella Cruises",
   msc: "MSC Cruises", royal: "Royal Caribbean", celebrity: "Celebrity Cruises", ambassador: "Ambassador (at Planet Cruise)"};
 let C, R, I = null, our, ctx, esc, loading = null;
-const st = {otype: "", line: "", cabin: "inside", occ: "twin", month: "", seg: "", sort: "date", vsSort: "gap"};
+const st = {region: "", like: true, otype: "", line: "", cabin: "inside", occ: "twin", month: "", seg: "", sort: "date", vsSort: "gap"};
 let showAll = false;
 // No-fly from a UK port, or fly-Caribbean (competitors.py `segment`; older records: the fly flag)
 const segOf = r => r.segment || (r.fly ? "fly-caribbean" : "no-fly");
@@ -41,28 +42,43 @@ function priceOf(r, occ, cab){ const s = last((r.prices || {})[`${occ}.${cab}`])
 function priceAt(r, occ, cab, iso){ let p = null; for (const s of (r.prices || {})[`${occ}.${cab}`] || []) if (s.from <= iso) p = s.p; return p; }
 const live = () => { const t = new Date().toISOString().slice(0, 10); return Object.entries(C.sailings || {}).filter(([, r]) => !r.gone && (r.departure_date || "") > t); };
 
-// Ambassador's own sailings (our saved state): cheapest per cabin type, two sharing and solo
-function ourSailings(state, cabins){
+// Ambassador's own sailings (our saved state): cheapest per cabin type now (pr), each type's price history (sg: the
+// comparable grade's segments), and where it goes (region: title plus page photo names, from the ad kit)
+function ourSailings(state, cabins, kit){
   const today = new Date().toISOString().slice(0, 10), out = [], map = cabins.sailings || cabins || {};   // index.html passes the sailings map
+  const ks = (kit && kit.sailings) || {};
   for (const [id, s] of Object.entries(state.sailings || {})){
     if (s.removed || !s.departure_date || s.departure_date <= today || !s.nights) continue;
-    const pr = {twin: {}, solo: {}};
+    const pr = {twin: {}, solo: {}}, sg = {twin: {}, solo: {}};
     for (const [k, v] of Object.entries((map[id] || {}).cabins || {})){
-      const [occ, g] = k.split("."), t = OURS[g], sg = last(v.seg);
-      if (!t || !sg || sg.p == null || sg.out || !pr[occ]) continue;
-      if (pr[occ][t] == null || sg.p < pr[occ][t]) pr[occ][t] = sg.p;
+      const [occ, g] = k.split("."), t = OURS[g], cur = last(v.seg);
+      if (!t || !pr[occ]) continue;
+      sg[occ][t] = v.seg;
+      if (!cur || cur.p == null || cur.out) continue;
+      if (pr[occ][t] == null || cur.p < pr[occ][t]) pr[occ][t] = cur.p;
     }
-    out.push({id, title: s.title, ship: s.ship, port: s.flight_from ? s.flight_from + " (fly)" : s.port, date: s.departure_date, nights: s.nights, fly: !!s.flight_from, pr});
+    out.push({id, title: s.title, ship: s.ship, port: s.flight_from ? s.flight_from + " (fly)" : s.port, date: s.departure_date, nights: s.nights,
+              fly: !!s.flight_from, pr, sg, region: regionOf(s.title, photoWords((ks[id] || {}).photos))});
   }
   return out;
 }
-// Ambassador's cheapest per night for the same cabin type, same month, similar length (±3 nights), same no-fly/fly
-function ourMatch(r, occ, cab){
-  const m = (r.departure_date || "").slice(0, 7), fly = segOf(r) === "fly-caribbean";
-  const hits = our.filter(o => o.date.slice(0, 7) === m && Math.abs(o.nights - (r.nights || 0)) <= 3 && o.fly === fly && o.pr[occ][cab] != null);
-  if (!hits.length) return null;
-  const best = hits.reduce((a, o) => o.pr[occ][cab] / o.nights < a.pr[occ][cab] / a.nights ? o : a);
-  return {pn: best.pr[occ][cab] / best.nights, n: hits.length, best};
+const regionR = r => r._region ?? (r._region = regionOf(r.title));
+// Our sailings that compare with theirs: same month, within 3 nights' length, same no-fly / fly-Caribbean and, when
+// "match destination too" is on (default), the same destination region
+function candidates(r){
+  const m = (r.departure_date || "").slice(0, 7), fly = segOf(r) === "fly-caribbean", g = regionR(r);
+  return our.filter(o => o.date.slice(0, 7) === m && Math.abs(o.nights - (r.nights || 0)) <= 3 && o.fly === fly && (!st.like || (g && o.region === g)));
+}
+// Ambassador's cheapest per night among those, for a cabin type, now or (with d) on day d
+function ourMatch(r, occ, cab, d){
+  let best = null, bp = null, n = 0;
+  for (const o of candidates(r)) {
+    const p = d ? priceOn(o.sg[occ][cab], d) : o.pr[occ][cab];
+    if (p == null) continue;
+    n++;
+    if (bp == null || p / o.nights < bp) { bp = p / o.nights; best = o; }
+  }
+  return best ? {pn: bp, n, best, p: bp * best.nights} : null;
 }
 
 // Shared controls (line, cabin, two sharing / solo, month, no-fly); `extra` adds page-specific ones
@@ -75,7 +91,8 @@ function controls(box, opts){
     ${opts.cabin === false ? "" : `<select data-k="cabin" aria-label="Cabin type">${CABINS.map(([c, l]) => `<option value="${c}"${st.cabin === c ? " selected" : ""}>${l}</option>`).join("")}</select>
     <select data-k="occ" aria-label="Fare"><option value="twin"${st.occ === "twin" ? " selected" : ""}>Two sharing</option><option value="solo"${st.occ === "solo" ? " selected" : ""}>Solo (Fred. Olsen only)</option></select>`}
     ${opts.month === false ? "" : `<select data-k="month" aria-label="Departure month"><option value="">Any month</option>${months.map(m => `<option value="${m}"${st.month === m ? " selected" : ""}>${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}</option>`).join("")}</select>
-    <select data-k="seg" aria-label="No-fly or fly-Caribbean"><option value="">No-fly and fly-Caribbean</option>${Object.entries(SEGS).map(([k, l]) => `<option value="${k}"${st.seg === k ? " selected" : ""}>${l}</option>`).join("")}</select>`}
+    <select data-k="seg" aria-label="No-fly or fly-Caribbean"><option value="">No-fly and fly-Caribbean</option>${Object.entries(SEGS).map(([k, l]) => `<option value="${k}"${st.seg === k ? " selected" : ""}>${l}</option>`).join("")}</select>
+    <select data-k="region" aria-label="Destination"><option value="">Any destination</option>${REGIONS.map(([k, l]) => `<option value="${k}"${st.region === k ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`}
     ${opts.extra || ""}
   </div>`;
 }
@@ -85,7 +102,9 @@ function wire(box, rerender){
     st[i.dataset.k] = i.type === "checkbox" ? e.target.checked : e.target.value; showAll = false; save(); rerender();
   }));
 }
-const pick = r => (!st.line || r.line === st.line) && (!st.month || (r.departure_date || "").slice(0, 7) === st.month) && (!st.seg || segOf(r) === st.seg);
+const pick = r => (!st.line || r.line === st.line) && (!st.month || (r.departure_date || "").slice(0, 7) === st.month) && (!st.seg || segOf(r) === st.seg) && (!st.region || regionR(r) === st.region);
+// Ours, by the same filters (no line filter: they're ours)
+const pickOurs = o => (!st.month || o.date.slice(0, 7) === st.month) && (!st.seg || (st.seg === "fly-caribbean") === o.fly) && (!st.region || o.region === st.region);
 function csvDownload(name, head, body){
   const q = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
   const blob = new Blob(["﻿" + [head, ...body].map(r => r.map(q).join(",")).join("\r\n")], {type: "text/csv"});
@@ -97,6 +116,115 @@ const source = () => `<p class="note" style="margin:0 0 12px">Read once a day fr
   ${esc(C.updated_at ? C.updated_at.slice(0, 16).replace("T", " ") + " UTC" : "–")}. Saga isn't covered. Recorded only: nothing here changes a price, an ad or a claim.</p>`;
 
 // ---------- Competitor prices ----------
+// Sam, 16 Oct 2026 (trends): price trend by line (a chain-linked index, so it shows real price changes, not sailings
+// coming and going), price moves per week with the biggest cuts, a grid by departure month coloured against ours, and
+// each sailing's own price history (click "History") beside our closest sailing's.
+const today0 = () => new Date().toISOString().slice(0, 10);
+const keyOf = () => `${st.occ}.${st.cabin}`;
+const trendDays = () => {
+  const t = today0(), first = Object.values(C.sailings || {}).flatMap(r => Object.values(r.prices || {}).map(s => (s[0] || {}).from)).filter(Boolean).sort()[0] || t;
+  const ds = dayList(first, t);
+  return ds.length > 42 ? ds.filter((d, i) => i === ds.length - 1 || new Date(d + "T12:00:00Z").getUTCDay() === 0) : ds;   // weekly beyond 6 weeks
+};
+const pct1 = v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
+const linesWith = items => Object.keys(C.lines || LINES).filter(k => k !== "ambassador" && items.filter(x => x.line === k).length >= 3);
+
+function trendBlock(){
+  const days = trendDays(), k = keyOf();
+  const theirs = live().map(([, r]) => r).filter(r => pick(r) && (r.prices || {})[k]);
+  const series = linesWith(theirs).map((ln, i) => ({name: lineName(ln), color: COLORS[i % COLORS.length], dash: i >= COLORS.length,
+    pts: chainIndex(theirs.filter(r => r.line === ln).map(r => ({segs: r.prices[k], dep: r.departure_date})), days), ln}));
+  const mine = our.filter(pickOurs).filter(o => o.sg[st.occ][st.cabin]);
+  if (mine.length >= 3) series.unshift({name: "Ambassador", color: "var(--heading)", bold: true, ln: "ours",
+    pts: chainIndex(mine.map(o => ({segs: o.sg[st.occ][st.cabin], dep: o.date})), days)});
+  const ch = lineChart(series, {fmt: v => v.toFixed(1), esc, label: "Price index by line", empty: "Appears after a second day of prices."});
+  // Typical price per night today and the change since the first day, per line
+  const t = today0();
+  const rows = series.map(s => {
+    const xs = s.ln === "ours" ? mine.map(o => { const p = o.pr[st.occ][st.cabin]; return p ? p / o.nights : null; })
+      : theirs.filter(r => r.line === s.ln).map(r => { const p = priceOf(r, st.occ, st.cabin); return p && r.nights ? p.p / r.nights : null; });
+    const v = xs.filter(x => x != null), lastIdx = s.pts.length ? s.pts[s.pts.length - 1][1] : 100;
+    return `<tr${s.ln === "ours" ? ' style="font-weight:600"' : ""}><td><i class="key" style="border-color:${s.color}"></i> ${esc(s.name)}</td><td class="num">${v.length}</td><td class="num">${gbp(median(v))}</td><td class="num">${pctCell(Math.round((lastIdx - 100) * 10) / 10)}</td></tr>`;
+  }).join("");
+  return {html: `<h3 style="margin:18px 0 6px;font-size:15px">Price trend by line</h3>
+    <p class="note" style="margin:0 0 8px">${esc(cabinLabel(st.cabin))}, ${st.occ === "solo" ? "solo" : "two sharing"}. An index: the first day is 100 and each day moves by the average price change of the sailings priced on both days, so sailings being found or sailing away don't move it. ${days.length > 42 ? "Weekly." : "Daily."} Recording began ${day(days[0])}.</p>
+    ${ch.html}
+    <div class="tablewrap" style="margin-top:8px"><table class="ptable"><thead><tr><th>Line</th><th class="num">Sailings</th><th class="num">Typical per night now</th><th class="num">Change since ${day(days[0])}</th></tr></thead><tbody>${rows}</tbody></table></div>`, wire: ch.wire};
+}
+
+function movesBlock(){
+  const k = keyOf(), t = today0(), wk = isoDaysAgo(7);
+  const theirs = live().map(([, r]) => r).filter(r => pick(r) && (r.prices || {})[k]);
+  const ms = movesOf(theirs.map(r => ({segs: r.prices[k], r, line: r.line})));
+  const mine = our.filter(pickOurs).filter(o => o.sg[st.occ][st.cabin]);
+  const om = movesOf(mine.map(o => ({segs: o.sg[st.occ][st.cabin], o, line: "ours"})));
+  const all = [...om, ...ms];
+  const weeks = [...new Set(all.map(m => mondayOf(m.d)))].sort().reverse().slice(0, 6);
+  if (!weeks.length) return `<h3 style="margin:22px 0 6px;font-size:15px">Price moves per week</h3><div class="empty"><p>No price changes recorded yet for ${esc(cabinLabel(st.cabin).toLowerCase())} cabins.</p></div>`;
+  const rowsFor = ["ours", ...linesWith(theirs)];
+  const cell = (ln, w) => {
+    const xs = all.filter(m => m.x.line === ln && mondayOf(m.d) === w);
+    if (!xs.length) return `<td class="num sub">–</td>`;
+    const down = xs.filter(m => m.pct < 0).length, up = xs.length - down, avg = xs.reduce((a, m) => a + m.pct, 0) / xs.length;
+    return `<td class="num">${down ? `<span style="color:var(--ok, #1a7f26)">↓${down}</span>` : ""} ${up ? `<span style="color:var(--warn)">↑${up}</span>` : ""}<div class="sub">avg ${pct1(avg)}</div></td>`;
+  };
+  const cuts = ms.filter(m => m.d >= wk && m.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 10);
+  return `<h3 style="margin:22px 0 6px;font-size:15px">Price moves per week</h3>
+    <p class="note" style="margin:0 0 8px">How many sailings' ${esc(cabinLabel(st.cabin).toLowerCase())} price went down (↓) or up (↑) each week, and the average change of those that moved. A run of cuts can mean a sale has started.</p>
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Line</th>${weeks.map(w => `<th class="num">w/c ${day(w).replace(/ \d{4}$/, "")}</th>`).join("")}</tr></thead><tbody>
+      ${rowsFor.map(ln => `<tr${ln === "ours" ? ' style="font-weight:600"' : ""}><td>${ln === "ours" ? "Ambassador" : esc(lineName(ln))}</td>${weeks.map(w => cell(ln, w)).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    ${cuts.length ? `<h4 style="margin:14px 0 6px;font-size:13px">Biggest cuts in the last 7 days</h4><div class="tablewrap"><table class="ptable"><tbody>
+      ${cuts.map(m => `<tr><td>${day(m.d)}</td><td style="white-space:normal"><a href="${esc(m.x.r.url)}" target="_blank" rel="noopener">${esc(m.x.r.title || "")}</a><div class="sub">${esc(lineName(m.x.r.line))} · ${day(m.x.r.departure_date)} · ${m.x.r.nights} nights</div></td>
+        <td class="num">${gbp(m.old)} → ${gbp(m.new)}</td><td class="num">${pctCell(Math.round(m.pct))}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+}
+
+function monthBlock(){
+  const k = keyOf(), t = today0();
+  const theirs = live().map(([, r]) => r).filter(r => pick(r) && priceOf(r, st.occ, st.cabin) && r.nights);
+  const months = [...new Set(theirs.map(r => r.departure_date.slice(0, 7)))].sort().slice(0, 18);
+  if (!months.length) return "";
+  const mine = our.filter(o => (!st.seg || (st.seg === "fly-caribbean") === o.fly) && (!st.region || o.region === st.region) && o.pr[st.occ][st.cabin]);
+  const oursIn = m => median(mine.filter(o => o.date.slice(0, 7) === m).map(o => o.pr[st.occ][st.cabin] / o.nights));
+  const lines = linesWith(theirs);
+  const cell = (ln, m) => {
+    const v = median(theirs.filter(r => r.line === ln && r.departure_date.slice(0, 7) === m).map(r => priceOf(r, st.occ, st.cabin).p / r.nights));
+    if (v == null) return `<td class="num sub">–</td>`;
+    const o = oursIn(m), d = o != null ? diffPct(o, v) : null;
+    const bg = d == null ? "" : d <= -5 ? "background:var(--good-bg)" : d >= 5 ? "background:var(--bad-bg)" : "";
+    return `<td class="num" style="${bg}" title="${d == null ? "" : esc(diffWords(o, v))}">${gbp(v)}</td>`;
+  };
+  return `<h3 style="margin:22px 0 6px;font-size:15px">By departure month</h3>
+    <p class="note" style="margin:0 0 8px">Typical ${esc(cabinLabel(st.cabin).toLowerCase())} price per night by departure month. Green: we're at least 5% cheaper than that line that month; red: at least 5% dearer.</p>
+    <div class="tablewrap"><table class="ptable" style="min-width:${180 + months.length * 72}px"><thead><tr><th>Line</th>${months.map(m => `<th class="num">${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}</th>`).join("")}</tr></thead><tbody>
+      <tr style="font-weight:600"><td>Ambassador</td>${months.map(m => `<td class="num">${gbp(oursIn(m))}</td>`).join("")}</tr>
+      ${lines.map(ln => `<tr><td>${esc(lineName(ln))}</td>${months.map(m => cell(ln, m)).join("")}</tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+// One sailing's price history by cabin type, beside our closest sailing's (dashed), its "was" figures and offers
+function historyRow(id){
+  const r = C.sailings[id], t = today0(), series = [], k0 = st.occ;
+  CABINS.forEach(([c, l], i) => {
+    const segs = (r.prices || {})[`${k0}.${c}`];
+    if (segs && segs.some(s => s.p != null)) series.push({name: l, color: COLORS[i], pts: segs.filter(s => s.p != null).map(s => [s.from, s.p])});
+  });
+  const m = ourMatch(r, k0, st.cabin);
+  if (m) CABINS.forEach(([c, l], i) => {
+    const segs = m.best.sg[k0][c];
+    if (segs && segs.some(s => s.p != null)) series.push({name: `Ours: ${l}`, color: COLORS[i], dash: true, pts: segs.filter(s => s.p != null && s.from >= (series[0] ? series[0].pts[0][0] : "")).map(s => [s.from, s.p])});
+  });
+  const ch = lineChart(series, {step: true, end: t, fmt: v => gbp(v), esc, label: "Price history"});
+  const was = CABINS.map(([c, l]) => { const p = priceOf(r, k0, c); return p && p.was ? `${l}: was ${gbp(p.was)}, now ${gbp(p.p)}` : ""; }).filter(Boolean);
+  const offers = Object.entries(r.offers || {}).map(([o, sp]) => `${esc(o)} <span class="sub">(${sp.map(([f, to]) => `${day(f)} – ${to ? day(to) : "now"}`).join(", ")})</span>`);
+  return {html: `<tr class="hist"><td colspan="7" style="background:var(--bg-alt)">
+    <p class="note" style="margin:0 0 6px">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${day(r.departure_date)} · ${r.nights} nights · ${st.occ === "solo" ? "solo" : "two sharing"} prices per person.
+      ${m ? `Dashed: our closest, <a href="#${esc(m.best.id)}">${esc(m.best.title || m.best.id)}</a> (${day(m.best.date)}, ${m.best.nights} nights).` : "No similar Ambassador sailing to compare."}</p>
+    ${ch.html}
+    ${was.length ? `<p class="sub" style="margin:6px 0 0">Planet Cruise's "was" figures: ${esc(was.join(" · "))}</p>` : ""}
+    ${offers.length ? `<p class="sub" style="margin:6px 0 0">Offers: ${offers.join(" · ")}</p>` : ""}</td></tr>`, wire: ch.wire};
+}
+
 function renderPrices(box){
   const wk = isoDaysAgo(7), all = live().map(([, r]) => r);
   const recent = ((R && R.runs) || []).filter(r => r.date >= wk).flatMap(r => r.changes.map(c => ({...c, date: r.date})));
@@ -106,6 +234,7 @@ function renderPrices(box){
     return {id, r, p, pn: p && r.nights ? p.p / r.nights : null, chg: p && before != null && before !== p.p ? p.p - before : null};
   }).filter(x => x.p).sort((a, b) => st.sort === "pn" ? a.pn - b.pn : st.sort === "chg" ? (a.chg ?? 0) - (b.chg ?? 0) : (a.r.departure_date || "").localeCompare(b.r.departure_date || ""));
   const lines = new Set(all.map(r => r.line));
+  const trend = trendBlock();
   box.innerHTML = source() + `
     <div class="stats" style="margin-bottom:18px">
       <div class="stat"><span class="k">Competing sailings</span><span class="v">${all.filter(r => r.line !== "ambassador").length}</span><span class="s">${all.filter(r => r.line !== "ambassador" && segOf(r) === "no-fly").length} no-fly · ${all.filter(r => r.line !== "ambassador" && segOf(r) === "fly-caribbean").length} fly-Caribbean · ${[...lines].filter(l => l !== "ambassador").length} lines</span></div>
@@ -114,28 +243,41 @@ function renderPrices(box){
     </div>
     ${controls(box, {extra: `<select data-k="sort" aria-label="Sort"><option value="date"${st.sort === "date" ? " selected" : ""}>By departure</option><option value="pn"${st.sort === "pn" ? " selected" : ""}>Cheapest per night</option><option value="chg"${st.sort === "chg" ? " selected" : ""}>Biggest drop this week</option></select>
       <button type="button" class="linkbtn" id="cp-csv">Download CSV</button>`})}
+    ${trend.html}
+    ${movesBlock()}
+    ${monthBlock()}
+    <h3 style="margin:22px 0 6px;font-size:15px">Every sailing</h3>
     ${list.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th><th>Departs</th><th class="num">Nights</th><th class="num">From pp</th><th class="num">Per night</th><th class="num">7 days</th><th>Offers</th></tr></thead><tbody>
-      ${(showAll ? list : list.slice(0, 300)).map(({r, p, pn, chg}) => `<tr>
-        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${r.flights ? ` · flights from ${esc(r.flights)}` : ""}${segOf(r) === "fly-caribbean" ? ' <span class="chip">fly-Caribbean</span>' : ""}</div></td>
+      ${(showAll ? list : list.slice(0, 300)).map(({id, r, p, pn, chg}) => `<tr>
+        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || r.code || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${esc(r.port || "")}${r.flights ? ` · flights from ${esc(r.flights)}` : ""}${segOf(r) === "fly-caribbean" ? ' <span class="chip">fly-Caribbean</span>' : ""}${regionR(r) ? ` · ${esc(REGION_LABEL[regionR(r)])}` : ""}</div>
+          <button type="button" class="linkbtn" data-hist="${esc(id)}" style="font-size:12px">Price history</button></td>
         <td>${day(r.departure_date)}</td><td class="num">${r.nights || "–"}</td>
         <td class="num">${gbp(p.p)}${p.was ? `<div class="sub"><s>${gbp(p.was)}</s></div>` : ""}${p.fare ? `<div class="sub">${esc(p.fare)}</div>` : ""}</td>
         <td class="num">${pn ? gbp(pn) : "–"}</td>
         <td class="num">${chg == null ? "–" : `<span style="color:${chg < 0 ? "var(--ok, #1a7f26)" : "var(--warn)"}">${chg < 0 ? "−" : "+"}${gbp(Math.abs(chg))}</span>`}</td>
         <td>${liveOffers(r).slice(0, 3).map(o => `<span class="chip" title="${esc(o)}" style="white-space:normal">${esc(o.length > 70 ? o.slice(0, 68) + "…" : o)}</span>`).join(" ") || "–"}</td></tr>`).join("")}
     </tbody></table></div><p class="note">${list.length} sailing${list.length === 1 ? "" : "s"} with a ${st.occ === "solo" ? "solo " : ""}${cabinLabel(st.cabin).toLowerCase()} price${!showAll && list.length > 300 ? ` (showing the first 300: <button type="button" class="linkbtn" id="cp-all">Show all</button>)` : ""}. See <b>Vs Ambassador</b> for how ours compare.</p>`
-      : `<div class="empty"><p>No sampled sailings match. The first days fill the sample (about a dozen new pages a line each day).</p></div>`}
+      : `<div class="empty"><p>No sailings match these filters.</p></div>`}
     <h3 style="margin:22px 0 8px;font-size:15px">What changed (last 7 days)</h3>
     ${recent.some(c => c.kind !== "new") ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Date</th><th>Line</th><th>Sailing</th><th>Change</th></tr></thead><tbody>
       ${recent.filter(c => c.kind !== "new" && (!st.line || c.line === st.line)).reverse().slice(0, 200).map(c => { const r = (C.sailings || {})[c.id] || {};
         return `<tr><td>${day(c.date)}</td><td>${esc(lineName(c.line))}</td><td>${c.id ? `<a href="${esc(r.url || "#")}" target="_blank" rel="noopener">${esc(r.title || c.title || c.id)}</a>` : "Brand-wide"}</td><td>${esc(words(c))}</td></tr>`; }).join("")}
     </tbody></table></div>` : `<div class="empty"><p>Changes appear after the second daily check.</p></div>`}`;
+  trend.wire(box);
   wire(box, () => renderPrices(box));
+  box.querySelectorAll("[data-hist]").forEach(b => b.addEventListener("click", () => {
+    const tr = b.closest("tr"), open = tr.nextElementSibling && tr.nextElementSibling.classList.contains("hist");
+    box.querySelectorAll("tr.hist").forEach(x => x.remove());
+    if (open) return;
+    const h = historyRow(b.dataset.hist);
+    tr.insertAdjacentHTML("afterend", h.html); h.wire(tr.nextElementSibling);
+  }));
   const more = box.querySelector("#cp-all");
   if (more) more.addEventListener("click", () => { showAll = true; renderPrices(box); });
   const csv = box.querySelector("#cp-csv");
   if (csv) csv.addEventListener("click", () => csvDownload(`competitor-prices-${st.occ}-${st.cabin}-${C.updated || ""}.csv`,
-    ["Line", "Sailing", "Ship", "Departs from", "No-fly / fly-Caribbean", "Departure date", "Nights", "Cabin", "Fare", "Price pp", "Was pp", "Per night", "Change 7 days", "Offers", "Link", "Read"],
-    list.map(({r, p, pn, chg}) => [lineName(r.line), r.title, r.ship, r.port, SEGS[segOf(r)], r.departure_date, r.nights, st.occ + " " + st.cabin, p.fare, p.p, p.was, pn && Math.round(pn), chg, liveOffers(r).join("; "), r.url, r.checked_at])));
+    ["Line", "Sailing", "Ship", "Departs from", "No-fly / fly-Caribbean", "Destination", "Departure date", "Nights", "Cabin", "Fare", "Price pp", "Was pp", "Per night", "Change 7 days", "Offers", "Link", "Read"],
+    list.map(({r, p, pn, chg}) => [lineName(r.line), r.title, r.ship, r.port, SEGS[segOf(r)], REGION_LABEL[regionR(r)] || "", r.departure_date, r.nights, st.occ + " " + st.cabin, p.fare, p.p, p.was, pn && Math.round(pn), chg, liveOffers(r).join("; "), r.url, r.checked_at])));
 }
 
 function words(c){
@@ -290,23 +432,109 @@ function renderOffers(box){
 }
 
 // ---------- Vs Ambassador ----------
+// Sam, 16 Oct 2026: where we're losing (at the top), the gap over time, like-for-like by destination ("match destination
+// too", on by default), and solo prices against Fred. Olsen's.
+function losingBlock(){
+  const t = today0(), wk = isoDaysAgo(7), occ = st.occ;
+  // 1. Groups of line × month × cabin × no-fly/fly where we're dearest (median gap, at least 2 sailings)
+  const groups = {};
+  for (const [, r] of live()) {
+    if (r.line === "ambassador" || !pick(r) || !r.nights) continue;
+    for (const [c] of CABINS) {
+      const p = priceOf(r, occ, c); if (!p) continue;
+      const m = ourMatch(r, occ, c); if (!m) continue;
+      const k = [r.line, r.departure_date.slice(0, 7), c, segOf(r)].join("|");
+      (groups[k] = groups[k] || []).push(diffPct(m.pn, p.p / r.nights));
+    }
+  }
+  const dear = Object.entries(groups).filter(([, v]) => v.length >= 2).map(([k, v]) => ({k: k.split("|"), d: Math.round(median(v)), n: v.length}))
+    .filter(x => x.d >= 10).sort((a, b) => b.d - a.d).slice(0, 8);
+  // 2. Their cuts in the last 7 days that took them below our closest sailing
+  const under = [];
+  for (const [, r] of live()) {
+    if (r.line === "ambassador" || !pick(r) || !r.nights) continue;
+    for (const [c, l] of CABINS) {
+      const segs = (r.prices || {})[`${occ}.${c}`] || [];
+      for (let i = segs.length - 1; i >= 1 && segs[i].from >= wk; i--) {
+        const a = segs[i - 1].p, b = segs[i].p;
+        if (!a || !b || b >= a) continue;
+        const m = ourMatch(r, occ, c, segs[i].from);
+        if (m && a / r.nights >= m.pn && b / r.nights < m.pn) under.push({r, c: l, a, b, d: segs[i].from, m});
+        break;
+      }
+    }
+  }
+  under.sort((x, y) => (x.b / x.r.nights - x.m.pn) - (y.b / y.r.nights - y.m.pn));
+  return `<h3 style="margin:6px 0 8px;font-size:15px">Where we're losing</h3>
+    ${dear.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Line</th><th>Departures</th><th>Cabin</th><th class="num">Sailings</th><th class="num">Ours vs theirs</th></tr></thead><tbody>
+      ${dear.map(x => `<tr><td>${esc(lineName(x.k[0]))}</td><td>${MON[+x.k[1].slice(5) - 1]} ${x.k[1].slice(0, 4)} · ${esc(SEGS[x.k[3]])}</td><td>${esc(cabinLabel(x.k[2]))}</td><td class="num">${x.n}</td><td class="num">${pctCell(x.d)}</td></tr>`).join("")}
+    </tbody></table></div><p class="note">Where our closest sailings are typically 10% or more dearer per night (${occ === "solo" ? "solo" : "two sharing"}; at least 2 of their sailings).</p>`
+      : `<div class="empty"><p>Nowhere is our price per night typically 10% or more above a line's for these filters.</p></div>`}
+    <h4 style="margin:14px 0 6px;font-size:13px">Just cut below us (last 7 days)</h4>
+    ${under.length ? `<div class="tablewrap"><table class="ptable"><tbody>${under.slice(0, 10).map(x => `<tr><td>${day(x.d)}</td>
+        <td style="white-space:normal"><a href="${esc(x.r.url)}" target="_blank" rel="noopener"><b>${esc(x.r.title || "")}</b></a><div class="sub">${esc(lineName(x.r.line))} · ${esc(x.c)} · ${gbp(x.a)} → ${gbp(x.b)} (${gbp(x.b / x.r.nights)} a night)</div></td>
+        <td style="white-space:normal">Our closest <a href="#${esc(x.m.best.id)}">${esc(x.m.best.title || x.m.best.id)}</a><div class="sub">${gbp(x.m.pn)} a night</div></td></tr>`).join("")}</tbody></table></div>`
+      : `<div class="empty"><p>No competitor price cut in the last 7 days took a sailing below our closest one.</p></div>`}`;
+}
+
+function gapBlock(){
+  const days = trendDays(), occ = st.occ, cab = st.cabin, k = `${occ}.${cab}`;
+  const theirs = live().map(([, r]) => r).filter(r => r.line !== "ambassador" && pick(r) && (r.prices || {})[k] && r.nights);
+  const cand = new Map(theirs.map(r => [r, candidates(r).filter(o => o.sg[occ][cab])]));
+  const series = linesWith(theirs).map((ln, i) => ({name: lineName(ln), color: COLORS[i % COLORS.length], dash: i >= COLORS.length,
+    pts: days.map(d => {
+      const gaps = [];
+      for (const r of theirs) {
+        if (r.line !== ln || r.departure_date <= d) continue;
+        const p = priceOn(r.prices[k], d); if (!p) continue;
+        let best = null;
+        for (const o of cand.get(r)) { const q = priceOn(o.sg[occ][cab], d); if (q != null && (best == null || q / o.nights < best)) best = q / o.nights; }
+        if (best != null) gaps.push((best / (p / r.nights) - 1) * 100);
+      }
+      return gaps.length ? [d, median(gaps)] : null;
+    }).filter(Boolean)}));
+  const ch = lineChart(series, {zero: true, fmt: v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Math.round(v))}%`, esc, label: "Our price against each line's over time", empty: "Appears once there are matched sailings on more than one day."});
+  return {html: `<h3 style="margin:22px 0 6px;font-size:15px">The gap over time</h3>
+    <p class="note" style="margin:0 0 8px">Ours against theirs per night, day by day (${esc(cabinLabel(cab).toLowerCase())}, ${occ === "solo" ? "solo" : "two sharing"}): the typical difference between each of their sailings and our closest. Below the line we're cheaper, above it dearer. The first days can jump while their sailings were still being found (14–16 Oct 2026).</p>${ch.html}`, wire: ch.wire};
+}
+
+function soloBlock(){
+  const fo = live().map(([, r]) => r).filter(r => r.line === "fredolsen" && r.nights && (!st.month || r.departure_date.slice(0, 7) === st.month) && (!st.region || regionR(r) === st.region));
+  const months = [...new Set(fo.filter(r => CABINS.some(([c]) => priceOf(r, "solo", c))).map(r => r.departure_date.slice(0, 7)))].sort().slice(0, 18);
+  if (!months.length) return "";
+  const mine = our.filter(o => !o.fly && (!st.region || o.region === st.region));
+  const cell = (m, c) => {
+    const t = median(fo.filter(r => r.departure_date.slice(0, 7) === m).map(r => { const p = priceOf(r, "solo", c); return p ? p.p / r.nights : null; }).filter(v => v != null));
+    const o = median(mine.filter(x => x.date.slice(0, 7) === m && x.pr.solo[c]).map(x => x.pr.solo[c] / x.nights));
+    if (t == null && o == null) return `<td class="num sub">–</td>`;
+    return `<td class="num">${gbp(o)} <span class="sub">vs</span> ${gbp(t)}${o != null && t != null ? `<div>${pctCell(diffPct(o, t))}</div>` : ""}</td>`;
+  };
+  return `<h3 style="margin:22px 0 6px;font-size:15px">Solo: us against Fred. Olsen</h3>
+    <p class="note" style="margin:0 0 8px">Typical solo price per night by departure month: ours vs Fred. Olsen's (the only competitor whose solo prices are read). For sailing by sailing, choose "Solo" above.</p>
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Departures</th>${CABINS.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
+      ${months.map(m => `<tr><td>${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}</td>${CABINS.map(([c]) => cell(m, c)).join("")}</tr>`).join("")}
+    </tbody></table></div>`;
+}
+
 function renderVs(box){
   const all = live().map(([, r]) => r);
   const covered = new Set(all.map(r => (r.departure_date || "").slice(0, 7)));
   const occ = st.occ;
   // Typical price per night by line and cabin type, with Ambassador's own (same months) and each line against it
-  const lines = Object.keys(C.lines || LINES).filter(k => all.some(r => r.line === k));
+  const lines = Object.keys(C.lines || LINES).filter(k => all.some(r => r.line === k && pick(r)));
   const pnOf = (rs, c) => median(rs.map(r => { const p = priceOf(r, occ, c); return p && r.nights ? p.p / r.nights : null; }).filter(v => v != null));
-  const mine = our.filter(o => covered.has(o.date.slice(0, 7)));
+  const mine = our.filter(o => covered.has(o.date.slice(0, 7)) && pickOurs(o));
   const ourPn = Object.fromEntries(CABINS.map(([c]) => [c, median(mine.map(o => o.pr[occ][c] != null ? o.pr[occ][c] / o.nights : null).filter(v => v != null))]));
-  const typical = lines.map(k => { const rs = all.filter(r => r.line === k); return {k, n: rs.length, pn: Object.fromEntries(CABINS.map(([c]) => [c, pnOf(rs, c)]))}; });
-  // Matched sailings: each of theirs against our closest (same month, ±3 nights, same no-fly/fly), for the chosen cabin
-  const matched = all.filter(r => r.line !== "ambassador" && pick(r)).map(r => {
+  const typical = lines.map(k => { const rs = all.filter(r => r.line === k && pick(r)); return {k, n: rs.length, pn: Object.fromEntries(CABINS.map(([c]) => [c, pnOf(rs, c)]))}; }).filter(t => t.n);
+  // Matched sailings: each of theirs against our closest, for the chosen cabin
+  const theirs = all.filter(r => r.line !== "ambassador" && pick(r));
+  const noRegion = st.like ? theirs.filter(r => !regionR(r)).length : 0;
+  const matched = theirs.map(r => {
     const p = priceOf(r, occ, st.cabin), pn = p && r.nights ? p.p / r.nights : null, m = pn ? ourMatch(r, occ, st.cabin) : null;
     return m ? {r, p, pn, m, d: diffPct(m.pn, pn)} : null;
   }).filter(Boolean).sort((a, b) => st.vsSort === "date" ? (a.r.departure_date || "").localeCompare(b.r.departure_date || "") : b.d - a.d);
   const byLine = lines.filter(k => k !== "ambassador").map(k => {
-    const ms = all.filter(r => r.line === k && pick(r)).map(r => { const p = priceOf(r, occ, st.cabin), pn = p && r.nights ? p.p / r.nights : null, m = pn ? ourMatch(r, occ, st.cabin) : null; return m ? diffPct(m.pn, pn) : null; }).filter(v => v != null);
+    const ms = matched.filter(x => x.r.line === k).map(x => x.d);
     return {k, n: ms.length, cheaper: ms.filter(d => d < 0).length, med: ms.length ? median(ms) : null};
   }).filter(x => x.n);
   // Ambassador at Planet Cruise against our own website: the same sailing (ship and date)
@@ -316,28 +544,34 @@ function renderVs(box){
     const rows = CABINS.map(([c]) => { const a = priceOf(r, "twin", c), u = o.pr.twin[c]; return a && u != null ? {c, a: a.p, u} : null; }).filter(Boolean);
     return rows.length ? {r, o, rows} : null;
   }).filter(Boolean);
-
-  box.innerHTML = source() + `
-    <h3 style="margin:6px 0 8px;font-size:15px">Typical price per night (${occ === "solo" ? "solo" : "two sharing"}, per person)</h3>
+  const gap = gapBlock();
+  box.innerHTML = source() + controls(box, {extra: `<label class="sub" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" data-k="like"${st.like ? " checked" : ""}> Match destination too</label>
+      <select data-k="vsSort" aria-label="Sort"><option value="gap"${st.vsSort === "gap" ? " selected" : ""}>Where we're dearest first</option><option value="date"${st.vsSort === "date" ? " selected" : ""}>By departure</option></select>
+      <button type="button" class="linkbtn" id="vs-csv">Download CSV</button>`}) + `
+    <p class="note" style="margin:0 0 12px">Our closest = our cheapest sailing per night in the same month, within 3 nights' length, no-fly against no-fly and fly-Caribbean against our fly-cruises${st.like ? ", <b>going to the same part of the world</b> (Norway, the Baltic, the British Isles, Spain and Portugal…; read from the sailings' names, and our page photos' place names)" : ""}.
+      ${st.like && noRegion ? `${noRegion} of their sailings have names that don't say where they go ("Northern Europe cruise") and are left out of the matching.` : ""}</p>
+    ${losingBlock()}
+    ${gap.html}
+    <h3 style="margin:22px 0 8px;font-size:15px">Typical price per night (${occ === "solo" ? "solo" : "two sharing"}, per person)</h3>
     <div class="tablewrap"><table class="ptable"><thead><tr><th>Line</th><th class="num">Sailings</th>${CABINS.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
       <tr style="font-weight:600"><td>Ambassador (our website)</td><td class="num">${mine.length}</td>${CABINS.map(([c]) => `<td class="num">${gbp(ourPn[c])}</td>`).join("")}</tr>
       ${typical.map(t => `<tr><td>${esc(lineName(t.k))}</td><td class="num">${t.n}</td>${CABINS.map(([c]) => `<td class="num">${t.pn[c] == null ? "–" : `${gbp(t.pn[c])}${ourPn[c] != null ? `<div class="sub">${esc(diffWords(ourPn[c], t.pn[c]))}</div>` : ""}`}</td>`).join("")}</tr>`).join("")}
     </tbody></table></div>
-    <p class="note">The middle price per night of each line's sampled sailings for that cabin type, and of our own website's sailings in the same months. A rough guide: it doesn't account for itinerary or what's included.</p>
+    <p class="note">The middle price per night of each line's sailings for that cabin type, and of our own website's sailings in the same months (and destination, if one is chosen). A rough guide: it doesn't account for itinerary or what's included.</p>
 
     <h3 style="margin:22px 0 8px;font-size:15px">Head to head: sailing by sailing</h3>
-    ${controls(box, {extra: `<select data-k="vsSort" aria-label="Sort"><option value="gap"${st.vsSort === "gap" ? " selected" : ""}>Where we're dearest first</option><option value="date"${st.vsSort === "date" ? " selected" : ""}>By departure</option></select>
-      <button type="button" class="linkbtn" id="vs-csv">Download CSV</button>`})}
     ${byLine.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Line</th><th class="num">Sailings matched</th><th class="num">We're cheaper on</th><th class="num">Typical difference</th></tr></thead><tbody>
       ${byLine.map(x => `<tr><td>${esc(lineName(x.k))}</td><td class="num">${x.n}</td><td class="num">${x.cheaper} of ${x.n}</td><td class="num">${pctCell(x.med == null ? null : Math.round(x.med))}</td></tr>`).join("")}
     </tbody></table></div><p class="note">${esc(cabinLabel(st.cabin))}, ${occ === "solo" ? "solo" : "two sharing"}, per night. Typical difference = the middle of our price against theirs (−12% = we're 12% cheaper).</p>` : ""}
     ${matched.length ? `<div class="tablewrap" style="margin-top:12px"><table class="ptable"><thead><tr><th>Their sailing</th><th class="num">Per night</th><th>Our closest</th><th class="num">Per night</th><th class="num">Ours vs theirs</th></tr></thead><tbody>
       ${matched.slice(0, 150).map(({r, p, pn, m, d}) => `<tr>
-        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${day(r.departure_date)} · ${r.nights} nights · ${gbp(p.p)}pp</div></td>
+        <td><a href="${esc(r.url)}" target="_blank" rel="noopener"><b>${esc(r.title || "")}</b></a><div class="sub">${esc(lineName(r.line))} · ${esc(r.ship || "")} · ${day(r.departure_date)} · ${r.nights} nights · ${gbp(p.p)}pp${regionR(r) ? ` · ${esc(REGION_LABEL[regionR(r)])}` : ""}</div></td>
         <td class="num">${gbp(pn)}</td>
         <td><a href="#${esc(m.best.id)}"><b>${esc(m.best.title || m.best.id)}</b></a><div class="sub">${esc(m.best.ship || "")} · ${day(m.best.date)} · ${m.best.nights} nights · ${gbp(m.best.pr[occ][st.cabin])}pp${m.n > 1 ? ` · cheapest of ${m.n}` : ""}</div></td>
         <td class="num">${gbp(m.pn)}</td><td class="num">${pctCell(d)}</td></tr>`).join("")}
-    </tbody></table></div>` : `<div class="empty"><p>No matches for these filters: we need one of our sailings in the same month, within 3 nights' length, the same no-fly or fly-Caribbean, with the same cabin type on sale.</p></div>`}
+    </tbody></table></div>` : `<div class="empty"><p>No matches for these filters: we need one of our sailings in the same month, within 3 nights' length, the same no-fly or fly-Caribbean${st.like ? " and destination" : ""}, with the same cabin type on sale.</p></div>`}
+
+    ${soloBlock()}
 
     <h3 style="margin:22px 0 8px;font-size:15px">Ambassador at Planet Cruise vs our website</h3>
     ${agentVsUs.length ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Sailing</th>${CABINS.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
@@ -345,11 +579,12 @@ function renderVs(box){
         ${CABINS.map(([c]) => { const x = rows.find(y => y.c === c); return `<td class="num">${x ? `${gbp(x.a)}<div class="sub">ours ${gbp(x.u)} · ${pctCell(diffPct(x.a, x.u))}</div>` : "–"}</td>`; }).join("")}</tr>`).join("")}
     </tbody></table></div><p class="note">Planet Cruise's price per person for our own sailings (two sharing) against our website's, same ship and date: below 0% = the agent is cheaper than we are.</p>`
       : `<div class="empty"><p>Appears once the sample has Ambassador sailings from Planet Cruise that match ours.</p></div>`}`;
+  gap.wire(box);
   wire(box, () => renderVs(box));
   const csv = box.querySelector("#vs-csv");
   if (csv) csv.addEventListener("click", () => csvDownload(`vs-ambassador-${occ}-${st.cabin}-${C.updated || ""}.csv`,
-    ["Line", "Their sailing", "Ship", "Departure date", "Nights", "Their price pp", "Their per night", "Our sailing", "Our code", "Our date", "Our nights", "Our price pp", "Our per night", "Ours vs theirs %", "Their link"],
-    matched.map(({r, p, pn, m, d}) => [lineName(r.line), r.title, r.ship, r.departure_date, r.nights, p.p, Math.round(pn), m.best.title, m.best.id, m.best.date, m.best.nights, m.best.pr[occ][st.cabin], Math.round(m.pn), d, r.url])));
+    ["Line", "Their sailing", "Ship", "Destination", "Departure date", "Nights", "Their price pp", "Their per night", "Our sailing", "Our code", "Our date", "Our nights", "Our price pp", "Our per night", "Ours vs theirs %", "Their link"],
+    matched.map(({r, p, pn, m, d}) => [lineName(r.line), r.title, r.ship, REGION_LABEL[regionR(r)] || "", r.departure_date, r.nights, p.p, Math.round(pn), m.best.title, m.best.id, m.best.date, m.best.nights, m.best.pr[occ][st.cabin], Math.round(m.pn), d, r.url])));
 }
 
 // Competitor ads (Sam, 15 Oct 2026: "give the competitor live ads section its own view in the nav"): each brand's
@@ -479,7 +714,7 @@ export async function mount(box, c, page){
       return;
     }
     C.lines = C.lines || LINES;
-    our = ourSailings(c.state, c.cabins || {});
+    our = ourSailings(c.state, c.cabins || {}, c.getAdkit ? await c.getAdkit() : null);
   }
   PAGES[page](box);
 }

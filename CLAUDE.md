@@ -345,6 +345,29 @@ when it appeared on a sailing already being read (`fresh`), since sailings found
 offer ran** (bars per brand, folded except Ambassador or the chosen brand), **Their newsletters** (each email and its
 offers; pictures in Competitor emails).
 
+## Competitor prices and Vs Ambassador: trends (16 Oct 2026, Sam: "do better at displaying trends over time… as well as vs ambassador"; picked all eight)
+`site/comptrend.js` (pure helpers): **destination regions** (`REGIONS`, `regionOf`: Caribbean, Iceland and the Arctic,
+Norway, Baltic and Scandinavia, British Isles, Spain/Portugal/Atlantic islands (also "Southern"/"Western Europe" cruises),
+Mediterranean, Holland/Belgium/Germany/France, long-haul; most keyword hits wins) from their titles and, for ours, our
+title plus our page photos' file names (ad kit `photos`, `photoWords`; passed in as `getAdkit`); on 16 Oct 2026 218 of
+223 of ours and all but ~54 of theirs ("Northern Europe cruise", themed sailings) got one. `priceOn(segs, d)`,
+`chainIndex` (first day 100; each day moves by the mean log change of the sailings priced on both days, so sailings
+found later or departing don't move it), `movesOf` (changes after a sailing's first reading), `lineChart` (SVG in the
+tracker's chart style: direct labels, hover tooltip, `step` for price histories, `zero` line; a single day still draws).
+competitors.js: shared controls gain **destination** (`st.region`); our sailings keep each cabin type's history (`sg`)
+and `region`; `candidates(r)` = ours in the same month, ±3 nights, same no-fly/fly and, with **Match destination too**
+(`st.like`, default on), the same region; `ourMatch(r, occ, cab, d)` works on any past day.
+- **Competitor prices**: Price trend by line (index chart per line with Ambassador bold, weekly beyond 6 weeks; table of
+  sailings, typical per night now and change since the first day), Price moves per week (↓/↑ counts and average change
+  per line and week, Ambassador first; biggest cuts in 7 days), By departure month (line × month typical per night,
+  green/red where we're ≥5% cheaper/dearer), and **Price history** on every sailing (step chart per cabin type, our
+  closest's dashed, Planet Cruise's "was" figures, offers with dates). CSV gains Destination.
+- **Vs Ambassador**: Where we're losing (line × month × cabin × no-fly/fly groups where our closest is typically ≥10%
+  dearer, at least 2 sailings; their cuts in 7 days that took a sailing below our closest), The gap over time (per line,
+  daily median of ours vs theirs per night; the first days jump while sailings were still being found), the typical
+  table and head to head (destination-aware; how many of theirs couldn't be placed is said), **Solo: us against Fred.
+  Olsen** (month × cabin, ours vs theirs per night), Ambassador at Planet Cruise.
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
