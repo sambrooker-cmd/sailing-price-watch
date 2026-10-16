@@ -464,8 +464,18 @@ the person who saved one can change it. The whole page is saved, never prices. `
 sailings no longer on sale are taken off ("brought up to date"); no sailings matching, or £ figures in the text that
 aren't a current price or offer, are "still to fix"; both show as "Needs updating" in the list. `st.saved` keeps the
 open page's saved id per page type.
-Queued (Sam, 16 Oct 2026): keyword ideas from **Google Search Console** (Sam's choice over Semrush) and a check against
-the website's existing titles and addresses. Not built: Storyblok Management API to create a **draft** story (needs a Storyblok
+**Keyword ideas from Google Search Console** (Sam, 16 Oct 2026, point 4; Search Console chosen over Semrush): `seo_gsc.py`,
+hourly workflow step "Search Console queries" once a UK day (`continue-on-error`), Search Analytics API (query + page,
+last `DAYS` = 90 days ending 2 days ago, `dataState` final) with the Firebase service account (scope webmasters.readonly),
+property picked from the ones it can see (a Domain property first) → `state/seo/gsc.json` {pages, queries [[query,
+clicks, impressions, position, [page index]]], most impressions first, `MAX_QUERIES` = 8000; `problem` says what's missing
+if it can't read (API not switched on / account not added)} → `publish.py` `pricewatch/seo-gsc`. **Setup (Sam, one-off)**:
+Google Cloud promotions-planner → APIs & Services → Library → Google Search Console API → Enable; Search Console → the
+site's property → Settings → Users and permissions → Add user → the `firebase-adminsdk-…@promotions-planner.iam.gserviceaccount.com`
+address, **Restricted** (read-only). Page creator: "Keyword ideas from Search Console" section: searches sharing a word with
+the page's topic (keyword, H1, destination; `STOP` words left out) or a typed search, with impressions, clicks, average
+position ("page 2" from 11), the page of ours they land on; "Use as keyword", and "Add to FAQs" for questions.
+Queued: a check against the website's existing titles and addresses. Not built: Storyblok Management API to create a **draft** story (needs a Storyblok
 token and the space's component names; a person still publishes); keyword ideas (Semrush, if there's an API key); checks
 against the site's existing titles/addresses (sitemap) to avoid duplicates.
 

@@ -108,6 +108,17 @@ jobs:
           META_API_VERSION: ${{ vars.META_API_VERSION }}
         run: python meta_ads.py
 
+      # Keyword ideas for the page creator (Sam, 16 Oct 2026): the searches people find the site with, from Google
+      # Search Console, once a UK day. Records why if the service account hasn't been given access yet. See seo_gsc.py.
+      - name: Search Console queries
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          pip install -q google-auth==2.40.3 requests==2.32.3
+          python seo_gsc.py
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms

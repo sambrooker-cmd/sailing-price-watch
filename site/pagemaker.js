@@ -43,7 +43,7 @@ const TEMPLATES = {
   blog: [["reasons", "\"10 reasons to…\" list"], ["guide", "Destination guide"], ["spotlight", "Sailing spotlight"]],
 };
 
-let root, ctx, st, today, kitOf, store, note = "";
+let root, ctx, st, today, kitOf, store, note = "", gsc = null, gscState = "";
 
 // ---------- data ----------
 function onSale(){
@@ -354,6 +354,39 @@ async function copy(text, btn){
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} }
 const cur = () => st.pages[st.kind];
 
+// ---------- keyword ideas from Google Search Console (seo_gsc.py → pricewatch/seo-gsc; Sam, 16 Oct 2026, point 4) ----------
+// The searches people already find the site with (last 90 days): those sharing a word with the page's topic, most
+// impressions first. "Use as keyword" sets the focus keyword; questions can go straight into the FAQs. Average
+// position 11+ is marked "page 2": searches with demand where a better page could move up.
+const STOP = new Set("a an and the to of in on for from with by at uk cruise cruises cruising holiday holidays trip trips sailing sailings ship ships ambassador line guide reasons book why what where when how best top things your our 2025 2026 2027 2028 2029".split(" "));
+const QUESTION = /^(how|what|when|where|which|why|who|do|does|can|is|are|should|will)\b/i;
+const topicWords = p => [...new Set([p.keyword, p.h1, p.filter && p.filter.region && THEME[p.filter.region]].join(" ").toLowerCase()
+  .normalize("NFKD").replace(/[̀-ͯ]/g, "").split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.has(w)).map(w => w.replace(/(ies)$/, "y").replace(/s$/, "")))];
+function ideas(p, q){
+  if (!gsc || !gsc.queries) return [];
+  const words = q ? q.toLowerCase().split(/\s+/).filter(Boolean) : topicWords(p);
+  if (!words.length) return [];
+  return gsc.queries.filter(([t]) => q ? words.every(w => t.includes(w)) : words.some(w => new RegExp(`\\b${w}`).test(t))).slice(0, 40);
+}
+function ideasBlock(p){
+  if (gscState === "loading" || !gsc) return `<p class="sub">${gscState === "none" ? "No Search Console data yet: it's read once a day by the hourly check." : "Loading Search Console data…"}</p>`;
+  if (!(gsc.queries || []).length) return `<p class="sub">${gsc.problem ? `Search Console isn't connected yet: ${esc(gsc.problem)}` : "Search Console returned no searches."}</p>`;
+  const list = ideas(p, st.kwq), path = u => u.replace(/^https?:\/\/[^/]+/, "") || "/";
+  return `<p class="sub">Searches that found ambassadorcruiseline.com in Google, ${esc(fmtDate(gsc.start))} to ${esc(fmtDate(gsc.end))}${st.kwq ? `, containing "${esc(st.kwq)}"` : `, sharing a word with this page's topic (${esc(topicWords(p).join(", ") || "set a keyword")})`}. Most impressions first.</p>
+    <input id="pm-kwq" type="search" placeholder="Search all ${gsc.queries.length.toLocaleString("en-GB")} searches" value="${esc(st.kwq || "")}">
+    ${list.length ? `<ul class="pm-kw">${list.map(([t, c, i, pos, pg], n) => `<li>
+      <span><b>${esc(t)}</b>${pos > 10 ? ` <span class="pm-p2">page 2</span>` : ""}</span>
+      <span class="sub">${i.toLocaleString("en-GB")} impressions · ${c.toLocaleString("en-GB")} clicks · position ${pos ?? "–"}${(pg || []).length ? ` · ${esc(path(gsc.pages[pg[0]] || ""))}` : ""}</span>
+      <span><button type="button" class="linkbtn" data-kw="${n}">Use as keyword</button>${QUESTION.test(t) ? ` · <button type="button" class="linkbtn" data-kwfaq="${n}">Add to FAQs</button>` : ""}</span></li>`).join("")}</ul>`
+      : `<p class="sub">No searches match.</p>`}`;
+}
+async function loadGsc(){
+  if (gsc || gscState || !ctx.readJson) return;
+  gscState = "loading";
+  try { gsc = await ctx.readJson("seo-gsc"); gscState = gsc ? "done" : "none"; } catch(e) { gscState = "none"; }
+  if (root && root.isConnected) draw();
+}
+
 // ---------- saved pages (Sam, 16 Oct 2026, point 2): the team's shared list (saved.js, kind "page") ----------
 // The page itself is saved (words, outline, sailings filter or cruise codes, pictures); prices are never saved: the
 // preview always uses the latest. normalise() brings an older page up to date and lists what changed (`issues`).
@@ -495,6 +528,7 @@ function draw(){
       <label class="ac-lab sm">Hero picture</label>${photoPick(p.hero, "data-hero")}
       <label class="ac-lab sm">Hero alt text</label><input data-p="heroAlt" value="${esc(p.heroAlt)}">
       <label class="ac-lab sm">Intro</label><textarea data-p="intro" rows="4" placeholder="${esc(p.introHint || "")}">${esc(p.intro)}</textarea>`, true);
+  const kw = cs.section("pm-kw", "Keyword ideas from Search Console", p.keyword ? `focus keyword "${esc(p.keyword)}"` : "searches people find the site with", ideasBlock(p), false);
   const sail = cs.section("pm-sail", "Sailings on the page", `${list.length} sailing${list.length === 1 ? "" : "s"}${p.codes ? ", picked by hand" : ", matching the filters"}`, `
       ${p.codes ? `<p class="sub">Picked by hand (the website's cruise list takes these cruise codes). <button type="button" class="linkbtn" id="pm-auto">Use the filters instead</button></p>
         <ol class="pm-list">${list.map(s => `<li><span>${esc(s.base_title || s.title)} <span class="sub">${esc(s.id)} · ${esc(fmtDate(s.departure_date))} · ${money(s.price)}</span></span><button type="button" class="linkbtn" data-rm="${esc(s.id)}" aria-label="Remove">✕</button></li>`).join("")}</ol>
@@ -504,7 +538,7 @@ function draw(){
       ${p.blocks.map((b, i) => blockEditor(b, i, p.blocks.length)).join("")}
       <div class="pm-add"><span class="sub">Add:</span>${[["text", "Section"], ["image", "Picture"], ["sailings", "Sailings"], ["faq", "FAQs"], ["readmore", "Read more"], ["cta", "Button"]].map(([t, l]) => `<button type="button" class="btn quiet sm" data-add="${t}">${l}</button>`).join("")}</div>`, true);
   const draft = cs.section("pm-claude", "Draft with Claude", claude.block ? "writes the words for this outline" : "", claude.block("page", list.length ? "" : "Add some sailings first."), true);
-  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${savedBlock()}${draft}${settings}${sail}${blocks}${start}</div>
+  root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${savedBlock()}${draft}${settings}${kw}${sail}${blocks}${start}</div>
     <div class="ac-main">
       <div class="ac-block"><div class="pm-bar"><div class="seg" role="group" aria-label="Preview size">${[["desk", "Desktop"], ["phone", "Phone"]].map(([k, t]) => `<button type="button" data-dev="${k}" aria-pressed="${st.dev === k}">${t}</button>`).join("")}</div>
         <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button></span></div>
@@ -559,6 +593,16 @@ function wire(){
   on("#pm-find", "input", el => { st.find = el.value; clearTimeout(wire.f); wire.f = setTimeout(() => { draw(); const f = root.querySelector("#pm-find"); f && (f.focus(), f.setSelectionRange(f.value.length, f.value.length)); }, 250); });
   on("[data-addcode]", "click", el => { p.codes.push(el.dataset.addcode); st.find = ""; save(); draw(); });
   on("[data-dev]", "click", el => { st.dev = el.dataset.dev; save(); draw(); });
+  on("#pm-kwq", "input", el => { st.kwq = el.value.trim(); clearTimeout(wire.k); wire.k = setTimeout(() => { draw(); const f = root.querySelector("#pm-kwq"); f && (f.focus(), f.setSelectionRange(f.value.length, f.value.length)); }, 300); });
+  on("[data-kw]", "click", el => { const t = ideas(p, st.kwq)[+el.dataset.kw]; if (t) { p.keyword = t[0]; save(); draw(); } });
+  on("[data-kwfaq]", "click", el => {
+    const t = ideas(p, st.kwq)[+el.dataset.kwfaq]; if (!t) return;
+    let fq = p.blocks.find(b => b.type === "faq");
+    if (!fq) { fq = {type: "faq", title: "Frequently asked questions", items: []}; p.blocks.push(fq); }
+    const q = t[0][0].toUpperCase() + t[0].slice(1) + (t[0].endsWith("?") ? "" : "?");
+    if (!(fq.items || []).some(f => f.q.toLowerCase() === q.toLowerCase())) fq.items.push({q, a: ""});
+    save(); draw();
+  });
   on("#pm-copy", "click", el => copy(storyblokText(p), el));
   // Draft with Claude (drafts.js / draft_job.py kind "page"): the outline goes with the request; the facts come from
   // the tracker's saved state. "Use this" fills the words and keeps the pictures, sailings and links.
@@ -592,6 +636,7 @@ export async function mount(el, c){
         pages: {landing: null, blog: null}, saved: {landing: null, blog: null}, dev: "desk", find: ""};
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.pages) st = {...st, ...s, saved: {landing: null, blog: null, ...(s.saved || {})}, find: ""}; } catch(e) {}
   store = sharedStore({kind: "page", localKey: "spw-pages-saved", field: "page", idToken: c.idToken});
+  loadGsc();
   store.load().then(() => { for (const k of ["landing", "blog"]) if (st.saved[k] && !store.all()[st.saved[k]]) st.saved[k] = null; save(); draw(); });
   draw();
 }

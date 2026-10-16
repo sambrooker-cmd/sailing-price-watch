@@ -24,6 +24,7 @@ has to understand the shape of the data:
   pricewatch/fr-comp, fr-comp-runs   France: MSC and Costa itineraries from French ports at Havas Voyages (competitors_fr.py)
   pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
+  pricewatch/seo-gsc  the searches people find the site with, from Google Search Console (seo_gsc.py)
   pricewatch/comp-emails-YYYY-MM-1 / -2  the email library: that half month's competitor emails (links to their copies in Storage)
 
 Usage:
@@ -131,6 +132,9 @@ def documents():
         for name in ("terms", "coverage"):   # France: terms.py --market fr, coverage.py --market fr
             if (ROOT / "state" / sub / f"{name}.json").exists():
                 docs[prefix + name] = load(ROOT / "state" / sub / f"{name}.json")
+    # Keyword ideas for the page creator from Google Search Console (seo_gsc.py, 16 Oct 2026)
+    if (ROOT / "state" / "seo" / "gsc.json").exists():
+        docs["seo-gsc"] = load(ROOT / "state" / "seo" / "gsc.json")
     # Competitors (competitors.py, 15 Oct 2026): the sampled sailings and offers, and the last 60 days' changes.
     # Not the sample bookkeeping (pages tried), which the page doesn't need.
     comp = ROOT / "state" / "competitors" / "current.json"
