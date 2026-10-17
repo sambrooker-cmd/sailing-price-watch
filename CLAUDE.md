@@ -753,6 +753,29 @@ every card and Copy offer T&Cs gives the brief's terms) and a Pages and blog lan
 one HTML page to share. Prices are the tracker's latest; nothing is sent, uploaded or published. Not built yet: Draft with
 Claude for the campaign's copy. Tested 17 Oct 2026 with a Black Friday-style brief (30 codes, a fares sheet, stand-in
 saved function): 6 themes, 11 drafts made, the carousel opened in the Ad creator, the set in Email cards with the badge.
+**Start from the brief you were sent** (Sam, 17 Oct 2026: "we often get a lot less information than it is currently asking
+for so I think we need a free text field that Claude then digests and builds into a campaign plan with all of the assets").
+A box at the top of the brief: paste the brief as it arrived (email, notes, a Teams message; up to 8,000 characters, kept
+in the brief as `raw`) → **Build the plan with Claude** → the `drafts` function (kind **"campaign"**, field `text`, no
+sailings needed) → `draft_job.py` (`CAMPAIGN_TASK`, `CAMPAIGN_SCHEMA`, Opus on Sam's plan as the other drafts, up to 9
+minutes): the facts are every sailing on sale (`catalogue`: code, name, date, nights, from where, ship, from price, live
+offers) and the website's deals and landing pages (`site_pages`, from `seo-pages`); Claude returns the builder's brief
+(name, code, offer, what guests get, campaign line, badge, booking window worked out from today's date, landing page, T&Cs,
+tone, channels, the sailings as cruise codes with how it chose them), a summary, **what it assumed** and **what to ask
+before launch** ("Copy the questions"), and the campaign's words (`copy`: 2 Meta primary texts, 3 subject lines and preview
+texts, Google headlines and descriptions, the landing page's H1 and intro). `check_campaign`: codes must be on sale; dates
+real; **T&Cs only if they're the brief's own words** (≥ 80% of their words in the brief), never written by Claude; a field or
+line quoting a £ / % / points figure that isn't a price or offer of the chosen sailings or a £ / % figure in the brief
+itself, or with price-reduction wording, is dropped and said; primary texts end with the two-sharing line. The answer
+fills the brief (sailings "by cruise codes"; **Undo** puts the old brief back) and the plan uses Claude's words where its
+prices are that part's own (`poundsOk`): a carousel's primary text (its "from £X" set to that theme's lowest price,
+`ownFor`), Google headlines and descriptions first in each ad group, the launch email's subject lines and preview text, the
+landing page's H1 and intro; everything else is made as before from the tracker's prices. The detailed brief stays
+underneath for editing. Tested 17 Oct 2026 with a real run ("free Classic Drinks Package on all our Norway and Iceland
+sailings next year, 24th Nov to 1st Dec"): 23 sailings chosen (2027 Norway and Iceland, Baltic ones left out and asked
+about), 24 Nov to 1 Dec 2026, a new /deals/ page suggested, no T&Cs invented (asked for), nine questions, every line passed
+the checks; the page against a stand-in function at 1440 and 390 px. Also fixed: the theme tick boxes stretched across the
+row (`.ac-block` checkboxes are no longer full width).
 
 ## Pre-send compliance check (17 Oct 2026, Sam: "do the compliance checks", from the build list)
 `site/compliance.js`, shared by every creator. Each describes what it's about to hand over as a "pack" (sailings with the

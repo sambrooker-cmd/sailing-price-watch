@@ -255,7 +255,7 @@ exports.saved = onRequest({
 
 // "Draft with Claude" in the Ad creator and Email creator (Sam, 14 Oct 2026, the free option: Claude Code on Sam's
 // plan in a GitHub run, not a paid API key); Google Ads (kind "google") and the page creator (kind "page", with the
-// page's outline in `page`) since. POST {kind: "ad" | "email" | "google" | "page", format, items: [{id, wasnow, promos,
+// page's outline in `page`) since, and the Campaign builder (kind "campaign", the brief as it arrived in `text`). POST {kind: "ad" | "email" | "google" | "page" | "campaign", format, items: [{id, wasnow, promos,
 // nectar}], brief, page} → records pricewatch_drafts/<id> and starts the Draft text workflow (draft_job.py), which builds
 // the facts from the repo's saved state (never from what the browser sends), asks Claude and saves the options.
 // GET ?id= → {status, error, options, notes}: the page asks every few seconds until it's done.
@@ -283,7 +283,11 @@ exports.drafts = onRequest({
   }
   if (req.method !== "POST") return res.status(405).json({error: "Not allowed."});
   const b = req.body || {}, kind = String(b.kind || "");
-  if (!["ad", "email", "google", "page"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  if (!["ad", "email", "google", "page", "campaign"].includes(kind)) return res.status(400).json({error: "Unknown kind."});
+  // Campaign builder (Sam, 17 Oct 2026): a brief as it arrived (email, notes, a message), up to 8,000 characters; Claude
+  // turns it into the builder's brief and words; the sailings and prices still come from the repo's state
+  const text = kind !== "campaign" ? "" : String(b.text || "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, " ").trim().slice(0, 8000);
+  if (kind === "campaign" && text.length < 15) return res.status(400).json({error: "Paste the brief first."});
   // Landing pages and blog posts (pagemaker.js, Sam 16 Oct 2026): the page's outline (headings and guidance to fill),
   // cleaned and cut to size; the facts still come from the repo's state, never from here
   const t = (v, n) => String(v || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
@@ -294,7 +298,7 @@ exports.drafts = onRequest({
     id: String((x || {}).id || "").slice(0, 20), wasnow: x.wasnow ? String(x.wasnow).slice(0, 40) : null,
     promos: (Array.isArray(x.promos) ? x.promos : []).slice(0, 4).map(p => String(p).slice(0, 200)), nectar: x.nectar !== false}))
     .filter(x => /^[A-Za-z0-9]{3,20}$/.test(x.id));
-  if (!items.length) return res.status(400).json({error: "Add some sailings first."});
+  if (!items.length && kind !== "campaign") return res.status(400).json({error: "Add some sailings first."});
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   if ((await col.where("at", ">=", day).count().get()).data().count >= DRAFT_DAY_LIMIT)
     return res.status(429).json({error: `Today's ${DRAFT_DAY_LIMIT} drafts have been made. Try again tomorrow.`});
@@ -305,7 +309,7 @@ exports.drafts = onRequest({
   const ref = col.doc();
   await ref.set({by: email, at: FieldValue.serverTimestamp(), status: "queued", kind,
                  format: b.format === "single" ? "single" : "carousel", items: JSON.stringify(items),
-                 brief: String(b.brief || "").slice(0, 300), ...(pg ? {page: JSON.stringify(pg)} : {}),
+                 brief: String(b.brief || "").slice(0, 300), ...(pg ? {page: JSON.stringify(pg)} : {}), ...(text ? {text} : {}),
                  market: b.market === "fr" ? "fr" : "uk"});   // France (Sam, 14 Oct 2026): draft_job.py reads state/fr
   const started = await dispatch(ref, DRAFT_WORKFLOW, {request: ref.id}, "draft");
   if (started !== true) return res.status(502).json({error: started});

@@ -12,6 +12,7 @@ import {sharedStore} from "./saved.js?v=__BUILD__";
 import {regionOf, REGION_LABEL, photoWords, addDays} from "./comptrend.js?v=__BUILD__";
 import {LIMITS as GL, noAmp} from "./gcopy.js?v=__BUILD__";
 import * as cmp from "./compliance.js?v=__BUILD__";
+import {draftCall} from "./drafts.js?v=__BUILD__";
 
 const KEY = "spw-campaign";
 const SITE = "https://www.ambassadorcruiseline.com";
@@ -33,8 +34,9 @@ const shortTitle = t => noAmp(t).replace(/\s*[-–:].*$/, "").trim() || noAmp(t)
 let ctx, esc, root, store, S, KIT, PAGES, today;
 const blank = () => ({name: "", code: "", offer: "", badge: "", detail: "", headline: "", from: "", to: "", terms: "", landing: "",
   pick: "rule", codes: "", rule: {from: "", to: "", fly: "", port: "", region: "", ship: "", nmin: "", nmax: "", pmax: ""}, fares: "",
-  channels: {meta: true, google: true, email: true, page: true, social: true}, off: {}, tone: ""});
-let st = {brief: blank(), saved: null, note: "", made: null};
+  channels: {meta: true, google: true, email: true, page: true, social: true}, off: {}, tone: "", raw: "", copy: null});
+// ai: the brief as it arrived, digested by Claude (Sam, 17 Oct 2026): {busy, started, msg, result, notes, prev}
+let st = {brief: blank(), saved: null, note: "", made: null, ai: {}};
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.brief) st = {...st, brief: {...blank(), ...s.brief, rule: {...blank().rule, ...(s.brief.rule || {})}, channels: {...blank().channels, ...(s.brief.channels || {})}}, saved: s.saved || null}; } catch(e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify({brief: st.brief, saved: st.saved})); } catch(e) {} };
 
@@ -117,11 +119,27 @@ function sends(gs){
   return out;
 }
 const minOf = xs => Math.min(...xs.map(x => x.price));
+// Claude's words (from the brief it digested) are used where every £ figure in them is a price of that part's sailings
+const cl = () => st.brief.copy || null;
+const poundsOk = (t, xs) => { const ps = new Set(xs.map(x => x.price)); return [...String(t).matchAll(/£\s?(\d[\d,]*)/g)].every(m => ps.has(+m[1].replace(/,/g, ""))); };
 const ports = xs => [...new Set(xs.map(x => x.fly ? x.fly : x.port.replace(/^London /, "London ")))];
+// Claude's text for a theme: as written if its prices are that theme's, else with its "from £X" set to the theme's own
+// lowest price (it's written for the whole campaign); never any other £ figure changed
+function ownFor(texts, xs){
+  const fit = (texts || []).find(t => poundsOk(t, xs));
+  if (fit) return fit;
+  for (const t of texts || []) {
+    const swapped = t.replace(/\bfrom £\s?\d[\d,]*(?=\s?pp|\s?per person|\b)/gi, m => m.replace(/£\s?\d[\d,]*/, "£" + Math.min(...xs.map(x => x.price)).toLocaleString("en-GB")));
+    if (poundsOk(swapped, xs)) return swapped;
+  }
+  return null;
+}
 function primary(g){
+  const own = ownFor((cl() || {}).primary, g.xs);
+  if (own) return own;
   const b = st.brief, xs = g.xs, nmin = Math.min(...xs.map(x => x.nights)), nmax = Math.max(...xs.map(x => x.nights));
   const fly = xs.every(x => x.fly), from = fly ? `with flights from ${listText(ports(xs).slice(0, 3))}` : `from ${listText(ports(xs).slice(0, 3))}`;
-  return [`${g.label}${b.headline ? `: ${b.headline.replace(/[.!]$/, "")}` : ""}. This ${b.name || "season"}, book a selected ${g.noun} and ${b.detail || `enjoy ${b.offer || "our offer"}`}.`,
+  return [`${g.label}${b.headline ? `: ${b.headline.replace(/[.!]$/, "")}` : ""}. This ${b.name || "season"}, book a selected ${g.noun} and ${/^[a-z]/.test(b.detail || "") ? b.detail.replace(/\.$/, "") : `enjoy ${b.offer || "our offer"}`}.`,
     `${nightsText(nmin, nmax)} ${from}, from ${gbp(minOf(xs))}pp.`,
     `Book ${dayLong(b.from || today)} to ${dayLong(b.to || today)}. Based on two sharing and subject to availability.`].join("\n\n");
 }
@@ -134,18 +152,22 @@ function googleSet(g){
     nofly ? "No-Fly Cruises From The UK" : "Flights Included", "Smaller Ships, Bigger Welcome", "Ambassador Cruise Line", "The Warmest Welcome At Sea",
     `${Math.min(...xs.map(x => x.nights))} To ${Math.max(...xs.map(x => x.nights))} Night Cruises`, b.name ? `${b.name} Cruise Deals` : "", "Book Your Sailing Today", "Because Moments Matter",
     ...xs.slice(0, 4).map(x => x.short)].map(noAmp).filter(t => fits(t, H)).filter((t, i, a) => a.indexOf(t) === i).slice(0, 15);
+  const own = cl() || {}, ownHl = (own.google_headlines || []).filter(t => fits(t, H) && poundsOk(t, xs));
+  if (ownHl.length) hl.splice(0, hl.length, ...[...ownHl, ...hl].filter((t, i, a) => a.findIndex(y => y.toLowerCase() === t.toLowerCase()) === i).slice(0, 15));
   const ds = [`${b.offer ? b.offer + " on" : "Book"} selected ${g.noun.replace(/(sailing|break)\b/, "$1s")}. Book ${dayShort(b.from || today)} to ${dayShort(b.to || today)}.`,
     `${nightsText(Math.min(...xs.map(x => x.nights)), Math.max(...xs.map(x => x.nights)))} from ${gbp(min)}pp, based on two sharing. Subject to availability.`,
     nofly ? `Sail from ${listText(ports(xs).slice(0, 3))} with no flights needed, on our smaller ships.` : "Flights included, so getting there is sorted. Smaller ships, the warmest welcome.",
     "The warmest welcome at sea - because moments matter. T&Cs apply."].map(noAmp).map(t => fits(t, D) ? t : cut(t, D));
+  const ownDs = (own.google_descriptions || []).filter(t => fits(t, D) && poundsOk(t, xs));
+  if (ownDs.length) ds.splice(0, ds.length, ...[...ownDs, ...ds].slice(0, 4));
   return {group: `${b.code || camel(b.name || "Campaign")} - ${g.label}`, hl, ds, url: SITE + (b.landing || "/"), paths: [camel(g.term).slice(0, 15), camel(b.name || "Offers").slice(0, 15)],
     sitelinks: xs.slice(0, 4).map(x => ({t: cut(x.short, GL.sitelink.text), d1: cut(`${x.nights} nights, ${dayShort(x.date)}`, GL.sitelink.desc), d2: cut(`From ${gbp(x.price)}pp`, GL.sitelink.desc), url: x.link})),
     callouts: [b.badge && cut(b.badge.replace(/\b\w/g, c => c.toUpperCase()).replace(/\B\w+/g, w => w.toLowerCase()), GL.callout), "Smaller Ships", nofly ? "No Flights Needed" : "Flights Included", "Full-Board Dining", `Book By ${dayShort(b.to || today)}`].filter(t => fits(t, GL.callout))};
 }
 function landingPage(list, gs){
   const b = st.brief, min = list.length ? minOf(list) : null;
-  const h1 = b.headline || b.offer || b.name || "Our latest offer";
-  const intro = `${b.detail ? b.detail.replace(/^[a-z]/, c => c.toUpperCase()).replace(/\.?$/, ".") : ""} Book between ${dayLong(b.from || today)} and ${dayLong(b.to || today)}${list.length ? ` on ${list.length} selected sailings from ${gbp(min)}pp` : ""}.`.trim();
+  const h1 = ((cl() || {}).landing_h1 && poundsOk(cl().landing_h1, list) ? cl().landing_h1 : "") || b.headline || b.offer || b.name || "Our latest offer";
+  const intro = ((cl() || {}).landing_intro && poundsOk(cl().landing_intro, list) ? cl().landing_intro : "") || `${b.detail ? b.detail.replace(/^[a-z]/, c => c.toUpperCase()).replace(/\.?$/, ".") : ""} Book between ${dayLong(b.from || today)} and ${dayLong(b.to || today)}${list.length ? ` on ${list.length} selected sailings from ${gbp(min)}pp` : ""}.`.trim();
   const faq = [
     {q: `When can I book the ${b.name || "offer"}?`, a: `Book between ${dayLong(b.from || today)} and ${dayLong(b.to || today)} ${(b.to || "").slice(0, 4)}.`},
     {q: "Which sailings are included?", a: `${list.length} selected sailings, listed on this page. Prices are per person, based on two sharing, and subject to availability.`},
@@ -249,7 +271,8 @@ function draw(){
         </div>
         ${store && store.loading ? `<p class="sub">Loading saved briefs…</p>` : ""}
       </div>
-      <div class="ac-block"><h3>The brief</h3>
+      ${aiBlock()}
+      <div class="ac-block"><h3>The brief</h3>${b.copy ? `<p class="sub" style="margin:0 0 8px">Filled in by Claude from the brief above: check and change anything.</p>` : ""}
         ${field("name", "Campaign name", "e.g. Black Friday 2026")}
         ${field("code", "Code for ad names", camel(b.name || "") || "e.g. BlackFriday2026", ' maxlength="30"')}
         ${field("offer", "The offer", "e.g. Free Classic Drinks Package")}
@@ -288,7 +311,7 @@ function draw(){
 
 function plan(list, gs, on, ph, sd, ck, gg, lp){
   const b = st.brief, C = b.channels;
-  if (!b.name && !b.offer && !list.length) return `<div class="empty"><p>Fill in the brief on the left: the offer, the booking window, the landing page and which sailings. The plan builds itself here as you type, from the tracker's latest prices and photos.</p></div>`;
+  if (!b.name && !b.offer && !list.length) return `<div class="empty"><p>Paste the brief you were sent into "Start from the brief you were sent" and press <b>Build the plan with Claude</b>, or fill in the brief yourself: the offer, the booking window, the landing page and which sailings. The plan builds itself here, from the tracker's latest prices and photos.</p></div>`;
   const lvl = {bad: ["✕", "var(--warn)"], warn: ["!", "#a15c00"], ok: ["✓", "var(--ok, #1a7f26)"]};
   const sec = (id, title, body) => `<h3 id="cb-${id}" style="margin:24px 0 8px;font-size:16px">${title}</h3>${body}`;
   const sailRows = xs => xs.map(x => `<tr><td><a href="#${esc(x.id)}">${esc(x.id)}</a></td><td style="white-space:normal">${esc(x.title)}</td><td>${day(x.date)}</td><td class="num">${x.nights}</td><td>${esc(x.fly ? x.fly + " (fly)" : x.port)}</td><td class="num">${gbp(x.price)}</td></tr>`).join("");
@@ -320,7 +343,8 @@ function plan(list, gs, on, ph, sd, ck, gg, lp){
   };
   const subj = s => {
     const o = b.offer || "our offer";
-    return {launch: [b.headline ? `${b.headline}: ${o}` : `${o} is here`, `${o}, from today until ${dayShort(b.to || today)}`],
+    const own = ((cl() || {}).subjects || []).filter(t => poundsOk(t, s.xs));
+    return {launch: own.length ? own.slice(0, 3) : [b.headline ? `${b.headline}: ${o}` : `${o} is here`, `${o}, from today until ${dayShort(b.to || today)}`],
       reminder: [`Still time: ${o}`, `Have you seen our ${b.name || "offer"} sailings?`], soon: [`Ending soon: ${o}`, `Just a few days left for ${o.toLowerCase()}`],
       last: [`Last chance: ${o} ends tonight`, `Tonight's the night: ${o.toLowerCase()} ends at midnight`]}[s.key].map(t => cut(t.replace(/\s+/g, " ").trim(), 60));
   };
@@ -331,7 +355,7 @@ function plan(list, gs, on, ph, sd, ck, gg, lp){
     ${st.made ? `<div class="ac-block"><b>Drafts created</b><ul style="margin:6px 0 0 18px;padding:0">${st.made.map(m => `<li>${esc(m)}</li>`).join("")}</ul><p class="sub" style="margin:6px 0 0">Open them from each creator's Saved list. Nothing has been sent or uploaded.</p></div>` : ""}
     ${sec("checks", "Check before launch", `<ul style="list-style:none;padding:0;margin:0">${ck.map(([l, t]) => `<li style="margin:4px 0"><b style="color:${lvl[l][1]};display:inline-block;width:18px">${lvl[l][0]}</b>${esc(t)}</li>`).join("") || `<li class="sub">Nothing to flag.</li>`}</ul>`)}
     ${sec("themes", "Sailings by theme", `<p class="sub">Grouped by destination, regional departures and short breaks, as the Black Friday carousels. A sailing can be in more than one. Untick a theme to leave it out.</p>
-      ${gs.map(g => `<div class="ac-block" style="margin:6px 0;display:flex;gap:10px;align-items:flex-start"><input type="checkbox" data-grp="${esc(g.key)}"${g.on ? " checked" : ""} aria-label="Include ${esc(g.label)}" style="margin-top:4px;flex:none">
+      ${gs.map(g => `<div class="ac-block" style="margin:6px 0;flex-direction:row;gap:10px;align-items:flex-start"><input type="checkbox" data-grp="${esc(g.key)}"${g.on ? " checked" : ""} aria-label="Include ${esc(g.label)}" style="margin-top:4px;flex:none">
         <details style="flex:1;min-width:0"><summary style="cursor:pointer"><b>${esc(g.label)}</b> <span class="sub">${g.xs.length} sailings · from ${gbp(minOf(g.xs))}pp</span></summary>
         <div class="tablewrap"><table class="ptable">${head}<tbody>${sailRows(g.xs)}</tbody></table></div></details></div>`).join("")}`)}
     ${C.meta ? sec("meta", "Meta: carousels, singles and videos", `${ph.length ? `<p><b>Opener for each phase:</b> ${ph.map(p => `${esc(p.label)} (${dayShort(p.d)})`).join(" · ")}. Swap the opener card on each date; the sailing cards stay.</p>` : ""}
@@ -347,7 +371,7 @@ function plan(list, gs, on, ph, sd, ck, gg, lp){
       <p class="sub">Performance Max and display images: add these sailings on the Google Ads page.</p>`) : ""}
     ${C.email ? sec("email", "Email sends", `<div class="tablewrap"><table class="ptable"><thead><tr><th>Send</th><th>Subject lines</th><th>Preview text</th><th>Sailings</th></tr></thead><tbody>
       ${sd.map(s => `<tr><td><b>${esc(s.label)}</b><div class="sub">${wd(s.d)} ${day(s.d)}</div></td><td style="white-space:normal">${subj(s).map(esc).join("<br>")}</td>
-        <td style="white-space:normal">${esc(cut(`${b.detail ? b.detail.replace(/^[a-z]/, c => c.toUpperCase()) : b.offer}. Book by ${dayShort(b.to || today)}.`, 90))}</td><td style="white-space:normal">${s.xs.map(x => esc(x.id)).join(", ")}</td></tr>`).join("")}</tbody></table></div>
+        <td style="white-space:normal">${esc(s.key === "launch" && ((cl() || {}).preheaders || []).find(t => poundsOk(t, s.xs)) || cut(`${b.detail ? b.detail.replace(/^[a-z]/, c => c.toUpperCase()) : b.offer}. Book by ${dayShort(b.to || today)}.`, 90))}</td><td style="white-space:normal">${s.xs.map(x => esc(x.id)).join(", ")}</td></tr>`).join("")}</tbody></table></div>
       <p class="sub">"Create drafts" makes an Email cards set for each send (the campaign's offer badge on every card, its T&amp;Cs in "Copy offer T&amp;Cs").</p>`) : ""}
     ${C.page ? sec("page", "Landing page", `<div class="ac-block" style="margin:10px 0"><p style="margin:0"><b>${esc(lp.h1)}</b></p><p class="sub" style="margin:2px 0 8px">${esc(SITE + "/" + lp.slug + "/")}</p>
       <p style="margin:0 0 6px">${esc(lp.intro)}</p><p class="sub" style="margin:0">SEO title: ${esc(lp.seoTitle)} (${lp.seoTitle.length}) · Description: ${esc(lp.metaDesc)} (${lp.metaDesc.length})</p>
@@ -355,6 +379,60 @@ function plan(list, gs, on, ph, sd, ck, gg, lp){
     ${C.social ? sec("social", "Social and video", `<ul style="margin:0 0 0 18px;padding:0">${on.map(g => `<li>${esc(g.label)}: route video for <a href="#${esc(g.xs[0].id)}">${esc(g.xs[0].short)}</a> (${esc(g.xs[0].id)}), from its detail view</li>`).join("")}
       <li>Stories: the phase openers in 9:16${ph.length ? ` (${ph.map(p => esc(p.label)).join(", ")})` : ""}</li><li>Launch post: the campaign line and the landing page</li></ul>`) : ""}
     ${sec("calendar", "Calendar", calendar())}`;
+}
+
+// ---------- the brief as it arrived, digested by Claude (Sam, 17 Oct 2026) ----------
+// The person pastes whatever they were sent; the drafts function starts a GitHub run of Claude Code on Sam's plan
+// (draft_job.py, kind "campaign") that fills in this brief and writes the campaign's words. The sailings come back as
+// cruise codes on sale; prices, photos and offers still come from the tracker. Using the answer replaces the brief
+// (Undo puts the old one back).
+const mmss = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+function aiBlock(){
+  const a = st.ai, r = a.result, b = st.brief;
+  const li = xs => `<ul style="margin:4px 0 0 18px;padding:0">${xs.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+  return `<div class="ac-block" id="cb-ai"><h3>Start from the brief you were sent</h3>
+    <p class="sub" style="margin:0 0 6px">Paste it as it came: an email, notes, a Teams message, however little it says. Claude works out the offer, dates, sailings and channels, fills in the brief below and writes the campaign's words. Prices, photos and offers always come from the tracker.</p>
+    <textarea id="cb-raw" rows="7" maxlength="8000" placeholder="e.g. Hi both, we're doing free drinks for Black Friday on all the Norway and Iceland sailings next year, 24th to 1st Dec, can we get the usual ads and emails out?">${esc(b.raw)}</textarea>
+    <div class="ac-row" style="margin-top:6px"><button type="button" class="btn" id="cb-ai-go"${a.busy ? " disabled" : ""}>${r ? "Build it again" : "Build the plan with Claude"}</button>
+      <span class="sub" id="cb-ai-st" aria-live="polite">${a.busy ? `Claude is reading the brief… ${mmss(Date.now() - a.started)} <span class="sub">(usually 1 to 3 minutes)</span>` : esc(a.msg || "")}</span></div>
+    ${r ? `<div style="margin-top:10px;border-left:3px solid var(--aloe, #5c9c8a);padding-left:10px">
+      <p style="margin:0">${esc(r.summary)}</p>
+      <p class="sub" style="margin:6px 0 0">${r.codes.length} sailing${r.codes.length === 1 ? "" : "s"}: ${esc(r.sailing_reason || "")}</p>
+      ${r.assumptions.length ? `<p class="sub" style="margin:8px 0 0"><b>Claude assumed</b></p>${li(r.assumptions)}` : ""}
+      ${r.questions.length ? `<p class="sub" style="margin:8px 0 0"><b>Ask before launch</b> <button type="button" class="linkbtn" id="cb-ai-q">Copy the questions</button></p>${li(r.questions)}` : ""}
+      ${(a.notes || []).length ? `<p class="sub" style="margin:8px 0 0;color:#a15c00">${a.notes.map(esc).join("<br>")}</p>` : ""}
+      ${a.prev ? `<p style="margin:8px 0 0"><button type="button" class="linkbtn" id="cb-ai-undo">Undo: put the brief back as it was</button></p>` : ""}
+    </div>` : ""}
+  </div>`;
+}
+function useAi(r){
+  const b = st.brief;
+  st.ai.prev = JSON.parse(JSON.stringify(b));
+  Object.assign(b, {name: r.name, code: r.code, offer: r.offer, detail: r.detail, headline: r.headline, badge: r.badge, from: r.from, to: r.to,
+    landing: r.landing, terms: r.terms, tone: r.tone, pick: "codes", codes: r.codes.join(", "), channels: {...r.channels}, off: {}, copy: r.copy});
+  save(); draw();
+}
+async function aiGo(){
+  const a = st.ai, text = st.brief.raw.trim();
+  if (text.length < 15) { a.msg = "Paste the brief first."; return draw(); }
+  Object.assign(a, {busy: true, started: Date.now(), msg: "", notes: []}); draw();
+  let id;
+  try { ({id} = await draftCall(ctx.idToken, "POST", {kind: "campaign", text})); }
+  catch(e) { Object.assign(a, {busy: false, msg: e.message}); return draw(); }
+  const tick = setInterval(() => { const el = document.getElementById("cb-ai-st"); if (el && a.busy) el.innerHTML = `Claude is reading the brief… ${mmss(Date.now() - a.started)} <span class="sub">(usually 1 to 3 minutes)</span>`; }, 1000);
+  const poll = async () => {
+    let j;
+    try { j = await draftCall(ctx.idToken, "GET", null, `?id=${encodeURIComponent(id)}`); } catch(e) { j = {status: "waiting"}; }
+    if (j.status === "done" && j.options && j.options[0]) {
+      clearInterval(tick); Object.assign(a, {busy: false, result: j.options[0], notes: j.notes || [], msg: "Done: the brief and the plan below are filled in."});
+      return useAi(j.options[0]);
+    }
+    if (j.status === "failed" || Date.now() - a.started > 12 * 60e3) {
+      clearInterval(tick); Object.assign(a, {busy: false, msg: j.error || "This is taking much longer than usual. Try again, or tell Sam."}); return draw();
+    }
+    setTimeout(poll, 5000);
+  };
+  setTimeout(poll, 5000);
 }
 
 // ---------- drafts in the creators ----------
@@ -397,17 +475,21 @@ function wire(list, gs, on, sd, gg, lp){
   const redraw = () => { save(); const f = document.activeElement, id = f && f.id, pos = f && f.selectionStart; draw(); if (id) { const n = root.querySelector("#" + id); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch(e) {} } } };
   all("[data-b]").forEach(i => i.addEventListener("input", () => { b[i.dataset.b] = i.value; clearTimeout(i._t); i._t = setTimeout(redraw, 400); }));
   all("[data-r]").forEach(i => i.addEventListener("change", () => { b.rule[i.dataset.r] = i.value; redraw(); }));
+  const raw = $("#cb-raw"); raw && raw.addEventListener("input", () => { b.raw = raw.value; clearTimeout(raw._t); raw._t = setTimeout(save, 400); });
+  const go = $("#cb-ai-go"); go && go.addEventListener("click", aiGo);
+  const undo = $("#cb-ai-undo"); undo && undo.addEventListener("click", () => { const keep = b.raw; st.brief = {...st.ai.prev, raw: keep}; st.ai.prev = null; st.ai.msg = "The brief is back as it was."; save(); draw(); });
+  const qs = $("#cb-ai-q"); qs && qs.addEventListener("click", async () => { try { await navigator.clipboard.writeText(st.ai.result.questions.map(q => "- " + q).join("\n")); qs.textContent = "Copied"; } catch(e) {} });
   all("[data-pick]").forEach(x => x.addEventListener("click", () => { b.pick = x.dataset.pick; redraw(); }));
   all("[data-ch]").forEach(x => x.addEventListener("change", () => { b.channels[x.dataset.ch] = x.checked; redraw(); }));
   all("[data-grp]").forEach(x => x.addEventListener("change", () => { b.off[x.dataset.grp] = !x.checked; redraw(); }));
-  $("#cb-new").addEventListener("click", () => { if (!confirm("Start a new brief? Save this one first if you want to keep it.")) return; st = {brief: blank(), saved: null, note: "", made: null}; redraw(); });
+  $("#cb-new").addEventListener("click", () => { if (!confirm("Start a new brief? Save this one first if you want to keep it.")) return; st = {brief: blank(), saved: null, note: "", made: null, ai: {}}; redraw(); });
   $("#cb-save").addEventListener("click", async () => {
     const all0 = store.all(), id0 = st.saved && all0[st.saved] && store.mine(st.saved) ? st.saved : null;
     const name = id0 ? all0[id0].name : prompt("Name this brief", b.name || "Campaign brief"); if (!name) return;
     try { st.saved = await store.save(id0, name.slice(0, 80), b); st.note = `Saved "${esc(name)}"${store.shared ? "" : " in this browser"}.`; } catch (e) { st.note = `Couldn't save: ${esc(e.message)}`; }
     redraw();
   });
-  $("#cb-open") && $("#cb-open").addEventListener("change", e => { const x = store.all()[e.target.value]; if (!x) return; st.brief = {...blank(), ...x.brief}; st.saved = store.mine(e.target.value) ? e.target.value : null; st.made = null; st.note = `Opened "${esc(x.name)}"${store.mine(e.target.value) ? "" : `, saved by ${esc(x.by || "someone else")}: Save as… keeps your own copy`}.`; redraw(); });
+  $("#cb-open") && $("#cb-open").addEventListener("change", e => { const x = store.all()[e.target.value]; if (!x) return; st.brief = {...blank(), ...x.brief}; st.ai = {}; st.saved = store.mine(e.target.value) ? e.target.value : null; st.made = null; st.note = `Opened "${esc(x.name)}"${store.mine(e.target.value) ? "" : `, saved by ${esc(x.by || "someone else")}: Save as… keeps your own copy`}.`; redraw(); });
   $("#cb-make") && $("#cb-make").addEventListener("click", async e => { e.target.disabled = true; e.target.textContent = "Creating drafts…"; await makeDrafts(list, gs, sd, lp); });
   all("[data-openad]").forEach(x => x.addEventListener("click", async () => { const g = gs.find(y => y.key === x.dataset.openad); if (!g) return; location.hash = "ad=" + await pack(adDraft(g)); }));
   $("#cb-gcsv") && $("#cb-gcsv").addEventListener("click", () => {

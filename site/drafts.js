@@ -27,6 +27,9 @@ async function call(ID, method, body, query){
   return j;
 }
 
+// For pages with their own drafting UI (campaign.js): the same function, the same sign-in
+export const draftCall = (ID, method, body, query) => call(ID, method, body, query);
+
 function status(s){
   if (s.busy) return `Claude is writing… ${mins(Date.now() - s.started)} <span class="sub">(usually ${s.kind === "page" ? "2 to 4" : "1 to 2"} minutes; you can carry on meanwhile)</span>`;
   return esc(s.msg || "");
