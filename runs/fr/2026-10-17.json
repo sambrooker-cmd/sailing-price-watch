@@ -11,6 +11,13 @@
    "from": 1649,
    "to": 1919,
    "at": "2026-10-17T05:07:36Z"
+  },
+  {
+   "id": "R270110",
+   "from": 579,
+   "to": 659,
+   "mix": "inside → obstructed",
+   "at": "2026-10-17T12:07:49Z"
   }
  ],
  "eligible": [],
@@ -20,6 +27,9 @@
   ],
   "R261218": [
    "the page shows from €1,029 but booking's cheapest is €1,199"
+  ],
+  "R270110": [
+   "the page shows from €579 but booking's cheapest is €659"
   ],
   "R270912B": [
    "the page shows from €1,379 but booking's cheapest is €1,649"
@@ -82,6 +92,13 @@
    "from": 2409,
    "to": 2479,
    "at": "2026-10-17T10:07:32Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.inside",
+   "from": 579,
+   "to": 869,
+   "at": "2026-10-17T12:07:49Z"
   }
  ],
  "cabin_sold_out": [
@@ -134,7 +151,14 @@
  "promo_ended": [],
  "promo_changed": [],
  "nectar_changes": [],
- "feed_gap_new": [],
+ "feed_gap_new": [
+  {
+   "id": "R270110",
+   "feed": 579,
+   "page": 659,
+   "at": "2026-10-17T12:07:49Z"
+  }
+ ],
  "feed_gap_fixed": [],
  "lead_source_switch": [],
  "reported": [],
@@ -145,6 +169,7 @@
   "2026-10-17T09:07:40Z",
   "2026-10-17T10:07:32Z",
   "2026-10-17T10:26:53Z",
-  "2026-10-17T11:07:32Z"
+  "2026-10-17T11:07:32Z",
+  "2026-10-17T12:07:49Z"
  ]
 }

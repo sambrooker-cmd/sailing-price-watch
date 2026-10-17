@@ -11,9 +11,6 @@
   "A22631BR": [
    "feed price £389 differs from cheapest cabin on the page £199 (the page price is used)"
   ],
-  "A32651": [
-   "feed price £1,899 differs from cheapest cabin on the page £1,599 (the page price is used)"
-  ],
   "A22633": [
    "feed price £299 differs from cheapest cabin on the page £399 (the page price is used)"
   ],
@@ -107,6 +104,13 @@
    "page": 2519,
    "how": "matches the website",
    "at": "2026-10-17T10:26:20Z"
+  },
+  {
+   "id": "A32651",
+   "feed": 1899,
+   "page": 1599,
+   "how": "matches the website",
+   "at": "2026-10-17T12:07:16Z"
   }
  ],
  "lead_source_switch": [],
@@ -118,6 +122,7 @@
   "2026-10-17T09:07:16Z",
   "2026-10-17T10:07:14Z",
   "2026-10-17T10:26:20Z",
-  "2026-10-17T11:07:14Z"
+  "2026-10-17T11:07:14Z",
+  "2026-10-17T12:07:16Z"
  ]
 }
