@@ -2340,7 +2340,7 @@ const auth = getAuth(firebaseApp);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
       const add = pendingAdd.ads; delete pendingAdd.ads;
-      await m.mount($("ads"), {state, cabins, adkit: kit, shared, add, market: MKT,
+      await m.mount($("ads"), {terms, state, cabins, adkit: kit, shared, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2392,7 +2392,7 @@ const auth = getAuth(firebaseApp);
   }
   async function mountCampaign(){
     if (!state || FR) return;
-    try { const m = await import("./campaign.js?v=__BUILD__"); await m.mount($("campaign"), {readJson, esc, state, getAdkit,
+    try { const m = await import("./campaign.js?v=__BUILD__"); await m.mount($("campaign"), {terms, cabins, readJson, esc, state, getAdkit,
       idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))}); }
     catch (e) { $("campaign").innerHTML = `<p class="err">This page couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2425,7 +2425,7 @@ const auth = getAuth(firebaseApp);
     pagesMounted = true;
     try {
       const [m, kit] = await Promise.all([import("./pagemaker.js?v=__BUILD__"), getAdkit()]);
-      await m.mount($("pages"), {state, adkit: kit, readJson,
+      await m.mount($("pages"), {terms, cabins, state, adkit: kit, readJson,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { pagesMounted = false; $("pages").innerHTML = `<p class="err">The page creator couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2438,7 +2438,7 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./googleads.js?v=__BUILD__"), getAdkit()]);
       gadsModule = m;
       const add = pendingAdd.gads; delete pendingAdd.gads;
-      await m.mount($("gads"), {state, cabins, adkit: kit, add, market: MKT,
+      await m.mount($("gads"), {terms, state, cabins, adkit: kit, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { gadsMounted = false; $("gads").innerHTML = `<p class="err">Google Ads couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2451,7 +2451,7 @@ const auth = getAuth(firebaseApp);
       const [m, kit] = await Promise.all([import("./emailcreator.js?v=__BUILD__"), getAdkit()]);
       emailModule = m;
       const shared = sharedEmail; sharedEmail = null;
-      await m.mount($("emailc"), {state, cabins, adkit: kit, shared, market: MKT,
+      await m.mount($("emailc"), {terms, state, cabins, adkit: kit, shared, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { emailMounted = false; $("emailc").innerHTML = `<p class="err">The email creator couldn't load: ${esc(e.message)}</p>`; }
   }

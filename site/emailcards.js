@@ -9,6 +9,7 @@
 import * as cs from "./sections.js?v=__BUILD__";
 import {cropUrl, frMoney, frDate} from "./adcards.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 // France (Sam, 14 Oct 2026, stage 3): mount(…, {market: "fr"}) makes the same cards in French and euros for Ambassador
 // Croisières ("À partir de 679 €/pers.", "7 nuits au départ de Marseille", French cabin grades), links to the sailing's page
 // (the French booking site has no deep link), captions suggested from the page's own photo captions. Own draft.
@@ -492,6 +493,7 @@ function draw(){
         <button type="button" class="btn quiet" id="ec-html"${it.length && htmlSizes().length ? "" : " disabled"} title="One HTML file with every card, pictures saved online">Download HTML</button>
         <button type="button" class="btn quiet" id="ec-csv"${it.length ? "" : " disabled"} title="Every card's details in a spreadsheet">Download CSV</button>
         ${it.some(x => badgesOf(x).length) ? `<button type="button" class="linkbtn" id="ec-terms" title="The website's T&amp;Cs for every offer badge on these cards">Copy offer T&amp;Cs</button>` : ""}
+        ${it.length ? cmp.chip(checkNow(), "ec-check") : ""}
         <button type="button" class="btn quiet" id="ec-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ec-status" aria-live="polite">Prices as checked ${shortDate(today)}.${useBy() ? ` <b>Was/now cards: use by ${shortDate(useBy())}.</b>` : ""}</span>
       </div>
@@ -642,6 +644,7 @@ function wire(){
   $("#ec-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = fresh(); sel = 0; draftId = null; change(true); } });
   wireDrafts();
   $("#ec-zip").addEventListener("click", zip);
+  $("#ec-check") && $("#ec-check").addEventListener("click", () => cmp.show(checkNow(), esc, "Check before these cards go out"));
   $("#ec-csv").addEventListener("click", () => download(URL.createObjectURL(new Blob([csvText()], {type: "text/csv;charset=utf-8"})), `${fileBase()}.csv`));
   // Copy, not download (Sam, 14 Oct 2026: "a copy text link, like in the promotions view")
   $("#ec-terms") && $("#ec-terms").addEventListener("click", async e => {
@@ -659,7 +662,9 @@ function wire(){
     finally { b.disabled = false; }
   }));
   $("#ec-html").addEventListener("click", async () => {
-    const btn = $("#ec-html"), status = $("#ec-status"); btn.disabled = true;
+    const btn = $("#ec-html"), status = $("#ec-status");
+    if (!cmp.confirmGo(checkNow(), "Download the HTML")) return;
+    btn.disabled = true;
     try {
       const list = st.items.flatMap(it => htmlSizes().map(size => ({it, size})));
       status.textContent = `Saving ${list.length} picture${list.length === 1 ? "" : "s"} online…`;
@@ -677,8 +682,24 @@ ${blocks.join("\n\n")}
     draw();
   });
 }
+// Pre-send check (site/compliance.js, 17 Oct 2026): each card's price, was/now and offer badges against today's data
+function checkNow(){
+  const items = [], texts = [], links = [];
+  st.items.forEach((it, i) => {
+    const n = `Card ${i + 1}`, s = sailing(it.id);
+    if (!s) { items.push({id: it.id, where: n}); return; }
+    const f = fareOf(it), w = words(it);
+    items.push({id: it.id, where: n, price: f.claim ? null : f.price, solo: f.fare === "solo", grade: f.grade || "", offers: badgesOf(it),
+      wasnow: f.claim ? {key: f.claim.key === "lead" ? "lead" : f.claim.key, was: f.claim.was, now: f.claim.now} : it.wasnow ? {key: it.wasnow} : null});
+    texts.push({where: `${n} caption`, text: it.caption}, {where: `${n} name`, text: it.name}, {where: `${n} button`, text: w.button});
+    links.push({where: `${n} link`, url: w.link});
+  });
+  return cmp.check({label: st.name || "Email cards", fr: FR, items, texts, links, needsSailings: true, needsTwoSharing: false,
+    campaign: st.campaign && st.campaign.badge ? {...st.campaign, offer: st.campaign.name} : null}, {S, CAB, KIT, T, today, fr: FR});
+}
 async function zip(){
-  const btn = root.querySelector("#ec-zip"), status = root.querySelector("#ec-status");
+  const btn = root.querySelector("#ec-zip"), status = root.querySelector("#ec-status"), chk = checkNow();
+  if (!cmp.confirmGo(chk, "Download the zip")) return;
   btn.disabled = true;
   try {
     const JSZip = await loadZip(), sizes = outputs(), used = new Set(), total = st.items.length * sizes.length;
@@ -708,6 +729,7 @@ async function zip(){
     const withBadges = st.items.filter(x => badgesOf(x).length);
     if (withBadges.length) z.file("offer-terms.txt", withBadges.map(termsText).join("\n\n"));
     z.file("cards.csv", csvText());
+    z.file("checks.txt", cmp.reportText(chk));
     await flush();
     note = `Downloaded ${total} pictures${parts > 1 ? ` in ${parts} zips (up to ${ZIP_PICS} pictures each; the text, CSV and T&Cs are in the last)` : ""}. Prices as checked ${shortDate(today)}.`;
   } catch(e) { note = esc(`The zip couldn't be made: ${e.message}`); }

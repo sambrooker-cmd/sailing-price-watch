@@ -11,6 +11,7 @@ import {cropUrl} from "./adcards.js?v=__BUILD__";
 import {regionOf, photoWords} from "./comptrend.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 
 const SITE = "https://www.ambassadorcruiseline.com";
 const KEY = "spw-pages";
@@ -276,6 +277,14 @@ function schema(p){
 }
 
 // ---------- checks ----------
+// The shared pre-send check (site/compliance.js, 17 Oct 2026): the page's sailings at today's prices and its words
+function checkNow(p){
+  const list = listOf(p), kit = Object.fromEntries(list.map(s => [s.id, kitOf(s.id) || {}]));
+  return cmp.check({label: p.h1 || "Page", items: list.map(s => ({id: s.id, where: "Sailings list", price: s.price, offers: []})), twoSharingLevel: "warn",
+    texts: [{where: "SEO title", text: p.seoTitle}, {where: "Meta description", text: p.metaDesc}, {where: "H1", text: [p.h1, p.sub].join(" ")}, {where: "Page text", text: textOf(p), body: true}],
+    links: p.blocks.filter(b => b.type === "cta").map(b => ({where: `Button "${b.text || ""}"`, url: b.url}))},
+    {S: ctx.state, CAB: ctx.cabins || {}, KIT: kit, T: ctx.terms || null, today});
+}
 function textOf(p){
   return [p.intro, ...p.blocks.map(b => b.type === "text" ? `${b.h2}\n${b.body}` : b.type === "faq" ? (b.items || []).map(f => `${f.q} ${f.a}`).join(" ") : b.type === "image" ? b.caption : "")].join("\n");
 }
@@ -583,7 +592,7 @@ function draw(){
   root.innerHTML = `<div class="ac"><div class="ac-side">${kindTabs}${savedBlock()}${draft}${settings}${kw}${sail}${blocks}${start}</div>
     <div class="ac-main">
       <div class="ac-block"><div class="pm-bar"><div class="seg" role="group" aria-label="Preview size">${[["desk", "Desktop"], ["phone", "Phone"]].map(([k, t]) => `<button type="button" data-dev="${k}" aria-pressed="${st.dev === k}">${t}</button>`).join("")}</div>
-        <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button></span></div>
+        <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button>${p ? cmp.chip(checkNow(p), "pm-check") : ""}</span></div>
         <div class="pm-frame ${st.dev}"><iframe id="pm-pv" title="Page preview" sandbox="allow-same-origin"></iframe></div>
         <p class="sub">A preview in the website's style, not the website itself. Amber boxes are still to write. Nothing is published: copy the fields into Storyblok (a draft there), or download the HTML to share for review.</p></div>
       <div class="ac-block"><h3>Checks${bad ? ` <span class="sub">· ${bad} to look at</span>` : ""}</h3><ul class="pm-checks">${ck.map(([l, t]) => `<li class="${l}">${esc(t)}</li>`).join("")}</ul>
@@ -648,7 +657,8 @@ function wire(){
     if (!(fq.items || []).some(f => f.q.toLowerCase() === q.toLowerCase())) fq.items.push({q, a: ""});
     save(); draw();
   });
-  on("#pm-copy", "click", el => copy(storyblokText(p), el));
+  on("#pm-copy", "click", el => cmp.confirmGo(checkNow(p), "Copy it for Storyblok") && copy(storyblokText(p), el));
+  on("#pm-check", "click", () => cmp.show(checkNow(p), esc, "Check before this page goes live"));
   // Draft with Claude (drafts.js / draft_job.py kind "page"): the outline goes with the request; the facts come from
   // the tracker's saved state. "Use this" fills the words and keeps the pictures, sailings and links.
   claude.wire(root, "page", {ID: ctx.idToken, redraw: draw,
@@ -670,7 +680,7 @@ function wire(){
       save(); draw();
     }});
   on("#pm-schema", "click", el => copy(JSON.stringify(schema(p), null, 2), el));
-  on("#pm-html", "click", () => download(`${p.slug.split("/").pop() || "page"}.html`, pageHtml(p, {forExport: true}), "text/html"));
+  on("#pm-html", "click", () => cmp.confirmGo(checkNow(p), "Download the HTML") && download(`${p.slug.split("/").pop() || "page"}.html`, pageHtml(p, {forExport: true}), "text/html"));
 }
 
 export async function mount(el, c){

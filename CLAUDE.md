@@ -735,6 +735,34 @@ one HTML page to share. Prices are the tracker's latest; nothing is sent, upload
 Claude for the campaign's copy. Tested 17 Oct 2026 with a Black Friday-style brief (30 codes, a fares sheet, stand-in
 saved function): 6 themes, 11 drafts made, the carousel opened in the Ad creator, the set in Email cards with the badge.
 
+## Pre-send compliance check (17 Oct 2026, Sam: "do the compliance checks", from the build list)
+`site/compliance.js`, shared by every creator. Each describes what it's about to hand over as a "pack" (sailings with the
+price / was/now / offers each shows, every piece of text, the links) and `check(pack, {S, CAB, KIT, T, today})` compares it
+with the tracker's saved data only. **Fail (✕)**: a sailing no longer on sale; a price that isn't today's (lead, cabin grade
+or solo); a was/now not from a claim live today (eligible, `ends` ≥ today, lead `now` = today's price, as the creators'
+`claims()`) or with figures other than the claim's; reduction wording (`REDUCE`: "was £", "reduced", "price drop", "save £",
+"£X off", "lower fares", French "prix barré"/"au lieu de"…) with no live claim in the pack; an offer badge no longer live on
+the sailing; a £ / € / % / points figure in the words that isn't a current price, claim, offer, Nectar or proof figure ("under
+£1,000" is allowed when true of every price that text covers, `prices`); prices quoted without "Based on two sharing and
+subject to availability." (or the solo / French wording; pages: warning); a campaign badge with no T&Cs in the brief. **Check
+(!)**: prices from a check over 26 h old; departing within 7 days; no T&Cs found on the website for an offer; the campaign's
+own offer not on the website yet (live from / off after); "subject to availability" missing; brand words (v4.3: "The
+Renaissance", "Ambassador Cruises", "ACL", "boat", "The Ambience"); "&" in body copy; placeholders (UNSUBSCRIBE_LINK, TBC,
+C###); links off our sites or empty; use-by within 2 days. **Passed (✓)**: prices, claims and offers that matched, and
+**Use by** = the earliest claim end, offer expiry or campaign window end. UI: a status button next to each download
+("✓ Ready to go" / "! N to check" / "✕ N problems"), opening the list; a download/copy with problems asks "… anyway?" (nothing
+is blocked: people decide); `checks.txt` in the zips. Where: **Ad creator** (cards, primary text, Meta headlines and
+descriptions, card words, opening/closing cards; refreshed as you type; the campaign badge from a Campaign builder draft),
+**Email cards** (each card's fare price, was/now, badges, caption; zip and HTML), **Email creator** (the email as it would be
+made: subject, preview, header, intro, button and the whole body with its small print and links; unsubscribe link; Make email
+asks first), **Google Ads** (image prices, was/now and offers, and every Search / PMax / Demand Gen line, sitelinks and final
+URLs; images zip and Editor zip), **Pages and blog** (the sailings list at today's prices and the page's words; Copy for
+Storyblok and Download HTML ask first), **Campaign builder** (its own brief checks plus this one over the carousels' text, the
+Google lines and the landing page). index.html passes `terms` (and `cabins`) to every creator. Also fixed in the Campaign
+builder: "live was/now claim" now means an eligible claim live today (it counted any claim record). Tested 17 Oct 2026
+headless with broken drafts (each problem above caught, clean ones pass) and with made-up claims in a scratch test (right
+figures pass, wrong was / not eligible / stale price fail, ending tomorrow warns).
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
@@ -774,6 +802,7 @@ saved function): 6 themes, 11 drafts made, the carousel opened in the Ad creator
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `site/compliance.js` | Pre-send compliance check shared by every creator (prices, was/now, offers and T&Cs, two-sharing line, figures, brand words, links): see "Pre-send compliance check (17 Oct 2026)" above |
 | `site/campaign.js` | Campaign builder (a brief → themes, Meta, Google Ads, email sends, landing page, calendar, and drafts in the creators): see "Campaign builder (17 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
 | `impact.py`, `site/impact.js`, `state/ga4/impact.json` | What moved interest (views and booking clicks after each price move and offer, against similar sailings): see "What moved interest (17 Oct 2026)" above |
