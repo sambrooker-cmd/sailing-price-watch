@@ -16,7 +16,7 @@ on:
 run-name: "Meta ads: apply (${{ inputs.request }})"
 
 permissions:
-  contents: read
+  contents: write   # commits state/meta/published.json (the ads the tracker made) after publishing or remaking
 
 concurrency:
   group: meta-apply
@@ -25,7 +25,7 @@ concurrency:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -34,7 +34,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install
-        run: pip install google-auth==2.40.3 requests==2.32.3
+        run: |
+          pip install playwright==1.56.0 pillow==11.3.0 google-auth==2.40.3 requests==2.32.3
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Apply the change
         env:
@@ -43,5 +46,21 @@ jobs:
           META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
           META_API_VERSION: ${{ vars.META_API_VERSION }}
           META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_INSTAGRAM_ID: ${{ vars.META_INSTAGRAM_ID }}
           REQUEST: ${{ inputs.request }}
         run: python meta_manage.py apply "$REQUEST"
+
+      - name: Save the ads the tracker made
+        if: always() && hashFiles('state/meta/published.json') != ''
+        run: |
+          git config user.name "price-watch-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/meta/published.json
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "Meta ads made by the tracker $(date -u '+%F %H:%M') UTC"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((i * 10))
+          done
+          exit 1

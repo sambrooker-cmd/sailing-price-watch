@@ -2349,7 +2349,7 @@ const auth = getAuth(firebaseApp);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
       const add = pendingAdd.ads; delete pendingAdd.ads;
-      await m.mount($("ads"), {terms, state, cabins, adkit: kit, shared, add, market: MKT,
+      await m.mount($("ads"), {terms, readJson, state, cabins, adkit: kit, shared, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }

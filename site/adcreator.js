@@ -31,7 +31,7 @@ let KEY = "spw-ad-draft";            // the ad being worked on (this browser; "-
 let DRAFTS = "spw-ad-drafts";        // named saved ads from before the shared list (this browser): {id: {name, saved_at, ad}}
 let store = null;                    // saved ads, shared by the team (saved.js sharedStore, Sam 13 Oct 2026)
 
-let S, CAB, KIT, LOGO, TP = null, root, today, ID = null;
+let S, CAB, KIT, LOGO, TP = null, root, today, ID = null, ctxRead = null;
 // Opening and closing carousel cards (Sam, 13 Oct 2026: Allium pattern designs, adcards.js introDoc / endDoc).
 const SITE = "https://www.ambassadorcruiseline.com/";
 // Words from the messaging matrix (design system, 14 Oct 2026; Brand Guidelines v4.3): the opening headline left blank
@@ -56,7 +56,7 @@ const promoOpts = s => [...campBadge(), ...(s.k.promos || []).filter(p => !campB
 let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
-  root = el; S = ctx.state; ID = ctx.idToken || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; TERMS = ctx.terms || null;
+  root = el; S = ctx.state; ID = ctx.idToken || null; ctxRead = ctx.readJson || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; TERMS = ctx.terms || null;
   today = S.updated;
   FR = ctx.market === "fr";
   if (FR) { KEY = "spw-ad-draft-fr"; DRAFTS = "spw-ad-drafts-fr"; INTRO = INTRO_FR; END = END_FR; ad = fresh(); }
@@ -237,6 +237,52 @@ async function makeVideo(){
   }
   draw();
   loadVideos();
+}
+// "Publish to Meta" (Sam, 17 Oct 2026, Meta ads stage 2): the ad goes into an ad set of our Meta account, always paused,
+// through the metaAction function (Meta ads approvers only) and the "Meta ads: apply" workflow, which renders the cards
+// (or a 10-second video) with that day's prices and remembers the ad, so it's proposed for a remake when its prices,
+// offers or claims change (Creative → Meta ads). Ad sets come from the hourly read of the account (pricewatch/meta-ads).
+const META_FN = "https://us-central1-promotions-planner.cloudfunctions.net/metaAction";
+let metaDoc = null;
+async function publishMeta(){
+  if (!metaDoc) metaDoc = await (ctxRead ? ctxRead("meta-ads").catch(() => ({problem: "setup"})) : Promise.resolve({problem: "setup"}));
+  const chk = checkNow();
+  let d = document.getElementById("ac-meta-dlg");
+  if (!d) { d = document.createElement("dialog"); d.id = "ac-meta-dlg"; d.className = "cmp"; document.body.appendChild(d); }
+  const sets = (metaDoc.adsets || []), camps = Object.fromEntries((metaDoc.campaigns || []).map(c => [c.id, c.name]));
+  const codes = ad.cards.map(c => c.id), up = ad.cards.some(c => c.photo && c.photo.startsWith("upload:"));
+  const defName = `${ad.format === "carousel" ? "CAR" : "IMG"}_EN_${codes.slice(0, 3).join("-")}${codes.length > 3 ? "-etc" : ""}_${today}`;
+  d.innerHTML = metaDoc.problem === "setup" || !sets.length
+    ? `<header><h3>Publish to Meta</h3><button type="button" class="btn quiet sm" data-close>Close</button></header>
+       <ul><li class="warn"><b>!</b><span>Our Meta ad account isn't connected to the tracker yet (it goes live with the account restructure). The Meta ads page (Creative → Meta ads) lists the setup. Until then use Download zip and upload in Ads Manager.</span></li></ul>`
+    : `<header><h3>Publish to Meta</h3><button type="button" class="btn quiet sm" data-close>Close</button></header>
+       <div style="padding:12px 18px 18px;display:flex;flex-direction:column;gap:8px">
+         <label class="ac-lab" for="mp-set">Ad set</label>
+         <select id="mp-set">${sets.map(s => `<option value="${esc(s.id)}">${esc(camps[s.campaign_id] || "")} › ${esc(s.name)}${s.effective_status !== "ACTIVE" ? " (paused)" : ""}</option>`).join("")}</select>
+         <label class="ac-lab" for="mp-name">Ad name</label><input id="mp-name" value="${esc(defName)}" maxlength="100">
+         <span class="ac-lab">As</span>
+         <label class="ac-check"><input type="radio" name="mp-kind" value="image" checked> ${ad.format === "carousel" ? `Carousel of ${slides().length} cards (${ad.size.replace("x", ":")})` : "Single image (4:5)"}</label>
+         <label class="ac-check"><input type="radio" name="mp-kind" value="video"> Video: a 10-second 4:5 slideshow of the cards</label>
+         <p class="sub" style="margin:0">It's created <b>paused</b> with today's prices: check it in Ads Manager, then switch it on there or on the Meta ads page. When its prices, offers or was/now claims change, the Meta ads page proposes remaking it.${up ? " Uploaded photos can't be sent, so those cards use the feed image." : ""}</p>
+         <p class="sub" style="margin:0">Pre-send check: ${esc(cmp.chipText(chk))}.</p>
+         <div class="ac-row"><button type="button" class="btn" id="mp-go">Publish (paused)</button><span class="sub" id="mp-st"></span></div>
+       </div>`;
+  d.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => d.close()));
+  const go = d.querySelector("#mp-go");
+  go && go.addEventListener("click", async () => {
+    if (!cmp.confirmGo(chk, "Publish to Meta")) return;
+    const st = d.querySelector("#mp-st"), kind = d.querySelector("[name=mp-kind]:checked").value, name = d.querySelector("#mp-name").value.trim() || defName;
+    const set = sets.find(s => s.id === d.querySelector("#mp-set").value);
+    go.disabled = true; st.textContent = "Sending…";
+    try {
+      const r = await fetch(META_FN, {method: "POST", headers: {Authorization: `Bearer ${await ID()}`, "Content-Type": "application/json"},
+        body: JSON.stringify({op: "publish", code: await pack({v: 1, ad: portable()}), adset: set.id, kind, name, what: `Publish "${name}" (${kind === "video" ? "video" : ad.format}) to "${set.name}", paused`})});
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || `The Meta ads service answered ${r.status}.`);
+      d.close(); note = `Sent to Meta: "${esc(name)}" is being made (a few minutes) and created paused in "${esc(set.name)}". The outcome shows on the Meta ads page under Recent changes.`; draw();
+    } catch(e) { go.disabled = false; st.textContent = /Failed to fetch|NetworkError/.test(e.message) ? "The Meta ads service can't be reached yet." : e.message; }
+  });
+  d.showModal();
 }
 async function makeVideoOnGitHub(){
   const url = `${location.origin}${location.pathname}#${HASH()}=${await pack({v: 1, ad: portable()})}`;
@@ -458,6 +504,7 @@ function draw(){
       <div class="ac-actions">
         <button type="button" class="btn" id="ac-zip"${ready() ? "" : " disabled"}>Download zip</button>
         ${ad.cards.length ? cmp.chip(checkNow(), "ac-check") : ""}
+        ${FR ? "" : `<button type="button" class="btn quiet" id="ac-meta"${ready() ? "" : " disabled"} title="Create this ad in our Meta ad account, paused, after approval">Publish to Meta</button>`}
         <button type="button" class="btn quiet" id="ac-video"${ready() ? "" : " disabled"} title="Slideshow videos for Meta, made on GitHub">Make video</button>
         <button type="button" class="btn quiet" id="ac-clear"${ad.cards.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ac-status" aria-live="polite">${readyMsg()}</span>
@@ -672,6 +719,7 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  $("#ac-meta") && $("#ac-meta").addEventListener("click", publishMeta);
   $("#ac-check") && $("#ac-check").addEventListener("click", () => cmp.show(checkNow(), esc, "Check before this ad goes out"));
   $("#ac-video").addEventListener("click", makeVideo);
   wireVideos();
@@ -788,7 +836,14 @@ async function layer(html, size, pass){
   } finally { f.remove(); }
 }
 window.__spwVideo = {
-  info: () => ({slides: slides().map(x => ({kind: x.kind, title: x.title})), primary: ad.primary, cta: ad.cta, until: validUntil(), prices: today}),
+  info: () => ({slides: slides().map(x => ({kind: x.kind, title: x.title})), primary: ad.primary, cta: ad.cta, until: validUntil(), prices: today,
+    // for Meta publishing (meta_manage.py, 17 Oct 2026): the format and what each card prints
+    format: ad.format, size: ad.size, cards: ad.cards.filter(c => sailing(c.id)).map(c => { const d = cardData(c);
+      return {id: c.id, design: c.design, price: d.price, wasnow: d.wasnow, promos: d.promos, nectar: d.nectar}; })}),
+  // Each card as the zip's JPEG, with its Meta headline, description and link (meta_manage.py publish / remake)
+  jpegs: async size => { const out = []; for (const x of slides()) { const b = await renderJpeg(x.doc(size), size);
+    out.push({kind: x.kind, name: x.name, headline: x.headline || "", description: x.description || "", link: x.link || "",
+      jpeg: await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); })}); } return out; },
   layers: async size => { const out = []; for (const x of slides()) { const html = x.doc(size); out.push({kind: x.kind, bg: await layer(html, size, "bg"), fg: await layer(html, size, "fg")}); } return out; },
 };
 

@@ -33,6 +33,11 @@ Two commands:
       the ad at it. Writes the outcome on the request. Budgets, bids and targeting are only ever changed by hand from
       the page, never proposed.
 
+Stage 2 (17 Oct 2026, built before the account is connected): op `publish` (the Ad creator's "Publish to Meta": its share
+code rendered headless with today's prices into images or a 10-second video, a new creative and a PAUSED ad; remembered in
+state/meta/published.json), proposal `remake` for tracker-made ads whose printed facts changed (card_facts), and manual
+`targeting` (ages, gender, countries) for ad sets. See CLAUDE.md.
+
 Setup (Sam, one-off): Meta Business Settings → Users → System users → Add (Admin or Employee) → Assign assets: the ad
 account (Manage campaigns) and the Facebook page → Generate new token for the app, permissions ads_management, ads_read
 (and pages_read_engagement, business_management if asked), no expiry → repo secret META_ADS_TOKEN; repo variable
@@ -47,6 +52,9 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "state" / "meta" / "ads.json"
 PROBLEM = ROOT / "out" / "meta_manage_problem.md"
 URGENT = ROOT / "out" / "meta_urgent.md"
+PUBLISHED = ROOT / "state" / "meta" / "published.json"   # ads the tracker made: {ad id: {code, kind, size, fp, facts, at, by}}
+CTA = {"Learn more": "LEARN_MORE", "Book now": "BOOK_TRAVEL", "See more": "SEE_MORE", "Get offer": "GET_OFFER"}
+VIDEO_SIZE, VIDEO_LENGTH = "4x5", 10   # published videos: feed size, 10 seconds (make_video.py)
 VERSION = os.environ.get("META_API_VERSION", "").strip()
 API = "https://graph.facebook.com/" + (VERSION + "/" if VERSION else "")
 MAX_STEP = 2.0                      # a budget can at most double (or halve) in one change
@@ -111,7 +119,7 @@ def read_account(token, acct):
     a = call("GET", f"act_{acct}", token, {"fields": "name,currency,timezone_name,account_status"})
     camps = every(f"act_{acct}/campaigns", token, {"fields": "id,name,status,effective_status,objective,daily_budget,lifetime_budget,bid_strategy",
                                                     "effective_status": json.dumps(["ACTIVE", "PAUSED"])})
-    sets = every(f"act_{acct}/adsets", token, {"fields": "id,name,status,effective_status,campaign_id,daily_budget,lifetime_budget,bid_amount,bid_strategy,start_time,end_time,optimization_goal",
+    sets = every(f"act_{acct}/adsets", token, {"fields": "id,name,status,effective_status,campaign_id,daily_budget,lifetime_budget,bid_amount,bid_strategy,start_time,end_time,optimization_goal,targeting",
                                                 "effective_status": json.dumps(["ACTIVE", "PAUSED", "CAMPAIGN_PAUSED"])})
     ads = every(f"act_{acct}/ads", token, {"fields": AD_FIELDS, "effective_status": json.dumps(sorted(RUNNING | {"PAUSED", "ADSET_PAUSED", "CAMPAIGN_PAUSED", "DISAPPROVED"}))})
     ins = {}
@@ -268,6 +276,188 @@ def proposals_for(ad, facts, today):
     return out, notes
 
 
+# ---------- ads the tracker made (stage 2: publish from the Ad creator, remake with today's prices) ----------
+def unpack(code):
+    """The Ad creator's share code (deflate-raw JSON, base64url) → the ad."""
+    import base64, zlib
+    d = json.loads(zlib.decompress(base64.urlsafe_b64decode(code + "=" * (-len(code) % 4)), -15))
+    return d.get("ad") or d
+
+
+def repack(ad):
+    import base64, zlib
+    c = zlib.compressobj(9, zlib.DEFLATED, -15)
+    return base64.urlsafe_b64encode(c.compress(json.dumps({"v": 1, "ad": ad}).encode()) + c.flush()).decode().rstrip("=")
+
+
+def card_facts(ad, st, cab, kit, today):
+    """What each card of a tracker-made ad prints today: [[code, price shown, was, live promos, nectar]] (gone → None)."""
+    out = []
+    for c in ad.get("cards") or []:
+        cid = c.get("id")
+        r = (st.get("sailings") or {}).get(cid)
+        if not r or r.get("removed") or not (r.get("departure_date", "") > today) or not r.get("segments"):
+            out.append([cid, None, None, [], ""]); continue
+        lead, was, now = r["segments"][-1]["p"], None, None
+        key = (c.get("design") or "").removeprefix("wasnow:") if (c.get("design") or "").startswith("wasnow:") else None
+        if key == "lead":
+            cl = r.get("claim") or {}
+            if cl.get("eligible") and (cl.get("ends") or "") >= today and cl.get("now") == lead:
+                was, now = cl["was"], cl["now"]
+        elif key:
+            cc = ((cab.get(cid) or {}).get("cabin_claims") or {}).get(key) or {}
+            if cc.get("eligible") and (cc.get("ends") or "") >= today:
+                was, now = cc["was"], cc["now"]
+        k = kit.get(cid) or {}
+        promos = [x for x in (c.get("promos") or []) if x in (k.get("promos") or [])]
+        out.append([cid, now if now is not None else lead, was, promos, (k.get("nectar") or "") if c.get("nectar") else ""])
+    return out
+
+
+def fp_of(facts):
+    return pid(json.dumps(facts, sort_keys=True))
+
+
+def describe(old, new):
+    """Plain words for what changed between two card_facts lists."""
+    o, out = {x[0]: x for x in old}, []
+    for n in new:
+        b = o.get(n[0])
+        if not b:
+            continue
+        if n[1] is None and b[1] is not None:
+            out.append(f"{n[0]} is off sale (left out of the remake)")
+            continue
+        if b[1] != n[1]:
+            out.append(f"{n[0]} £{b[1]:,} → £{n[1]:,}" if b[1] and n[1] else f"{n[0]} price changed")
+        if b[2] and not n[2]:
+            out.append(f"{n[0]}'s was/now claim has ended (its card goes back to the standard design)")
+        for x in b[3]:
+            if x not in n[3]:
+                out.append(f"{n[0]}: \"{x.split(' · ')[0]}\" has ended")
+        if b[4] != n[4]:
+            out.append(f"{n[0]}: Nectar line now \"{n[4] or 'none'}\"")
+    return out
+
+
+def live_code(ad, kit):
+    """The ad as it should be remade: offers that have ended taken off its cards (the Ad creator brings the rest up to date)."""
+    ad = json.loads(json.dumps(ad))
+    for c in ad.get("cards") or []:
+        c["promos"] = [x for x in (c.get("promos") or []) if x in ((kit.get(c.get("id")) or {}).get("promos") or [])]
+    return repack(ad)
+
+
+def remake_proposal(ad_row_id, rec, st, cab, kit, today):
+    ad = unpack(rec["code"])
+    now = card_facts(ad, st, cab, kit, today)
+    if fp_of(now) == rec.get("fp"):
+        return None
+    if all(x[1] is None for x in now):
+        return {"id": pid(ad_row_id, "pause", "offsale-made"), "ad": ad_row_id, "kind": "pause", "urgent": True,
+                "why": "Every sailing on it is off sale or has departed."}
+    what = describe(rec.get("facts") or [], now) or ["what's printed on its cards has changed"]
+    return {"id": pid(ad_row_id, "remake", fp_of(now)), "ad": ad_row_id, "kind": "remake", "urgent": any("was/now" in w for w in what),
+            "why": "Made by the tracker; " + "; ".join(what) + ".", "fmt": rec.get("kind", "image")}
+
+
+def upload_images(cards, token, acct):
+    import base64
+    hashes = []
+    for i, c in enumerate(cards):
+        j = call("POST", f"act_{acct}/adimages", token, data={"bytes": base64.b64encode(c["jpeg"]).decode(), "name": f"{i + 1:02d}_{c['name']}.jpg"})
+        hashes.append(next(iter((j.get("images") or {}).values()))["hash"])
+    return hashes
+
+
+def upload_video(path, token, acct):
+    import requests
+    with open(path, "rb") as f:
+        r = requests.post(API + f"act_{acct}/advideos", headers={"Authorization": f"Bearer {token}"}, files={"source": (Path(path).name, f, "video/mp4")}, timeout=600)
+    if not r.ok:
+        raise RuntimeError(f"Meta didn't take the video: {r.status_code} {r.text[:200]}")
+    vid = r.json()["id"]
+    for _ in range(40):   # Meta processes the upload before an ad can use it
+        s = (call("GET", vid, token, {"fields": "status"}).get("status") or {}).get("video_status")
+        if s == "ready":
+            return vid
+        if s == "error":
+            raise RuntimeError("Meta couldn't process the video.")
+        time.sleep(15)
+    raise RuntimeError("Meta was still processing the video after 10 minutes: try again later.")
+
+
+def page_ids():
+    page = os.environ.get("META_PAGE_ID", "").strip() or (json.loads(OUT.read_text()).get("page_id") if OUT.exists() else "")
+    if not page:
+        raise ValueError("The Facebook page isn't known yet: set the repo variable META_PAGE_ID (or wait until an ad has been read).")
+    ig = os.environ.get("META_INSTAGRAM_ID", "").strip()
+    return page, ig
+
+
+def build_creative(code, kind, token, acct, name):
+    """Renders the Ad creator ad from its code (today's prices) and makes a Meta creative from it. → (creative id, info, facts)."""
+    sys.path.insert(0, str(ROOT))
+    import make_video
+    ad = unpack(code)
+    if ad.get("market") == "fr":
+        raise ValueError("French ads aren't published to Meta yet.")
+    page, ig = page_ids()
+    size = ad.get("size") if ad.get("format") == "carousel" and ad.get("size") in ("1x1", "4x5") else "4x5"
+    cards, info, notes = make_video.capture_jpegs(code, size)
+    if not cards:
+        raise ValueError("The ad has no cards (its sailings may all be off sale).")
+    cta = CTA.get(info.get("cta") or ad.get("cta"), "LEARN_MORE")
+    first = next((c["link"] for c in cards if c["link"]), "https://www.ambassadorcruiseline.com/")
+    msg = info.get("primary") or ad.get("primary") or ""
+    base = {"page_id": page, **({"instagram_user_id": ig} if ig else {})}
+    if kind == "video":
+        import tempfile
+        layers, _, _ = make_video.capture(code, [VIDEO_SIZE])
+        out = Path(tempfile.mkdtemp()) / "ad.mp4"
+        make_video.render(layers[VIDEO_SIZE], VIDEO_SIZE, VIDEO_LENGTH, out)
+        vid = upload_video(out, token, acct)
+        thumb = upload_images(cards[:1], token, acct)[0]
+        spec = {**base, "video_data": {"video_id": vid, "image_hash": thumb, "message": msg, "title": cards[0]["headline"][:40],
+                                       "call_to_action": {"type": cta, "value": {"link": first}}}}
+    else:
+        hashes = upload_images(cards, token, acct)
+        if info.get("format") == "carousel" and len(cards) > 1:
+            spec = {**base, "link_data": {"message": msg, "link": first, "multi_share_optimized": False, "multi_share_end_card": False,
+                    "child_attachments": [{"link": c["link"] or first, "name": c["headline"][:40], "description": c["description"][:30], "image_hash": h,
+                                           "call_to_action": {"type": cta, "value": {"link": c["link"] or first}}} for c, h in zip(cards, hashes)],
+                    "call_to_action": {"type": cta, "value": {"link": first}}}}
+        else:
+            c = cards[0]
+            spec = {**base, "link_data": {"message": msg, "link": c["link"] or first, "name": c["headline"][:40], "description": c["description"][:30],
+                    "image_hash": hashes[0], "call_to_action": {"type": cta, "value": {"link": c["link"] or first}}}}
+    cr = call("POST", f"act_{acct}/adcreatives", token, data={"name": name[:100], "object_story_spec": spec})
+    return cr["id"], info, notes
+
+
+def remember(ad_id, rec):
+    d = json.loads(PUBLISHED.read_text()) if PUBLISHED.exists() else {}
+    d[ad_id] = rec
+    PUBLISHED.parent.mkdir(parents=True, exist_ok=True)
+    PUBLISHED.write_text(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True))
+
+
+def page_used(ads):
+    """The Facebook page our ads run from (the most used), for publishing new ads."""
+    from collections import Counter
+    n = Counter(((ad.get("creative") or {}).get("object_story_spec") or {}).get("page_id") for ad in ads)
+    n.pop(None, None)
+    return n.most_common(1)[0][0] if n else ""
+
+
+def targeting_summary(tg):
+    tg = tg or {}
+    geo = tg.get("geo_locations") or {}
+    return {"age_min": tg.get("age_min"), "age_max": tg.get("age_max"), "genders": tg.get("genders") or [],
+            "countries": geo.get("countries") or [], "regions": len(geo.get("regions") or []), "cities": len(geo.get("cities") or []),
+            "custom": len(tg.get("custom_audiences") or []), "interests": sum(len(x.get("interests") or []) for x in tg.get("flexible_spec") or [])}
+
+
 def read():
     token, acct = os.environ.get("META_ADS_TOKEN", "").strip(), os.environ.get("META_AD_ACCOUNT_ID", "").strip().replace("act_", "")
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
@@ -292,9 +482,16 @@ def read():
     codes = {c for ad in ads for c in codes_of(pieces(ad.get("creative") or {}))}
     facts = {c: sailing_facts(c, st, cab, kit, today) for c in codes}
     props, rows = [], []
+    made = json.loads(PUBLISHED.read_text()) if PUBLISHED.exists() else {}
     for ad in ads:
         cr = ad.get("creative") or {}
-        p, notes = proposals_for(ad, facts, today)
+        if ad["id"] in made:   # made by the tracker: remade from the Ad creator design when what it prints changes
+            p, notes = [], []
+            if ad.get("effective_status") in RUNNING:
+                x = remake_proposal(ad["id"], made[ad["id"]], st, cab, kit, today)
+                p = [x] if x else []
+        else:
+            p, notes = proposals_for(ad, facts, today)
         props += p
         ps = pieces(cr)
         rows.append({"id": ad["id"], "name": ad.get("name"), "status": ad.get("effective_status"), "on": ad.get("configured_status") or ad.get("status"),
@@ -303,12 +500,13 @@ def read():
                              "video" if (cr.get("object_story_spec") or {}).get("video_data") else "dynamic" if cr.get("asset_feed_spec") else
                              "post" if not cr.get("object_story_spec") else "image",
                      "thumb": cr.get("thumbnail_url") or "", "codes": codes_of(ps), "texts": [[".".join(map(str, pth)), v] for pth, kind, v in ps if kind == "text"][:30],
-                     "notes": notes, "res": ins.get(ad["id"])})
+                     "notes": notes, "res": ins.get(ad["id"]), "made": made.get(ad["id"], {}).get("at") if ad["id"] in made else None})
     keep = lambda o, ks: {k: o.get(k) for k in ks}   # noqa: E731
     doc = {"read_at": now, "today": today, "problem": "", "account": {"id": acct, **keep(a, ["name", "currency", "timezone_name", "account_status"])},
            "campaigns": [keep(c, ["id", "name", "status", "effective_status", "objective", "daily_budget", "lifetime_budget", "bid_strategy"]) for c in camps],
-           "adsets": [keep(s, ["id", "name", "status", "effective_status", "campaign_id", "daily_budget", "lifetime_budget", "bid_amount", "bid_strategy", "start_time", "end_time", "optimization_goal"]) for s in sets],
-           "ads": rows, "proposals": props, "max_daily": MAX_DAILY, "max_step": MAX_STEP}
+           "adsets": [keep(s, ["id", "name", "status", "effective_status", "campaign_id", "daily_budget", "lifetime_budget", "bid_amount", "bid_strategy", "start_time", "end_time", "optimization_goal"]) | {"targeting": targeting_summary(s.get("targeting"))} for s in sets],
+           "ads": rows, "proposals": props, "max_daily": MAX_DAILY, "max_step": MAX_STEP,
+           "page_id": page_used(ads)}
     # Urgent proposals not seen at the last read → out/meta_urgent.md → "Meta ads: urgent changes to approve" issue
     before = {x["id"] for x in (json.loads(OUT.read_text()).get("proposals") or [])} if OUT.exists() else set()
     fresh = [x for x in props if x.get("urgent") and x["id"] not in before]
@@ -344,7 +542,7 @@ def apply(rid):
         return 1
     mark(status="running")
     try:
-        msg = do(f.get("op"), json.loads(f.get("payload") or "{}"), token, acct)
+        msg = do(f.get("op"), {**json.loads(f.get("payload") or "{}"), "by": f.get("by", "")}, token, acct)
         mark(status="done", result=msg, done_at=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
         print("Meta ads:", msg)
         return 0
@@ -361,9 +559,14 @@ def do(op, p, token, acct):
         ad = call("GET", str(int(p["ad"])), token, {"fields": "account_id," + AD_FIELDS})
         if ad.get("account_id") and str(ad["account_id"]) != acct:
             raise ValueError("That ad isn't in our ad account.")
-        codes = codes_of(pieces(ad.get("creative") or {}))
-        facts = {c: sailing_facts(c, st, cab, kit, today) for c in codes}
-        props, _ = proposals_for(ad, facts, today)
+        made = json.loads(PUBLISHED.read_text()) if PUBLISHED.exists() else {}
+        if ad["id"] in made:
+            x = remake_proposal(ad["id"], made[ad["id"]], st, cab, kit, today)
+            props = [x] if x else []
+        else:
+            codes = codes_of(pieces(ad.get("creative") or {}))
+            facts = {c: sailing_facts(c, st, cab, kit, today) for c in codes}
+            props, _ = proposals_for(ad, facts, today)
         prop = next((x for x in props if x["id"] == p.get("proposal")), None)
         if not prop:
             raise ValueError("This change is no longer needed or has changed since it was proposed: wait for the next hourly read and look again.")
@@ -378,13 +581,37 @@ def do(op, p, token, acct):
             new = call("POST", f"act_{acct}/adcreatives", token, data={"name": f"{cr.get('name') or ad.get('name')} · prices {today}"[:100], **spec})
             call("POST", ad["id"], token, data={"creative": {"creative_id": new["id"]}})
             return f"\"{ad.get('name')}\" now uses a new creative with today's prices ({'; '.join(c['old'][:40] + ' → ' + c['new'][:40] for c in prop['changes'][:3])}). Meta reviews it again."
+        if prop["kind"] == "remake":
+            rec = made[ad["id"]]
+            code = live_code(unpack(rec["code"]), kit)
+            cid, info, notes = build_creative(code, rec.get("kind", "image"), token, acct, f"{ad.get('name')} · {today}")
+            call("POST", ad["id"], token, data={"creative": {"creative_id": cid}})
+            facts_now = card_facts(unpack(code), st, cab, kit, today)
+            remember(ad["id"], {**rec, "code": code, "fp": fp_of(facts_now), "facts": facts_now, "at": today, "remade": (rec.get("remade") or 0) + 1})
+            return f"\"{ad.get('name')}\" remade with today's prices ({prop['why'].removeprefix('Made by the tracker; ').rstrip('.')}). Meta reviews it again."
         raise ValueError("Unknown proposal.")
+    if op == "publish":
+        st, cab, kit = load_state()
+        today = st.get("updated")
+        aset = call("GET", str(int(p["adset"])), token, {"fields": "account_id,name"})
+        if str(aset.get("account_id") or "") != acct:
+            raise ValueError("That ad set isn't in our ad account.")
+        kind = "video" if p.get("kind") == "video" else "image"
+        code = live_code(unpack(p["code"]), kit)
+        name = (p.get("name") or "Ad from the tracker")[:100]
+        cid, info, notes = build_creative(code, kind, token, acct, name)
+        new = call("POST", f"act_{acct}/ads", token, data={"name": name, "adset_id": str(int(p["adset"])), "creative": {"creative_id": cid}, "status": "PAUSED"})
+        facts_now = card_facts(unpack(code), st, cab, kit, today)
+        remember(new["id"], {"code": code, "kind": kind, "fp": fp_of(facts_now), "facts": facts_now, "at": today, "by": p.get("by", ""), "name": name})
+        extra = " ".join(x for x in re.split(r"(?<=\.)\s+", " ".join(notes)) if x and not x.startswith(("Opened a shared ad", "It's now your own copy", "The shared saved list")))[:200]
+        return (f"Created \"{name}\" in \"{aset.get('name')}\", paused: switch it on in Ads Manager or on the Meta ads page once you've checked it."
+                + (f" When the ad was opened: {extra}" if extra else "") + (f" Has was/now cards: stop it by {info['until']}." if info.get("until") else ""))
     if op != "manual":
         raise ValueError("Unknown request.")
     kind, oid, typ = p.get("kind"), str(int(p["id"])), p.get("type")
     fields = {"ad": "account_id,name,status", "adset": "account_id,name,status,daily_budget,lifetime_budget,bid_amount",
               "campaign": "account_id,name,status,daily_budget,lifetime_budget"}.get(typ)
-    if not fields or (kind in ("bid", "end") and typ != "adset") or (kind == "budget" and typ == "ad"):
+    if not fields or (kind in ("bid", "end", "targeting") and typ != "adset") or (kind == "budget" and typ == "ad"):
         raise ValueError("That change doesn't apply to this.")
     obj = call("GET", oid, token, {"fields": fields})
     if str(obj.get("account_id") or "") not in ("", acct):
@@ -419,6 +646,25 @@ def do(op, p, token, acct):
             raise ValueError("Bad end date.")
         call("POST", oid, token, data={"end_time": end})
         return f"\"{name}\" now ends {end[:16].replace('T', ' ')}."
+    if kind == "targeting":
+        tg = call("GET", oid, token, {"fields": "targeting"}).get("targeting") or {}
+        lo, hi = int(p.get("age_min") or tg.get("age_min") or 18), int(p.get("age_max") or tg.get("age_max") or 65)
+        if not (18 <= lo <= hi <= 65):
+            raise ValueError("Ages must be between 18 and 65 (65 means 65 and over).")
+        tg = {**tg, "age_min": lo, "age_max": hi}
+        g = p.get("genders")
+        if g is not None:
+            if g not in ([], [1], [2]):
+                raise ValueError("Bad gender choice.")
+            if g: tg["genders"] = g
+            else: tg.pop("genders", None)
+        cs = p.get("countries")
+        if cs:
+            if not all(re.fullmatch(r"[A-Z]{2}", c) for c in cs) or len(cs) > 25:
+                raise ValueError("Countries are two-letter codes, e.g. GB, IE.")
+            tg["geo_locations"] = {"countries": cs, "location_types": (tg.get("geo_locations") or {}).get("location_types") or ["home", "recent"]}
+        call("POST", oid, token, data={"targeting": tg})
+        return f"\"{name}\" targeting: ages {lo}–{hi}{'+' if hi == 65 else ''}" + (f", {'men' if g == [1] else 'women' if g == [2] else 'everyone'}" if g is not None else "") + (f", {', '.join(cs)}" if cs else "") + "."
     raise ValueError("Unknown change.")
 
 

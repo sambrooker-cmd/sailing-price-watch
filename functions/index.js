@@ -341,13 +341,27 @@ exports.metaAction = onRequest({
   if (op === "approve" || op === "reject") {
     if (!num(b.ad) || !/^[0-9a-f]{12}$/.test(String(b.proposal || ""))) return res.status(400).json({error: "Bad proposal."});
     payload = {ad: String(b.ad), proposal: String(b.proposal)};
+  } else if (op === "publish") {
+    // An Ad creator ad (its share code: no prices, the tracker renders it with today's), into an ad set, always paused
+    const code = String(b.code || "");
+    if (!/^[A-Za-z0-9_-]{20,20000}$/.test(code) || !num(b.adset)) return res.status(400).json({error: "Bad ad."});
+    payload = {code, adset: String(b.adset), kind: b.kind === "video" ? "video" : "image", name: String(b.name || "").replace(/[\u0000-\u001f]/g, " ").slice(0, 100)};
   } else if (op === "manual") {
     const m = b.change || {}, kind = String(m.kind || ""), type = String(m.type || "");
-    if (!num(m.id) || !["ad", "adset", "campaign"].includes(type) || !["status", "budget", "bid", "end"].includes(kind)) return res.status(400).json({error: "Bad change."});
+    if (!num(m.id) || !["ad", "adset", "campaign"].includes(type) || !["status", "budget", "bid", "end", "targeting"].includes(kind)) return res.status(400).json({error: "Bad change."});
     payload = {id: String(m.id), type, kind};
     if (kind === "status") { if (!["ACTIVE", "PAUSED"].includes(m.status)) return res.status(400).json({error: "Bad status."}); payload.status = m.status; }
     if (kind === "budget") { if (!["daily_budget", "lifetime_budget"].includes(m.field) || !num(m.value)) return res.status(400).json({error: "Bad budget."}); payload.field = m.field; payload.value = String(m.value); }
     if (kind === "bid") { if (!num(m.value)) return res.status(400).json({error: "Bad bid."}); payload.value = String(m.value); }
+    if (kind === "targeting") {
+      const age = v => v == null || v === "" ? null : Number(v), lo = age(m.age_min), hi = age(m.age_max);
+      if ([lo, hi].some(v => v != null && !(Number.isInteger(v) && v >= 18 && v <= 65))) return res.status(400).json({error: "Ages must be 18 to 65."});
+      const g = m.genders == null ? null : (Array.isArray(m.genders) ? m.genders : []).map(Number);
+      if (g && !["", "1", "2"].includes(g.join(""))) return res.status(400).json({error: "Bad gender choice."});
+      const cs = (Array.isArray(m.countries) ? m.countries : []).map(c => String(c).toUpperCase()).slice(0, 25);
+      if (!cs.every(c => /^[A-Z]{2}$/.test(c))) return res.status(400).json({error: "Countries are two-letter codes."});
+      Object.assign(payload, {age_min: lo, age_max: hi, genders: g, countries: cs});
+    }
     if (kind === "end") { if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d)?([+-]\d{4}|Z)?$/.test(String(m.end_time || ""))) return res.status(400).json({error: "Bad end date."}); payload.end_time = m.end_time; }
   } else return res.status(400).json({error: "Unknown request."});
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);

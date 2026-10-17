@@ -793,9 +793,26 @@ function, the browser, a URL, a log or a file. **Setup (Sam, one-off)**: Meta Bu
 assign the ad account (Manage campaigns) and the page → Generate new token (ads_management, ads_read; no expiry) → repo
 secret `META_ADS_TOKEN`; repo variable `META_AD_ACCOUNT_ID` (number without act_); optional `META_APPROVERS`,
 `META_MAX_DAILY_BUDGET`, `META_API_VERSION`; then run Actions → Video function. Until then the page shows the setup.
-**Stage 2 (next)**: remake an ad's pictures/videos with today's prices (the Ad creator's designs, Make video) as a new
-creative; publish ads from the Ad creator into an ad set, created paused; targeting edits. Tested 17 Oct 2026 against a fake
-Graph API (carousel with stale card and message prices, an off-sale ad, an unbacked "Was £", a boosted post, a paused ad, a
+**Stage 2** (built 17 Oct 2026, Sam: "just build the functionality… this feature will launch with that restructure"; not
+connected until the ad account restructure): **Publish to Meta** in the Ad creator (UK; button next to Make video): pick
+an ad set (from the hourly read), the ad's name (default `CAR_EN_<codes>_<date>`), carousel/single image or a 10-second 4:5
+video; the pre-send check runs first; op `publish` (the ad's share code, never prices) → the apply workflow opens the
+tracker page headless (`make_video.capture_jpegs` / `capture`, `window.__spwVideo.jpegs(size)` in adcreator.js: the zip's
+JPEGs with each card's Meta headline, description and link; ended offers taken off first, `live_code`), uploads the images
+(`adimages`; video: `make_video.render` → `advideos`, waits until Meta has processed it), makes the creative (carousel
+`child_attachments` with the button on each card, or single `link_data`, or `video_data` with the first card as thumbnail;
+`CTA` map; page `META_PAGE_ID` or the page our ads mostly use, optional `META_INSTAGRAM_ID`) and creates the ad
+**PAUSED**. It's remembered in `state/meta/published.json` {ad id: code, kind, fp, facts, at, by} (committed by the
+workflow). **Remake**: for a running tracker-made ad, `card_facts` (each card's price shown: lead, or a live claim's figures
+for its was/now design; its offers still live; its Nectar line) is compared with what it was made with; a change →
+proposal "Remake it with today's prices" listing what changed (urgent when a was/now claim ended; all sailings off sale →
+pause); approving redraws it from the same design and swaps the creative. Tracker-made ads get no text proposals or picture
+notes (the remake covers them) and a "made by the tracker" tag. **Targeting** (by hand, ad sets): ages 18–65(+), everyone /
+men / women, countries (two-letter codes; changing them replaces regions and cities); custom audiences and interests are
+kept; the table shows "who sees it" per ad set. French ads aren't published yet. Tested 17 Oct 2026 against a fake
+Graph API (stage 2: a 2-sailing carousel with opening/closing cards published in 6 s (4 images, 1 creative, 1 paused ad),
+no remake while nothing changed, a price change → remake proposal → 4 new images, a creative and the swap, then nothing
+again; a video published in ~70 s; a targeting change keeping the rest. Stage 1: carousel with stale card and message prices, an off-sale ad, an unbacked "Was £", a boosted post, a paused ad, a
 video): proposals and notes as above, an approved text change made one creative + one ad update, a stale approval and an
 over-limit budget refused; the page at 1440 and 390 px against a stand-in function.
 

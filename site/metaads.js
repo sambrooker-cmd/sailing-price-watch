@@ -71,10 +71,11 @@ function draw(){
       return `<div class="ac-block" style="margin:8px 0;display:flex;gap:12px;align-items:flex-start">
         ${a.thumb ? `<img src="${esc(a.thumb)}" alt="" width="64" height="64" style="object-fit:cover;flex:none" loading="lazy" referrerpolicy="no-referrer">` : ""}
         <div style="flex:1;min-width:0">
-          <div>${lvl(p.urgent ? "urgent" : "")} · <b>${p.kind === "pause" ? "Pause this ad" : "Put today's prices in its words"}</b></div>
+          <div>${lvl(p.urgent ? "urgent" : "")} · <b>${p.kind === "pause" ? "Pause this ad" : p.kind === "remake" ? `Remake it with today's prices (${p.fmt === "video" ? "new video" : "new pictures"})` : "Put today's prices in its words"}</b></div>
           <div style="margin:2px 0"><b>${esc(a.name || p.ad)}</b> <span class="sub">${esc((camps[a.campaign] || {}).name || "")} › ${esc((sets[a.adset] || {}).name || "")} · ${esc(STATUS[a.status] || a.status || "")} · ${(a.codes || []).map(c => `<a href="#${esc(c)}">${esc(c)}</a>`).join(", ")}</span></div>
           <div>${esc(p.why)}</div>
           ${(p.changes || []).map(c => `<div style="margin:6px 0;font-size:13.5px"><div class="sub"><s>${esc(c.old)}</s></div><div>${diff(c.old, c.new)}</div></div>`).join("")}
+          ${p.kind === "remake" ? `<p class="sub" style="margin:4px 0 0">Approving draws the ad again from its Ad creator design with today's prices and offers (ended offers come off, an ended was/now card goes back to the standard design, sailings off sale are left out), uploads it as a new creative and points the ad at it; Meta reviews it again.</p>` : ""}
           ${p.kind === "text" ? `<p class="sub" style="margin:4px 0 0">Approving makes a new creative with these words (pictures and links unchanged) and points the ad at it; Meta reviews it again.</p>` : ""}
           <div class="ac-row" style="margin-top:8px"><button type="button" class="btn sm" data-approve="${esc(p.id)}"${can}${busy ? " disabled" : ""}>${busy === "approve" ? "Sending…" : "Approve"}</button>
             <button type="button" class="btn quiet sm" data-reject="${esc(p.id)}"${can}${busy ? " disabled" : ""}>Reject</button></div>
@@ -90,7 +91,7 @@ function draw(){
       <input id="ma-q" value="${esc(st.q)}" placeholder="Search ads, campaigns, cruise codes" aria-label="Search ads"></div>
     <div class="tablewrap"><table class="ptable"><thead><tr><th></th><th>Ad</th><th>Status</th><th>Sailings</th><th class="num">Spend 7d</th><th class="num">Clicks 7d</th><th>Notes</th><th></th></tr></thead><tbody>
       ${list.map(a => `<tr><td>${a.thumb ? `<img src="${esc(a.thumb)}" alt="" width="44" height="44" style="object-fit:cover" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
-        <td style="white-space:normal"><b>${esc(a.name)}</b><div class="sub">${esc(a.type)} · ${esc((camps[a.campaign] || {}).name || "")} › ${esc((sets[a.adset] || {}).name || "")}</div></td>
+        <td style="white-space:normal"><b>${esc(a.name)}</b>${a.made ? ` <span class="chip" title="Published from the Ad creator: remade when its prices, offers or claims change">made by the tracker</span>` : ""}<div class="sub">${esc(a.type)} · ${esc((camps[a.campaign] || {}).name || "")} › ${esc((sets[a.adset] || {}).name || "")}</div></td>
         <td>${esc(STATUS[a.status] || a.status)}</td><td style="white-space:normal">${(a.codes || []).map(c => `<a href="#${esc(c)}">${esc(c)}</a>`).join(", ") || "–"}</td>
         <td class="num">${a.res ? money(Math.round(a.res.spend * 100), cur) : "–"}</td><td class="num">${a.res ? a.res.clicks.toLocaleString("en-GB") : "–"}</td>
         <td style="white-space:normal;font-size:13px">${(a.notes || []).map(esc).join("<br>")}</td>
@@ -99,12 +100,12 @@ function draw(){
 
     <h3 style="margin:22px 0 8px">Campaigns and ad sets</h3>
     <p class="sub">Budgets and bids can at most double or halve in one change, and a daily budget can't go over ${money(D.max_daily, cur)} (repo variable META_MAX_DAILY_BUDGET). Every change asks first.</p>
-    <div class="tablewrap"><table class="ptable"><thead><tr><th>Campaign / ad set</th><th>Status</th><th class="num">Daily</th><th class="num">Lifetime</th><th class="num">Bid</th><th>Ends</th><th></th></tr></thead><tbody>
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Campaign / ad set</th><th>Status</th><th class="num">Daily</th><th class="num">Lifetime</th><th class="num">Bid</th><th>Ends</th><th>Who sees it</th><th></th></tr></thead><tbody>
       ${(D.campaigns || []).map(c => [`<tr><td style="white-space:normal"><b>${esc(c.name)}</b><div class="sub">${esc(c.objective || "")}</div></td><td>${esc(STATUS[c.effective_status] || c.effective_status)}</td>
-          <td class="num">${money(c.daily_budget, cur)}</td><td class="num">${money(c.lifetime_budget, cur)}</td><td></td><td></td>
+          <td class="num">${money(c.daily_budget, cur)}</td><td class="num">${money(c.lifetime_budget, cur)}</td><td></td><td></td><td></td>
           <td>${tools("campaign", c, can)}</td></tr>`,
         ...(D.adsets || []).filter(s => s.campaign_id === c.id).map(s => `<tr><td style="white-space:normal;padding-left:18px">${esc(s.name)}</td><td>${esc(STATUS[s.effective_status] || s.effective_status)}</td>
-          <td class="num">${money(s.daily_budget, cur)}</td><td class="num">${money(s.lifetime_budget, cur)}</td><td class="num">${money(s.bid_amount, cur)}</td><td>${s.end_time ? esc(day(s.end_time)) : "–"}</td>
+          <td class="num">${money(s.daily_budget, cur)}</td><td class="num">${money(s.lifetime_budget, cur)}</td><td class="num">${money(s.bid_amount, cur)}</td><td>${s.end_time ? esc(day(s.end_time)) : "–"}</td><td style="white-space:normal;font-size:13px">${esc(who(s.targeting))}</td>
           <td>${tools("adset", s, can)}</td></tr>`)].join("")).join("")}
     </tbody></table></div>`;
   wire(byId);
@@ -115,7 +116,15 @@ function tools(type, o, can){
     <button type="button" class="btn quiet sm" data-set="${type}|${esc(o.id)}|${on ? "PAUSED" : "ACTIVE"}"${can}>${on ? "Pause" : "Switch on"}</button>
     ${o.daily_budget || o.lifetime_budget ? `<button type="button" class="btn quiet sm" data-budget="${type}|${esc(o.id)}"${can}>Budget</button>` : ""}
     ${type === "adset" && o.bid_amount ? `<button type="button" class="btn quiet sm" data-bid="${esc(o.id)}"${can}>Bid</button>` : ""}
-    ${type === "adset" ? `<button type="button" class="btn quiet sm" data-end="${esc(o.id)}"${can}>End date</button>` : ""}</span>`;
+    ${type === "adset" ? `<button type="button" class="btn quiet sm" data-end="${esc(o.id)}"${can}>End date</button><button type="button" class="btn quiet sm" data-tg="${esc(o.id)}"${can}>Targeting</button>` : ""}</span>`;
+}
+// An ad set's targeting in a few words: ages, gender, countries, and how many other settings it has
+function who(t){
+  if (!t) return "–";
+  const age = `${t.age_min || 18}–${t.age_max || 65}${(t.age_max || 65) >= 65 ? "+" : ""}`;
+  const g = (t.genders || []).length === 1 ? (t.genders[0] === 1 ? "men" : "women") : "";
+  const more = [t.regions && `${t.regions} regions`, t.cities && `${t.cities} cities`, t.custom && `${t.custom} audiences`, t.interests && `${t.interests} interests`].filter(Boolean);
+  return [`${age}${g ? " " + g : ""}`, (t.countries || []).join(", "), ...more].filter(Boolean).join(" · ");
 }
 function setupHtml(){
   const miss = (D.missing || []).join(" and ");
@@ -140,9 +149,9 @@ function wire(byId){
   const q = $("#ma-q"); q && q.addEventListener("input", () => { st.q = q.value; clearTimeout(q._t); q._t = setTimeout(() => { draw(); const n = $("#ma-q"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 300); });
   all("[data-approve]").forEach(b => b.addEventListener("click", async () => {
     const p = D.proposals.find(x => x.id === b.dataset.approve), a = byId[p.ad] || {};
-    if (!confirm(`${p.kind === "pause" ? "Pause" : "Update the words of"} "${a.name || p.ad}" in Meta now?`)) return;
+    if (!confirm(`${p.kind === "pause" ? "Pause" : p.kind === "remake" ? "Remake" : "Update the words of"} "${a.name || p.ad}" in Meta now?`)) return;
     st.busy[p.id] = "approve"; draw();
-    await send({op: "approve", ad: p.ad, proposal: p.id, what: `${p.kind === "pause" ? "Pause" : "Today's prices in the words of"} "${a.name || p.ad}"`}, "Sent: it's applied in a minute or two (Recent changes shows the outcome).");
+    await send({op: "approve", ad: p.ad, proposal: p.id, what: `${p.kind === "pause" ? "Pause" : p.kind === "remake" ? "Remake with today's prices" : "Today's prices in the words of"} "${a.name || p.ad}"`}, "Sent: it's applied in a minute or two (Recent changes shows the outcome).");
     delete st.busy[p.id]; draw();
   }));
   all("[data-reject]").forEach(b => b.addEventListener("click", async () => {
@@ -174,6 +183,20 @@ function wire(byId){
     if (minor === Number(o.bid_amount)) return;
     if (!(minor > 0) || !confirm(`Change the bid for "${o.name}" to ${money(minor, cur)}?`)) return;
     send({op: "manual", change: {kind: "bid", type: "adset", id: o.id, value: String(minor)}, what: `"${o.name}" bid ${money(o.bid_amount, cur)} → ${money(minor, cur)}`}, "Sent.");
+  }));
+  // Targeting (stage 2): ages, gender and countries; regions, cities, audiences and interests are kept as they are
+  all("[data-tg]").forEach(b => b.addEventListener("click", () => {
+    const o = D.adsets.find(x => x.id === b.dataset.tg), t = o.targeting || {};
+    const ages = prompt(`Ages for "${o.name}" (e.g. 55-65; 65 means 65 and over)`, `${t.age_min || 18}-${t.age_max || 65}`); if (ages == null) return;
+    const m = ages.match(/^\s*(\d{2})\s*[-–]\s*(\d{2})\s*\+?\s*$/); if (!m || +m[1] < 18 || +m[2] > 65 || +m[1] > +m[2]) return alert("Use two ages between 18 and 65, e.g. 55-65.");
+    const gs = prompt("Who: all, men or women", (t.genders || []).length === 1 ? (t.genders[0] === 1 ? "men" : "women") : "all"); if (gs == null) return;
+    const genders = /^m/i.test(gs.trim()) ? [1] : /^w/i.test(gs.trim()) ? [2] : [];
+    const cs = prompt("Countries (two-letter codes, e.g. GB, IE). Leave as it is to keep the current locations; changing it replaces any regions or cities.", (t.countries || []).join(", ")); if (cs == null) return;
+    const countries = cs.toUpperCase().split(/[\s,;]+/).filter(Boolean), same = countries.join(",") === (t.countries || []).join(",");
+    if (countries.some(c => !/^[A-Z]{2}$/.test(c))) return alert("Countries are two-letter codes, e.g. GB.");
+    const said = `ages ${m[1]}–${m[2]}${+m[2] === 65 ? "+" : ""}, ${genders.length ? (genders[0] === 1 ? "men" : "women") : "everyone"}${same ? "" : `, ${countries.join(", ")}`}`;
+    if (!confirm(`Change who "${o.name}" reaches to ${said}?`)) return;
+    send({op: "manual", change: {kind: "targeting", type: "adset", id: o.id, age_min: +m[1], age_max: +m[2], genders, countries: same ? [] : countries}, what: `"${o.name}" targeting: ${said}`}, "Sent.");
   }));
   all("[data-end]").forEach(b => b.addEventListener("click", () => {
     const o = D.adsets.find(x => x.id === b.dataset.end);
