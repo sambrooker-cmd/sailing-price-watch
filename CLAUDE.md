@@ -542,6 +542,27 @@ detail view: **Interest on the website** (daily views chart, channels, and views
 API → Enable; GA4 → Admin → Property access management → add the `firebase-adminsdk-…` address as **Viewer**; repo
 variable `GA4_PROPERTY_ID` (Admin → Property details). Until then the page shows the setup. Tested with fake API answers.
 
+## What moved interest (17 Oct 2026, Sam: point 2 of the new ideas issue, "what price moves and offers actually did")
+`impact.py`, run right after `ga4.py` in the "Sailing demand (GA4)" step (uses only saved files): every change to a
+sailing, found in our own history: **price cut / rise** = the lead price at the end of a day against the end of the day
+before, same cabin grade only (a different grade setting the price, i.e. "mix", the 13 Oct `switch` and `back` segments
+are not price moves); **offer started / ended** = a promotion span starting after state `promos_since` (ones running when
+recording began didn't "start") or ending, typed with the same regexes as `offerkit.js` (`TYPES`, keep in step). For each:
+page views in the `WINDOW` = 7 days before and after (GA4 `views`), and booking clicks (new `clicks_d` in ga4.py: daily
+outbound clicks to the booking site plus `GA4_BOOKING_EVENTS`), against **similar sailings** with no change of their own
+over those 14 days (same no-fly / fly-cruise, departing within `CONTROL_DAYS` = 90 days of it, ≥ `MIN_BEFORE` = 20 views
+the week before): **lift** = exp(log ratio of the sailing − median log ratio of the controls) − 1 (clicks: when ≥
+`MIN_CLICKS` = 10 and 3+ controls). Scored once its week after is complete inside the GA4 window, then **kept for good**
+(state/ga4/impact.json, key id|date|kind|detail), so the evidence outlives GA4's 90 days. Flags (left out of the summary):
+`mixed` (another change within 7 days, e.g. A12704's cut on 14 Oct and rise on 15 Oct), `thin`, `few_controls`. →
+`publish.py` `pricewatch/ga4-impact`. Page **Prices → What moved interest** (`site/impact.js`, UK only): by kind (price
+cuts, also by size under 5% / 5–10% / over 10%; rises; offers started, also by type; offers ended): changes scored,
+typical (median) lift in views, share that rose more than similar sailings, typical lift in booking clicks, a dot per
+change, and "More interest" / "Less interest" (5+ changes, median ±10% or more, most going the same way) / "No clear
+effect" / "Too few so far"; then every change (filters, show flagged, CSV). Tested with planted effects (cuts +25% found
++25%, rises −10% found −8%, onboard credit +15% found +20%, discount +20% found +24%, coach 0% found −4%); on our real history
+since 8 Oct it finds 7 cuts, 47 rises, 14 offers started and 18 ended to score once GA4 is connected.
+
 ## Search demand (17 Oct 2026, Sam: "a search demand viewer, with key search terms pre loaded up but with the ability to add more and group them accordingly. Ideally from a tool like google keyword planner")
 - **Terms**: the starting list `search_terms.json` (80 terms in 10 groups: brand, no-fly, departure ports (every UK port we
   sail from), Caribbean/fly, Norway/Arctic, Europe/islands, Christmas/short breaks, who it's for, deals, competitor brands)
@@ -725,6 +746,7 @@ pounds a month).
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
+| `impact.py`, `site/impact.js`, `state/ga4/impact.json` | What moved interest (views and booking clicks after each price move and offer, against similar sailings): see "What moved interest (17 Oct 2026)" above |
 | `search_demand.py`, `search_terms.json`, `site/searchdemand.js`, `state/seo/search_demand.json` | Search demand viewer (Keyword Planner volumes for grouped, editable term lists): see "Search demand (17 Oct 2026)" above |
 | `site/seohealth.js` | SEO → Search performance (Search Console quick wins, pages losing traffic) and Site health: see "Search performance and Site health (17 Oct 2026)" above |
 | `seo_cwv.py`, `.github/workflows/cwv.yml`, `site/cwv.js`, `state/seo/cwv.json`, `state/fr/cwv.json` | Core Web Vitals for us and the competitors (CrUX + PageSpeed Insights): see "Core Web Vitals (17 Oct 2026)" above |

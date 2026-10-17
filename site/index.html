@@ -590,6 +590,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="demand"><p class="loading">Loading sailing demand…</p></div>
   </section>
 
+  <section aria-labelledby="h-impact">
+    <h2 id="h-impact"><span class="mini"></span>What moved interest</h2>
+    <div id="impact"><p class="loading">Loading…</p></div>
+  </section>
+
   <section aria-labelledby="h-cards">
     <h2 id="h-cards"><span class="mini amber"></span>Cards</h2>
     <div class="controls" role="group" aria-label="Card filters">
@@ -2126,6 +2131,7 @@ const auth = getAuth(firebaseApp);
     feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    impact: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
     demand: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     cards: '<rect x="3" y="5" width="13" height="15" rx="1"/><path d="M8 2h13v15"/>',
     ads: '<rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/><path d="M5 3h14"/>',
@@ -2148,7 +2154,7 @@ const auth = getAuth(firebaseApp);
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
   // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
-  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand"];
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand", "impact"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2157,7 +2163,8 @@ const auth = getAuth(firebaseApp);
   const VIEWS = [
     ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"], "Prices"],
     ["trends", "Trends", ["h-trends"], "Prices"],
-    ["demand", "Sailing demand", ["h-demand"], "Prices"],   // GA4: views and booking clicks per sailing page (site/demand.js)
+    ["demand", "Sailing demand", ["h-demand"], "Prices"],
+    ["impact", "What moved interest", ["h-impact"], "Prices"],   // price moves and offers against similar sailings (site/impact.js)   // GA4: views and booking clicks per sailing page (site/demand.js)
     ["changes", "What changed", ["h-changes"], "Prices"],
     ["promos", "Live promotions", ["h-promos"], "Prices"],
     // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; France: prices and vs only)
@@ -2217,6 +2224,7 @@ const auth = getAuth(firebaseApp);
     if (v === "cwv") mountCwv();
     if (v === "seosearch" || v === "seohealth") mountSeo(v);
     if (v === "demand") mountDemand();
+    if (v === "impact") mountImpact();
     if (v === "seodemand") mountSearchDemand();
     if (COMP[v]) mountComp(v);
     if (v === "compemails") mountCompEmails();
@@ -2373,6 +2381,11 @@ const auth = getAuth(firebaseApp);
     try { const m = await import("./demand.js?v=__BUILD__"); await m.mount($("demand"), {readJson, esc, state}); }
     catch (e) { $("demand").innerHTML = `<p class="err">Sailing demand couldn't load: ${esc(e.message)}</p>`; }
   }
+  async function mountImpact(){
+    if (!state || FR) return;
+    try { const m = await import("./impact.js?v=__BUILD__"); await m.mount($("impact"), {readJson, esc, state}); }
+    catch (e) { $("impact").innerHTML = `<p class="err">This page couldn't load: ${esc(e.message)}</p>`; }
+  }
   async function mountDemandDetail(id){
     try { const m = await import("./demand.js?v=__BUILD__"); await m.mountDetail($("demand-d"), {readJson, esc, state}, id); }
     catch (e) { if ($("demand-d")) $("demand-d").innerHTML = `<p class="err">Couldn't load: ${esc(e.message)}</p>`; }
@@ -2501,6 +2514,7 @@ const auth = getAuth(firebaseApp);
     if (view === "cwv") mountCwv();
     if (view === "seosearch" || view === "seohealth") mountSeo(view);
     if (view === "demand") mountDemand();
+    if (view === "impact") mountImpact();
     if (view === "seodemand") mountSearchDemand();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
