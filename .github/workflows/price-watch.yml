@@ -233,7 +233,9 @@ jobs:
           META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
           META_API_VERSION: ${{ vars.META_API_VERSION }}
           META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
-        run: python meta_manage.py read
+        run: |
+          python meta_manage.py read
+          python ad_spend.py   # Meta spend by sailing, by card clicks and by ad-driven page views (saved files only)
 
       - name: Make and upload French cards
         id: frcardrun

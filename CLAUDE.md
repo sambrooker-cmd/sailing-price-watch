@@ -816,6 +816,36 @@ again; a video published in ~70 s; a targeting change keeping the rest. Stage 1:
 video): proposals and notes as above, an approved text change made one creative + one ad update, a stale approval and an
 over-limit budget refused; the page at 1440 and 390 px against a stand-in function.
 
+## Campaign results and Meta spend by sailing (17 Oct 2026, Sam: point 5 of the ideas, "also include spend by sailing estimated from both sailing carousel card clicks but also estimated spend from page views driven from the ads to each sailing")
+Page **Creative → Campaign results** (`site/campresults.js`, UK only, `FR_HIDE`). Pick a saved Campaign builder brief (the
+shared list, kind "campaign") or "Any dates (every Meta ad)"; dates default to the brief's booking window (editable).
+- **Interest**: the brief's sailings (`campaign.js` `sailingsFor`: its rule or codes on the campaign's first day, so sailings
+  since departed or off the website still count) with GA4 page views and booking clicks during the campaign against the same
+  number of days before (while it's still running: the days so far), against **similar sailings not in it** (impact.py's
+  method: same no-fly / fly-cruise, departing within 90 days and after the campaign, ≥ 20 views before): lift per sailing,
+  typical (median) lift and a verdict (≥ 5 sailings, ±10%, most the same way), click lift (≥ 10 clicks, 3+ controls).
+- **Meta spend by sailing, two estimates** (`ad_spend.py`, run after `meta_manage.py read`, saved files only):
+  **by card clicks** = each ad's daily spend split by the link clicks on each carousel card that day (card → its
+  /cruise/<code>- link; opening/closing cards → `_cards`; no clicks that day → the ad's clicks over every day; none → evenly;
+  single image/video → its sailing; no sailing link → `_nolink`); **by page views** = split by the page views in visits from
+  that ad (GA4, `ga4.py` `meta_views`: source Facebook/Instagram/Meta and paid, by page, day and `sessionCampaignName`), the
+  UTM campaign matched (case/punctuation ignored) to the ad's id or name, else its ad set's, else its campaign's; ads with no
+  match share the views of unmatched UTM campaigns (`(not set)` …); non-sailing pages → `_other`; nothing → `_unplaced` /
+  `_noviews`; days outside GA4's window → null. Totals per day equal the spend (`share_out` to the penny).
+  Spend comes from `meta_manage.read_spend` once a UK day: insights level ad, `time_increment` 1, the last `SPEND_DAYS` = 28
+  days re-read (90 on the first read), and link clicks per card (`action_breakdowns` action_carousel_card_id/name); ads no
+  longer listed are fetched by id for their cards → `state/meta/spend.json` (kept `SPEND_KEEP` = 400 days) →
+  `state/meta/spend_by_sailing.json` {rows {code: {Meta campaign id: [[date, by cards, by views, views]]}}, campaigns
+  {id: {name, ads}}, utm (what each tag matched), methods} → `publish.py` `pricewatch/meta-spend` (`ga4-demand` is published
+  without `meta_views`). Page: the Meta campaigns counted (default: names or ad names carrying the brief's code, else name;
+  tick by hand), the campaign's sailings or every sailing, a daily spend chart, per sailing both estimates, views from these
+  ads, cost per view, booking clicks (all sources) and cost per booking click; "Other sailings", opening/closing cards, other
+  pages, unplaced; "How the spend was shared out" (methods, UTM matches); CSV. **Not checked against the real API yet** (Meta
+  and GA4 aren't connected): on the first real read check that card names match the carousel's headlines (else positions are
+  tried) and what our ads' UTM tags look like (suggested: utm_source=facebook, utm_medium=paid_social,
+  utm_campaign={{campaign.name}}). Tested 17 Oct 2026 with a fake Graph API and fake GA4 figures (a carousel with opener, a
+  single image, a brand ad, an old ad fetched by id; matches at ad and campaign level and a pooled "(not set)").
+
 ## QA rerun (17 Oct 2026, Sam: "can you rerun the full qa")
 Two code reviews (Python and workflows; browser code) and a UX sweep (all 27 pages UK and the France set, at 1440, 390
 and dark mode: 162 page views, page errors, console errors, stuck "Loading", error boxes, sideways scroll, empty pages).
@@ -887,6 +917,7 @@ every page clean.
 | `meta_manage.py`, `site/metaads.js`, `.github/workflows/meta-apply.yml`, `functions/index.js` `metaAction`, `state/meta/ads.json` | Our own Meta ads: hourly read, proposed changes, Approve in the tracker, applied by a workflow: see "Meta ads: kept in step after approval (17 Oct 2026)" above |
 | `site/compliance.js` | Pre-send compliance check shared by every creator (prices, was/now, offers and T&Cs, two-sharing line, figures, brand words, links): see "Pre-send compliance check (17 Oct 2026)" above |
 | `site/campaign.js` | Campaign builder (a brief → themes, Meta, Google Ads, email sends, landing page, calendar, and drafts in the creators): see "Campaign builder (17 Oct 2026)" above |
+| `ad_spend.py`, `site/campresults.js`, `state/meta/spend.json`, `state/meta/spend_by_sailing.json` | Campaign results (interest against similar sailings) and Meta spend by sailing, by card clicks and by ad-driven page views: see "Campaign results and Meta spend by sailing (17 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
 | `impact.py`, `site/impact.js`, `state/ga4/impact.json` | What moved interest (views and booking clicks after each price move and offer, against similar sailings): see "What moved interest (17 Oct 2026)" above |
 | `search_demand.py`, `search_terms.json`, `site/searchdemand.js`, `state/seo/search_demand.json` | Search demand viewer (Keyword Planner volumes for grouped, editable term lists): see "Search demand (17 Oct 2026)" above |
