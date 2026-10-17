@@ -32,6 +32,9 @@
   "A22705": [
    "feed image looks like campaign art (may contain text)"
   ],
+  "A12707": [
+   "feed price £1,739 differs from cheapest cabin on the page £1,709 (the page price is used)"
+  ],
   "A22707PO": [
    "feed price £929 differs from cheapest cabin on the page £1,049 (the page price is used)"
   ],
@@ -57,6 +60,12 @@
    "feed": 389,
    "page": 199,
    "at": "2026-10-17T00:14:44Z"
+  },
+  {
+   "id": "A12707",
+   "feed": 1739,
+   "page": 1709,
+   "at": "2026-10-17T08:07:14Z"
   }
  ],
  "feed_gap_fixed": [],
@@ -64,6 +73,7 @@
  "reported": [],
  "checks": [
   "2026-10-17T00:14:44Z",
-  "2026-10-17T05:07:15Z"
+  "2026-10-17T05:07:15Z",
+  "2026-10-17T08:07:14Z"
  ]
 }
