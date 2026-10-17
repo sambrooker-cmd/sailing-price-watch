@@ -601,6 +601,12 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="campaign"><p class="loading">Loading…</p></div>
   </section>
 
+  <section aria-labelledby="h-metaads">
+    <h2 id="h-metaads"><span class="mini amber"></span>Meta ads</h2>
+    <p class="note" style="margin:0 0 12px">Our own Meta ads, read every hour and kept in step with the tracker: changes are proposed when a sailing goes off sale, a was/now claim ends or a price in an ad's words is out of date, and only made once an approver presses Approve.</p>
+    <div id="metaads"><p class="loading">Loading…</p></div>
+  </section>
+
   <section aria-labelledby="h-cards">
     <h2 id="h-cards"><span class="mini amber"></span>Cards</h2>
     <div class="controls" role="group" aria-label="Card filters">
@@ -2146,6 +2152,7 @@ const auth = getAuth(firebaseApp);
     seodemand: '<path d="M3 20h18"/><path d="M6 16v-4M10 16V8M14 16v-6M18 16V5"/>',
     seosearch: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M8 13l2-2 2 2 3-3"/>',
     seohealth: '<path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/><path d="M8 12h2l1-2 2 4 1-2h2"/>',
+    metaads: '<path d="M4 15c0-6 3-9 5-9s3 3 3 5 1 5 3 5 3-3 3-6"/><path d="M4 15c0 2 1 3 2 3 3 0 4-6 6-7"/>',
     campaign: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
     pages: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     ecards: '<rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/>',
@@ -2161,7 +2168,7 @@ const auth = getAuth(firebaseApp);
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
   // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
-  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand", "impact", "campaign"];
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand", "impact", "campaign", "metaads"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2181,6 +2188,7 @@ const auth = getAuth(firebaseApp);
     ["compemails", "Competitor emails", ["h-compemails"], "Competitors"],   // the email library (Sam, 15 Oct 2026)
     ["compvs", "Vs Ambassador", ["h-compvs"], "Competitors"],
     ["campaign", "Campaign builder", ["h-campaign"], "Creative"],   // a brief → a whole multi-channel plan and drafts (site/campaign.js)
+    ["metaads", "Meta ads", ["h-metaads"], "Creative"],   // our own Meta ads: proposed changes, approve, budgets (site/metaads.js)
     ["cards", "Cards", ["h-cards"], "Creative"],
     ["ads", "Ad creator", ["h-ads"], "Creative"],
     ["gads", "Google Ads", ["h-gads"], "Creative"],
@@ -2234,6 +2242,7 @@ const auth = getAuth(firebaseApp);
     if (v === "demand") mountDemand();
     if (v === "impact") mountImpact();
     if (v === "campaign") mountCampaign();
+    if (v === "metaads") mountMetaAds();
     if (v === "seodemand") mountSearchDemand();
     if (COMP[v]) mountComp(v);
     if (v === "compemails") mountCompEmails();
@@ -2340,7 +2349,7 @@ const auth = getAuth(firebaseApp);
       adsModule = m;
       const shared = sharedAd; sharedAd = null;
       const add = pendingAdd.ads; delete pendingAdd.ads;
-      await m.mount($("ads"), {terms, state, cabins, adkit: kit, shared, add, market: MKT,
+      await m.mount($("ads"), {terms, readJson, state, cabins, adkit: kit, shared, add, market: MKT,
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { adsMounted = false; $("ads").innerHTML = `<p class="err">The ad creator couldn't load: ${esc(e.message)}</p>`; }
   }
@@ -2389,6 +2398,12 @@ const auth = getAuth(firebaseApp);
     if (!state || FR) return;
     try { const m = await import("./demand.js?v=__BUILD__"); await m.mount($("demand"), {readJson, esc, state}); }
     catch (e) { $("demand").innerHTML = `<p class="err">Sailing demand couldn't load: ${esc(e.message)}</p>`; }
+  }
+  async function mountMetaAds(){
+    if (!state || FR) return;
+    try { const m = await import("./metaads.js?v=__BUILD__"); await m.mount($("metaads"), {readJson, esc,
+      idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))}); }
+    catch (e) { $("metaads").innerHTML = `<p class="err">This page couldn't load: ${esc(e.message)}</p>`; }
   }
   async function mountCampaign(){
     if (!state || FR) return;
@@ -2531,6 +2546,7 @@ const auth = getAuth(firebaseApp);
     if (view === "demand") mountDemand();
     if (view === "impact") mountImpact();
     if (view === "campaign") mountCampaign();
+    if (view === "metaads") mountMetaAds();
     if (view === "seodemand") mountSearchDemand();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));

@@ -52,6 +52,7 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           TOKEN: ${{ secrets.VIDEO_DISPATCH_TOKEN }}
+          META_APPROVERS: ${{ vars.META_APPROVERS }}
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
@@ -61,6 +62,8 @@ jobs:
           printf '%s' "$TOKEN" | tr -d '\r\n ' > "$RUNNER_TEMP/tok"
           $FB functions:secrets:set GITHUB_VIDEO_TOKEN --data-file "$RUNNER_TEMP/tok" --force
           rm -f "$RUNNER_TEMP/tok"
-          $FB deploy --only functions:makeVideo,functions:emailImages,functions:saved,functions:drafts --force
+          # Who may approve Meta ad changes (repo variable META_APPROVERS, comma-separated emails; default Sam)
+          printf 'META_APPROVERS=%s\n' "${META_APPROVERS:-sam.brooker@ambassadorcruiseline.com}" > functions/.env
+          $FB deploy --only functions:makeVideo,functions:emailImages,functions:saved,functions:drafts,functions:metaAction --force
           $FB functions:secrets:prune --force || true
-          echo "Deployed: makeVideo, emailImages, saved and drafts (https://us-central1-promotions-planner.cloudfunctions.net/)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployed: makeVideo, emailImages, saved, drafts and metaAction (https://us-central1-promotions-planner.cloudfunctions.net/)" >> "$GITHUB_STEP_SUMMARY"

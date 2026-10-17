@@ -763,8 +763,66 @@ builder: "live was/now claim" now means an eligible claim live today (it counted
 headless with broken drafts (each problem above caught, clean ones pass) and with made-up claims in a scratch test (right
 figures pass, wrong was / not eligible / stale price fail, ending tomorrow warns).
 
+## Meta ads: kept in step after approval (17 Oct 2026, Sam: "I plan to automate the updates in Meta ads", catalogue ads "aren't as useful as full carousel, video, static and gif ads so I'd like to do it that way as well")
+Sam picked: **approve in the tracker** (nothing is applied without an approver pressing Approve), every action (creative
+and words, pausing, new ads, budgets and targeting), ads matched to sailings by their **landing page links**, no GIFs for
+now. **Stage 1** (this): `meta_manage.py read` (hourly step "Meta ads (read our account)", `continue-on-error`): the
+account, campaigns, ad sets (budgets, bid, schedule) and ads (creative words and links from `object_story_spec` /
+`asset_feed_spec`, thumbnail, 7 days' spend / impressions / clicks), each ad's sailings from its `/cruise/<code>-` links,
+then **proposals** against the tracker's data (running ads only): **pause** (urgent) when every linked sailing is off sale
+or departed, or when the words make a reduction claim (`REDUCE`) with no claim live today on its sailings; **text** when the
+words quote a £ figure that isn't a current price/claim/offer/Nectar figure of its sailings: a carousel card's own sailing's
+lead price, "from £N" = the cheapest of the ad's sailings, or the only sailing's lead price (otherwise a note). **Notes** for
+people: some sailings off sale, the pictures may show an older price (a linked sailing's price moved after the ad's
+`updated_time`), a price that can't be swapped automatically, ads made from a page post, no sailing links. Proposal ids are
+a hash of what would change. → `state/meta/ads.json` → `publish.py` `pricewatch/meta-ads`. New urgent proposals →
+`out/meta_urgent.md` → "Meta ads: urgent changes to approve — DATE" issue; a rejected token → "Meta ads: token needs
+renewing". **Approving**: page **Creative → Meta ads** (`site/metaads.js`, UK only): tiles, **Waiting for approval** (urgent
+first; old words struck through, new ones with the changes marked; Approve / Reject, each asking first), **Recent changes**
+(who, what, outcome; refreshes every 15 s while one runs), **Our ads** (running / with notes / not running / all, search;
+sailings linked to their detail views, spend and clicks, notes, Pause / Switch on), **Campaigns and ad sets** (status,
+daily/lifetime budget, bid, end; Pause / Switch on, Budget, Bid, End date). Buttons go to the Firebase function
+**`metaAction`** (allowlist; POST only for `META_APPROVERS`, repo variable written to `functions/.env` at deploy, default
+Sam; 200 a day; Firestore `pricewatch_meta/<id>`), which starts **`meta-apply.yml`** → `meta_manage.py apply <id>`: an
+approval is worked out afresh from the live ad and today's data and applied only if the same proposal still exists (a
+pause; or a new creative copying the old spec with the new words, then the ad pointed at it: Meta reviews it again);
+changes by hand are checked (the object must be in our account; budgets and bids at most `MAX_STEP` = 2× / ½ per change,
+a daily budget never above `META_MAX_DAILY_BUDGET`, default £500; end dates 23:59 GMT). The outcome is written on the
+request. The Meta token is only in the repo secret `META_ADS_TOKEN`, sent in a header to graph.facebook.com; never in the
+function, the browser, a URL, a log or a file. **Setup (Sam, one-off)**: Meta Business Settings → System users → add →
+assign the ad account (Manage campaigns) and the page → Generate new token (ads_management, ads_read; no expiry) → repo
+secret `META_ADS_TOKEN`; repo variable `META_AD_ACCOUNT_ID` (number without act_); optional `META_APPROVERS`,
+`META_MAX_DAILY_BUDGET`, `META_API_VERSION`; then run Actions → Video function. Until then the page shows the setup.
+**Stage 2** (built 17 Oct 2026, Sam: "just build the functionality… this feature will launch with that restructure"; not
+connected until the ad account restructure): **Publish to Meta** in the Ad creator (UK; button next to Make video): pick
+an ad set (from the hourly read), the ad's name (default `CAR_EN_<codes>_<date>`), carousel/single image or a 10-second 4:5
+video; the pre-send check runs first; op `publish` (the ad's share code, never prices) → the apply workflow opens the
+tracker page headless (`make_video.capture_jpegs` / `capture`, `window.__spwVideo.jpegs(size)` in adcreator.js: the zip's
+JPEGs with each card's Meta headline, description and link; ended offers taken off first, `live_code`), uploads the images
+(`adimages`; video: `make_video.render` → `advideos`, waits until Meta has processed it), makes the creative (carousel
+`child_attachments` with the button on each card, or single `link_data`, or `video_data` with the first card as thumbnail;
+`CTA` map; page `META_PAGE_ID` or the page our ads mostly use, optional `META_INSTAGRAM_ID`) and creates the ad
+**PAUSED**. It's remembered in `state/meta/published.json` {ad id: code, kind, fp, facts, at, by} (committed by the
+workflow). **Remake**: for a running tracker-made ad, `card_facts` (each card's price shown: lead, or a live claim's figures
+for its was/now design; its offers still live; its Nectar line) is compared with what it was made with; a change →
+proposal "Remake it with today's prices" listing what changed (urgent when a was/now claim ended; all sailings off sale →
+pause); approving redraws it from the same design and swaps the creative. Tracker-made ads get no text proposals or picture
+notes (the remake covers them) and a "made by the tracker" tag. **Targeting** (by hand, ad sets): ages 18–65(+), everyone /
+men / women, countries (two-letter codes; changing them replaces regions and cities); custom audiences and interests are
+kept; the table shows "who sees it" per ad set. French ads aren't published yet. Tested 17 Oct 2026 against a fake
+Graph API (stage 2: a 2-sailing carousel with opening/closing cards published in 6 s (4 images, 1 creative, 1 paused ad),
+no remake while nothing changed, a price change → remake proposal → 4 new images, a creative and the swap, then nothing
+again; a video published in ~70 s; a targeting change keeping the rest. Stage 1: carousel with stale card and message prices, an off-sale ad, an unbacked "Was £", a boosted post, a paused ad, a
+video): proposals and notes as above, an approved text change made one creative + one ad update, a stale approval and an
+over-limit budget refused; the page at 1440 and 390 px against a stand-in function.
+
 ## Hard rules (do not change without Sam)
-- **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
+- **Ad accounts: only our own Meta ad account, and only after approval** (Sam changed this rule on 17 Oct 2026: "that was my
+  rule to begin with", "I'd like to do it that way as well"; it was "Never touch Meta, Google Ads or any ad account").
+  The tracker may read our Meta ad account and, only when an approver presses Approve (or makes the change by hand) on
+  the Meta ads page, pause or switch on ads/ad sets/campaigns, swap an ad's words for today's prices, change budgets,
+  bids and end dates (stage 2: new creative and paused new ads, targeting). Nothing is applied without that press.
+  **Google Ads and every other ad account: never changed** (Keyword Planner is read-only).
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
   or invent one anywhere else. UK reference-pricing rules apply. The rules live in `tracker.py` (`RULES`, `claim_for`; the code is the only source since 13 Oct 2026, the copy in state just mirrors it):
   28 days held before a drop, claim runs at most 28 days (and never longer than the reference was held), min £10 saving,
@@ -802,6 +860,7 @@ figures pass, wrong was / not eligible / stale price fail, ending tomorrow warns
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `meta_manage.py`, `site/metaads.js`, `.github/workflows/meta-apply.yml`, `functions/index.js` `metaAction`, `state/meta/ads.json` | Our own Meta ads: hourly read, proposed changes, Approve in the tracker, applied by a workflow: see "Meta ads: kept in step after approval (17 Oct 2026)" above |
 | `site/compliance.js` | Pre-send compliance check shared by every creator (prices, was/now, offers and T&Cs, two-sharing line, figures, brand words, links): see "Pre-send compliance check (17 Oct 2026)" above |
 | `site/campaign.js` | Campaign builder (a brief → themes, Meta, Google Ads, email sends, landing page, calendar, and drafts in the creators): see "Campaign builder (17 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |

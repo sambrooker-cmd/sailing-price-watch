@@ -59,6 +59,22 @@ def market(code):
 
 def capture(code, sizes):
     """{size: [{kind, bg: Image, fg: Image}]}, plus the ad's info."""
+    def take(pg):
+        return {size: [{"kind": x["kind"], "bg": png(x["bg"]), "fg": png(x["fg"])} for x in pg.evaluate("s => window.__spwVideo.layers(s)", size)]
+                for size in sizes}
+    return on_page(code, take)
+
+
+def capture_jpegs(code, size):
+    """The ad's cards as the Ad creator's zip makes them: [{kind, name, headline, description, link, jpeg (bytes)}], plus
+    the ad's info and notes (meta_manage.py: publishing to Meta, 17 Oct 2026)."""
+    def take(pg):
+        return [{**x, "jpeg": base64.b64decode(x["jpeg"].split(",", 1)[1])} for x in pg.evaluate("s => window.__spwVideo.jpegs(s)", size)]
+    return on_page(code, take)
+
+
+def on_page(code, take):
+    """Opens the tracker page with the ad from its link (latest committed prices) and returns take(page), info, notes."""
     from playwright.sync_api import sync_playwright
     docs = {"pricewatch/" + k: {"json": v["json"]} for k, v in publish.documents().items()}
     docs["allowlist/video@price-watch"] = {"role": "viewer"}
@@ -93,9 +109,7 @@ def capture(code, sizes):
         pg.wait_for_function("window.__spwVideo && document.querySelectorAll('.ac-list .ac-pick').length > 0", timeout=60000)
         info = pg.evaluate("window.__spwVideo.info()")
         note = pg.locator(".ac-note").all_inner_texts()
-        for size in sizes:
-            layers = pg.evaluate("s => window.__spwVideo.layers(s)", size)
-            out[size] = [{"kind": x["kind"], "bg": png(x["bg"]), "fg": png(x["fg"])} for x in layers]
+        out = take(pg)
         b.close()
     if errors:
         print("Page errors:", errors[:3])
