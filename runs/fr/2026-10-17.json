@@ -5,7 +5,14 @@
  "removed": [],
  "returned": [],
  "drops": [],
- "rises": [],
+ "rises": [
+  {
+   "id": "R270501",
+   "from": 1649,
+   "to": 1919,
+   "at": "2026-10-17T05:07:36Z"
+  }
+ ],
  "eligible": [],
  "flags": {
   "R261116": [
@@ -31,7 +38,15 @@
   ]
  },
  "cabin_drops": [],
- "cabin_rises": [],
+ "cabin_rises": [
+  {
+   "id": "R270501",
+   "cabin": "twin.inside",
+   "from": 1649,
+   "to": 1919,
+   "at": "2026-10-17T05:07:36Z"
+  }
+ ],
  "cabin_sold_out": [],
  "cabin_back": [],
  "cabin_eligible": [],
@@ -44,6 +59,7 @@
  "lead_source_switch": [],
  "reported": [],
  "checks": [
-  "2026-10-17T00:15:17Z"
+  "2026-10-17T00:15:17Z",
+  "2026-10-17T05:07:36Z"
  ]
 }

@@ -1,0 +1,1 @@
+{"read_on":"2026-10-17","fetched_at":"2026-10-17T05:09:02+00:00","problem":"The GA4 property isn't set yet: add its numeric ID (GA4 → Admin → Property details) as the repo variable GA4_PROPERTY_ID."}

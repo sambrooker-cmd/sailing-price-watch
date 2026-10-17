@@ -1345,6 +1345,44 @@
      "flight_from": null,
      "nights": 12,
      "departure_date": "2027-05-01",
+     "price": 1649,
+     "promos": [
+      "Formule Plus",
+      "Larguez les amarres"
+     ],
+     "nectar": "",
+     "photo": "https://cms.ambassadorcroisieres.fr/assets/8d09e138-6e65-4c9f-b5f3-b22288786360?width=2000&format=jpg&quality=85",
+     "fp": "5c5a839b3666",
+     "made_at": "2026-10-16T21:09:17Z",
+     "reason": "price 1 649 € → 1 919 €",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_1x1.jpg?alt=media&token=10c9141d-f27f-44ee-aa12-b9b2c252211c",
+       "path": "pricewatch-cards/fr/R270501/5c5a839b3666_1x1.jpg",
+       "kb": 244
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_4x5.jpg?alt=media&token=7b38f007-bc59-42b0-a302-448da9ce786a",
+       "path": "pricewatch-cards/fr/R270501/5c5a839b3666_4x5.jpg",
+       "kb": 281
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_9x16.jpg?alt=media&token=6676c743-2335-43bb-b27f-560a1d5cd24c",
+       "path": "pricewatch-cards/fr/R270501/5c5a839b3666_9x16.jpg",
+       "kb": 337
+      }
+     },
+     "out_of_date_since": "2026-10-17T05:09:26Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Odyssée Hellénique",
+     "base_title": "Odyssée Hellénique",
+     "ship": "Renaissance",
+     "port": "Marseille",
+     "flight_from": null,
+     "nights": 12,
+     "departure_date": "2027-05-01",
      "price": 1919,
      "promos": [
       "Formule Plus",
@@ -1460,30 +1498,30 @@
     "flight_from": null,
     "nights": 12,
     "departure_date": "2027-05-01",
-    "price": 1649,
+    "price": 1919,
     "promos": [
      "Formule Plus",
      "Larguez les amarres"
     ],
     "nectar": "",
     "photo": "https://cms.ambassadorcroisieres.fr/assets/8d09e138-6e65-4c9f-b5f3-b22288786360?width=2000&format=jpg&quality=85",
-    "fp": "5c5a839b3666",
-    "made_at": "2026-10-16T21:09:17Z",
-    "reason": "price 1 919 € → 1 649 €",
+    "fp": "a7a0d9f5a14f",
+    "made_at": "2026-10-17T05:09:26Z",
+    "reason": "price 1 649 € → 1 919 €",
     "files": {
      "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_1x1.jpg?alt=media&token=10c9141d-f27f-44ee-aa12-b9b2c252211c",
-      "path": "pricewatch-cards/fr/R270501/5c5a839b3666_1x1.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_1x1.jpg?alt=media&token=1819f80d-d390-4152-9b0d-50f8cb9683b2",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_1x1.jpg",
       "kb": 244
      },
      "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_4x5.jpg?alt=media&token=7b38f007-bc59-42b0-a302-448da9ce786a",
-      "path": "pricewatch-cards/fr/R270501/5c5a839b3666_4x5.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_4x5.jpg?alt=media&token=8ce00ef7-03e0-420d-8c99-b18e301fb468",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_4x5.jpg",
       "kb": 281
      },
      "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2F5c5a839b3666_9x16.jpg?alt=media&token=6676c743-2335-43bb-b27f-560a1d5cd24c",
-      "path": "pricewatch-cards/fr/R270501/5c5a839b3666_9x16.jpg",
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2Ffr%2FR270501%2Fa7a0d9f5a14f_9x16.jpg?alt=media&token=882a99cc-ea3c-40cc-916f-f6f1b783d566",
+      "path": "pricewatch-cards/fr/R270501/a7a0d9f5a14f_9x16.jpg",
       "kb": 337
      }
     }
@@ -3758,5 +3796,5 @@
    }
   }
  },
- "updated_at": "2026-10-16T21:09:17Z"
+ "updated_at": "2026-10-17T05:09:26Z"
 }

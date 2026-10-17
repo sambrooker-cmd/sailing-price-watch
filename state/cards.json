@@ -969,6 +969,13 @@
       "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
       "kb": 426
      }
+    },
+    "review": {
+     "fp": "0a69ffbc75b0",
+     "at": "2026-10-17T05:10:56Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -1675,6 +1682,13 @@
       "path": "pricewatch-cards/A22630BR/e48f1b9c08b2_9x16.jpg",
       "kb": 444
      }
+    },
+    "review": {
+     "fp": "e48f1b9c08b2",
+     "at": "2026-10-17T05:10:48Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -1857,6 +1871,13 @@
       "path": "pricewatch-cards/A22631BR/4f872fc36be5_9x16.jpg",
       "kb": 186
      }
+    },
+    "review": {
+     "fp": "4f872fc36be5",
+     "at": "2026-10-17T05:09:44Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -3126,6 +3147,13 @@
       "path": "pricewatch-cards/A12630/daa5a2e74fdd_9x16.jpg",
       "kb": 224
      }
+    },
+    "review": {
+     "fp": "daa5a2e74fdd",
+     "at": "2026-10-17T05:09:54Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -3489,6 +3517,13 @@
       "path": "pricewatch-cards/A12634/6d038bf02fc6_9x16.jpg",
       "kb": 428
      }
+    },
+    "review": {
+     "fp": "6d038bf02fc6",
+     "at": "2026-10-17T05:11:02Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -3565,6 +3600,13 @@
       "path": "pricewatch-cards/A32653M/534f5a2c53be_9x16.jpg",
       "kb": 233
      }
+    },
+    "review": {
+     "fp": "534f5a2c53be",
+     "at": "2026-10-17T05:10:03Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -3641,6 +3683,19 @@
       "path": "pricewatch-cards/A32653/7cf9b975e472_9x16.jpg",
       "kb": 245
      }
+    },
+    "review": {
+     "fp": "7cf9b975e472",
+     "at": "2026-10-17T05:10:12Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "all",
+       "severity": "look",
+       "problem": "The sailing name is printed as 'Christmas & New Year Caribbean Celebration' without the expected '(Heathrow Airport)'. Heathrow does appear in the badge, so this may be intended, but please check."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -5995,6 +6050,13 @@
       "path": "pricewatch-cards/A12704/7d0978b64745_9x16.jpg",
       "kb": 446
      }
+    },
+    "review": {
+     "fp": "7d0978b64745",
+     "at": "2026-10-17T05:10:42Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -6183,6 +6245,13 @@
       "path": "pricewatch-cards/A22704/a0fea86edf15_9x16.jpg",
       "kb": 452
      }
+    },
+    "review": {
+     "fp": "a0fea86edf15",
+     "at": "2026-10-17T05:11:28Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -6484,6 +6553,13 @@
       "path": "pricewatch-cards/A12706/fb21e28ec56b_9x16.jpg",
       "kb": 470
      }
+    },
+    "review": {
+     "fp": "fb21e28ec56b",
+     "at": "2026-10-17T05:11:35Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -6594,6 +6670,13 @@
       "path": "pricewatch-cards/A22705/c1323336c57f_9x16.jpg",
       "kb": 245
      }
+    },
+    "review": {
+     "fp": "c1323336c57f",
+     "at": "2026-10-17T05:10:24Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -6935,6 +7018,13 @@
       "path": "pricewatch-cards/A22707PO/11f6b38313cc_9x16.jpg",
       "kb": 510
      }
+    },
+    "review": {
+     "fp": "11f6b38313cc",
+     "at": "2026-10-17T05:11:21Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -7751,6 +7841,13 @@
       "path": "pricewatch-cards/A12712/11af0e563824_9x16.jpg",
       "kb": 197
      }
+    },
+    "review": {
+     "fp": "11af0e563824",
+     "at": "2026-10-17T05:10:33Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -9634,6 +9731,13 @@
       "path": "pricewatch-cards/A22727BR/a73c5108e995_9x16.jpg",
       "kb": 433
      }
+    },
+    "review": {
+     "fp": "a73c5108e995",
+     "at": "2026-10-17T05:11:43Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -16923,6 +17027,13 @@
       "path": "pricewatch-cards/A32650M/a706f1e9b213_9x16.jpg",
       "kb": 657
      }
+    },
+    "review": {
+     "fp": "a706f1e9b213",
+     "at": "2026-10-17T05:11:12Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -16964,5 +17075,6 @@
    }
   }
  },
- "updated_at": "2026-10-16T18:02:00Z"
+ "updated_at": "2026-10-16T18:02:00Z",
+ "review_batch_at": "2026-10-17T05:09:34Z"
 }
