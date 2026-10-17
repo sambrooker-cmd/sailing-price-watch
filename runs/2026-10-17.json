@@ -1,10 +1,11 @@
 {
  "date": "2026-10-17",
- "count": 221,
+ "count": 220,
  "new": [],
  "removed": [
   "A32650",
-  "A12704"
+  "A12704",
+  "A32650"
  ],
  "returned": [
   "A32650",
@@ -18,7 +19,7 @@
    "feed price £2,399 differs from cheapest cabin on the page £1,349 (the page price is used)"
   ],
   "A22631BR": [
-   "feed price £399 differs from cheapest cabin on the page £199 (the page price is used)"
+   "feed price £389 differs from cheapest cabin on the page £199 (the page price is used)"
   ],
   "A22633": [
    "feed price £299 differs from cheapest cabin on the page £399 (the page price is used)"
@@ -27,7 +28,7 @@
    "feed image looks like campaign art (may contain text)"
   ],
   "A12634": [
-   "feed price £439 differs from cheapest cabin on the page £739 (the page price is used)"
+   "feed price £949 differs from cheapest cabin on the page £739 (the page price is used)"
   ],
   "A32653M": [
    "feed image looks like campaign art (may contain text)"
@@ -41,14 +42,14 @@
   "A22705": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A22706PO": [
-   "feed price £1,039 differs from cheapest cabin on the page £989 (the page price is used)"
-  ],
   "A22707PO": [
    "feed price £929 differs from cheapest cabin on the page £1,049 (the page price is used)"
   ],
   "A12709": [
    "no twin cabins on sale; the feed price is a solo price"
+  ],
+  "A22710BL": [
+   "feed price £1,619 differs from cheapest cabin on the page £1,439 (the page price is used)"
   ],
   "A12711": [
    "feed price £249 differs from cheapest cabin on the page £239 (the page price is used)"
@@ -140,6 +141,12 @@
    "feed": 1039,
    "page": 989,
    "at": "2026-10-17T14:07:16Z"
+  },
+  {
+   "id": "A22710BL",
+   "feed": 1619,
+   "page": 1439,
+   "at": "2026-10-17T15:07:16Z"
   }
  ],
  "feed_gap_fixed": [
@@ -184,6 +191,13 @@
    "page": 1199,
    "how": "matches the website",
    "at": "2026-10-17T14:07:16Z"
+  },
+  {
+   "id": "A22706PO",
+   "feed": 1039,
+   "page": 989,
+   "how": "matches the website",
+   "at": "2026-10-17T15:07:16Z"
   }
  ],
  "lead_source_switch": [],
@@ -199,6 +213,7 @@
   "2026-10-17T12:07:16Z",
   "2026-10-17T12:55:39Z",
   "2026-10-17T13:07:17Z",
-  "2026-10-17T14:07:16Z"
+  "2026-10-17T14:07:16Z",
+  "2026-10-17T15:07:16Z"
  ]
 }

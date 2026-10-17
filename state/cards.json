@@ -670,6 +670,41 @@
      "nectar": "Collect up to 50,000 Nectar points",
      "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
      "fp": "0a69ffbc75b0",
+     "made_at": "2026-10-17T14:10:25Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=f061ded4-0153-4197-b71f-7c768f012a8a",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
+       "kb": 312
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=af59f023-19cf-4fd5-a8e9-b713a6754457",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
+       "kb": 400
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=c0eefd6b-890a-4823-a3b9-6668a35f6969",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
+       "kb": 426
+      }
+     },
+     "out_of_date_since": "2026-10-17T15:09:36Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+     "base_title": "Atlantic Horizons and Caribbean Discovery",
+     "ship": "Renaissance",
+     "port": "London Tilbury",
+     "flight_from": "Heathrow",
+     "nights": 24,
+     "departure_date": "2026-10-29",
+     "price": 1349,
+     "promos": [],
+     "nectar": "Collect up to 50,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+     "fp": "0a69ffbc75b0",
      "made_at": "2026-10-16T14:09:54Z",
      "reason": "left the ad feed",
      "files": {
@@ -978,41 +1013,7 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
-    "base_title": "Atlantic Horizons and Caribbean Discovery",
-    "ship": "Renaissance",
-    "port": "London Tilbury",
-    "flight_from": "Heathrow",
-    "nights": 24,
-    "departure_date": "2026-10-29",
-    "price": 1349,
-    "promos": [],
-    "nectar": "Collect up to 50,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
-    "fp": "0a69ffbc75b0",
-    "made_at": "2026-10-17T14:10:25Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=f061ded4-0153-4197-b71f-7c768f012a8a",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
-      "kb": 312
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=af59f023-19cf-4fd5-a8e9-b713a6754457",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
-      "kb": 400
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=c0eefd6b-890a-4823-a3b9-6668a35f6969",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
-      "kb": 426
-     }
-    }
-   }
+   ]
   },
   "A22630BR": {
    "old": [
@@ -3898,6 +3899,13 @@
       "path": "pricewatch-cards/A22639/2e3e15bbbbfc_9x16.jpg",
       "kb": 404
      }
+    },
+    "review": {
+     "fp": "2e3e15bbbbfc",
+     "at": "2026-10-17T15:14:21Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -5322,6 +5330,13 @@
       "path": "pricewatch-cards/A12702/0d6a57ef35bf_9x16.jpg",
       "kb": 476
      }
+    },
+    "review": {
+     "fp": "0d6a57ef35bf",
+     "at": "2026-10-17T15:10:09Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -6150,6 +6165,13 @@
       "path": "pricewatch-cards/A12704/7d0978b64745_9x16.jpg",
       "kb": 446
      }
+    },
+    "review": {
+     "fp": "7d0978b64745",
+     "at": "2026-10-17T15:09:59Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -7270,6 +7292,13 @@
       "path": "pricewatch-cards/A22708PO/6b5b610ea1b8_9x16.jpg",
       "kb": 435
      }
+    },
+    "review": {
+     "fp": "6b5b610ea1b8",
+     "at": "2026-10-17T15:10:18Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -7468,6 +7497,13 @@
       "path": "pricewatch-cards/A12710/883068237aed_9x16.jpg",
       "kb": 459
      }
+    },
+    "review": {
+     "fp": "883068237aed",
+     "at": "2026-10-17T15:10:26Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -7582,6 +7618,13 @@
       "path": "pricewatch-cards/A22710LV/780852f8b428_9x16.jpg",
       "kb": 410
      }
+    },
+    "review": {
+     "fp": "780852f8b428",
+     "at": "2026-10-17T15:10:34Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -8622,6 +8665,13 @@
       "path": "pricewatch-cards/A12718/a18e1c7b5d6a_9x16.jpg",
       "kb": 457
      }
+    },
+    "review": {
+     "fp": "a18e1c7b5d6a",
+     "at": "2026-10-17T15:10:44Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -9023,6 +9073,13 @@
       "path": "pricewatch-cards/A12722/5e07770a9cec_9x16.jpg",
       "kb": 534
      }
+    },
+    "review": {
+     "fp": "5e07770a9cec",
+     "at": "2026-10-17T15:10:53Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -9096,6 +9153,13 @@
       "path": "pricewatch-cards/A12723/51715ccd826c_9x16.jpg",
       "kb": 486
      }
+    },
+    "review": {
+     "fp": "51715ccd826c",
+     "at": "2026-10-17T15:11:02Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -9277,6 +9341,13 @@
       "path": "pricewatch-cards/A22722NC/6d0e5b644bbb_9x16.jpg",
       "kb": 460
      }
+    },
+    "review": {
+     "fp": "6d0e5b644bbb",
+     "at": "2026-10-17T15:11:11Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -10032,6 +10103,13 @@
       "path": "pricewatch-cards/A22729/d5e3415809e0_9x16.jpg",
       "kb": 531
      }
+    },
+    "review": {
+     "fp": "d5e3415809e0",
+     "at": "2026-10-17T15:11:21Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -10659,6 +10737,19 @@
       "path": "pricewatch-cards/A22735/3245d94262b1_9x16.jpg",
       "kb": 314
      }
+    },
+    "review": {
+     "fp": "3245d94262b1",
+     "at": "2026-10-17T15:11:30Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "1x1",
+       "severity": "look",
+       "problem": "The crop is mostly empty sky, and the strips hide the mountains and coastline, so you can barely see the destination."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -11672,6 +11763,13 @@
       "path": "pricewatch-cards/A12803/873b6cb26590_9x16.jpg",
       "kb": 520
      }
+    },
+    "review": {
+     "fp": "873b6cb26590",
+     "at": "2026-10-17T15:11:39Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -11749,6 +11847,13 @@
       "path": "pricewatch-cards/A22803/33a87e5f2064_9x16.jpg",
       "kb": 348
      }
+    },
+    "review": {
+     "fp": "33a87e5f2064",
+     "at": "2026-10-17T15:11:48Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -11900,6 +12005,19 @@
       "path": "pricewatch-cards/A12804/da40f6b204ca_9x16.jpg",
       "kb": 406
      }
+    },
+    "review": {
+     "fp": "da40f6b204ca",
+     "at": "2026-10-17T15:12:00Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "1x1",
+       "severity": "look",
+       "problem": "The lighthouse, which is the photo's main subject, is mostly hidden behind the sailing-name strip, so only its top shows."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12088,6 +12206,13 @@
       "path": "pricewatch-cards/A22804/96c7d21d37b6_9x16.jpg",
       "kb": 343
      }
+    },
+    "review": {
+     "fp": "96c7d21d37b6",
+     "at": "2026-10-17T15:12:10Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12239,6 +12364,13 @@
       "path": "pricewatch-cards/A12805/c80450851e58_9x16.jpg",
       "kb": 409
      }
+    },
+    "review": {
+     "fp": "c80450851e58",
+     "at": "2026-10-17T15:12:19Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12316,6 +12448,19 @@
       "path": "pricewatch-cards/A12806/e0cda62677a3_9x16.jpg",
       "kb": 468
      }
+    },
+    "review": {
+     "fp": "e0cda62677a3",
+     "at": "2026-10-17T15:12:32Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "1x1",
+       "severity": "look",
+       "problem": "The lakeside cabin, which is the photo's main subject, is completely hidden behind the sailing-name strips, so the image is just trees and water."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12432,6 +12577,13 @@
       "path": "pricewatch-cards/A22806/dc40d137316d_9x16.jpg",
       "kb": 355
      }
+    },
+    "review": {
+     "fp": "dc40d137316d",
+     "at": "2026-10-17T15:12:41Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12587,6 +12739,19 @@
       "path": "pricewatch-cards/A22807/34f97c78f60f_9x16.jpg",
       "kb": 366
      }
+    },
+    "review": {
+     "fp": "34f97c78f60f",
+     "at": "2026-10-17T15:12:50Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "1x1",
+       "severity": "look",
+       "problem": "The sailing-name strip covers most of the lighthouse, the photo's main subject, so only its top shows."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12742,6 +12907,13 @@
       "path": "pricewatch-cards/A22809PO/1b076ef4ea8d_9x16.jpg",
       "kb": 499
      }
+    },
+    "review": {
+     "fp": "1b076ef4ea8d",
+     "at": "2026-10-17T15:13:00Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12819,6 +12991,19 @@
       "path": "pricewatch-cards/A12810/fe37fe714b26_9x16.jpg",
       "kb": 401
      }
+    },
+    "review": {
+     "fp": "fe37fe714b26",
+     "at": "2026-10-17T15:13:12Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "1x1",
+       "severity": "look",
+       "problem": "The sailing-name strips cover most of the ship's hull, so only the top decks of the ship can be seen."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12896,6 +13081,13 @@
       "path": "pricewatch-cards/A22810PO/6d1c5b212503_9x16.jpg",
       "kb": 462
      }
+    },
+    "review": {
+     "fp": "6d1c5b212503",
+     "at": "2026-10-17T15:13:21Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -12973,6 +13165,13 @@
       "path": "pricewatch-cards/A12811/11086a7a554f_9x16.jpg",
       "kb": 542
      }
+    },
+    "review": {
+     "fp": "11086a7a554f",
+     "at": "2026-10-17T15:13:30Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -13128,6 +13327,13 @@
       "path": "pricewatch-cards/A12812/87dc6c1ff3df_9x16.jpg",
       "kb": 368
      }
+    },
+    "review": {
+     "fp": "87dc6c1ff3df",
+     "at": "2026-10-17T15:13:37Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -13244,6 +13450,13 @@
       "path": "pricewatch-cards/A12813/58bdc1de3dde_9x16.jpg",
       "kb": 206
      }
+    },
+    "review": {
+     "fp": "58bdc1de3dde",
+     "at": "2026-10-17T15:13:45Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -13399,6 +13612,19 @@
       "path": "pricewatch-cards/A12814/59f7d94483cd_9x16.jpg",
       "kb": 276
      }
+    },
+    "review": {
+     "fp": "59f7d94483cd",
+     "at": "2026-10-17T15:13:55Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "9x16",
+       "severity": "look",
+       "problem": "The photo is cropped so the green badge covers the top of the minaret, hiding its spire."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -13513,6 +13739,13 @@
       "path": "pricewatch-cards/A12815/26202b81dc7b_9x16.jpg",
       "kb": 357
      }
+    },
+    "review": {
+     "fp": "26202b81dc7b",
+     "at": "2026-10-17T15:14:04Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -14467,6 +14700,13 @@
       "path": "pricewatch-cards/A22828BL/c63d25eb79d0_9x16.jpg",
       "kb": 370
      }
+    },
+    "review": {
+     "fp": "c63d25eb79d0",
+     "at": "2026-10-17T15:14:13Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -17181,6 +17421,6 @@
    }
   }
  },
- "updated_at": "2026-10-17T14:10:25Z",
- "review_batch_at": "2026-10-17T10:09:30Z"
+ "updated_at": "2026-10-17T15:09:36Z",
+ "review_batch_at": "2026-10-17T15:09:49Z"
 }
