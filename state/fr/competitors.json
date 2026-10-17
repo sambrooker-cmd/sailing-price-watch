@@ -24,7 +24,7 @@
    "region": "France",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/france-0-msc-magnifica-mediterranee-743427.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743399": {
    "first_seen": "2026-10-16",
@@ -50,7 +50,7 @@
    "region": "France",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/france-0-msc-magnifica-mediterranee-743399.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "792285": {
    "first_seen": "2026-10-16",
@@ -82,7 +82,7 @@
    "region": "France , Côte d'Azur , Toulon",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/cote-dazur-toulon-france-italie-avec-le-costa-fascinosa-792285.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743305": {
    "first_seen": "2026-10-16",
@@ -113,7 +113,7 @@
    "region": "Guadeloupe",
    "area": "antilles",
    "link": "https://www.havas-voyages.fr/c-croisiere/guadeloupe-0-msc-opera-antilles-743305.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "755299": {
    "first_seen": "2026-10-16",
@@ -122,6 +122,11 @@
      "p": 749,
      "was": null,
      "from": "2026-10-16"
+    },
+    {
+     "p": 779,
+     "was": null,
+     "from": "2026-10-17"
     }
    ],
    "line": "costa",
@@ -146,7 +151,7 @@
    "region": "France , Côte d'Azur , Toulon",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/cote-dazur-toulon-france-italie-avec-le-costa-fascinosa-755299.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "792284": {
    "first_seen": "2026-10-16",
@@ -178,7 +183,7 @@
    "region": "France , Côte d'Azur , Toulon",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/cote-dazur-toulon-france-italie-avec-le-costa-fascinosa-792284.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "792287": {
    "first_seen": "2026-10-16",
@@ -212,7 +217,7 @@
    "region": "France , Corse , Ajaccio",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/corse-ajaccio-france-italie-corse-france-avec-le-costa-fascinosa-792287.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "792626": {
    "first_seen": "2026-10-16",
@@ -243,7 +248,7 @@
    "region": "France , Côte d'Azur , Toulon",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/cote-dazur-toulon-france-italie-avec-le-costa-fascinosa-792626.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "792627": {
    "first_seen": "2026-10-16",
@@ -275,7 +280,7 @@
    "region": "France , Côte d'Azur , Toulon",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/cote-dazur-toulon-france-italie-avec-le-costa-fascinosa-792627.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743396": {
    "first_seen": "2026-10-16",
@@ -302,7 +307,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743396.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743143": {
    "first_seen": "2026-10-16",
@@ -332,7 +337,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743143.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743149": {
    "first_seen": "2026-10-16",
@@ -362,7 +367,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743149.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743395": {
    "first_seen": "2026-10-16",
@@ -389,7 +394,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743395.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "728774": {
    "first_seen": "2026-10-16",
@@ -418,7 +423,7 @@
    "region": "République Dominicaine",
    "area": "antilles",
    "link": "https://www.havas-voyages.fr/c-croisiere/republique-dominicaine-0-antilles-repdominicaine-avec-le-costa-fascinosa-728774.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743146": {
    "first_seen": "2026-10-16",
@@ -448,7 +453,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743146.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743394": {
    "first_seen": "2026-10-16",
@@ -476,7 +481,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743394.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "659166": {
    "first_seen": "2026-10-16",
@@ -506,7 +511,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-seaview-mediterranee-659166.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743428": {
    "first_seen": "2026-10-16",
@@ -536,7 +541,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743428.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "685103": {
    "first_seen": "2026-10-16",
@@ -566,7 +571,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-euribia-mediterranee-685103.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "684910": {
    "first_seen": "2026-10-16",
@@ -575,6 +580,11 @@
      "p": 599,
      "was": null,
      "from": "2026-10-16"
+    },
+    {
+     "p": 1349,
+     "was": null,
+     "from": "2026-10-17"
     }
    ],
    "line": "msc",
@@ -596,7 +606,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-splendida-mediterranee-684910.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743431": {
    "first_seen": "2026-10-16",
@@ -628,7 +638,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743431.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "684974": {
    "first_seen": "2026-10-16",
@@ -657,7 +667,7 @@
    "region": "Antigua et Barbuda",
    "area": "antilles",
    "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-msc-opera-antilles-684974.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "770716": {
    "first_seen": "2026-10-16",
@@ -687,7 +697,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-world-asia-mediterranee-770716.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "685008": {
    "first_seen": "2026-10-16",
@@ -717,7 +727,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-musica-mediterranee-685008.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "659126": {
    "first_seen": "2026-10-16",
@@ -747,7 +757,7 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-world-europa-mediterranee-659126.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
   },
   "743328": {
    "first_seen": "2026-10-16",
@@ -777,7 +787,951 @@
    "region": "Espagne",
    "area": "med",
    "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-musica-mediterranee-743328.html",
-   "last_seen": "2026-10-16"
+   "last_seen": "2026-10-17"
+  },
+  "743138": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 849,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Sinfonia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Sinfonia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Livourne (Florence) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Valence Espagne",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743138.html",
+   "last_seen": "2026-10-17"
+  },
+  "743497": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 869,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Fantasia - Méditerranée - Croisière Au Départ De Cannes(côted Azur)(france)",
+   "ship": "MSC Fantasia",
+   "nights": 7,
+   "start": "Cannes (Côte d'Azur) France",
+   "end": "Cannes (Côte d'Azur) France",
+   "ports": [
+    "Cannes (Côte d'Azur) France",
+    "Barcelone Espagne",
+    "Ibiza (Baleari Is.) Espagne",
+    "Cagliari (Sardaigne) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Livourne (Florence) Italie",
+    "Cannes (Côte d'Azur) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-fantasia-mediterranee-743497.html",
+   "last_seen": "2026-10-17"
+  },
+  "743137": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 869,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Sinfonia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Sinfonia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Livourne (Florence) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Valence Espagne",
+    "Gênes (Portofino) Italie",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743137.html",
+   "last_seen": "2026-10-17"
+  },
+  "754199": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 989,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Fort De France (martinique)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Fort de France Martinique",
+   "end": "Fort de France Martinique",
+   "ports": [
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe",
+    "Castries Ste. Lucie",
+    "Bridgetown Barbades",
+    "Saint George's Grenade",
+    "Kingstown St Vincent & les Grenadines",
+    "Fort de France Martinique"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-world-europa-antilles-754199.html",
+   "last_seen": "2026-10-17"
+  },
+  "754208": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 949,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre(guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "St. John's Antigua & Barbuda",
+    "Philipsburg Saint-Martin",
+    "Basseterre St. Kitts & Nevis",
+    "Roseau Dominique",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Antigua et Barbuda",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-msc-world-europa-antilles-754208.html",
+   "last_seen": "2026-10-17"
+  },
+  "743125": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 909,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Virtuosa - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Virtuosa",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Barcelone Espagne",
+    "La Goulette Tunisie",
+    "Palerme (Monreale) Italie",
+    "Naples (Pompeii) Italie",
+    "Livourne (Florence) Italie",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-virtuosa-mediterranee-743125.html",
+   "last_seen": "2026-10-17"
+  },
+  "684887": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 939,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Seaview - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Seaview",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Naples (Pompeii) Italie",
+    "Palerme (Monreale) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-seaview-mediterranee-684887.html",
+   "last_seen": "2026-10-17"
+  },
+  "754206": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 819,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre (guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Castries Ste. Lucie",
+    "Bridgetown Barbades",
+    "Kingstown St Vincent & les Grenadines",
+    "Saint George's Grenade",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-world-europa-antilles-754206.html",
+   "last_seen": "2026-10-17"
+  },
+  "743153": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 969,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Seaview - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Seaview",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Naples (Pompeii) Italie",
+    "Palerme (Monreale) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-seaview-mediterranee-743153.html",
+   "last_seen": "2026-10-17"
+  },
+  "743154": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 969,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Seaview - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Seaview",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "La Spezia (Cinque Terre) Italie",
+    "Naples (Pompeii) Italie",
+    "Palerme (Monreale) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-seaview-mediterranee-743154.html",
+   "last_seen": "2026-10-17"
+  },
+  "743158": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 989,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Seaview - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Seaview",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Naples (Pompeii) Italie",
+    "Palerme (Monreale) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-seaview-mediterranee-743158.html",
+   "last_seen": "2026-10-17"
+  },
+  "754200": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1149,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre(guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Philipsburg Saint-Martin",
+    "St. John's Antigua & Barbuda",
+    "Basseterre St. Kitts & Nevis",
+    "Roseau Dominique",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Antigua et Barbuda",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-msc-world-europa-antilles-754200.html",
+   "last_seen": "2026-10-17"
+  },
+  "743139": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1039,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Sinfonia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Sinfonia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Livourne (Florence) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Valence Espagne",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743139.html",
+   "last_seen": "2026-10-17"
+  },
+  "685095": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1089,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "La Spezia (Cinque Terre) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Palma de Majorque (Baleari Is.) Espagne",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-world-europa-mediterranee-685095.html",
+   "last_seen": "2026-10-17"
+  },
+  "770710": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1149,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Asia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC World Asia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Naples (Pompeii) Italie",
+    "Messine (Taormine) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-world-asia-mediterranee-770710.html",
+   "last_seen": "2026-10-17"
+  },
+  "740162": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1199,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "costa",
+   "operator": "Costa Croisieres",
+   "title": "Antilles, Iles Vierges, Rép.dominicaine, Turks Et Caicos À Bord Du Costa Fascinosa",
+   "ship": "Costa Fascinosa",
+   "nights": 14,
+   "start": "Guadeloupe, Antilles",
+   "end": "Guadeloupe, Antilles",
+   "ports": [
+    "Guadeloupe, Antilles",
+    "Baie de Guadeloupe",
+    "Saint Kitts, Saint Christophe et Nièvès",
+    "Tortola, Iles Vierges Britanniques",
+    "La Romana, Rép. Dominicaine",
+    "Île Catalina, Rép. Dominicaine",
+    "Baie de Catalina",
+    "Cabo Rojo, République-Dominicaine",
+    "Grand Turk, Îles Turk et Caïcos",
+    "Archipel des Turks et Caicos",
+    "Amber Cove - Puerto Plata, Rép. Dominicaine",
+    "Excursion - Destination",
+    "La Romana, Rép. Dominicaine",
+    "Point le plus sombre de la mer des Caraïbes",
+    "Sainte Lucie, Antilles",
+    "Barbade, Antilles",
+    "Guadeloupe, Antilles"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-antilles-iles-vierges-repdominicaine-turks-et-caicos-avec-le-costa-fascinosa-740162.html",
+   "last_seen": "2026-10-17"
+  },
+  "782125": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1199,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "costa",
+   "operator": "Costa Croisieres",
+   "title": "Antilles, Iles Vierges, Rép.dominicaine, Turks Et Caicos À Bord Du Costa Fascinosa",
+   "ship": "Costa Fascinosa",
+   "nights": 14,
+   "start": "Guadeloupe, Antilles",
+   "end": "Guadeloupe, Antilles",
+   "ports": [
+    "Guadeloupe, Antilles",
+    "Baie de Guadeloupe",
+    "Saint Kitts, Saint Christophe et Nièvès",
+    "Tortola, Iles Vierges Britanniques",
+    "La Romana, Rép. Dominicaine",
+    "Île Catalina, Rép. Dominicaine",
+    "Baie de Catalina",
+    "Samaná, Rép. Dominicaine",
+    "Grand Turk, Îles Turk et Caïcos",
+    "Archipel des Turks et Caicos",
+    "Amber Cove - Puerto Plata, Rép. Dominicaine",
+    "Cabo Rojo, République-Dominicaine",
+    "La Romana, Rép. Dominicaine",
+    "Point le plus sombre de la mer des Caraïbes",
+    "Martinique, Antilles",
+    "Barbade, Antilles",
+    "Guadeloupe, Antilles"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-antilles-iles-vierges-repdominicaine-turks-et-caicos-avec-le-costa-fascinosa-782125.html",
+   "last_seen": "2026-10-17"
+  },
+  "684979": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1199,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Opera - Antilles - Croisière Au Départ De Fort De France (martinique)",
+   "ship": "MSC Opera",
+   "nights": 14,
+   "start": "Fort de France Martinique",
+   "end": "Fort de France Martinique",
+   "ports": [
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe",
+    "Road Town (Tortola) Îles Vierges britanniques",
+    "La Romana République Dominicaine",
+    "Virgin Gorda Virgin Islands",
+    "Philipsburg Saint-Martin",
+    "Basseterre St. Kitts & Nevis",
+    "Road Town (Tortola) Îles Vierges britanniques",
+    "Catalina Sugar Beach République dominicaine",
+    "La Romana République Dominicaine",
+    "Catalina Sugar Beach République dominicaine",
+    "Bridgetown Barbades",
+    "Fort de France Martinique"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-opera-antilles-684979.html",
+   "last_seen": "2026-10-17"
+  },
+  "754204": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1199,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre(guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Philipsburg Saint-Martin",
+    "St. John's Antigua & Barbuda",
+    "Basseterre St. Kitts & Nevis",
+    "Roseau Dominique",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Antigua et Barbuda",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-msc-world-europa-antilles-754204.html",
+   "last_seen": "2026-10-17"
+  },
+  "685069": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1199,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Euribia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Euribia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Naples (Pompeii) Italie",
+    "Palerme (Monreale) Italie",
+    "La Goulette Tunisie",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-euribia-mediterranee-685069.html",
+   "last_seen": "2026-10-17"
+  },
+  "781751": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1249,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "costa",
+   "operator": "Costa Croisieres",
+   "title": "Antilles, Iles Vierges, Rép.dominicaine, Turks Et Caicos À Bord Du Costa Fascinosa",
+   "ship": "Costa Fascinosa",
+   "nights": 15,
+   "start": "Guadeloupe, Antilles",
+   "end": "Guadeloupe, Antilles",
+   "ports": [
+    "Guadeloupe, Antilles",
+    "Baie de Guadeloupe",
+    "Antigua, Antilles",
+    "Saint Kitts, Saint Christophe et Nièvès",
+    "Tortola, Iles Vierges Britanniques",
+    "La Romana, Rép. Dominicaine",
+    "Île Catalina, Rép. Dominicaine",
+    "Baie de Catalina",
+    "Cabo Rojo, République-Dominicaine",
+    "Amber Cove - Puerto Plata, Rép. Dominicaine",
+    "Grand Turk, Îles Turk et Caïcos",
+    "Archipel des Turks et Caicos",
+    "Samaná, Rép. Dominicaine",
+    "La Romana, Rép. Dominicaine",
+    "Point le plus sombre de la mer des Caraïbes",
+    "Sainte Lucie, Antilles",
+    "Barbade, Antilles",
+    "Guadeloupe, Antilles"
+   ],
+   "region": "Antigua et Barbuda",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-antilles-iles-vierges-repdominicaine-turks-et-caicos-avec-le-costa-fascinosa-781751.html",
+   "last_seen": "2026-10-17"
+  },
+  "754198": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 969,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre (guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Castries Ste. Lucie",
+    "Bridgetown Barbades",
+    "Saint George's Grenade",
+    "Kingstown St Vincent & les Grenadines",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-world-europa-antilles-754198.html",
+   "last_seen": "2026-10-17"
+  },
+  "743420": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1329,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Magnifica - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Magnifica",
+   "nights": 10,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Barcelone Espagne",
+    "Cadix (Séville) Espagne",
+    "Malaga (Granada) Espagne",
+    "Alicante Espagne",
+    "Civitavecchia (Rome) Italie",
+    "Gênes (Portofino) Italie",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-magnifica-mediterranee-743420.html",
+   "last_seen": "2026-10-17"
+  },
+  "770713": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1369,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Asia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC World Asia",
+   "nights": 7,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Civitavecchia (Rome) Italie",
+    "Messine (Taormine) Italie",
+    "La Valette Malte",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-world-asia-mediterranee-770713.html",
+   "last_seen": "2026-10-17"
+  },
+  "743130": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1399,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Sinfonia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Sinfonia",
+   "nights": 10,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Malaga (Granada) Espagne",
+    "Portimao Portugal",
+    "Lisbon (Cascais) Portugal",
+    "Alicante Espagne",
+    "Mahon Minorque",
+    "Olbia Italie",
+    "Gênes (Portofino) Italie",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743130.html",
+   "last_seen": "2026-10-17"
+  },
+  "743131": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1429,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Sinfonia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Sinfonia",
+   "nights": 10,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Malaga (Granada) Espagne",
+    "Cadix (Séville) Espagne",
+    "Lisbon (Cascais) Portugal",
+    "Alicante Espagne",
+    "Mahon Minorque",
+    "Olbia Italie",
+    "Gênes (Portofino) Italie",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-sinfonia-mediterranee-743131.html",
+   "last_seen": "2026-10-17"
+  },
+  "743308": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1489,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Opera - Antilles - Croisière Au Départ De Fortdefrance(martinique)",
+   "ship": "MSC Opera",
+   "nights": 14,
+   "start": "Fort de France Martinique",
+   "end": "Fort de France Martinique",
+   "ports": [
+    "Fort de France Martinique",
+    "St. John's Antigua & Barbuda",
+    "Virgin Gorda Virgin Islands",
+    "La Romana République Dominicaine",
+    "Samana République Dominicaine",
+    "Virgin Gorda Virgin Islands",
+    "Basseterre St. Kitts & Nevis",
+    "Philipsburg Saint-Martin",
+    "Catalina Sugar Beach République dominicaine",
+    "La Romana République Dominicaine",
+    "Catalina Sugar Beach République dominicaine",
+    "Bridgetown Barbades",
+    "Fort de France Martinique"
+   ],
+   "region": "Antigua et Barbuda",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/antigua-et-barbuda--0-msc-opera-antilles-743308.html",
+   "last_seen": "2026-10-17"
+  },
+  "754202": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1499,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre (guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Bridgetown Barbades",
+    "Kingstown St Vincent & les Grenadines",
+    "Saint George's Grenade",
+    "Castries Ste. Lucie",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-world-europa-antilles-754202.html",
+   "last_seen": "2026-10-17"
+  },
+  "754197": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1439,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC World Europa - Antilles - Croisière Au Départ De Pointe-à-pitre (guadeloupe)",
+   "ship": "MSC World Europa",
+   "nights": 7,
+   "start": "Pointe-à-Pitre Guadeloupe",
+   "end": "Pointe-à-Pitre Guadeloupe",
+   "ports": [
+    "Pointe-à-Pitre Guadeloupe",
+    "Castries Ste. Lucie",
+    "Bridgetown Barbades",
+    "Saint George's Grenade",
+    "Kingstown St Vincent & les Grenadines",
+    "Fort de France Martinique",
+    "Pointe-à-Pitre Guadeloupe"
+   ],
+   "region": "Barbade",
+   "area": "antilles",
+   "link": "https://www.havas-voyages.fr/c-croisiere/barbade-0-msc-world-europa-antilles-754197.html",
+   "last_seen": "2026-10-17"
+  },
+  "685105": {
+   "first_seen": "2026-10-17",
+   "prices": [
+    {
+     "p": 1685,
+     "was": null,
+     "from": "2026-10-17"
+    }
+   ],
+   "line": "msc",
+   "operator": "Msc Croisieres",
+   "title": "MSC Euribia - Méditerranée - Croisière Au Départ De Marseille (provence) (france)",
+   "ship": "MSC Euribia",
+   "nights": 4,
+   "start": "Marseille (Provence) France",
+   "end": "Marseille (Provence) France",
+   "ports": [
+    "Marseille (Provence) France",
+    "Gênes (Portofino) Italie",
+    "Barcelone Espagne",
+    "Marseille (Provence) France"
+   ],
+   "region": "Espagne",
+   "area": "med",
+   "link": "https://www.havas-voyages.fr/c-croisiere/espagne-0-msc-euribia-mediterranee-685105.html",
+   "last_seen": "2026-10-17"
   }
  },
  "tried": {
@@ -904,10 +1858,130 @@
   "684908": "2026-10-16",
   "743561": "2026-10-16",
   "743496": "2026-10-16",
-  "659326": "2026-10-16"
+  "659326": "2026-10-16",
+  "743553": "2026-10-17",
+  "743560": "2026-10-17",
+  "659293": "2026-10-17",
+  "743498": "2026-10-17",
+  "685009": "2026-10-17",
+  "684976": "2026-10-17",
+  "743540": "2026-10-17",
+  "743159": "2026-10-17",
+  "743215": "2026-10-17",
+  "743321": "2026-10-17",
+  "743323": "2026-10-17",
+  "684956": "2026-10-17",
+  "743551": "2026-10-17",
+  "743320": "2026-10-17",
+  "743157": "2026-10-17",
+  "754207": "2026-10-17",
+  "684958": "2026-10-17",
+  "685061": "2026-10-17",
+  "685098": "2026-10-17",
+  "744722": "2026-10-17",
+  "742883": "2026-10-17",
+  "782124": "2026-10-17",
+  "743155": "2026-10-17",
+  "743221": "2026-10-17",
+  "743562": "2026-10-17",
+  "743318": "2026-10-17",
+  "743319": "2026-10-17",
+  "743156": "2026-10-17",
+  "659125": "2026-10-17",
+  "728931": "2026-10-17",
+  "684957": "2026-10-17",
+  "743549": "2026-10-17",
+  "743285": "2026-10-17",
+  "743287": "2026-10-17",
+  "754201": "2026-10-17",
+  "770712": "2026-10-17",
+  "684917": "2026-10-17",
+  "685060": "2026-10-17",
+  "743512": "2026-10-17",
+  "685057": "2026-10-17",
+  "743150": "2026-10-17",
+  "753111": "2026-10-17",
+  "743490": "2026-10-17",
+  "659169": "2026-10-17",
+  "743511": "2026-10-17",
+  "743492": "2026-10-17",
+  "743225": "2026-10-17",
+  "742982": "2026-10-17",
+  "685135": "2026-10-17",
+  "770709": "2026-10-17",
+  "685099": "2026-10-17",
+  "743510": "2026-10-17",
+  "770711": "2026-10-17",
+  "659374": "2026-10-17",
+  "743374": "2026-10-17",
+  "743376": "2026-10-17",
+  "685059": "2026-10-17",
+  "743288": "2026-10-17",
+  "743372": "2026-10-17",
+  "743379": "2026-10-17",
+  "743380": "2026-10-17",
+  "684948": "2026-10-17",
+  "685119": "2026-10-17",
+  "754205": "2026-10-17",
+  "743234": "2026-10-17",
+  "684953": "2026-10-17",
+  "743369": "2026-10-17",
+  "743370": "2026-10-17",
+  "684952": "2026-10-17",
+  "743313": "2026-10-17",
+  "743377": "2026-10-17",
+  "743184": "2026-10-17",
+  "743367": "2026-10-17",
+  "743382": "2026-10-17",
+  "743310": "2026-10-17",
+  "743365": "2026-10-17",
+  "659400": "2026-10-17",
+  "743384": "2026-10-17",
+  "743177": "2026-10-17",
+  "743182": "2026-10-17",
+  "743183": "2026-10-17",
+  "659399": "2026-10-17",
+  "743222": "2026-10-17",
+  "684921": "2026-10-17",
+  "659463": "2026-10-17",
+  "659398": "2026-10-17",
+  "743364": "2026-10-17",
+  "743179": "2026-10-17",
+  "743180": "2026-10-17",
+  "743181": "2026-10-17",
+  "743185": "2026-10-17",
+  "743291": "2026-10-17",
+  "659462": "2026-10-17",
+  "743307": "2026-10-17",
+  "743132": "2026-10-17",
+  "743214": "2026-10-17",
+  "743186": "2026-10-17",
+  "743216": "2026-10-17",
+  "685133": "2026-10-17",
+  "787831": "2026-10-17",
+  "787830": "2026-10-17",
+  "685083": "2026-10-17",
+  "754203": "2026-10-17",
+  "685131": "2026-10-17",
+  "743301": "2026-10-17",
+  "743178": "2026-10-17",
+  "743419": "2026-10-17",
+  "743476": "2026-10-17",
+  "743555": "2026-10-17",
+  "743421": "2026-10-17",
+  "743554": "2026-10-17",
+  "685118": "2026-10-17",
+  "743223": "2026-10-17",
+  "743550": "2026-10-17",
+  "684980": "2026-10-17",
+  "684955": "2026-10-17",
+  "743552": "2026-10-17",
+  "684960": "2026-10-17",
+  "743303": "2026-10-17",
+  "743286": "2026-10-17"
  },
- "read_on": "2026-10-16",
- "fetched_at": "2026-10-16T12:43:15Z",
+ "read_on": "2026-10-17",
+ "fetched_at": "2026-10-17T00:54:11Z",
  "source": "Havas Voyages (havas-voyages.fr)",
  "lines": {
   "costa": "Costa Croisières",
@@ -918,7 +1992,7 @@
   "north": "Northern and Atlantic France",
   "antilles": "French Caribbean"
  },
- "pages_read": 152,
+ "pages_read": 179,
  "sitemap_pages": 727,
  "sitemap_complete": true
 }
