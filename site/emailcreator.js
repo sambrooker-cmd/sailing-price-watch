@@ -20,6 +20,7 @@ let FR = false;
 import * as claude from "./drafts.js?v=__BUILD__";
 import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const money = v => FR ? frMoney(v) : "£" + Math.round(v).toLocaleString("en-GB");
@@ -82,7 +83,7 @@ export async function mount(el, ctx){
   FR = ctx.market === "fr";
   if (FR) { KEY = "spw-email-draft-fr"; DRAFTS = "spw-email-drafts-fr"; GRADE = GRADE_FR; SITE = SITE_FR; NAV = NAV_FR; em = fresh(); }
   else await loadNectar();   // Nectar is UK only
-  root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; ID = ctx.idToken || null;
+  root = el; S = ctx.state; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; ID = ctx.idToken || null; TERMS = ctx.terms || null;
   today = S.updated;
   const sym = document.getElementById("amb-logo");
   if (FR) LOGO_SVG = await (await fetch("logo-fr.svg")).text();   // the colour Ambassador Croisières logo
@@ -552,6 +553,7 @@ function draw(){
     <div class="ac-main em-main">
       <div class="ac-actions">
         <button type="button" class="btn" id="em-make"${it.length ? "" : " disabled"}>Make email</button>
+        ${it.length ? cmp.chip(checkNow(), "em-check") : ""}
         <button type="button" class="btn quiet" id="em-clear"${it.length || em.subject ? "" : " disabled"}>Start again</button>
         <span class="sub" id="em-status" aria-live="polite">Prices as checked ${shortDate(today)}.</span>
       </div>
@@ -594,7 +596,7 @@ async function preview(){
   }
 }
 let typing;
-function change(redraw){ made = null; save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(preview, 400); } }
+function change(redraw){ made = null; save(); if (redraw) draw(); else { clearTimeout(typing); typing = setTimeout(() => { preview(); paintCheck(); }, 400); } }
 function wire(){
   const $ = s => root.querySelector(s);
   cs.wire(root, draw);
@@ -697,6 +699,7 @@ function wire(){
   root.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { previewMode = b.dataset.mode; draw(); }));
   $("#em-clear").addEventListener("click", () => { if (confirm("Start a new email? This one will be cleared.")) { em = fresh(); sel = 0; draftId = null; change(true); } });
   $("#em-make").addEventListener("click", makeEmail);
+  $("#em-check") && $("#em-check").addEventListener("click", () => cmp.show(checkNow(), esc, "Check before this email goes out"));
   // Off means no badges until chosen per sailing (Sam, 13 Oct 2026)
   $("#em-allbadges") && $("#em-allbadges").addEventListener("change", e => { em.allBadges = e.target.checked; if (!em.allBadges) em.items.forEach(x => { x.badges = []; }); change(true); });
   $("#em-nectar") && $("#em-nectar").addEventListener("change", e => { em.nectar.on = e.target.checked; change(true); });   // (not in France)
@@ -714,9 +717,41 @@ function wire(){
     document.body.appendChild(a); a.click(); a.remove();
   });
 }
+// Pre-send check (site/compliance.js, 17 Oct 2026): the email as it would be made (its words, small print and links),
+// and each sailing's price, was/now and offer badges against today's data
+let TERMS = null;
+function checkNow(){
+  const items = em.items.map((it, i) => {
+    const n = `Sailing ${i + 1}`; if (!sailing(it.id)) return {id: it.id, where: n};
+    const c = claimOf(it), f = c ? null : fareOf(it);
+    return {id: it.id, where: n, price: c ? null : f.price, solo: !c && f.fare === "solo", grade: c ? "" : f.grade, offers: badgesOf(it),
+      wasnow: c ? {key: c.key, was: c.was, now: c.now} : null};
+  });
+  const live = em.items.filter(it => sailing(it.id));
+  let body = "", links = [];
+  try {
+    const save = em.items; em.items = live;
+    const html = emailHtml(Object.fromEntries(Object.keys(images()).map(k => [k, "about:blank"])));
+    em.items = save;
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    doc.querySelectorAll("style,script,title").forEach(n => n.remove());
+    body = doc.body.textContent.replace(/\s+/g, " ").trim();
+    links = [...doc.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => /^https?:/i.test(h)).filter((h, i, a) => a.indexOf(h) === i).map(url => ({where: "A link in the email", url}));
+  } catch(e) {}
+  const extra = safeUrl(em.unsub) ? [] : [{lvl: "warn", t: "No unsubscribe link yet: the email says UNSUBSCRIBE_LINK. Put your email platform's link in Small print (or replace it there)."}];
+  if (!em.subject.trim()) extra.push({lvl: "warn", t: "No subject line yet."});
+  return cmp.check({label: em.subject || "Email", fr: FR, items, needsSailings: true, extra, links,
+    texts: [{where: "Subject", text: em.subject}, {where: "Preview text", text: em.preheader}, {where: "Header", text: [em.hero.headline, em.hero.sub].join(" ")},
+            {where: "Intro", text: em.intro, body: true}, {where: "Button", text: em.cta}, {where: "The email", text: body}]}, {S, CAB, KIT, T: TERMS, today, fr: FR});
+}
+function paintCheck(){
+  const b = root.querySelector("#em-check"); if (!b) return;
+  const r = checkNow(); b.className = `cmp-chip ${r.status}`; b.textContent = cmp.chipText(r);
+}
 async function makeEmail(){
   const st = root.querySelector("#em-status"), btn = root.querySelector("#em-make");
   if (!ID) { note = "Sign in again to make the email."; return draw(); }
+  if (!cmp.confirmGo(checkNow(), "Make the email")) return;
   btn.disabled = true;
   try {
     const list = images(), names = Object.keys(list), body = [];

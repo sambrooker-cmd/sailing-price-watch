@@ -10,6 +10,7 @@ import {suggest as suggestFR} from "./adcopy_fr.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
 import * as cs from "./sections.js?v=__BUILD__";
 import {openSaved, sharedStore} from "./saved.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 // France (Sam, 14 Oct 2026, stage 2): mount(…, {market: "fr"}) makes French ads for Ambassador Croisières: French card
@@ -55,7 +56,7 @@ const promoOpts = s => [...campBadge(), ...(s.k.promos || []).filter(p => !campB
 let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
-  root = el; S = ctx.state; ID = ctx.idToken || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {};
+  root = el; S = ctx.state; ID = ctx.idToken || null; CAB = ctx.cabins || {}; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; TERMS = ctx.terms || null;
   today = S.updated;
   FR = ctx.market === "fr";
   if (FR) { KEY = "spw-ad-draft-fr"; DRAFTS = "spw-ad-drafts-fr"; INTRO = INTRO_FR; END = END_FR; ad = fresh(); }
@@ -456,6 +457,7 @@ function draw(){
     <div class="ac-main">
       <div class="ac-actions">
         <button type="button" class="btn" id="ac-zip"${ready() ? "" : " disabled"}>Download zip</button>
+        ${ad.cards.length ? cmp.chip(checkNow(), "ac-check") : ""}
         <button type="button" class="btn quiet" id="ac-video"${ready() ? "" : " disabled"} title="Slideshow videos for Meta, made on GitHub">Make video</button>
         <button type="button" class="btn quiet" id="ac-clear"${ad.cards.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="ac-status" aria-live="polite">${readyMsg()}</span>
@@ -584,7 +586,32 @@ new ResizeObserver(() => root && root.querySelectorAll("iframe[data-card],iframe
   const [w] = SIZES[f.dataset.size]; if (f.parentElement) f.style.transform = `scale(${f.parentElement.clientWidth / w})`;
 })).observe(document.body);
 
+// Pre-send check (site/compliance.js, 17 Oct 2026): what the zip would hand over, against today's data
+let TERMS = null;
+function checkPack(){
+  const items = [], texts = [{where: "Primary text", text: ad.primary, body: true}], links = [];
+  slides().forEach((x, i) => {
+    const n = `Card ${i + 1}`;
+    texts.push({where: `${n} headline`, text: x.headline}, {where: `${n} description`, text: x.description});
+    links.push({where: n, url: x.link});
+    if (x.kind === "sailing") {
+      const c = x.c, cl = c.design.startsWith("wasnow:") ? claims(c.id).find(y => y.key === c.design.slice(7)) : null, s = sailing(c.id);
+      if (c.words) Object.values(c.words).forEach(w => w && texts.push({where: `${n} words on the card`, text: String(w)}));
+      items.push({id: c.id, where: n, price: cl ? null : s ? s.price : null, wasnow: cl ? {key: cl.key, was: cl.was, now: cl.now} : c.design.startsWith("wasnow:") ? {key: c.design.slice(7)} : null, offers: c.promos || []});
+    } else if (x.kind === "intro") texts.push({where: "Opening card", text: [ad.intro.eyebrow || autoEyebrow(), introHead(), ad.intro.cta].filter(Boolean).join(" · ")});
+    else texts.push({where: "Closing card", text: [ad.end.headline, ad.end.cta].filter(Boolean).join(" · ")});
+  });
+  return {label: `${ad.format === "carousel" ? "Carousel" : "Single image"} ad`, fr: FR, items, texts, links, needsSailings: true,
+    campaign: ad.campaign && ad.campaign.badge ? ad.campaign : null};
+}
+const checkNow = () => cmp.check(checkPack(), {S, CAB, KIT, T: TERMS, today, fr: FR});
+function paintCheck(){
+  const b = root.querySelector("#ac-check"); if (!b) return;
+  const r = checkNow(); b.className = `cmp-chip ${r.status}`; b.textContent = cmp.chipText(r);
+}
+
 function counts(){
+  paintCheck();
   const set = (id, n, max) => { const e = root.querySelector("#cnt-" + id); if (e) { e.textContent = `${n}/${max}`; e.classList.toggle("over", n > max); } };
   set("primary", ad.primary.length, LIMITS.primary);
   const c = ad.cards[sel];
@@ -645,6 +672,7 @@ function wire(){
   $("#ac-cta").addEventListener("change", e => { ad.cta = e.target.value; change(false); });
   $("#ac-clear").addEventListener("click", () => { if (confirm("Remove every card and the ad text?")) { ad = {...ad, primary: "", cards: []}; sel = 0; change(true, true); } });
   $("#ac-zip").addEventListener("click", download);
+  $("#ac-check") && $("#ac-check").addEventListener("click", () => cmp.show(checkNow(), esc, "Check before this ad goes out"));
   $("#ac-video").addEventListener("click", makeVideo);
   wireVideos();
   root.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => {
@@ -785,7 +813,8 @@ async function renderJpeg(html, size){
 }
 
 async function download(){
-  const st = root.querySelector("#ac-status"), btn = root.querySelector("#ac-zip");
+  const st = root.querySelector("#ac-status"), btn = root.querySelector("#ac-zip"), chk = checkNow();
+  if (!cmp.confirmGo(chk, "Download the zip")) return;
   btn.disabled = true;
   try {
     const JSZip = await loadZip(), zip = new JSZip();
@@ -800,6 +829,7 @@ async function download(){
     zip.file("ad_text.txt", adText(files));
     zip.file("cards.csv", csv(files));
     zip.file("HOW_TO_UPLOAD.md", howTo(files));
+    zip.file("checks.txt", cmp.reportText(chk));
     st.textContent = "Zipping…";
     const blob = await zip.generateAsync({type: "blob"});
     const a = document.createElement("a");

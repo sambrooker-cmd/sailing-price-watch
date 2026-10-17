@@ -12,6 +12,7 @@ import {copySet as copySetUK, stalePrices as staleUK, LIMITS, BUSINESS as BUSINE
 import {copySet as copySetFR, stalePrices as staleFR, BUSINESS as BUSINESS_FR, SITE as SITE_FR} from "./gcopy_fr.js?v=__BUILD__";
 import {frMoney} from "./adcards.js?v=__BUILD__";
 import * as claude from "./drafts.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 import {feedRow, customiserRow, customiserLines, FEED_COLUMNS, ATTRIBUTES, TEXT_MAX} from "./gfeeds.js?v=__BUILD__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -43,7 +44,7 @@ function fresh(){
 }
 
 export async function mount(el, ctx){
-  root = el; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated; ID = ctx.idToken || null;
+  root = el; S = ctx.state; KIT = (ctx.adkit && ctx.adkit.sailings) || {}; today = S.updated; ID = ctx.idToken || null; TERMS = ctx.terms || null;
   CAB = (ctx.cabins && ctx.cabins.sailings) || ctx.cabins || {};
   FR = ctx.market === "fr";
   if (FR) { KEY = "spw-google-fr"; CTAS = CTAS_FR; BUSINESS = BUSINESS_FR; st = fresh(); }
@@ -105,6 +106,20 @@ function cardData(it){
           wasnow: c ? {was: c.was, now: c.now, grade: c.grade} : null};
 }
 const useBy = () => st.items.map(claimOf).filter(Boolean).map(c => c.ends).sort()[0] || "";
+// Pre-send check (site/compliance.js, 17 Oct 2026): prices, was/now and offers on the images, and every line of ad copy
+let TERMS = null;
+function checkNow(){
+  const items = st.items.map((it, i) => {
+    if (!sailing(it.id)) return {id: it.id, where: `Sailing ${i + 1}`};
+    const d = cardData(it), c = claimOf(it);
+    return {id: it.id, where: `Sailing ${i + 1}`, price: c ? null : d.price, wasnow: c ? {key: c.key, was: c.was, now: c.now} : it.wasnow ? {key: it.wasnow} : null, offers: d.promos};
+  });
+  const live = st.items.every(it => sailing(it.id)) ? sets() : [];
+  return cmp.check({label: "Google Ads", fr: FR, items, needsSailings: true, needsTwoSharing: false,
+    texts: live.map(x => ({where: `Ad copy (${x.name})`, text: allText(setOf(x))})),
+    links: live.flatMap(x => [{where: `Final URL (${x.name})`, url: urlOf(x)}, ...setOf(x).sitelinks.map(l => ({where: `Sitelink "${l.text}"`, url: l.url}))])},
+    {S, CAB, KIT, T: TERMS, today, fr: FR});
+}
 
 // Everything to make, in order: [{key, folder, file, label, sailing?, doc(), type}]
 function outputs(){
@@ -183,6 +198,7 @@ function draw(){
         `<button type="button" role="tab" class="ac-tab" data-gtab="${k}" aria-selected="${st.tab === k}"><span>${l}</span></button>`).join("")}</div>
       ${st.tab === "copy" ? copyMain() : st.tab === "feeds" ? feedsMain() : st.tab === "preview" ? previewMain() : `<div class="ac-actions">
         <button type="button" class="btn" id="g-zip"${outs.length ? "" : " disabled"}>Download zip</button>
+        ${it.length ? cmp.chip(checkNow(), "g-check") : ""}
         <button type="button" class="btn quiet" id="g-clear"${it.length ? "" : " disabled"}>Start again</button>
         <span class="sub" id="g-status" aria-live="polite">${outs.length} image${outs.length === 1 ? "" : "s"} · prices as checked ${shortDate(today)}.${by ? ` <b>Was/now images: stop using by ${shortDate(by)}.</b>` : ""}</span>
       </div>
@@ -329,6 +345,7 @@ function wire(){
   }));
   $("#g-clear") && $("#g-clear").addEventListener("click", () => { if (confirm("Clear these sailings?")) { st = {...st, items: []}; sel = 0; change(); } });
   $("#g-zip") && $("#g-zip").addEventListener("click", zip);
+  $("#g-check") && $("#g-check").addEventListener("click", () => cmp.show(checkNow(), esc, "Check before these Google Ads go out"));
 }
 
 // ---------- download ----------
@@ -342,6 +359,7 @@ const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise
 const csvCell = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
 async function zip(){
   const btn = root.querySelector("#g-zip"), status = root.querySelector("#g-status"), outs = outputs();
+  if (!cmp.confirmGo(checkNow(), "Download the zip")) return;
   btn.disabled = true;
   try {
     const JSZip = await loadZip(), z = new JSZip(), rows = [["File", "Use for", "Size (px)", "KB", "Cruise code", "Sailing", "Price on image", "Was/now: use until", "Landing page"]];
@@ -356,6 +374,7 @@ async function zip(){
     }
     z.file("assets.csv", "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n"));
     z.file("HOW_TO_UPLOAD.md", howTo(outs));
+    z.file("checks.txt", cmp.reportText(checkNow()));
     status.textContent = "Zipping…";
     const blob = await z.generateAsync({type: "blob"});
     download(URL.createObjectURL(blob), `google-ads_${FR ? "fr_" : ""}${st.items.map(x => x.id).slice(0, 3).join("-")}${st.items.length > 3 ? "-etc" : ""}_${today}.zip`);
@@ -432,6 +451,7 @@ function copyMain(){
   if (!list.length) return `<p class="sub">Add sailings on the left to get ad copy for them.</p>`;
   return `<div class="ac-actions">
       <button type="button" class="btn" id="g-editor">Download for Google Ads Editor</button>
+      ${cmp.chip(checkNow(), "g-check")}
       <span class="sub" id="g-status" aria-live="polite">Prices as checked ${shortDate(today)}.${useBy() ? ` <b>Copy with a was/now price: stop using by ${shortDate(useBy())}.</b>` : ""}</span>
     </div>
     ${note ? `<p class="ac-note">${esc(note)}</p>` : ""}
@@ -510,7 +530,8 @@ function wireCopy(){
 // Google Ads Editor import files (Account → Import → From file). Column names as Editor's own exports use them;
 // check the first import in Editor's preview before posting.
 async function editorZip(){
-  const status = root.querySelector("#g-status"), list = sets();
+  const status = root.querySelector("#g-status"), list = sets(), chk = checkNow();
+  if (!cmp.confirmGo(chk, "Download for Google Ads Editor")) return;
   try {
     const JSZip = await loadZip(), z = new JSZip(), C = st.campaigns;
     const csv = rows => "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n");
@@ -534,6 +555,7 @@ async function editorZip(){
     }
     z.file("search_ads.csv", csv(rsa)); z.file("performance_max_asset_groups.csv", csv(pmax)); z.file("demand_gen_ads.csv", csv(dg));
     z.file("sitelinks.csv", csv(site)); z.file("callouts.csv", csv(call)); z.file("ad_copy.txt", text.join("\n"));
+    z.file("checks.txt", cmp.reportText(chk));
     z.file("HOW_TO_IMPORT.md", [`# Importing into Google Ads Editor${FR ? " (France: use the Ambassador Croisières account; the copy is in French)" : ""}`, ``,
       `1. Open Google Ads Editor and download the latest changes for the account.`,
       `2. Account → Import → From file, and choose one CSV at a time (search_ads.csv, performance_max_asset_groups.csv, demand_gen_ads.csv, sitelinks.csv, callouts.csv).`,

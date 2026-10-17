@@ -11,6 +11,7 @@
 import {sharedStore} from "./saved.js?v=__BUILD__";
 import {regionOf, REGION_LABEL, photoWords, addDays} from "./comptrend.js?v=__BUILD__";
 import {LIMITS as GL, noAmp} from "./gcopy.js?v=__BUILD__";
+import * as cmp from "./compliance.js?v=__BUILD__";
 
 const KEY = "spw-campaign";
 const SITE = "https://www.ambassadorcruiseline.com";
@@ -198,7 +199,7 @@ function checks(all, list, gs){
     const notIn = Object.keys(sheet).filter(c => !list.some(x => x.id === c));
     if (notIn.length) add("warn", `On the fares sheet but not in the plan: ${notIn.join(", ")}.`);
   }
-  const claims = list.filter(x => x.s.claim);
+  const claims = list.filter(x => x.s.claim && x.s.claim.eligible && x.s.claim.ends >= today);
   if (claims.length) add("ok", `${claims.length} sailing${claims.length === 1 ? " has" : "s have"} a live was/now claim (${claims.map(x => x.id).join(", ")}): was/now cards come only from those claims and stop on each claim's end date, which can be before this campaign.`);
   const others = list.filter(x => (x.k.promos || []).length);
   if (others.length) add("ok", `${others.length} of the sailings already carry other offers on the website (e.g. ${others[0].id}: ${others[0].k.promos[0]}): decide whether they show alongside this one.`);
@@ -207,10 +208,25 @@ function checks(all, list, gs){
   return out;
 }
 
+// The shared pre-send check (site/compliance.js, 17 Oct 2026) over everything the plan writes: each sailing at today's
+// price with the campaign badge, the Meta primary text, the Google lines and the landing page's words
+function shared(list, on, gg, lp){
+  if (!list.length) return [];
+  const b = st.brief, C = b.channels, texts = [];
+  if (C.meta) on.forEach(g => texts.push({where: `${g.label} carousel text`, text: primary(g), body: true, prices: g.xs.map(x => x.price)}));
+  if (C.google) gg.forEach((g, i) => texts.push({where: `Google Ads (${g.group})`, text: [...g.hl, ...g.ds].join(" | "), prices: (on[i] || {xs: []}).xs.map(x => x.price)}));
+  if (C.page) texts.push({where: "Landing page", text: [lp.seoTitle, lp.metaDesc, lp.h1, lp.intro, ...lp.blocks.map(x => [x.body, ...(x.items || []).map(f => f.q + " " + f.a)].join(" "))].join(" ")});
+  const r = cmp.check({label: b.name || "Campaign", items: list.map(x => ({id: x.id, price: x.price, offers: b.badge ? [b.badge] : []})), texts,
+    campaign: b.badge ? {name: b.name, badge: b.badge, offer: b.offer, terms: b.terms, from: b.from, to: b.to} : null, twoSharingLevel: "warn"},
+    {S, CAB: ctx.cabins || {}, KIT: (KIT && KIT.sailings) || {}, T: ctx.terms || null, today});
+  // the brief's own checks already cover the window, T&Cs and codes; keep the rest, in the plan's levels
+  return r.rows.filter(x => !/the brief has no T&Cs/.test(x.t)).map(x => [x.lvl === "fail" ? "bad" : x.lvl, x.t]);
+}
+
 // ---------- drawing ----------
 function draw(){
   const b = st.brief, all = onSale(), list = picked(all), gs = groups(list), on = gs.filter(g => g.on);
-  const ph = phases(), sd = sends(gs), ck = checks(all, list, gs), gg = on.map(googleSet), lp = landingPage(list, gs);
+  const ph = phases(), sd = sends(gs), gg = on.map(googleSet), lp = landingPage(list, gs), ck = [...checks(all, list, gs), ...shared(list, on, gg, lp)];
   const months = [...new Set(all.map(x => x.date.slice(0, 7)))].sort(), portsAll = [...new Set(all.map(x => x.fly ? "Flights from " + x.fly : x.port))].sort();
   const ships = [...new Set(all.map(x => x.ship))].sort();
   const savedAll = store && !store.loading ? store.all() : {};
@@ -338,7 +354,7 @@ function plan(list, gs, on, ph, sd, ck, gg, lp){
 // ---------- drafts in the creators ----------
 function adDraft(g){
   const b = st.brief, xs = g.xs.slice(0, 8);
-  return {format: "carousel", size: "1x1", primary: primary(g), cta: "Book now", campaign: {name: b.name, badge: b.badge},
+  return {format: "carousel", size: "1x1", primary: primary(g), cta: "Book now", campaign: {name: b.name, badge: b.badge, terms: b.terms, from: b.from, to: b.to},
     cards: xs.map(x => { const c = cardLine(x); return {id: x.id, design: "standard", photo: x.photo || null, words: null, promos: b.badge ? [b.badge] : [], nectar: false, headline: c.hl, description: c.desc, link: x.link}; }),
     intro: {on: true, eyebrow: b.name || "", headline: b.headline || b.offer || "", cta: "Swipe to explore ›", useA: true, mHeadline: cut(b.headline || b.offer || "", 40), mDesc: cut(`Book ${dayShort(b.from || today)} to ${dayShort(b.to || today)}`, 30), link: SITE + (b.landing || "/")},
     end: {on: true, headline: b.headline || "The warmest welcome at sea - because moments matter", cta: `Book by ${dayShort(b.to || today)}`, url: "ambassadorcruiseline.com", useA: true, mHeadline: "Book your sailing today", mDesc: "", link: SITE + (b.landing || "/")}};
