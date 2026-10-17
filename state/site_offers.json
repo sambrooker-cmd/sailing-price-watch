@@ -1,0 +1,22 @@
+{
+ "read_on": "2026-10-17",
+ "read_at": "2026-10-17T14:10:04+00:00",
+ "pages_checked": 215,
+ "pages_failed": 0,
+ "ended_sig": "54b71d3a-1547-4846-8672-f8e10862a77e,c8971712-3959-4cfb-8c1a-7c7a390d0288",
+ "ended": [
+  {
+   "name": "Cruise of the Week - Save 15%",
+   "ended": "2026-10-14",
+   "codes": [
+    "COTW15"
+   ]
+  },
+  {
+   "name": "Free Bottle Of Bubbles",
+   "ended": "2026-10-15",
+   "codes": []
+  }
+ ],
+ "findings": {}
+}

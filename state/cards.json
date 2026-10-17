@@ -978,7 +978,41 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+    "base_title": "Atlantic Horizons and Caribbean Discovery",
+    "ship": "Renaissance",
+    "port": "London Tilbury",
+    "flight_from": "Heathrow",
+    "nights": 24,
+    "departure_date": "2026-10-29",
+    "price": 1349,
+    "promos": [],
+    "nectar": "Collect up to 50,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+    "fp": "0a69ffbc75b0",
+    "made_at": "2026-10-17T14:10:25Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=f061ded4-0153-4197-b71f-7c768f012a8a",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
+      "kb": 312
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=af59f023-19cf-4fd5-a8e9-b713a6754457",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
+      "kb": 400
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=c0eefd6b-890a-4823-a3b9-6668a35f6969",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
+      "kb": 426
+     }
+    }
+   }
   },
   "A22630BR": {
    "old": [
@@ -6081,7 +6115,43 @@
      },
      "out_of_date_since": "2026-10-12T14:49:31Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Springtime Fjordlands",
+    "base_title": "Springtime Fjordlands",
+    "ship": "Ambience",
+    "port": "London Tilbury",
+    "flight_from": null,
+    "nights": 7,
+    "departure_date": "2027-03-18",
+    "price": 699,
+    "promos": [
+     "Regional Coach Transfers"
+    ],
+    "nectar": "Collect up to 30,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/1920x1080/7b44db9b20/rs46871_eidfjord-2023-08-10-2023-08-10-eidfjord-selected-edited-9115.jpg",
+    "fp": "7d0978b64745",
+    "made_at": "2026-10-17T14:10:25Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_1x1.jpg?alt=media&token=09451ac7-9723-4196-9d02-2da8369acafe",
+      "path": "pricewatch-cards/A12704/7d0978b64745_1x1.jpg",
+      "kb": 322
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_4x5.jpg?alt=media&token=feb8167c-ebad-42e4-8d83-8ec8a63a581c",
+      "path": "pricewatch-cards/A12704/7d0978b64745_4x5.jpg",
+      "kb": 376
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA12704%2F7d0978b64745_9x16.jpg?alt=media&token=60353af8-1f13-4d19-849e-a16306363e97",
+      "path": "pricewatch-cards/A12704/7d0978b64745_9x16.jpg",
+      "kb": 446
+     }
+    }
+   }
   },
   "A22704": {
    "old": [
@@ -17111,6 +17181,6 @@
    }
   }
  },
- "updated_at": "2026-10-17T13:09:30Z",
+ "updated_at": "2026-10-17T14:10:25Z",
  "review_batch_at": "2026-10-17T10:09:30Z"
 }
