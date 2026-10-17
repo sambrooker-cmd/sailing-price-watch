@@ -123,19 +123,6 @@ jobs:
           META_API_VERSION: ${{ vars.META_API_VERSION }}
         run: python meta_ads.py
 
-      # Our own Meta ads (Sam, 17 Oct 2026): reads the ad account and proposes changes (pause ads for sailings off sale
-      # or a was/now claim that has ended, today's prices in their words). Nothing is changed here: an approver presses
-      # Approve on the tracker's Meta ads page, which runs the "Meta ads: apply" workflow. See meta_manage.py.
-      - name: Meta ads (read our account)
-        if: always() && steps.watch.outcome != 'cancelled'
-        continue-on-error: true
-        env:
-          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
-          META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
-          META_API_VERSION: ${{ vars.META_API_VERSION }}
-          META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
-        run: python meta_manage.py read
-
       # Keyword ideas for the page creator (Sam, 16 Oct 2026): the searches people find the site with, from Google
       # Search Console, once a UK day. Records why if the service account hasn't been given access yet. See seo_gsc.py.
       - name: Search Console queries
@@ -233,6 +220,20 @@ jobs:
         run: |
           pip install google-auth==2.40.3 requests==2.32.3 pillow==11.3.0
           python cards_sync.py run
+
+      # Our own Meta ads (Sam, 17 Oct 2026): reads the ad account and proposes changes (pause ads for sailings off sale
+      # or a was/now claim that has ended, today's prices in their words). Nothing is changed here: an approver presses
+      # Approve on the tracker's Meta ads page, which runs the "Meta ads: apply" workflow. See meta_manage.py. After the
+      # card steps, so it compares with this check's ad kit (offer figures) (QA, 17 Oct 2026).
+      - name: Meta ads (read our account)
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
+          META_API_VERSION: ${{ vars.META_API_VERSION }}
+          META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
+        run: python meta_manage.py read
 
       - name: Make and upload French cards
         id: frcardrun

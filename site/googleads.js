@@ -356,7 +356,7 @@ const loadZip = () => window.JSZip ? Promise.resolve(window.JSZip) : new Promise
   sc.onload = () => ok(window.JSZip); sc.onerror = () => bad(new Error("couldn't load the zip tool"));
   document.head.appendChild(sc);
 });
-const csvCell = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+const csvCell = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
 async function zip(){
   const btn = root.querySelector("#g-zip"), status = root.querySelector("#g-status"), outs = outputs();
   if (!cmp.confirmGo(checkNow(), "Download the zip")) return;

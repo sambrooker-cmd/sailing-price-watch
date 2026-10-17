@@ -182,7 +182,7 @@ function checks(all, list, gs){
   const words = [b.offer, b.detail, b.headline, b.terms].join(" ");
   if (/per day/i.test(words) && /per night/i.test(words)) add("warn", `The brief says both "per day" and "per night": pick one before the copy goes out.`);
   if (b.badge && b.badge.length > 28) add("warn", `The offer badge "${b.badge}" is ${b.badge.length} characters: cards and email badges fit about 28.`);
-  if (/\b(was|now only|reduced|save £|£\d[\d,]* off|price drop|cheaper)\b/i.test([b.offer, b.headline, b.badge].join(" "))) add("warn", "The offer wording reads like a price reduction: was/now claims follow the reference-pricing rules (28 days held first) and only come from the tracker's live claims.");
+  if (/\b(was|now only|reduced|save( up to)? £|savings? of|£\d[\d,]* off|price drop|cheaper)\b/i.test([b.offer, b.headline, b.badge].join(" "))) add("warn", "The offer wording reads like a price reduction: was/now claims follow the reference-pricing rules (28 days held first) and only come from the tracker's live claims.");
   if (b.pick === "codes") {
     const want = parseCodes(b.codes), have = new Set(all.map(x => x.id)), missing = want.filter(c => !have.has(c));
     if (missing.length) add("bad", `Not on sale now, so left out: ${missing.join(", ")}.`);
@@ -381,7 +381,7 @@ const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").re
 async function pack(obj){ const z = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream("deflate-raw")); return b64u(new Uint8Array(await new Response(z).arrayBuffer())); }
 
 function csvFile(name, rows){
-  const q = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+  const q = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
   const blob = new Blob(["﻿" + rows.map(r => r.map(q).join(",")).join("\r\n")], {type: "text/csv"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }

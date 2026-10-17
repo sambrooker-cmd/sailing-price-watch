@@ -50,7 +50,7 @@ function figures(terms){
   const months = (D && D.months) || [], n = months.length, m = new Array(n).fill(0);
   let avg = 0, lo = null, hi = null, got = 0;
   for (const t of terms) { const x = T(t); if (!x) continue; got++; avg += x.avg || 0; (x.m || []).forEach((v, i) => { if (v != null) m[i] += v; });
-    if (x.lo) lo = lo == null ? x.lo : Math.min(lo, x.lo); if (x.hi) hi = hi == null ? x.hi : Math.max(hi, x.hi); }
+    if (x.lo != null && x.hi) lo = lo == null ? x.lo : Math.min(lo, x.lo); if (x.hi) hi = hi == null ? x.hi : Math.max(hi, x.hi); }
   const s3 = (a, b) => m.slice(a, b).reduce((x, y) => x + y, 0);
   const yoy = n >= 15 ? pct(s3(n - 3, n), s3(n - 15, n - 12)) : null;
   const last12 = m.slice(-12), peak = last12.length ? months.slice(-12)[last12.indexOf(Math.max(...last12))] : null;
@@ -98,7 +98,7 @@ function draw(){
       ${gf.map(({g, f}) => { const s = sumGsc(g.terms); return `<tr><td><input type="checkbox" data-show="${esc(g.name)}"${st.shown[g.name] !== false ? " checked" : ""} aria-label="Show ${esc(g.name)} on the chart"></td>
         <td><button type="button" class="linkbtn" style="text-align:left" data-jump="${esc(g.name)}"><b>${esc(g.name)}</b></button></td><td class="num">${g.terms.length}</td>
         <td class="num"><b>${has ? n0(f.avg) : "–"}</b></td><td>${has ? spark(f.m) : ""}</td><td class="num">${has ? n0(f.last) : "–"}</td><td class="num">${has ? pctCell(f.yoy) : "–"}</td>
-        <td>${has && f.peak ? monLab(f.peak) : "–"}</td><td class="num">${has && f.hi ? `£${f.lo.toFixed(2)}–£${f.hi.toFixed(2)}` : "–"}</td><td class="num">${s[1] ? n0(s[1]) : "–"}${s[0] ? `<div class="sub">${n0(s[0])} clicks</div>` : ""}</td></tr>`; }).join("")}
+        <td>${has && f.peak ? monLab(f.peak) : "–"}</td><td class="num">${has && f.hi ? `£${(f.lo ?? 0).toFixed(2)}–£${f.hi.toFixed(2)}` : "–"}</td><td class="num">${s[1] ? n0(s[1]) : "–"}${s[0] ? `<div class="sub">${n0(s[0])} clicks</div>` : ""}</td></tr>`; }).join("")}
     </tbody></table></div>
     ${ch ? `<h3 style="margin:18px 0 8px;font-size:15px">Searches a month by group</h3>${ch.html}<p class="note">Tick groups in the table to show them (up to 10). Keyword Planner rounds small numbers and groups close variants ("cruise from uk" and "cruises from uk") under one figure.</p>` : ""}
     <h3 style="margin:22px 0 8px;font-size:15px">Groups and terms</h3>
@@ -165,7 +165,7 @@ function wire(groups){
   all("[data-idea]").forEach(b => b.addEventListener("click", () => change(w => addTerms(w.groups[+b.dataset.idea], b.dataset.t))));
   $("#sd-addg").addEventListener("click", () => { const v = $("#sd-newg").value.trim().slice(0, 60); if (!v || st.work.groups.some(g => g.name === v)) return; st.open[v] = true; change(w => w.groups.push({name: v, terms: []})); });
   $("#sd-csv").addEventListener("click", () => {
-    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
     const months = (D && D.months) || [];
     const head = ["Group", "Search term", "Searches a month", "Competition", "Top-of-page bid low £", "Top-of-page bid high £", "Our impressions (90 days)", "Our clicks", "Our average position", ...months];
     const body = st.work.groups.flatMap(g => g.terms.map(t => { const x = T(t) || {}, q = gsc(t) || []; return [g.name, t, x.avg ?? "", x.comp || "", x.lo ?? "", x.hi ?? "", q[1] ?? "", q[0] ?? "", q[2] ?? "", ...(x.m || months.map(() => ""))]; }));

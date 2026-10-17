@@ -389,7 +389,8 @@ def check_page(o, facts, page):
     out["seo_title"] = t if t and ok(t, "The SEO title") else ""
     t = no_amp(re.sub(r"\s+", " ", o.get("meta_description") or "")).strip()
     out["meta_description"] = t if t and ok(t, "The meta description") else ""
-    out["h1"] = no_amp(re.sub(r"\s+", " ", o.get("h1") or "")).strip()
+    t = no_amp(re.sub(r"\s+", " ", o.get("h1") or "")).strip()
+    out["h1"] = t if t and ok(t, "The H1") else ""   # checked like the rest (QA, 17 Oct 2026)
     para = lambda t: "\n\n".join(no_amp(p.strip()) for p in re.split(r"\n\s*\n", t or "") if p.strip())   # noqa: E731
     out["intro"] = para(o.get("intro")) if ok(o.get("intro") or "", "The intro") else ""
     secs = []

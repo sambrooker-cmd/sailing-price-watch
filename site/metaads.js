@@ -156,8 +156,9 @@ function wire(byId){
   }));
   all("[data-reject]").forEach(b => b.addEventListener("click", async () => {
     const p = D.proposals.find(x => x.id === b.dataset.reject), a = byId[p.ad] || {};
+    if (!confirm(`Reject this change for "${a.name || p.ad}"? It won't be proposed again unless something changes.`)) return;
     st.busy[p.id] = "reject"; draw();
-    await send({op: "reject", ad: p.ad, proposal: p.id, what: `Rejected: ${p.kind === "pause" ? "pause" : "today's prices in the words of"} "${a.name || p.ad}"`}, "Rejected: it won't be proposed again unless something changes.");
+    await send({op: "reject", ad: p.ad, proposal: p.id, what: `Rejected: ${p.kind === "pause" ? "pause" : p.kind === "remake" ? "remake with today's prices" : "today's prices in the words of"} "${a.name || p.ad}"`}, "Rejected: it won't be proposed again unless something changes.");
     delete st.busy[p.id]; draw();
   }));
   const nameOf = (type, id) => type === "ad" ? (byId[id] || {}).name : ((type === "adset" ? D.adsets : D.campaigns).find(x => x.id === id) || {}).name;

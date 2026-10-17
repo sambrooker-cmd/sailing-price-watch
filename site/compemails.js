@@ -313,7 +313,7 @@ function compare(){
 }
 
 function csv(list){
-  const cell = v => { let s = String(v ?? ""); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const cell = v => { let s = String(v ?? ""); if (/^[=+\-@\t\r]/.test(s) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const rows = [["Sent (UK)", "Day", "Brand", "Subject", "Subject length", "Preview text", "Type", "About", "Headline", "Main button",
     "Destinations", "From price £", "Offers", "Offer ends", "Pictures", "Links", "View in browser", "Read by"]]
     .concat(list.map(e => [when(e.date), DAYS[dow(e.date)], brand(e.line), e.subject, e.subject.length, e.preheader, e.kind, e.summary,

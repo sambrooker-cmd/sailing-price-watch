@@ -146,7 +146,11 @@ def main():
                 pg = {"ids": {i: pg.get("ids", {}).get(i, "") for i in fixed[key]}, "at": today, "by": "hand"}
             elif not pg.get("ids") or pg.get("at", "") < (dt.date.fromisoformat(today) - dt.timedelta(days=PAGES_DAYS)).isoformat():
                 try:
-                    pg = {"ids": pages_of(key, token), "at": today, "by": "search"}
+                    found = pages_of(key, token)
+                    if found:
+                        pg = {"ids": found, "at": today, "by": "search"}
+                    else:   # nothing matched this time: keep the pages we had, and don't count its ads as ended (QA, 17 Oct 2026)
+                        problems.append(f"{BRANDS[key][0]}: no page matching its name was found this time; the pages found before are kept")
                 except RuntimeError as e:
                     problems.append(f"{BRANDS[key][0]}: its page couldn't be found ({e})")
             st["pages"][key] = pg
