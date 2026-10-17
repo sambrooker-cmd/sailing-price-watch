@@ -48,6 +48,10 @@ const INTRO_FR = {on: true, eyebrow: "", headline: "Où naviguerez-vous ensuite\
 const END_FR = {on: true, headline: "L'accueil le plus chaleureux en mer", cta: "Réservez votre croisière", url: "ambassadorcroisieres.fr", useA: true,
                 mHeadline: "Réservez votre croisière", mDesc: "", link: SITE_FR};
 let ad = {format: "carousel", size: "1x1", primary: "", cta: "Learn more", cards: [], intro: {...INTRO}, end: {...END}};
+// A carousel made by the Campaign builder carries the campaign's offer badge (`campaign.badge`): offered on every card with
+// the sailing's own promotions (site/campaign.js, 17 Oct 2026)
+const campBadge = () => ad.campaign && ad.campaign.badge ? [ad.campaign.badge] : [];
+const promoOpts = s => [...campBadge(), ...(s.k.promos || []).filter(p => !campBadge().includes(p))];
 let sel = 0, uploads = {}, upN = 0, draftId = null, note = "";
 
 export async function mount(el, ctx){
@@ -530,7 +534,7 @@ function editor(c){
       ${s.k.nectar ? `<label class="ac-check"><input type="checkbox" id="ac-nectar"${c.nectar ? " checked" : ""}> ${esc(s.k.nectar)}</label>` : ""}
       <label class="ac-check"><input type="checkbox" id="ac-tp"${c.trustpilot && TP ? " checked" : ""}${TP ? "" : " disabled"}> Trustpilot widget ${TP ? `<span class="sub">(score as of ${fmtDate(TP.as_of)}: check it's still current)</span>` : `<span class="sub">(waiting for the Trustpilot image)</span>`}</label>
       ${c.trustpilot && TP ? `<select id="ac-tp-style" aria-label="Trustpilot layout">${TP.images.map(x => `<option value="${esc(x.file)}"${tpFile(c) === x.file ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select>` : ""}
-      ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-promo="${i}"${(c.promos || []).includes(p) ? " checked" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No promotions on this sailing right now.</p>`}
+      ${promoOpts(s).map((p, i) => `<label class="ac-check"><input type="checkbox" data-promo="${i}"${(c.promos || []).includes(p) ? " checked" : ""}> ${esc(p)}${campBadge().includes(p) ? ` <span class="sub">(the campaign's offer)</span>` : ""}</label>`).join("") || `<p class="sub">No promotions on this sailing right now.</p>`}
       <p class="sub">Up to ${c.nectar || c.trustpilot ? "1 promotion with the Nectar line or Trustpilot widget" : "2 promotions"}, so the card doesn't get too busy.</p>`}
     <span class="ac-lab">Under the ${ad.format === "carousel" ? "card" : "image"} on Meta</span>
     <label class="ac-lab sm" for="m-headline">Headline <span class="sub" id="cnt-headline"></span></label>
@@ -717,10 +721,10 @@ function wire(){
   $("#ac-tp-style") && $("#ac-tp-style").addEventListener("change", e => { c.trustpilot = e.target.value; change(true, true); });
   $("#ac-tp") && $("#ac-tp").addEventListener("change", e => { c.trustpilot = e.target.checked ? TP.images[0].file : ""; c.promos = (c.promos || []).slice(0, c.nectar || c.trustpilot ? 1 : 2); change(true, true); });
   root.querySelectorAll("[data-promo]").forEach(b => b.addEventListener("change", () => {
-    const p = s.k.promos[+b.dataset.promo], max = c.nectar || c.trustpilot ? 1 : 2;
+    const opts = FR ? (s.k.promos || []) : promoOpts(s), p = opts[+b.dataset.promo], max = c.nectar || c.trustpilot ? 1 : 2;
     c.promos = (c.promos || []).filter(x => x !== p);
     if (b.checked) { c.promos.push(p); while (c.promos.length > max) c.promos.shift(); }   // the newest pick wins
-    c.promos = s.k.promos.filter(x => c.promos.includes(x));                               // shown best first
+    c.promos = opts.filter(x => c.promos.includes(x));                                     // shown best first
     change(true, true);
   }));
   $("#m-headline").addEventListener("input", e => { c.headline = e.target.value; change(false); });

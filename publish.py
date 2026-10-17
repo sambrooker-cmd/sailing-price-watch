@@ -25,6 +25,7 @@ has to understand the shape of the data:
   pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
   pricewatch/seo-demand  monthly UK searches for the search demand viewer's terms, from Keyword Planner (search_demand.py)
+  pricewatch/ga4-impact  interest before and after each price move and offer, against similar sailings (impact.py)
   pricewatch/ga4-demand  sailing page views, channels and booking clicks from GA4 (ga4.py)
   pricewatch/seo-pages  the website's own pages (title, description, H1) for the duplicate check (seo_pages.py)
   pricewatch/seo-cwv  Core Web Vitals: our pages' lab tests, real-visitor figures for us and the competitors (seo_cwv.py; fr-cwv for France)
@@ -150,6 +151,8 @@ def documents():
     # Sailing demand from GA4 (ga4.py, 17 Oct 2026)
     if (ROOT / "state" / "ga4" / "demand.json").exists():
         docs["ga4-demand"] = load(ROOT / "state" / "ga4" / "demand.json")
+    if (ROOT / "state" / "ga4" / "impact.json").exists():   # what price moves and offers did (impact.py)
+        docs["ga4-impact"] = load(ROOT / "state" / "ga4" / "impact.json")
     # The website's own pages for the page creator's duplicate check (seo_pages.py, 16 Oct 2026)
     if (ROOT / "state" / "seo" / "pages.json").exists():
         docs["seo-pages"] = load(ROOT / "state" / "seo" / "pages.json")

@@ -15,7 +15,7 @@ Read-only: nothing in GA4 is changed. Without the property ID or access it recor
 
 → state/ga4/demand.json {read_on, fetched_at, property, problem, start, end, days, booking_events, events_seen,
    sailings: {code: {path, views: [per day, oldest first], users: [per day], ch: {channel: views 28d},
-                     clicks: [28d, previous 28d], ev: {event: [28d, previous 28d]}}}}
+                     clicks: [28d, previous 28d], ev: {event: [28d, previous 28d]}, clicks_d: [booking clicks per day]}}}
 → publish.py pricewatch/ga4-demand → tracker page Prices → Sailing demand, and each sailing's detail view.
 
 Setup (Sam, one-off): Google Cloud console → promotions-planner → APIs & Services → Library → "Google Analytics Data
@@ -106,7 +106,7 @@ def main():
             c = code_of(path)
             if not c:
                 return None
-            return sail.setdefault(c, {"path": path, "views": [0] * DAYS, "users": [0] * DAYS, "ch": {}, "clicks": [0, 0], "ev": {}})
+            return sail.setdefault(c, {"path": path, "views": [0] * DAYS, "users": [0] * DAYS, "ch": {}, "clicks": [0, 0], "ev": {}, "clicks_d": [0] * DAYS})
         # 1. views and users per sailing page per day
         for path, date, views, users in report(http, prop, {"dateRanges": [{"startDate": days[0], "endDate": days[-1]}],
                 "dimensions": [{"name": "pagePath"}, {"name": "date"}], "metrics": [{"name": "screenPageViews"}, {"name": "activeUsers"}],
@@ -130,6 +130,16 @@ def main():
                 r = rec(path)
                 if r is not None:
                     r["clicks"][k] += int(n)
+        # 3b. booking clicks per day (outbound clicks plus the chosen booking events), for impact.py's before/after
+        BOOK = {"orGroup": {"expressions": [{"andGroup": {"expressions": [{"filter": {"fieldName": "eventName", "stringFilter": {"value": "click"}}},
+                    {"filter": {"fieldName": "linkDomain", "stringFilter": {"matchType": "CONTAINS", "value": BOOKING_DOMAIN}}}]}}]
+                    + ([{"filter": {"fieldName": "eventName", "inListFilter": {"values": events}}}] if events else [])}}
+        for path, date, n in report(http, prop, {"dateRanges": [{"startDate": days[0], "endDate": days[-1]}],
+                "dimensions": [{"name": "pagePath"}, {"name": "date"}], "metrics": [{"name": "eventCount"}],
+                "dimensionFilter": {"andGroup": {"expressions": [CRUISE, BOOK]}}}):
+            r = rec(path)
+            if r is not None and date in idx:
+                r["clicks_d"][idx[date]] += int(n)
         # 4. booking events chosen in GA4_BOOKING_EVENTS, per sailing page
         if events:
             for k, rng in enumerate((m28, p28)):
@@ -145,6 +155,8 @@ def main():
         for r in sail.values():   # drop empty history to keep the document small
             if not any(r["views"]):
                 r["views"] = r["users"] = []
+            if not any(r["clicks_d"]):
+                r["clicks_d"] = []
         st = {"read_on": today, "fetched_at": now, "property": prop, "problem": "", "start": days[0], "end": days[-1], "days": DAYS,
               "m28": m28, "p28": p28, "booking_domain": BOOKING_DOMAIN, "booking_events": events, "events_seen": seen,
               "sailings": dict(sorted(sail.items()))}

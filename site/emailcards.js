@@ -72,7 +72,7 @@ function normalise(d){
   const items = Array.isArray(d.items) ? d.items : [], gone = items.filter(it => !sailing(it.id));
   let badges = 0, wasnow = 0, cabins = 0;
   out.items = items.filter(it => sailing(it.id)).slice(0, MAX).map(it => {
-    const promos = sailing(it.id).k.promos || [], keep = (it.badges || []).filter(b => promos.includes(b));
+    const promos = [...campaignBadges(d), ...(sailing(it.id).k.promos || [])], keep = (it.badges || []).filter(b => promos.includes(b));
     badges += (it.badges || []).length - keep.length;
     const x = {...it, badges: keep};
     if (x.wasnow && !claimOf(x)) { x.wasnow = ""; wasnow++; }
@@ -193,6 +193,7 @@ function badgeTerms(it){
   const r = sailing(it.id).r, offers = S.offers || {};
   const live = Object.entries(r.promos || {}).filter(([, sp]) => sp.length && sp[sp.length - 1][1] == null).map(([o]) => o);
   return badgesOf(it).map(b => {
+    if (campaignBadges(st).includes(b)) return {badge: b, docs: st.campaign.terms ? [{title: `${st.campaign.name || "Campaign"} offer terms (from the campaign brief)`, text: st.campaign.terms, pages: []}] : []};
     // Names compared without emoji, asterisks or case (France's tags: "🚢 Larguez les amarres" on the site, "Larguez les amarres" on cards)
     const key = t => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}%£€=+-]+/gu, " ").trim();
     const name = key(badgeText(b));
@@ -225,7 +226,12 @@ function termsText(it){
       : [`No terms for this promotion were found on the website. General booking terms: ${(T && T.general) || (FR ? "https://www.ambassadorcroisieres.fr/information/conditions-particulieres" : "https://www.ambassadorcruiseline.com/information/terms-conditions/")}`, ""]),
     ...(x.byName ? ["(Matched by a word in the promotion's name: check these are the right terms.)", ""] : [])])].join("\n");
 }
-const badgesOf = it => st.allBadges ? (sailing(it.id).k.promos || []).slice(0, 2) : it.badges;
+const badgesOf = it => st.allBadges ? badgeOptions(it.id).slice(0, 2) : it.badges;
+// A set made by the Campaign builder (site/campaign.js, 17 Oct 2026) carries its campaign's offer as a badge that may not
+// be on the website yet (the campaign hasn't started): st.campaign {name, badge, terms, from, to}. It's offered first on
+// every sailing and kept when the set is opened.
+const campaignBadges = d => d && d.campaign && d.campaign.badge ? [d.campaign.badge] : [];
+const badgeOptions = id => [...campaignBadges(st), ...(sailing(id).k.promos || []).filter(p => !campaignBadges(st).includes(p))];
 // A place name from a photo's file name, offered as a caption to check
 function captionHint(url, id){
   if ((url || "").startsWith("/ships/")) return "";   // the ship photo: no place name to suggest
@@ -549,8 +555,8 @@ function editor(it){
     <input id="ec-caption" value="${esc(it.caption)}" placeholder="e.g. Kirkwall, Scotland" maxlength="40">
     ${hint && hint !== it.caption ? `<button type="button" class="linkbtn" id="ec-hint">Use "${esc(hint)}" (${FR ? "the photo's caption on the website" : "from the photo's file name"})</button>` : ""}
     <span class="ac-lab">Offer badges <span class="sub">(up to 2, as on the sailing's page)</span></span>
-    ${(s.k.promos || []).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${st.allBadges ? " disabled" : ""}> ${esc(p)}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
-    ${st.allBadges && (s.k.promos || []).length ? `<p class="sub">"Offer badges on every sailing" is ticked. Untick it to choose.</p>` : ""}
+    ${badgeOptions(it.id).map((p, i) => `<label class="ac-check"><input type="checkbox" data-badge="${i}"${badgesOf(it).includes(p) ? " checked" : ""}${st.allBadges ? " disabled" : ""}> ${esc(p)}${campaignBadges(st).includes(p) ? ` <span class="sub">(${esc(st.campaign.name || "campaign")} offer${st.campaign.from ? `, ${shortDate(st.campaign.from)} to ${shortDate(st.campaign.to)}` : ""})</span>` : ""}</label>`).join("") || `<p class="sub">No offers on this sailing right now.</p>`}
+    ${st.allBadges && badgeOptions(it.id).length ? `<p class="sub">"Offer badges on every sailing" is ticked. Untick it to choose.</p>` : ""}
     ${badgesOf(it).length ? `<button type="button" class="btn quiet sm" data-copyterms="${sel}">Copy offer T&amp;Cs</button> <span class="sub">${badgeTerms(it).map(x => `${esc(x.badge)}: ${x.docs.length ? "terms found" : "none on the website"}`).join(" · ")}</span>` : ""}
     <label class="ac-lab" for="ec-name">File name <span class="sub">(optional: blank uses the caption and offers)</span></label>
     <input id="ec-name" value="${esc(it.name || "")}" placeholder="${esc(fileName({...it, name: ""}, outputs()[0] || "standard").replace(/ - (Standard|Wide).*$/, ""))}" maxlength="100">
@@ -610,7 +616,7 @@ function wire(){
     $("#ec-name").addEventListener("input", e => { cur.name = e.target.value; save(); $("#ec-names").innerHTML = outputs().map(o => esc(fileName(cur, o))).join("<br>"); });
     $("#ec-hint") && $("#ec-hint").addEventListener("click", () => { cur.caption = captionHint(cur.photo, cur.id); change(true); });
     root.querySelectorAll("[data-badge]").forEach(b => b.addEventListener("change", () => {
-      const p = sailing(cur.id).k.promos[+b.dataset.badge];
+      const p = badgeOptions(cur.id)[+b.dataset.badge];
       cur.badges = b.checked ? [...cur.badges.filter(x => x !== p), p].slice(-2) : cur.badges.filter(x => x !== p);
       change(true);
     }));

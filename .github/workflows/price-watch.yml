@@ -146,6 +146,7 @@ jobs:
         run: |
           pip install -q google-auth==2.40.3 requests==2.32.3
           python ga4.py
+          python impact.py   # what price moves and offers did to interest (uses the files above only)
 
       # Search demand from Keyword Planner (Sam, 17 Oct 2026): monthly UK searches for the starting list and the team's
       # saved lists, once a UK day, read-only. Records what's missing until the Google Ads API secrets exist. See search_demand.py.

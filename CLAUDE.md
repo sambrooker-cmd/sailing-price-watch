@@ -542,6 +542,27 @@ detail view: **Interest on the website** (daily views chart, channels, and views
 API → Enable; GA4 → Admin → Property access management → add the `firebase-adminsdk-…` address as **Viewer**; repo
 variable `GA4_PROPERTY_ID` (Admin → Property details). Until then the page shows the setup. Tested with fake API answers.
 
+## What moved interest (17 Oct 2026, Sam: point 2 of the new ideas issue, "what price moves and offers actually did")
+`impact.py`, run right after `ga4.py` in the "Sailing demand (GA4)" step (uses only saved files): every change to a
+sailing, found in our own history: **price cut / rise** = the lead price at the end of a day against the end of the day
+before, same cabin grade only (a different grade setting the price, i.e. "mix", the 13 Oct `switch` and `back` segments
+are not price moves); **offer started / ended** = a promotion span starting after state `promos_since` (ones running when
+recording began didn't "start") or ending, typed with the same regexes as `offerkit.js` (`TYPES`, keep in step). For each:
+page views in the `WINDOW` = 7 days before and after (GA4 `views`), and booking clicks (new `clicks_d` in ga4.py: daily
+outbound clicks to the booking site plus `GA4_BOOKING_EVENTS`), against **similar sailings** with no change of their own
+over those 14 days (same no-fly / fly-cruise, departing within `CONTROL_DAYS` = 90 days of it, ≥ `MIN_BEFORE` = 20 views
+the week before): **lift** = exp(log ratio of the sailing − median log ratio of the controls) − 1 (clicks: when ≥
+`MIN_CLICKS` = 10 and 3+ controls). Scored once its week after is complete inside the GA4 window, then **kept for good**
+(state/ga4/impact.json, key id|date|kind|detail), so the evidence outlives GA4's 90 days. Flags (left out of the summary):
+`mixed` (another change within 7 days, e.g. A12704's cut on 14 Oct and rise on 15 Oct), `thin`, `few_controls`. →
+`publish.py` `pricewatch/ga4-impact`. Page **Prices → What moved interest** (`site/impact.js`, UK only): by kind (price
+cuts, also by size under 5% / 5–10% / over 10%; rises; offers started, also by type; offers ended): changes scored,
+typical (median) lift in views, share that rose more than similar sailings, typical lift in booking clicks, a dot per
+change, and "More interest" / "Less interest" (5+ changes, median ±10% or more, most going the same way) / "No clear
+effect" / "Too few so far"; then every change (filters, show flagged, CSV). Tested with planted effects (cuts +25% found
++25%, rises −10% found −8%, onboard credit +15% found +20%, discount +20% found +24%, coach 0% found −4%); on our real history
+since 8 Oct it finds 7 cuts, 47 rises, 14 offers started and 18 ended to score once GA4 is connected.
+
 ## Search demand (17 Oct 2026, Sam: "a search demand viewer, with key search terms pre loaded up but with the ability to add more and group them accordingly. Ideally from a tool like google keyword planner")
 - **Terms**: the starting list `search_terms.json` (80 terms in 10 groups: brand, no-fly, departure ports (every UK port we
   sail from), Caribbean/fly, Norway/Arctic, Europe/islands, Christmas/short breaks, who it's for, deals, competitor brands)
@@ -685,6 +706,35 @@ Measured: drawing is fast (0.6 s first render, every page under 0.5 s with the d
 Not done (options): caching the data in the browser between visits; keeping a function copy always warm (costs a few
 pounds a month).
 
+## Campaign builder (17 Oct 2026, Sam: "if someone provides a brief then it spits out a whole plan from all channels with creative and all sorts, a bit like the artifact I made today for black friday ads but it would then also do emails, landing pages, assets etc")
+Modelled on Sam's "Black Friday Drinks Ads" / "Black Friday Ad Mock-ups" artifacts. `site/campaign.js`, **Creative → Campaign
+builder** (UK only, `FR_HIDE`), no AI. **The brief** (left): name, code for ad names, offer, what guests get, campaign line,
+offer badge, booking window (from/to), landing page, T&Cs, notes; sailings **by a rule** (departure months, no-fly/fly,
+destination `regionOf`, port/airport, ship, nights, max £pp) or **by cruise codes** (pasted, any separators); an optional
+**fares sheet** ("A12702 £1,149" lines) checked against the website; channels (Meta, Google Ads, email, landing page,
+social). Briefs saved in the shared list (`saved` function kind **"campaign"**, field `brief`; browser draft `spw-campaign`).
+**The plan** (right, rebuilt as the brief is typed): **Check before launch** (missing name/offer/window/T&Cs, window order,
+landing page against the website's pages `seo-pages` (missing / not 200 / exists: check it shows the offer), "per day" and
+"per night" both used, badge over 28 characters, reduction wording, codes not on sale, sailings departing within a week of the
+window closing, fares sheet differences (the plan always uses the website's prices), live was/now claims (cards only from
+those claims) and other live offers on the sailings); **Sailings by theme** (`groups`: one per destination region, "Regional
+departures" (no-fly not from Tilbury), "Short breaks under £1,000" (≤ 9 nights), "More sailings"; a sailing can be in more
+than one; untick to leave a theme out, `off`); **Meta** (phase openers New offer / Offer ending soon / Last chance / Offer
+ends tonight (`phases`), a carousel per theme: opener + the 8 lowest priced + closer, primary text ending "Based on two sharing
+and subject to availability.", Meta headline/description/link per card, ad names `CAR_EN_<code>_<theme>_C###_T####`, "Open
+this carousel in the Ad creator" (a `#ad=` share link), single images and videos); **Google Ads** (an ad group per theme:
+up to 15 headlines ≤ 30 and 4 descriptions ≤ 90 (`gcopy.js` `LIMITS`), paths, sitelinks, callouts; Editor CSVs search_ads /
+sitelinks / callouts); **Email sends** (`sends`: Launch, Reminder (window ≥ 6 days), Ending soon, Last chance; subject lines,
+preview text, sailings spread across themes); **Landing page** (a page creator page: H1, intro, SEO title/description, offer
+section, the sailings list, a section per theme to write, FAQs from the brief); **Social and video** (a route video per theme);
+**Calendar** (day by day from a week before to the day after). **Create drafts in the creators** saves to the shared lists:
+an Ad creator carousel per theme (`campaign.badge` on every card; the Ad creator lists it with the sailing's own promotions as
+"the campaign's offer"), an Email cards set per send (`campaign` {name, badge, terms, from, to}: the badge is offered on
+every card and Copy offer T&Cs gives the brief's terms) and a Pages and blog landing page. **Download the plan** = the plan as
+one HTML page to share. Prices are the tracker's latest; nothing is sent, uploaded or published. Not built yet: Draft with
+Claude for the campaign's copy. Tested 17 Oct 2026 with a Black Friday-style brief (30 codes, a fares sheet, stand-in
+saved function): 6 themes, 11 drafts made, the carousel opened in the Ad creator, the set in Email cards with the badge.
+
 ## Hard rules (do not change without Sam)
 - **Never touch Meta, Google Ads or any ad account.** This system only records prices and renders cards for Sam to approve.
 - **Was prices only ever come from `run.json`** (`eligible` / `cabin_eligible`, produced by `tracker.py`). Never compute
@@ -724,7 +774,9 @@ pounds a month).
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `site/campaign.js` | Campaign builder (a brief → themes, Meta, Google Ads, email sends, landing page, calendar, and drafts in the creators): see "Campaign builder (17 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
+| `impact.py`, `site/impact.js`, `state/ga4/impact.json` | What moved interest (views and booking clicks after each price move and offer, against similar sailings): see "What moved interest (17 Oct 2026)" above |
 | `search_demand.py`, `search_terms.json`, `site/searchdemand.js`, `state/seo/search_demand.json` | Search demand viewer (Keyword Planner volumes for grouped, editable term lists): see "Search demand (17 Oct 2026)" above |
 | `site/seohealth.js` | SEO → Search performance (Search Console quick wins, pages losing traffic) and Site health: see "Search performance and Site health (17 Oct 2026)" above |
 | `seo_cwv.py`, `.github/workflows/cwv.yml`, `site/cwv.js`, `state/seo/cwv.json`, `state/fr/cwv.json` | Core Web Vitals for us and the competitors (CrUX + PageSpeed Insights): see "Core Web Vitals (17 Oct 2026)" above |
