@@ -670,6 +670,48 @@
      "nectar": "Collect up to 50,000 Nectar points",
      "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
      "fp": "0a69ffbc75b0",
+     "made_at": "2026-10-16T14:09:54Z",
+     "reason": "left the ad feed",
+     "files": {
+      "1x1": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=8086ce48-61dc-4608-a1b6-cfc55cb1ff03",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
+       "kb": 312
+      },
+      "4x5": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=b6f58cc4-d462-46e8-8355-69a384814f00",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
+       "kb": 400
+      },
+      "9x16": {
+       "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=7712d6f6-92eb-4651-9ee9-0833be343262",
+       "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
+       "kb": 426
+      }
+     },
+     "review": {
+      "fp": "0a69ffbc75b0",
+      "at": "2026-10-17T05:10:56Z",
+      "ok": true,
+      "issues": [],
+      "model": "claude-opus-5-5"
+     },
+     "out_of_date_since": "2026-10-17T12:57:44Z"
+    },
+    {
+     "design": "2026-10-12",
+     "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+     "base_title": "Atlantic Horizons and Caribbean Discovery",
+     "ship": "Renaissance",
+     "port": "London Tilbury",
+     "flight_from": "Heathrow",
+     "nights": 24,
+     "departure_date": "2026-10-29",
+     "price": 1349,
+     "promos": [],
+     "nectar": "Collect up to 50,000 Nectar points",
+     "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+     "fp": "0a69ffbc75b0",
      "made_at": "2026-10-15T21:09:24Z",
      "reason": "left the ad feed",
      "files": {
@@ -936,48 +978,7 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ],
-   "current": {
-    "design": "2026-10-12",
-    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
-    "base_title": "Atlantic Horizons and Caribbean Discovery",
-    "ship": "Renaissance",
-    "port": "London Tilbury",
-    "flight_from": "Heathrow",
-    "nights": 24,
-    "departure_date": "2026-10-29",
-    "price": 1349,
-    "promos": [],
-    "nectar": "Collect up to 50,000 Nectar points",
-    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
-    "fp": "0a69ffbc75b0",
-    "made_at": "2026-10-16T14:09:54Z",
-    "reason": "new",
-    "files": {
-     "1x1": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=8086ce48-61dc-4608-a1b6-cfc55cb1ff03",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
-      "kb": 312
-     },
-     "4x5": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=b6f58cc4-d462-46e8-8355-69a384814f00",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
-      "kb": 400
-     },
-     "9x16": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=7712d6f6-92eb-4651-9ee9-0833be343262",
-      "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
-      "kb": 426
-     }
-    },
-    "review": {
-     "fp": "0a69ffbc75b0",
-     "at": "2026-10-17T05:10:56Z",
-     "ok": true,
-     "issues": [],
-     "model": "claude-opus-5-5"
-    }
-   }
+   ]
   },
   "A22630BR": {
    "old": [
@@ -17109,6 +17110,6 @@
    }
   }
  },
- "updated_at": "2026-10-16T18:02:00Z",
+ "updated_at": "2026-10-17T12:57:44Z",
  "review_batch_at": "2026-10-17T10:09:30Z"
 }
