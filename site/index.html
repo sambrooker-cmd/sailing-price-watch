@@ -585,6 +585,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="trends"><p class="loading">Working out trends…</p></div>
   </section>
 
+  <section aria-labelledby="h-demand">
+    <h2 id="h-demand"><span class="mini"></span>Sailing demand</h2>
+    <div id="demand"><p class="loading">Loading sailing demand…</p></div>
+  </section>
+
   <section aria-labelledby="h-cards">
     <h2 id="h-cards"><span class="mini amber"></span>Cards</h2>
     <div class="controls" role="group" aria-label="Card filters">
@@ -638,6 +643,12 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <h2 id="h-cwv"><span class="mini amber"></span>Core Web Vitals</h2>
     <p class="note" style="margin:0 0 12px">How fast and stable our pages are for real visitors (the figures Google ranks with), against the competitors' sites, over time, and what's slowing our own pages down. Read once a day from Google's free PageSpeed Insights and Chrome UX Report.</p>
     <div id="cwv"><p class="loading">Loading Core Web Vitals…</p></div>
+  </section>
+
+  <section aria-labelledby="h-seodemand">
+    <h2 id="h-seodemand"><span class="mini amber"></span>Search demand</h2>
+    <p class="note" style="margin:0 0 12px">How many people search Google for the things we sell, month by month, in groups you can add to and rearrange: from Google Keyword Planner, beside our own Search Console figures.</p>
+    <div id="seodemand"><p class="loading">Loading search demand…</p></div>
   </section>
 
   <section aria-labelledby="h-seosearch">
@@ -1733,6 +1744,7 @@ const auth = getAuth(firebaseApp);
         <section><h3>From price, month by month</h3>${monthly(s, today)}
           <p class="note">Lowest and highest include prices that only lasted part of a day. Each cabin grade keeps its last 12 price changes; the from price keeps its full history.</p></section>
         <section><h3>Promotions</h3>${promoDetail(s)}</section>
+        ${FR || s.removed ? "" : `<section><h3>Interest on the website</h3><div id="demand-d"><p class="loading">Loading…</p></div></section>`}
         ${FR ? `<section><h3>Cards</h3>${cardsDetail(s)}</section>` : `<section><h3>Nectar points</h3>${nectarDetail(s, cab)}</section>
         <section><h3>Cards</h3>${cardsDetail(s)}</section>
         ${s.removed ? "" : `<section id="routevid-sec"><h3>Route video</h3><div id="routevid"></div></section>`}`}
@@ -1744,6 +1756,7 @@ const auth = getAuth(firebaseApp);
     if (!dlg.open) dlg.showModal();
     if ($("cardopts")) mountCardOpts(id);
     if ($("routevid")) mountRouteVid(id);
+    if ($("demand-d")) mountDemandDetail(id);
     dlg.querySelector(".dbody").scrollTop = 0; dlg.scrollTop = 0;
     if (routeScroll === id && $("routevid-sec")) $("routevid-sec").scrollIntoView({block: "start"});
     routeScroll = null;
@@ -2113,10 +2126,12 @@ const auth = getAuth(firebaseApp);
     feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    demand: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     cards: '<rect x="3" y="5" width="13" height="15" rx="1"/><path d="M8 2h13v15"/>',
     ads: '<rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/><path d="M5 3h14"/>',
     gads: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6M11 8v6"/>',
     cwv: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4-6"/>',
+    seodemand: '<path d="M3 20h18"/><path d="M6 16v-4M10 16V8M14 16v-6M18 16V5"/>',
     seosearch: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M8 13l2-2 2 2 3-3"/>',
     seohealth: '<path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/><path d="M8 12h2l1-2 2 4 1-2h2"/>',
     pages: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
@@ -2133,7 +2148,7 @@ const auth = getAuth(firebaseApp);
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
   // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
-  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth"];
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2142,6 +2157,7 @@ const auth = getAuth(firebaseApp);
   const VIEWS = [
     ["overview", "Overview", ['section[aria-label="Summary"]', "h-queue", "h-all"], "Prices"],
     ["trends", "Trends", ["h-trends"], "Prices"],
+    ["demand", "Sailing demand", ["h-demand"], "Prices"],   // GA4: views and booking clicks per sailing page (site/demand.js)
     ["changes", "What changed", ["h-changes"], "Prices"],
     ["promos", "Live promotions", ["h-promos"], "Prices"],
     // Competitors (Sam, 15 Oct 2026: "a separate section in the nav… an offers and vs Ambassador section"; France: prices and vs only)
@@ -2158,6 +2174,7 @@ const auth = getAuth(firebaseApp);
     // SEO (Sam, 16 Oct 2026: "put this on a new section of the nav for SEO"): landing pages and blog posts (UK only)
     ["pages", "Pages and blog", ["h-pages"], "SEO"],
     ["cwv", "Core Web Vitals", ["h-cwv"], "SEO"],
+    ["seodemand", "Search demand", ["h-seodemand"], "SEO"],       // Keyword Planner searches by group (site/searchdemand.js)
     ["seosearch", "Search performance", ["h-seosearch"], "SEO"],   // Search Console quick wins and pages losing clicks (site/seohealth.js)
     ["seohealth", "Site health", ["h-seohealth"], "SEO"],         // the website's own pages: 404s, titles, descriptions, H1s, structured data   // ours and the competitors' (Sam, 17 Oct 2026; site/cwv.js)
     ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
@@ -2199,6 +2216,8 @@ const auth = getAuth(firebaseApp);
     if (v === "pages") mountPages();
     if (v === "cwv") mountCwv();
     if (v === "seosearch" || v === "seohealth") mountSeo(v);
+    if (v === "demand") mountDemand();
+    if (v === "seodemand") mountSearchDemand();
     if (COMP[v]) mountComp(v);
     if (v === "compemails") mountCompEmails();
     if (scroll) window.scrollTo({top: 0});
@@ -2348,6 +2367,23 @@ const auth = getAuth(firebaseApp);
     try { const m = await import("./cwv.js?v=__BUILD__"); await m.mount($("cwv"), {readJson, esc, market: FR ? "fr" : "uk"}); }
     catch (e) { $("cwv").innerHTML = `<p class="err">Core Web Vitals couldn't load: ${esc(e.message)}</p>`; }
   }
+  // Sailing demand from GA4 (site/demand.js; Sam, 17 Oct 2026): the page, and a section in each sailing's detail view
+  async function mountDemand(){
+    if (!state || FR) return;
+    try { const m = await import("./demand.js?v=__BUILD__"); await m.mount($("demand"), {readJson, esc, state}); }
+    catch (e) { $("demand").innerHTML = `<p class="err">Sailing demand couldn't load: ${esc(e.message)}</p>`; }
+  }
+  async function mountDemandDetail(id){
+    try { const m = await import("./demand.js?v=__BUILD__"); await m.mountDetail($("demand-d"), {readJson, esc, state}, id); }
+    catch (e) { if ($("demand-d")) $("demand-d").innerHTML = `<p class="err">Couldn't load: ${esc(e.message)}</p>`; }
+  }
+  // Search demand (site/searchdemand.js; Sam, 17 Oct 2026)
+  async function mountSearchDemand(){
+    if (!state || FR) return;
+    try { const m = await import("./searchdemand.js?v=__BUILD__"); await m.mount($("seodemand"), {readJson, esc,
+      idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))}); }
+    catch (e) { $("seodemand").innerHTML = `<p class="err">Search demand couldn't load: ${esc(e.message)}</p>`; }
+  }
   // Search performance and Site health (site/seohealth.js; Sam, 17 Oct 2026)
   async function mountSeo(v){
     if (!state || FR) return;
@@ -2464,6 +2500,8 @@ const auth = getAuth(firebaseApp);
     if (view === "pages") mountPages();
     if (view === "cwv") mountCwv();
     if (view === "seosearch" || view === "seohealth") mountSeo(view);
+    if (view === "demand") mountDemand();
+    if (view === "seodemand") mountSearchDemand();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
   });

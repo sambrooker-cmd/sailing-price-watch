@@ -91,6 +91,7 @@ export function lineChart(series, opts = {}){
   let lo = Math.min(...vs), hi = Math.max(...vs);
   if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
   const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  if (opts.zero && vs.every(v => v >= 0)) lo = 0;   // counts never go below nothing
   const Wd = Math.max(320, Math.min(880, (typeof window !== "undefined" ? window.innerWidth : 1000) - 80)), narrow = Wd < 600;
   const H = narrow ? 220 : 260, L = narrow ? 52 : 64, R = narrow ? 96 : 130, T = 12, B = 30;
   const x = d => L + (Date.parse(d) - Date.parse(start)) / 864e5 / span * (Wd - L - R);
@@ -103,7 +104,7 @@ export function lineChart(series, opts = {}){
   }
   if (opts.zero) svg.push(`<line x1="${L}" x2="${Wd - R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1.5"/>`);
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const lab = d => `${+d.slice(8)} ${MON[+d.slice(5, 7) - 1]}`;
+  const lab = opts.xlab || (d => `${+d.slice(8)} ${MON[+d.slice(5, 7) - 1]}`);
   const ticks = span <= 1 ? [start] : span < 4 ? [start, end] : [start, addDays(start, Math.round(span / 2)), end];
   ticks.forEach((d, i) => svg.push(`<text x="${x(d)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}" font-size="12" fill="var(--muted)">${lab(d)}</text>`));
   const ends = [];
