@@ -2255,6 +2255,13 @@
       "path": "pricewatch-cards/A32651/b65f22b6aaf0_9x16.jpg",
       "kb": 363
      }
+    },
+    "review": {
+     "fp": "b65f22b6aaf0",
+     "at": "2026-10-17T10:10:02Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -2928,6 +2935,13 @@
       "path": "pricewatch-cards/A32652M/4486866e7e17_9x16.jpg",
       "kb": 477
      }
+    },
+    "review": {
+     "fp": "4486866e7e17",
+     "at": "2026-10-17T10:10:09Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -4444,6 +4458,13 @@
       "path": "pricewatch-cards/A12701/fb99be9f2108_9x16.jpg",
       "kb": 377
      }
+    },
+    "review": {
+     "fp": "fb99be9f2108",
+     "at": "2026-10-17T10:09:51Z",
+     "ok": true,
+     "issues": [],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -7285,6 +7306,19 @@
       "path": "pricewatch-cards/A12709/e8cc4b28f6f0_9x16.jpg",
       "kb": 504
      }
+    },
+    "review": {
+     "fp": "e8cc4b28f6f0",
+     "at": "2026-10-17T10:09:40Z",
+     "ok": false,
+     "issues": [
+      {
+       "size": "9x16",
+       "severity": "look",
+       "problem": "The green badge sits over the top of the church spire, so the tip of the main subject is hidden behind it."
+      }
+     ],
+     "model": "claude-opus-5-5"
     }
    }
   },
@@ -17076,5 +17110,5 @@
   }
  },
  "updated_at": "2026-10-16T18:02:00Z",
- "review_batch_at": "2026-10-17T05:09:34Z"
+ "review_batch_at": "2026-10-17T10:09:30Z"
 }
