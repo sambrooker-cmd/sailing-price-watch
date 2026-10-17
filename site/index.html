@@ -10,6 +10,8 @@
 <link rel="icon" type="image/png" href="favicon.png?v=__BUILD__">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=__BUILD__">
 <meta name="theme-color" content="#6B207D">
+<!-- Light / dark (Sam, 17 Oct 2026): set before anything draws, so the page never flashes the other theme -->
+<script>try { const t = localStorage.getItem("spw-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch(e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap">
 <style>
@@ -116,6 +118,8 @@ td .sub{font-size:13px;color:var(--muted)}
 .mkt button[aria-pressed="true"]{background:#F68C4E;color:#380843}
 .mkt button:focus-visible{outline:2px solid #F68C4E;outline-offset:1px}
 @media (max-width:900px){.mkt{margin:0}}
+.mkt.theme{margin-top:6px}
+.mkt.theme button{font-size:12px;font-weight:500;padding:4px 6px}
 .side nav .grp{margin:18px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 .side nav .grp:first-child{margin-top:0}
 .side nav button{font:inherit;font-size:14px;font-weight:600;color:rgba(255,255,255,.78);background:none;border:0;border-radius:8px;
@@ -549,6 +553,7 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <button type="button" class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="sidenav"><span aria-hidden="true">☰</span> <span id="navcur">Pages</span></button>
   </div>
   <div class="mkt" role="group" aria-label="Market"><button type="button" data-mkt="uk">UK</button><button type="button" data-mkt="fr">France</button></div>
+  <div class="mkt theme" role="group" aria-label="Light or dark"><button type="button" data-theme-pick="auto" title="Follow this device's setting">Auto</button><button type="button" data-theme-pick="light">Light</button><button type="button" data-theme-pick="dark">Dark</button></div>
   <div class="gsearch" role="search">
     <input id="gq" type="search" placeholder="Find a sailing  ( / )" aria-label="Find a sailing by name, port, ship or code" autocomplete="off">
     <div id="gq-res" class="gq-res" hidden></div>
@@ -874,6 +879,16 @@ const auth = getAuth(firebaseApp);
     b.addEventListener("click", () => { if (b.dataset.mkt === MKT) return; try { localStorage.setItem("spw-market", b.dataset.mkt); } catch(e){}
       location.href = location.pathname + (b.dataset.mkt === "fr" ? "?m=fr" : ""); });
   });
+  // Light / dark (Sam, 17 Oct 2026): Auto follows the device; the choice is remembered in this browser (spw-theme)
+  const paintTheme = () => { const t = document.documentElement.dataset.theme || "auto";
+    document.querySelectorAll("[data-theme-pick]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.themePick === t))); };
+  document.querySelectorAll("[data-theme-pick]").forEach(b => b.addEventListener("click", () => {
+    const t = b.dataset.themePick;
+    if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    try { if (t === "auto") localStorage.removeItem("spw-theme"); else localStorage.setItem("spw-theme", t); } catch(e){}
+    paintTheme();
+  }));
+  paintTheme();
   if (FR) document.title = "Sailing Price Watch · France";
   const fmtGBP = v => (FR ? "€" : "£") + Math.round(v).toLocaleString("en-GB");   // euros for France (the name stays)
   const LEFT = FR ? "Went off sale" : "Left the feed";   // France has no feed: a sailing leaves the cruise list, or sells out

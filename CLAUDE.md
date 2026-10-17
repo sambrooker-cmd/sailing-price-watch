@@ -706,6 +706,13 @@ Measured: drawing is fast (0.6 s first render, every page under 0.5 s with the d
 Not done (options): caching the data in the browser between visits; keeping a function copy always warm (costs a few
 pounds a month).
 
+## Light / dark switch (17 Oct 2026, Sam: "can you add a dark/light mode selector please")
+Under the UK / France switch in the sidebar: **Auto · Light · Dark** (`data-theme-pick`). Auto follows the device (the
+existing `prefers-color-scheme` rules); Light / Dark set `data-theme` on `<html>`, which the CSS already honours
+(`:root[data-theme="dark"]`, `:root:not([data-theme="light"])`). Remembered per browser (`spw-theme`, removed for Auto)
+and applied by a small script in `<head>` before the page draws, so it never flashes the other theme. Charts, tiles and
+every page use the same colour variables, so they follow it.
+
 ## Campaign builder (17 Oct 2026, Sam: "if someone provides a brief then it spits out a whole plan from all channels with creative and all sorts, a bit like the artifact I made today for black friday ads but it would then also do emails, landing pages, assets etc")
 Modelled on Sam's "Black Friday Drinks Ads" / "Black Friday Ad Mock-ups" artifacts. `site/campaign.js`, **Creative → Campaign
 builder** (UK only, `FR_HIDE`), no AI. **The brief** (left): name, code for ad names, offer, what guests get, campaign line,
