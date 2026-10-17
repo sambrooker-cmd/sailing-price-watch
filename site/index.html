@@ -301,6 +301,19 @@ details.cs[open]>summary .cs-sum{display:none}
 .pm-kw li{display:flex;flex-direction:column;gap:2px;padding:7px 8px;border-bottom:1px solid var(--rule);font-size:14px}
 .pm-kw li .sub{font-size:12px;overflow-wrap:anywhere}.pm-kw .linkbtn{font-size:12px}
 .pm-p2{font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:0 5px}
+.cw-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 10px}
+.cw-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:8px 0 22px}
+.cw-tile{border:1px solid var(--rule);border-top:4px solid var(--rule);padding:12px 14px;display:flex;flex-direction:column;gap:2px;background:var(--bg)}
+.cw-tile b{font-size:26px;color:var(--heading)}.cw-tile .cw-l{font-size:13px;font-weight:700}.cw-tile .cw-r{font-size:13px;font-weight:700}
+.cw-tile.good{border-top-color:var(--good)}.cw-tile.good .cw-r{color:var(--good)}.cw-tile.ni{border-top-color:var(--warn)}.cw-tile.ni .cw-r{color:var(--warn)}
+.cw-tile.poor{border-top-color:var(--bad)}.cw-tile.poor .cw-r{color:var(--bad)}
+.cw-v{font-weight:700;padding:1px 6px;white-space:nowrap}.cw-v.good{color:var(--good);background:var(--good-bg)}.cw-v.ni{color:var(--warn);background:var(--warn-bg)}.cw-v.poor{color:var(--bad);background:var(--bad-bg)}
+.cw-pass{font-size:12px;font-weight:700;padding:1px 8px;margin-left:6px;vertical-align:middle;text-transform:none;letter-spacing:0}
+.cw-pass.good{color:var(--good);background:var(--good-bg)}.cw-pass.poor{color:var(--bad);background:var(--bad-bg)}
+.cw-us td{background:var(--bg-alt)}.cw-row{cursor:pointer}.cw-more td{background:var(--bg-alt);font-size:14px}.cw-more ul{margin:0 0 6px 18px;padding:0}
+.cw-score{display:inline-block;min-width:34px;text-align:center;font-weight:700;padding:2px 6px;border-radius:12px}
+.cw-score.good{color:var(--good);background:var(--good-bg)}.cw-score.ni{color:var(--warn);background:var(--warn-bg)}.cw-score.poor{color:var(--bad);background:var(--bad-bg)}
+.cw-spark{display:block;margin:3px 0 0 auto}
 .pm-dupes{margin:0;padding:0 0 0 18px;font-size:14px}.pm-dupes li{margin:3px 0}.pm-dupes .sub{font-size:12px}
 .pm-checks{list-style:none;margin:0;padding:0;font-size:14px;display:flex;flex-direction:column;gap:4px}
 .pm-checks li::before{display:inline-block;width:20px;font-weight:700}
@@ -619,6 +632,12 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <h2 id="h-pages"><span class="mini amber"></span>Landing pages and blog posts <span class="chip">Prototype</span></h2>
     <p class="note" style="margin:0 0 12px">Build a landing page or a blog post in the layout of the website's own pages, started from the tracker's sailings (prices, ports, ships, photos): rewrite the words, check the SEO list, then copy the fields into Storyblok or download the page to share for review. Nothing is published.</p>
     <div id="pages"><p class="loading">Loading the page creator…</p></div>
+  </section>
+
+  <section aria-labelledby="h-cwv">
+    <h2 id="h-cwv"><span class="mini amber"></span>Core Web Vitals</h2>
+    <p class="note" style="margin:0 0 12px">How fast and stable our pages are for real visitors (the figures Google ranks with), against the competitors' sites, over time, and what's slowing our own pages down. Read once a day from Google's free PageSpeed Insights and Chrome UX Report.</p>
+    <div id="cwv"><p class="loading">Loading Core Web Vitals…</p></div>
   </section>
 
   <!-- Email creator: hidden for now (Sam, 13 Oct 2026); the code stays in site/emailcreator.js -->
@@ -2085,6 +2104,7 @@ const auth = getAuth(firebaseApp);
     cards: '<rect x="3" y="5" width="13" height="15" rx="1"/><path d="M8 2h13v15"/>',
     ads: '<rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/><path d="M5 3h14"/>',
     gads: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6M11 8v6"/>',
+    cwv: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4-6"/>',
     pages: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     ecards: '<rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/>',
     email: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 6 9-6"/>',
@@ -2123,6 +2143,7 @@ const auth = getAuth(firebaseApp);
     ["email", "Email creator", ["h-email"], "Creative"],   // only for the people in ONLY.email
     // SEO (Sam, 16 Oct 2026: "put this on a new section of the nav for SEO"): landing pages and blog posts (UK only)
     ["pages", "Pages and blog", ["h-pages"], "SEO"],
+    ["cwv", "Core Web Vitals", ["h-cwv"], "SEO"],   // ours and the competitors' (Sam, 17 Oct 2026; site/cwv.js)
     ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
     ["feedgap", "Feed vs website", ["h-feedgap"], "Checks"],
     ["runs", "Check history", ["h-runs"], "Checks"],
@@ -2160,6 +2181,7 @@ const auth = getAuth(firebaseApp);
     if (v === "ecards") mountEcards();
     if (v === "gads") mountGads();
     if (v === "pages") mountPages();
+    if (v === "cwv") mountCwv();
     if (COMP[v]) mountComp(v);
     if (v === "compemails") mountCompEmails();
     if (scroll) window.scrollTo({top: 0});
@@ -2303,6 +2325,12 @@ const auth = getAuth(firebaseApp);
         idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))});
     } catch (e) { ecardsMounted = false; $("ecards").innerHTML = `<p class="err">Email cards couldn't load: ${esc(e.message)}</p>`; }
   }
+  // Core Web Vitals (site/cwv.js; Sam, 17 Oct 2026): redrawn each time the page is opened
+  async function mountCwv(){
+    if (!state) return;
+    try { const m = await import("./cwv.js?v=__BUILD__"); await m.mount($("cwv"), {readJson, esc, market: FR ? "fr" : "uk"}); }
+    catch (e) { $("cwv").innerHTML = `<p class="err">Core Web Vitals couldn't load: ${esc(e.message)}</p>`; }
+  }
   // Landing pages and blog posts (site/pagemaker.js; prototype, Sam 16 Oct 2026)
   let pagesMounted = false;
   async function mountPages(){
@@ -2411,6 +2439,7 @@ const auth = getAuth(firebaseApp);
     if (view === "compemails") mountCompEmails();
     if (view === "gads") mountGads();
     if (view === "pages") mountPages();
+    if (view === "cwv") mountCwv();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);
     $("signout").addEventListener("click", () => signOut(auth).catch(() => {}));
   });

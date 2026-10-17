@@ -25,6 +25,7 @@ has to understand the shape of the data:
   pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
   pricewatch/seo-pages  the website's own pages (title, description, H1) for the duplicate check (seo_pages.py)
+  pricewatch/seo-cwv  Core Web Vitals: our pages' lab tests, real-visitor figures for us and the competitors (seo_cwv.py; fr-cwv for France)
   pricewatch/seo-gsc  the searches people find the site with, from Google Search Console (seo_gsc.py)
   pricewatch/comp-emails-YYYY-MM-1 / -2  the email library: that half month's competitor emails (links to their copies in Storage)
 
@@ -136,6 +137,11 @@ def documents():
     # Keyword ideas for the page creator from Google Search Console (seo_gsc.py, 16 Oct 2026)
     if (ROOT / "state" / "seo" / "gsc.json").exists():
         docs["seo-gsc"] = load(ROOT / "state" / "seo" / "gsc.json")
+    # Core Web Vitals for us and the competitors (seo_cwv.py, 17 Oct 2026)
+    if (ROOT / "state" / "seo" / "cwv.json").exists():
+        docs["seo-cwv"] = load(ROOT / "state" / "seo" / "cwv.json")
+    if (ROOT / "state" / "fr" / "cwv.json").exists():   # France: ambassadorcroisieres.fr and its competitors
+        docs["fr-cwv"] = load(ROOT / "state" / "fr" / "cwv.json")
     # The website's own pages for the page creator's duplicate check (seo_pages.py, 16 Oct 2026)
     if (ROOT / "state" / "seo" / "pages.json").exists():
         docs["seo-pages"] = load(ROOT / "state" / "seo" / "pages.json")

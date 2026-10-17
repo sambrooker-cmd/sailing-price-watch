@@ -72,6 +72,21 @@ jobs:
           gh workflow run competitors.yml --ref "$GITHUB_REF_NAME"
           echo "Started the competitor check."
 
+      # Core Web Vitals for us and the competitors (Sam, 17 Oct 2026): its own workflow, started once a UK day. See seo_cwv.py.
+      - name: Start the Core Web Vitals check
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          done_today=$(python -c "import json,daily;from pathlib import Path;p=Path('state/seo/cwv.json');print('yes' if p.exists() and json.loads(p.read_text()).get('read_on')==daily.london_today() else '')")
+          if [ -n "$done_today" ]; then echo "Core Web Vitals already read today."; exit 0; fi
+          busy=$(gh run list --workflow cwv.yml --limit 5 --json status,createdAt \
+            --jq '[.[] | select(.status != "completed" or (.createdAt | fromdateiso8601) > (now - 10800))] | length')
+          if [ "$busy" != "0" ]; then echo "A Core Web Vitals check is running or ran in the last 3 hours."; exit 0; fi
+          gh workflow run cwv.yml --ref "$GITHUB_REF_NAME"
+          echo "Started the Core Web Vitals check."
+
       # Competitor offers from their own newsletters (Sam, 15 Oct 2026): a team mailbox signed up to their marketing
       # emails, read read-only every check; skipped until the OFFERS_IMAP_* secrets exist. See offers_inbox.py.
       - name: Competitor newsletters
