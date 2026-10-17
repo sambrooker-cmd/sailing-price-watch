@@ -713,8 +713,20 @@ existing `prefers-color-scheme` rules); Light / Dark set `data-theme` on `<html>
 and applied by a small script in `<head>` before the page draws, so it never flashes the other theme. Charts, tiles and
 every page use the same colour variables, so they follow it.
 
+## Sidebar: folding groups (17 Oct 2026, Sam: "the main nav… is getting very busy and I don't like the fact you have to scroll with it on some screen sizes")
+Sam picked folding groups (over an icon rail or top tabs) and a regroup. **Groups**: Prices · Competitors · **Campaigns**
+(new: Campaign builder, Campaign results, Meta ads, moved out of Creative) · Creative (Cards, Ad creator, Google Ads, Email
+cards, Email creator) · SEO · Checks. Each group is one line (`#sidenav .ng`, header `button.grp` with `aria-expanded`); only
+one is open at a time, the one holding the page you're on (`openGroup`, from `showView`; its name in Amber, `.here`);
+clicking another group's name opens it instead, clicking an open one closes it. A closed group shows its pages' counts added
+up (`ngn-<n>`, from `updateCounts`), so a count is never hidden by folding. UK / France and the theme switch share one row
+(`.toprow`; the theme as Auto / Light / Dark icons). Short windows tighten the sidebar (`max-height` 900 / 760 / 680: less
+spacing, the footer's "Checks hourly…" line and e-mail address hidden, smaller rows). Tested: no sidebar scrolling at
+1440×900, 1440×800, 1366×768, 1366×650 (a 768 px laptop's browser window), 1280×720 and 1280×600, UK and France, with any
+group open; phones keep the "☰ <page>" list, now folding too.
+
 ## Campaign builder (17 Oct 2026, Sam: "if someone provides a brief then it spits out a whole plan from all channels with creative and all sorts, a bit like the artifact I made today for black friday ads but it would then also do emails, landing pages, assets etc")
-Modelled on Sam's "Black Friday Drinks Ads" / "Black Friday Ad Mock-ups" artifacts. `site/campaign.js`, **Creative → Campaign
+Modelled on Sam's "Black Friday Drinks Ads" / "Black Friday Ad Mock-ups" artifacts. `site/campaign.js`, **Campaigns → Campaign
 builder** (UK only, `FR_HIDE`), no AI. **The brief** (left): name, code for ad names, offer, what guests get, campaign line,
 offer badge, booking window (from/to), landing page, T&Cs, notes; sailings **by a rule** (departure months, no-fly/fly,
 destination `regionOf`, port/airport, ship, nights, max £pp) or **by cruise codes** (pasted, any separators); an optional
@@ -784,7 +796,7 @@ people: some sailings off sale, the pictures may show an older price (a linked s
 `updated_time`), a price that can't be swapped automatically, ads made from a page post, no sailing links. Proposal ids are
 a hash of what would change. → `state/meta/ads.json` → `publish.py` `pricewatch/meta-ads`. New urgent proposals →
 `out/meta_urgent.md` → "Meta ads: urgent changes to approve — DATE" issue; a rejected token → "Meta ads: token needs
-renewing". **Approving**: page **Creative → Meta ads** (`site/metaads.js`, UK only): tiles, **Waiting for approval** (urgent
+renewing". **Approving**: page **Campaigns → Meta ads** (`site/metaads.js`, UK only): tiles, **Waiting for approval** (urgent
 first; old words struck through, new ones with the changes marked; Approve / Reject, each asking first), **Recent changes**
 (who, what, outcome; refreshes every 15 s while one runs), **Our ads** (running / with notes / not running / all, search;
 sailings linked to their detail views, spend and clicks, notes, Pause / Switch on), **Campaigns and ad sets** (status,
@@ -844,7 +856,7 @@ site's wording); planted tests caught an ended name, an old code in the COTW pag
 an old "from £" price.
 
 ## Campaign results and Meta spend by sailing (17 Oct 2026, Sam: point 5 of the ideas, "also include spend by sailing estimated from both sailing carousel card clicks but also estimated spend from page views driven from the ads to each sailing")
-Page **Creative → Campaign results** (`site/campresults.js`, UK only, `FR_HIDE`). Pick a saved Campaign builder brief (the
+Page **Campaigns → Campaign results** (`site/campresults.js`, UK only, `FR_HIDE`). Pick a saved Campaign builder brief (the
 shared list, kind "campaign") or "Any dates (every Meta ad)"; dates default to the brief's booking window (editable).
 - **Interest**: the brief's sailings (`campaign.js` `sailingsFor`: its rule or codes on the campaign's first day, so sailings
   since departed or off the website still count) with GA4 page views and booking clicks during the campaign against the same
