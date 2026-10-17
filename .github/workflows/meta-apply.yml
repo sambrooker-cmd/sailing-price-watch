@@ -1,0 +1,47 @@
+name: "Meta ads: apply"
+
+# Applies one approved change to our Meta ad account (Sam, 17 Oct 2026). Started by the Firebase function
+# `metaAction` (functions/index.js) when an approver presses Approve, or makes a change by hand, on the tracker's
+# Meta ads page. meta_manage.py reads the request, reads the account again, and only then acts: a proposal is worked
+# out afresh and applied only if it is still the same; hand changes are checked (budgets at most double or halve in
+# one go, a daily budget never above META_MAX_DAILY_BUDGET). The Meta token lives only in the repo secret
+# META_ADS_TOKEN. The outcome is written on the request, where the page shows it.
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: "Filled in by the tracker page (don't run this by hand)"
+        required: true
+
+run-name: "Meta ads: apply (${{ inputs.request }})"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meta-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install google-auth==2.40.3 requests==2.32.3
+
+      - name: Apply the change
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
+          META_API_VERSION: ${{ vars.META_API_VERSION }}
+          META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
+          REQUEST: ${{ inputs.request }}
+        run: python meta_manage.py apply "$REQUEST"
