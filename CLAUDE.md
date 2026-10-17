@@ -488,6 +488,30 @@ listed under Checks with links, one row per page (`dupeRows`). First read 16 Oct
 Not built: Storyblok Management API to create a **draft** story (needs a Storyblok token and the space's component
 names; a person still publishes); Semrush keyword data (needs an API key).
 
+## Core Web Vitals (17 Oct 2026, Sam: "a core web vitals checker and competitor analysis tool"; content coverage left out)
+`seo_cwv.py`, once a UK day in its own workflow `.github/workflows/cwv.yml` (manual with "force", 08:23 UTC backstop,
+concurrency `cwv`, commits `state/seo/cwv.json`, then publishes), started by the hourly price watch's **Start the Core Web
+Vitals check** step (skipped when today's read is done or one is running). Google's free APIs only, with one API key:
+- **Real visitors** (Chrome UX Report API, phone and desktop, 75th percentile of the last 28 days: what Google ranks
+  with): LCP, INP, CLS, TTFB for our origin and the competitors' (`COMPETITORS`: P&O, Princess, Cunard, Marella (all of
+  tui.co.uk), Saga, Fred. Olsen, MSC, Royal Caribbean, Celebrity, Planet Cruise), plus ~6 months of weekly history (CrUX
+  History API). This is Google's public dataset: **nothing is read from the competitors' sites**, so their terms don't
+  come into it. A site without enough Chrome visits (404) shows "not enough Chrome visits".
+- **Lab test** of our own pages (PageSpeed Insights API, Lighthouse, mobile and desktop, `WORKERS` = 4): `PAGES` (home,
+  no-fly, festive markets, Caribbean no-fly, Norway, offers, cruises of the week, search, ships, blog) + one on-sale
+  sailing per ship (soonest) + 3 blog posts (most Search Console clicks, from `state/seo/gsc.json`): score, LCP, TBT, CLS,
+  FCP, speed index, the top 5 opportunities (≥ 100 ms), and the page's own field LCP (or the site's, `field_src`).
+  Scores kept `LAB_DAYS` = 180 in `lab_history` (sparklines).
+- A phone metric of ours dropping a rating (good → needs improvement → poor) → `out/cwv_alert.md` → "Core Web Vitals got
+  worse — DATE" issue; a failed run → "Core Web Vitals check FAILED — DATE".
+- → `publish.py` `pricewatch/seo-cwv` → page **SEO → Core Web Vitals** (`site/cwv.js`, UK only): Phones/Desktop, our four
+  tiles with Passes / Doesn't pass, the competitor table (rank "N of M"), over time chart by metric, our pages worst
+  first (click: what would help, link to pagespeed.web.dev).
+- **Setup (Sam, one-off)**: Google Cloud console → promotions-planner → APIs & Services → Library → enable **PageSpeed
+  Insights API** and **Chrome UX Report API**; Credentials → Create credentials → API key → restrict it to those two
+  APIs; repo secret `PAGESPEED_API_KEY`. Until then the page says what's missing. Tested 17 Oct 2026 with fake API answers
+  (Google's shared keyless quota answered 429).
+
 ## France: competitor prices (16 Oct 2026, Sam: "check havas" then "go ahead and build it")
 **Terms review** (15–16 Oct 2026, read-only, robots.txt + terms + one sample page per site): France's real competitors are
 **MSC and Costa** (Marseille and the French Caribbean; nobody else is based at Dunkerque; Ponant and Club Med 2 sail the
@@ -609,6 +633,7 @@ pounds a month).
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `seo_cwv.py`, `.github/workflows/cwv.yml`, `site/cwv.js`, `state/seo/cwv.json` | Core Web Vitals for us and the competitors (CrUX + PageSpeed Insights): see "Core Web Vitals (17 Oct 2026)" above |
 | `route_data.py`, `route_video.py`, `route/`, `.github/workflows/route-video.yml`, `site/routevideo.js` | Route video per sailing (map, route, port photos, ship, end card, the template's music; 9:16, 4:5, 1:1): see "Route video per sailing (16 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
 | `state/current.json`, `state/cabins.json` | Price history exported from the tracker artifact database on 12 Oct 2026 (~afternoon) |
