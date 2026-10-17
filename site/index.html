@@ -733,6 +733,11 @@ dialog.pv .btn{display:inline-block;text-decoration:none}
     <div id="feedgap"><p class="loading">Checking…</p></div>
   </section>
 
+  <section aria-labelledby="h-siteoffers">
+    <h2 id="h-siteoffers"><span class="mini amber"></span>Old offers on the website</h2>
+    <div id="siteoffers"><p class="loading">Loading…</p></div>
+  </section>
+
   <section aria-labelledby="h-changes">
     <h2 id="h-changes"><span class="mini"></span>What changed</h2>
     <div class="controls" role="group" aria-label="What changed filters">
@@ -2147,6 +2152,7 @@ const auth = getAuth(firebaseApp);
     compvs: '<path d="M4 6h7M4 12h5M4 18h7M20 6h-5M20 12h-7M20 18h-5"/><path d="M12 3v18"/>',
     coverage: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
     feedgap: '<path d="M4 8h12M12 4l4 4-4 4M20 16H8M12 12l-4 4 4 4"/>',
+    siteoffers: '<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/><path d="M14 4l6 6"/>',
     changes: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     trends: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     impact: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
@@ -2175,7 +2181,7 @@ const auth = getAuth(firebaseApp);
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
   // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
-  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand", "impact", "campaign", "campresults", "metaads"];
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "seosearch", "seohealth", "demand", "seodemand", "impact", "campaign", "campresults", "metaads", "siteoffers"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2210,6 +2216,7 @@ const auth = getAuth(firebaseApp);
     ["seohealth", "Site health", ["h-seohealth"], "SEO"],         // the website's own pages: 404s, titles, descriptions, H1s, structured data   // ours and the competitors' (Sam, 17 Oct 2026; site/cwv.js)
     ["coverage", "Not in ad feed", ["h-coverage"], "Checks"],
     ["feedgap", "Feed vs website", ["h-feedgap"], "Checks"],
+    ["siteoffers", "Old offers on website", ["h-siteoffers"], "Checks"],   // ended offers, old codes, passed dates, old prices in the website's wording (site/siteoffers.js)
     ["runs", "Check history", ["h-runs"], "Checks"],
     ["rules", "Was/now rules", ["h-rules"], "Checks"],
   ].filter(v => !FR || !FR_HIDE.includes(v[0]))
@@ -2251,6 +2258,7 @@ const auth = getAuth(firebaseApp);
     if (v === "impact") mountImpact();
     if (v === "campaign") mountCampaign();
     if (v === "campresults") mountCampResults();
+    if (v === "siteoffers") mountSiteOffers();
     if (v === "metaads") mountMetaAds();
     if (v === "seodemand") mountSearchDemand();
     if (COMP[v]) mountComp(v);
@@ -2420,6 +2428,11 @@ const auth = getAuth(firebaseApp);
       idToken: () => auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error("Sign in first."))}); }
     catch (e) { $("campaign").innerHTML = `<p class="err">This page couldn't load: ${esc(e.message)}</p>`; }
   }
+  async function mountSiteOffers(){
+    if (!state || FR) return;
+    try { const m = await import("./siteoffers.js?v=__BUILD__"); await m.mount($("siteoffers"), {readJson, esc}); }
+    catch (e) { $("siteoffers").innerHTML = `<p class="err">This page couldn't load: ${esc(e.message)}</p>`; }
+  }
   async function mountCampResults(){
     if (!state || FR) return;
     try { const m = await import("./campresults.js?v=__BUILD__"); await m.mount($("campresults"), {readJson, esc, state, getAdkit,
@@ -2562,6 +2575,7 @@ const auth = getAuth(firebaseApp);
     if (view === "impact") mountImpact();
     if (view === "campaign") mountCampaign();
     if (view === "campresults") mountCampResults();
+    if (view === "siteoffers") mountSiteOffers();
     if (view === "metaads") mountMetaAds();
     if (view === "seodemand") mountSearchDemand();
     $("who").innerHTML = (`<span class="m-who">${esc(user.email)} · </span><button type="button" class="linkbtn" id="signout">Sign out</button>`);

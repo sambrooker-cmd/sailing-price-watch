@@ -25,6 +25,7 @@ has to understand the shape of the data:
   pricewatch/comp-meta, comp-meta-<brand>  competitors' live Facebook/Instagram ads in the UK (meta_ads.py)
   pricewatch/comp-inbox  competitor newsletters' offers (offers_inbox.py), once the mailbox is set up
   pricewatch/seo-demand  monthly UK searches for the search demand viewer's terms, from Keyword Planner (search_demand.py)
+  pricewatch/site-offers  ended offers, old promo codes, passed dates and old prices in the website's own wording (site_offers.py)
   pricewatch/meta-spend  Meta ad spend by sailing per day, estimated from carousel card clicks and from ad-driven page views (ad_spend.py)
   pricewatch/meta-ads  our own Meta ad account: campaigns, ad sets, ads and the changes proposed for approval (meta_manage.py)
   pricewatch/ga4-impact  interest before and after each price move and offer, against similar sailings (impact.py)
@@ -157,6 +158,8 @@ def documents():
         docs["ga4-impact"] = load(ROOT / "state" / "ga4" / "impact.json")
     if (ROOT / "state" / "meta" / "ads.json").exists():   # our own Meta ads and the changes proposed for them (meta_manage.py)
         docs["meta-ads"] = load(ROOT / "state" / "meta" / "ads.json")
+    if (ROOT / "state" / "site_offers.json").exists():   # ended offers still in the website's own wording (site_offers.py)
+        docs["site-offers"] = load(ROOT / "state" / "site_offers.json")
     if (ROOT / "state" / "meta" / "spend_by_sailing.json").exists():   # Meta spend placed on sailings, two ways (ad_spend.py)
         docs["meta-spend"] = load(ROOT / "state" / "meta" / "spend_by_sailing.json")
     # The website's own pages for the page creator's duplicate check (seo_pages.py, 16 Oct 2026)
