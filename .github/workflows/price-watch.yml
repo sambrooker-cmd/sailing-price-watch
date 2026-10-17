@@ -119,6 +119,13 @@ jobs:
           pip install -q google-auth==2.40.3 requests==2.32.3
           python seo_gsc.py
 
+      # The website's own pages (titles, descriptions, H1s) for the page creator's duplicate check (Sam, 16 Oct 2026),
+      # once a UK day, new pages first and each again after a week. See seo_pages.py.
+      - name: Website pages for the duplicate check
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        run: python seo_pages.py
+
       # Promotion T&Cs from the website's own pages (Sam, 13 Oct 2026): read once a day, matched to the
       # live promotions every check. See terms.py.
       - name: Promotion terms

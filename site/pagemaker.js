@@ -43,7 +43,7 @@ const TEMPLATES = {
   blog: [["reasons", "\"10 reasons to…\" list"], ["guide", "Destination guide"], ["spotlight", "Sailing spotlight"]],
 };
 
-let root, ctx, st, today, kitOf, store, note = "", gsc = null, gscState = "";
+let root, ctx, st, today, kitOf, store, note = "", gsc = null, gscState = "", site = null;
 
 // ---------- data ----------
 function onSale(){
@@ -304,7 +304,7 @@ function checks(p){
   if (empty) add("warn", `${empty} section${empty === 1 ? "" : "s"} still to write (shown in amber in the preview).`);
   add(h2s >= (p.kind === "blog" ? 4 : 2) ? "ok" : "warn", `${h2s} H2 headings.`);
   const imgs = [p.hero && {alt: p.heroAlt}, ...p.blocks.filter(b => b.type === "image" && b.photo)].filter(Boolean);
-  add(imgs.every(i => (i.alt || "").trim()) ? "ok" : "bad", `${imgs.filter(i => !(i.alt || "").trim()).length ? "Pictures without alt text: add a short description." : `All ${imgs.length} pictures have alt text.`}`);
+  add(imgs.every(i => (i.alt || "").trim()) ? "ok" : "bad", `${imgs.filter(i => !(i.alt || "").trim()).length ? "Pictures without alt text: add a short description." : `${imgs.length === 1 ? "The picture has" : `All ${imgs.length} pictures have`} alt text.`}`);
   const links = (textOf(p).match(/\]\((https?:\/\/(www\.)?ambassadorcruiseline\.com|\/)/g) || []).length + p.blocks.filter(b => ["readmore", "cta"].includes(b.type) && b.url).length;
   add(links >= 2 ? "ok" : "warn", `${links} internal link${links === 1 ? "" : "s"} (aim for 2+; [words](/no-fly-cruises/) in the text makes one).`);
   const list = listOf(p), prices = new Set(list.map(s => Math.round(s.price)));
@@ -314,6 +314,13 @@ function checks(p){
   const stale = quoted.filter(v => !prices.has(v) && !offerFigs.has(v));
   add(stale.length ? "bad" : "ok", stale.length ? `£ figures in the text that aren't a current from price or offer of these sailings: ${[...new Set(stale)].map(money).join(", ")}.` : "Every £ figure in the text is a current from price or offer.");
   if (/\b(was|reduced|save|saving|now only)\b[^.]{0,30}£/i.test(textOf(p))) add("bad", "Reduction wording next to a price: was/now prices only ever come from a live claim (not on pages yet).");
+  const d = dupes(p);
+  if (d) {
+    const same = d.filter(x => x.lvl === "bad"), close = d.filter(x => x.lvl === "warn"), aim = d.filter(x => x.lvl === "info");
+    add(same.length ? "bad" : "ok", same.length ? `Already on the website: ${same.map(x => `${x.path} (${x.why})`).join("; ")}.` : `No page on the website has this address or SEO title (${Object.keys(site.pages).length} pages checked).`);
+    if (close.length) add("warn", `Title or H1 very like ${close.length} page${close.length === 1 ? "" : "s"} on the website (see below): make the title or H1 different.`);
+    if (aim.length) add("warn", `${aim.length} page${aim.length === 1 ? " is" : "s are"} already aimed at "${p.keyword}" (see below): this page would compete with ${aim.length === 1 ? "it" : "them"} in Google. Pick a different angle, or improve the existing page instead.`);
+  }
   add(list.length ? "ok" : (p.blocks.some(b => b.type === "sailings") ? "bad" : "ok"), list.length ? `${list.length} sailing${list.length === 1 ? "" : "s"} on sale listed.` : "No sailings on sale match.");
   return out;
 }
@@ -384,6 +391,41 @@ async function loadGsc(){
   if (gsc || gscState || !ctx.readJson) return;
   gscState = "loading";
   try { gsc = await ctx.readJson("seo-gsc"); gscState = gsc ? "done" : "none"; } catch(e) { gscState = "none"; }
+  if (root && root.isConnected) draw();
+}
+
+// ---------- the website's own pages (seo_pages.py → pricewatch/seo-pages; Sam, 16 Oct 2026, point 5) ----------
+// Their address, title (without "| Ambassador…") and H1, to warn before a new page repeats one: the same address, the same
+// or a very similar SEO title or H1, or other pages already aimed at the same keyword (they'd compete in Google).
+const normT = t => String(t || "").split("|")[0].toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const toks = t => new Set(normT(t).split(" ").filter(w => w.length > 2 && !STOP.has(w)).map(w => w.replace(/s$/, "")));
+const jaccard = (a, b) => { if (!a.size || !b.size) return 0; let n = 0; a.forEach(x => b.has(x) && n++); return n / (a.size + b.size - n); };
+function dupes(p){
+  if (!site || !site.pages) return null;
+  const out = [], seen = new Set(), add = (path, v, why, lvl) => { if (seen.has(path + why)) return; seen.add(path + why); out.push({path, t: v.t || v.h || path, why, lvl}); };
+  const me = "/" + String(p.slug || "").replace(/^\/+|\/+$/g, "") + "/";
+  const tT = toks(p.seoTitle), tH = normT(p.h1), kw = toks(p.keyword);
+  for (const [path, v] of Object.entries(site.pages)) {
+    if (v.s && v.s !== 200) continue;
+    if (path === me) add(path, v, "same address", "bad");
+    if (normT(v.t) && normT(v.t) === normT(p.seoTitle)) add(path, v, "same SEO title", "bad");
+    else if (jaccard(tT, toks(v.t)) >= 0.75) add(path, v, "very similar SEO title", "warn");
+    if (tH && normT(v.h) === tH) add(path, v, "same H1", "warn");
+    if (kw.size && [...kw].every(w => toks(`${v.t} ${v.h}`).has(w))) add(path, v, "already aimed at this keyword", "info");
+  }
+  const rank = {bad: 0, warn: 1, info: 2};
+  return out.sort((a, b) => rank[a.lvl] - rank[b.lvl]);
+}
+// One row per page on the website, with every reason it's like this one
+function dupeRows(d){
+  const by = new Map();
+  for (const x of d) { const r = by.get(x.path) || {...x, whys: []}; r.whys.push(x.why); by.set(x.path, r); }
+  return [...by.values()];
+}
+async function loadSite(){
+  if (site || !ctx.readJson) return;
+  site = {loading: true};
+  try { site = (await ctx.readJson("seo-pages")) || {}; } catch(e) { site = {}; }
   if (root && root.isConnected) draw();
 }
 
@@ -544,7 +586,10 @@ function draw(){
         <span class="pm-exp"><button type="button" class="btn sm" id="pm-copy">Copy for Storyblok</button><button type="button" class="btn quiet sm" id="pm-html">Download HTML</button><button type="button" class="btn quiet sm" id="pm-schema">Copy schema</button></span></div>
         <div class="pm-frame ${st.dev}"><iframe id="pm-pv" title="Page preview" sandbox="allow-same-origin"></iframe></div>
         <p class="sub">A preview in the website's style, not the website itself. Amber boxes are still to write. Nothing is published: copy the fields into Storyblok (a draft there), or download the HTML to share for review.</p></div>
-      <div class="ac-block"><h3>Checks${bad ? ` <span class="sub">· ${bad} to look at</span>` : ""}</h3><ul class="pm-checks">${ck.map(([l, t]) => `<li class="${l}">${esc(t)}</li>`).join("")}</ul></div>
+      <div class="ac-block"><h3>Checks${bad ? ` <span class="sub">· ${bad} to look at</span>` : ""}</h3><ul class="pm-checks">${ck.map(([l, t]) => `<li class="${l}">${esc(t)}</li>`).join("")}</ul>
+        ${(() => { const d = dupeRows(dupes(p) || []); return d.length ? `<h4 style="margin:12px 0 4px">Pages already on the website like this one</h4><ul class="pm-dupes">${d.slice(0, 12).map(x =>
+          `<li><a href="${esc(SITE + x.path)}" target="_blank" rel="noopener">${esc(x.t)}</a> <span class="sub">${esc(x.path)} · ${esc(x.whys.join(", "))}</span></li>`).join("")}</ul>` :
+          site && site.loading ? `<p class="sub">Loading the website's pages…</p>` : !site || !site.pages ? `<p class="sub">The website's pages haven't been read yet (once a day by the hourly check), so duplicates can't be checked.</p>` : ""; })()}</div>
     </div></div>`;
   const fr = root.querySelector("#pm-pv");
   fr.srcdoc = pageHtml(p);
@@ -637,6 +682,7 @@ export async function mount(el, c){
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.pages) st = {...st, ...s, saved: {landing: null, blog: null, ...(s.saved || {})}, find: ""}; } catch(e) {}
   store = sharedStore({kind: "page", localKey: "spw-pages-saved", field: "page", idToken: c.idToken});
   loadGsc();
+  loadSite();
   store.load().then(() => { for (const k of ["landing", "blog"]) if (st.saved[k] && !store.all()[st.saved[k]]) st.saved[k] = null; save(); draw(); });
   draw();
 }
