@@ -50,9 +50,11 @@ export async function mount(el, c){
 }
 
 // ---------- the sailings ----------
-function onSale(){
-  const ks = (KIT && KIT.sailings) || {};
-  return Object.entries(S.sailings || {}).filter(([, s]) => !s.removed && s.departure_date > today && (s.segments || []).length).map(([id, s]) => {
+// asOf: the day the sailings must still be on sale after (today; Campaign results passes the campaign's first day, so
+// sailings that have since departed or left the website still count)
+function onSale(asOf = today, SS = S, K = KIT){
+  const ks = (K && K.sailings) || {};
+  return Object.entries(SS.sailings || {}).filter(([, s]) => (!s.removed || (asOf < SS.updated && s.removed >= asOf)) && s.departure_date > asOf && (s.segments || []).length).map(([id, s]) => {
     const k = ks[id] || {}, seg = s.segments[s.segments.length - 1];
     const title = noAmp(s.base_title || s.title);
     return {id, s, k, title, short: shortTitle(s.base_title || s.title), price: seg.p, nights: s.nights, date: s.departure_date, ship: s.ship,
@@ -61,8 +63,12 @@ function onSale(){
   });
 }
 const parseCodes = t => [...new Set((String(t).toUpperCase().match(/\b[A-Z]\d{4,}[A-Z]{0,3}\b/g) || []))];
-function picked(all){
-  const b = st.brief;
+// The campaign's sailings, for Campaign results (site/campresults.js): the same rule or codes as the plan, on its first day
+export function sailingsFor(brief, state, kit, asOf){
+  const b = {...blank(), ...brief, rule: {...blank().rule, ...(brief.rule || {})}};
+  return picked(onSale(asOf && asOf < state.updated ? asOf : state.updated, state, kit), b);
+}
+function picked(all, b = st.brief){
   if (b.pick === "codes") { const want = parseCodes(b.codes), by = Object.fromEntries(all.map(x => [x.id, x])); return want.map(c => by[c]).filter(Boolean); }
   const r = b.rule;
   return all.filter(x => (!r.from || x.date.slice(0, 7) >= r.from) && (!r.to || x.date.slice(0, 7) <= r.to) && (!r.fly || (r.fly === "fly") === !!x.fly)

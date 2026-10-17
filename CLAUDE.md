@@ -706,6 +706,13 @@ Measured: drawing is fast (0.6 s first render, every page under 0.5 s with the d
 Not done (options): caching the data in the browser between visits; keeping a function copy always warm (costs a few
 pounds a month).
 
+## Light / dark switch (17 Oct 2026, Sam: "can you add a dark/light mode selector please")
+Under the UK / France switch in the sidebar: **Auto · Light · Dark** (`data-theme-pick`). Auto follows the device (the
+existing `prefers-color-scheme` rules); Light / Dark set `data-theme` on `<html>`, which the CSS already honours
+(`:root[data-theme="dark"]`, `:root:not([data-theme="light"])`). Remembered per browser (`spw-theme`, removed for Auto)
+and applied by a small script in `<head>` before the page draws, so it never flashes the other theme. Charts, tiles and
+every page use the same colour variables, so they follow it.
+
 ## Campaign builder (17 Oct 2026, Sam: "if someone provides a brief then it spits out a whole plan from all channels with creative and all sorts, a bit like the artifact I made today for black friday ads but it would then also do emails, landing pages, assets etc")
 Modelled on Sam's "Black Friday Drinks Ads" / "Black Friday Ad Mock-ups" artifacts. `site/campaign.js`, **Creative → Campaign
 builder** (UK only, `FR_HIDE`), no AI. **The brief** (left): name, code for ad names, offer, what guests get, campaign line,
@@ -816,6 +823,56 @@ again; a video published in ~70 s; a targeting change keeping the rest. Stage 1:
 video): proposals and notes as above, an approved text change made one creative + one ad update, a stale approval and an
 over-limit budget refused; the page at 1440 and 390 px against a stand-in function.
 
+## Old offers on the website (17 Oct 2026, Sam: idea 2, "build 2")
+`site_offers.py`, hourly workflow step "Old offers on the website" (after Promotion terms, `continue-on-error`), once a UK day
+and again at the next check after a promotion ends (`ended_sig`): every sitemap page except /cruise/ and /blog/ (the 215
+pages terms.py reads), 6 at a time, ~30 s. Only the page's **own wording** is checked: the sailing lists (the `CruiseList`
+Astro island, `LIVE_LIST`) come live from the booking system and are left out (they showed every live offer tag, which would
+have flagged nothing useful). Looks for: **ended_offer** (the name of a promotion whose spans have all closed in
+state/current.json, not shared with a live one, 10+ characters), **ended_code** (a code from an ended promotion's name or
+description, `CODE` / "code X", that no live promotion uses), **past_date** (offer wording, `TRIGGER` "book by / ends / valid
+until / expires / …" or "between … and <date>", with a date before today, on a line that reads like an offer `OFFERISH`;
+"made after 19th Jan 2024" isn't a deadline), **old_price** ("from £X" below every sailing on sale on that page, its /cruise/
+links and `cruise-codes`, or below our cheapest sailing if it lists none; lines about coaches, drinks, deposits, credit,
+excursions … `NOT_FARE` skipped). Level **fix** (on the page) or **check** (inside its Terms and Conditions, terms.py
+`sections`). Kept with first seen; gone → fixed, kept `FIXED_DAYS` = 30 (a page that couldn't be read keeps its findings);
+more than 20% of pages failing changes nothing. New "fix" findings → `out/site_offers.md` → "Website still shows ended
+offers — DATE" issue. → `state/site_offers.json` → `publish.py` `pricewatch/site-offers` → page **Checks → Old offers on
+website** (`site/siteoffers.js`, UK only): tiles, the ended promotions looked for, filters (kind, include terms, fixed), CSV.
+First live read 17 Oct 2026: nothing found (Cruise of the Week 15% and the Free Bottle of Bubbles had already gone from the
+site's wording); planted tests caught an ended name, an old code in the COTW page's terms, passed dates in four wordings and
+an old "from £" price.
+
+## Campaign results and Meta spend by sailing (17 Oct 2026, Sam: point 5 of the ideas, "also include spend by sailing estimated from both sailing carousel card clicks but also estimated spend from page views driven from the ads to each sailing")
+Page **Creative → Campaign results** (`site/campresults.js`, UK only, `FR_HIDE`). Pick a saved Campaign builder brief (the
+shared list, kind "campaign") or "Any dates (every Meta ad)"; dates default to the brief's booking window (editable).
+- **Interest**: the brief's sailings (`campaign.js` `sailingsFor`: its rule or codes on the campaign's first day, so sailings
+  since departed or off the website still count) with GA4 page views and booking clicks during the campaign against the same
+  number of days before (while it's still running: the days so far), against **similar sailings not in it** (impact.py's
+  method: same no-fly / fly-cruise, departing within 90 days and after the campaign, ≥ 20 views before): lift per sailing,
+  typical (median) lift and a verdict (≥ 5 sailings, ±10%, most the same way), click lift (≥ 10 clicks, 3+ controls).
+- **Meta spend by sailing, two estimates** (`ad_spend.py`, run after `meta_manage.py read`, saved files only):
+  **by card clicks** = each ad's daily spend split by the link clicks on each carousel card that day (card → its
+  /cruise/<code>- link; opening/closing cards → `_cards`; no clicks that day → the ad's clicks over every day; none → evenly;
+  single image/video → its sailing; no sailing link → `_nolink`); **by page views** = split by the page views in visits from
+  that ad (GA4, `ga4.py` `meta_views`: source Facebook/Instagram/Meta and paid, by page, day and `sessionCampaignName`), the
+  UTM campaign matched (case/punctuation ignored) to the ad's id or name, else its ad set's, else its campaign's; ads with no
+  match share the views of unmatched UTM campaigns (`(not set)` …); non-sailing pages → `_other`; nothing → `_unplaced` /
+  `_noviews`; days outside GA4's window → null. Totals per day equal the spend (`share_out` to the penny).
+  Spend comes from `meta_manage.read_spend` once a UK day: insights level ad, `time_increment` 1, the last `SPEND_DAYS` = 28
+  days re-read (90 on the first read), and link clicks per card (`action_breakdowns` action_carousel_card_id/name); ads no
+  longer listed are fetched by id for their cards → `state/meta/spend.json` (kept `SPEND_KEEP` = 400 days) →
+  `state/meta/spend_by_sailing.json` {rows {code: {Meta campaign id: [[date, by cards, by views, views]]}}, campaigns
+  {id: {name, ads}}, utm (what each tag matched), methods} → `publish.py` `pricewatch/meta-spend` (`ga4-demand` is published
+  without `meta_views`). Page: the Meta campaigns counted (default: names or ad names carrying the brief's code, else name;
+  tick by hand), the campaign's sailings or every sailing, a daily spend chart, per sailing both estimates, views from these
+  ads, cost per view, booking clicks (all sources) and cost per booking click; "Other sailings", opening/closing cards, other
+  pages, unplaced; "How the spend was shared out" (methods, UTM matches); CSV. **Not checked against the real API yet** (Meta
+  and GA4 aren't connected): on the first real read check that card names match the carousel's headlines (else positions are
+  tried) and what our ads' UTM tags look like (suggested: utm_source=facebook, utm_medium=paid_social,
+  utm_campaign={{campaign.name}}). Tested 17 Oct 2026 with a fake Graph API and fake GA4 figures (a carousel with opener, a
+  single image, a brand ad, an old ad fetched by id; matches at ad and campaign level and a pooled "(not set)").
+
 ## QA rerun (17 Oct 2026, Sam: "can you rerun the full qa")
 Two code reviews (Python and workflows; browser code) and a UX sweep (all 27 pages UK and the France set, at 1440, 390
 and dark mode: 162 page views, page errors, console errors, stuck "Loading", error boxes, sideways scroll, empty pages).
@@ -887,6 +944,8 @@ every page clean.
 | `meta_manage.py`, `site/metaads.js`, `.github/workflows/meta-apply.yml`, `functions/index.js` `metaAction`, `state/meta/ads.json` | Our own Meta ads: hourly read, proposed changes, Approve in the tracker, applied by a workflow: see "Meta ads: kept in step after approval (17 Oct 2026)" above |
 | `site/compliance.js` | Pre-send compliance check shared by every creator (prices, was/now, offers and T&Cs, two-sharing line, figures, brand words, links): see "Pre-send compliance check (17 Oct 2026)" above |
 | `site/campaign.js` | Campaign builder (a brief → themes, Meta, Google Ads, email sends, landing page, calendar, and drafts in the creators): see "Campaign builder (17 Oct 2026)" above |
+| `site_offers.py`, `site/siteoffers.js`, `state/site_offers.json` | Ended offers, old promo codes, passed offer dates and old "from £" prices in the website's own wording: see "Old offers on the website (17 Oct 2026)" above |
+| `ad_spend.py`, `site/campresults.js`, `state/meta/spend.json`, `state/meta/spend_by_sailing.json` | Campaign results (interest against similar sailings) and Meta spend by sailing, by card clicks and by ad-driven page views: see "Campaign results and Meta spend by sailing (17 Oct 2026)" above |
 | `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
 | `impact.py`, `site/impact.js`, `state/ga4/impact.json` | What moved interest (views and booking clicks after each price move and offer, against similar sailings): see "What moved interest (17 Oct 2026)" above |
 | `search_demand.py`, `search_terms.json`, `site/searchdemand.js`, `state/seo/search_demand.json` | Search demand viewer (Keyword Planner volumes for grouped, editable term lists): see "Search demand (17 Oct 2026)" above |

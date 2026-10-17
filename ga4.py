@@ -11,11 +11,15 @@ variable GA4_PROPERTY_ID. Only the sailing pages (/cruise/<code>-…/) are read,
     book.ambassadorcruiseline.com), plus any events named in the repo variable GA4_BOOKING_EVENTS (comma-separated),
     per sailing over the last 28 days and the 28 before
   - the site's most common event names (so the right booking events can be chosen once Sam has looked)
+  - views in visits that came from our Meta ads (META_SOURCE + paid), per page, day and the visit's UTM campaign, for
+    ad_spend.py (spend by sailing, 17 Oct 2026); pages that aren't sailings are counted together as "_other"
 Read-only: nothing in GA4 is changed. Without the property ID or access it records what's missing in `problem` and stops.
 
 → state/ga4/demand.json {read_on, fetched_at, property, problem, start, end, days, booking_events, events_seen,
    sailings: {code: {path, views: [per day, oldest first], users: [per day], ch: {channel: views 28d},
-                     clicks: [28d, previous 28d], ev: {event: [28d, previous 28d]}, clicks_d: [booking clicks per day]}}}
+                     clicks: [28d, previous 28d], ev: {event: [28d, previous 28d]}, clicks_d: [booking clicks per day],
+                     meta_d: [views from Meta ads per day]}},
+   meta_views: {code or "_other": {utm campaign: [[day index, views]]}}}   (meta_views isn't published: ad_spend.py only)
 → publish.py pricewatch/ga4-demand → tracker page Prices → Sailing demand, and each sailing's detail view.
 
 Setup (Sam, one-off): Google Cloud console → promotions-planner → APIs & Services → Library → "Google Analytics Data
@@ -37,6 +41,10 @@ API = "https://analyticsdata.googleapis.com/v1beta"
 DAYS = 90
 BOOKING_DOMAIN = "book.ambassadorcruiseline.com"
 CODE = re.compile(r"^/cruise/([a-z0-9]+)-", re.I)
+# Visits that came from our Meta ads (Facebook / Instagram): their source names Meta and they're paid (GA4's "Paid Social"
+# channel, or a paid-looking medium in the ad's UTM tags). Used by ad_spend.py to place ad spend on sailings.
+META_SOURCE = r"facebook|instagram|^fb$|^ig$|^meta|messenger|audience.?network|^an$"
+PAID_MEDIUM = r"paid|cpc|ppc|cpm|^ads?$|social_?ads|display"
 
 
 def session():
@@ -140,6 +148,24 @@ def main():
             r = rec(path)
             if r is not None and date in idx:
                 r["clicks_d"][idx[date]] += int(n)
+        # 3c. views in visits from our Meta ads, per page, day and UTM campaign (ad_spend.py places spend by these)
+        META = {"andGroup": {"expressions": [
+            {"filter": {"fieldName": "sessionSource", "stringFilter": {"matchType": "PARTIAL_REGEX", "value": META_SOURCE, "caseSensitive": False}}},
+            {"orGroup": {"expressions": [{"filter": {"fieldName": "sessionDefaultChannelGroup", "stringFilter": {"value": "Paid Social"}}},
+                                         {"filter": {"fieldName": "sessionMedium", "stringFilter": {"matchType": "PARTIAL_REGEX", "value": PAID_MEDIUM, "caseSensitive": False}}}]}}]}}
+        mv = {}
+        for path, date, camp, views in report(http, prop, {"dateRanges": [{"startDate": days[0], "endDate": days[-1]}],
+                "dimensions": [{"name": "pagePath"}, {"name": "date"}, {"name": "sessionCampaignName"}], "metrics": [{"name": "screenPageViews"}],
+                "dimensionFilter": META}):
+            if date not in idx or not int(views):
+                continue
+            c = code_of(path)
+            if c:
+                r = rec(path)
+                r.setdefault("meta_d", [0] * DAYS)[idx[date]] += int(views)
+            byc = mv.setdefault(c or "_other", {}).setdefault(camp or "(not set)", {})
+            byc[idx[date]] = byc.get(idx[date], 0) + int(views)
+        mv = {c: {k: sorted(v.items()) for k, v in cs.items()} for c, cs in sorted(mv.items())}
         # 4. booking events chosen in GA4_BOOKING_EVENTS, per sailing page
         if events:
             for k, rng in enumerate((m28, p28)):
@@ -159,9 +185,10 @@ def main():
                 r["clicks_d"] = []
         st = {"read_on": today, "fetched_at": now, "property": prop, "problem": "", "start": days[0], "end": days[-1], "days": DAYS,
               "m28": m28, "p28": p28, "booking_domain": BOOKING_DOMAIN, "booking_events": events, "events_seen": seen,
-              "sailings": dict(sorted(sail.items()))}
+              "sailings": dict(sorted(sail.items())), "meta_views": mv}
         print(f"GA4 property {prop}: {len(sail)} sailing pages, {days[0]} to {days[-1]}; "
-              f"{sum(sum(r['views']) for r in sail.values()):,} views; {sum(r['clicks'][0] for r in sail.values()):,} booking clicks in 28 days")
+              f"{sum(sum(r['views']) for r in sail.values()):,} views; {sum(r['clicks'][0] for r in sail.values()):,} booking clicks in 28 days; "
+              f"{sum(v for cs in mv.values() for pts in cs.values() for _, v in pts):,} views from Meta ads")
     except Exception as e:  # noqa: BLE001 - recorded for the page; never stops the price check
         st.update(read_on=today, fetched_at=now, problem=str(e)[:400])
         print("GA4:", str(e)[:400])

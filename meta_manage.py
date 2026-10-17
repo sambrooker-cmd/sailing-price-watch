@@ -52,6 +52,8 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "state" / "meta" / "ads.json"
 PROBLEM = ROOT / "out" / "meta_manage_problem.md"
 URGENT = ROOT / "out" / "meta_urgent.md"
+SPEND = ROOT / "state" / "meta" / "spend.json"         # daily spend and carousel card clicks per ad (read_spend), for ad_spend.py
+SPEND_DAYS, SPEND_FIRST, SPEND_KEEP = 28, 90, 400      # re-read the last 28 days (Meta revises them); 90 on the first read; keep 400
 PUBLISHED = ROOT / "state" / "meta" / "published.json"   # ads the tracker made: {ad id: {code, kind, size, fp, facts, at, by}}
 CTA = {"Learn more": "LEARN_MORE", "Book now": "BOOK_TRAVEL", "See more": "SEE_MORE", "Get offer": "GET_OFFER"}
 VIDEO_SIZE, VIDEO_LENGTH = "4x5", 10   # published videos: feed size, 10 seconds (make_video.py)
@@ -99,9 +101,9 @@ def call(method, path, token, params=None, data=None):
             raise RuntimeError(f"Meta answered {e.code}: {msg}")
 
 
-def every(path, token, params):
+def every(path, token, params, pages=20):
     out, after = [], None
-    for _ in range(20):
+    for _ in range(pages):
         j = call("GET", path, token, {**params, "limit": 200, **({"after": after} if after else {})})
         out += j.get("data", [])
         after = ((j.get("paging") or {}).get("cursors") or {}).get("after")
@@ -170,6 +172,76 @@ def card_code(cr, path):
         m = CODE.search(link or "")
         return m.group(1).upper() if m else None
     return None
+
+
+def ad_info(ad):
+    """What ad_spend.py needs to know about an ad: its campaign, ad set, kind, sailings and carousel cards [[code, headline]]."""
+    cr = ad.get("creative") or {}
+    ch = ((cr.get("object_story_spec") or {}).get("link_data") or {}).get("child_attachments") or []
+    cards = []
+    for c in ch:
+        m = CODE.search(c.get("link") or "")
+        cards.append([m.group(1).upper() if m else "", c.get("name") or ""])
+    return {"name": ad.get("name") or "", "campaign": ad.get("campaign_id") or "", "adset": ad.get("adset_id") or "",
+            "codes": codes_of(pieces(cr)), "cards": cards}
+
+
+def read_spend(token, acct, ads, today):
+    """Once a UK day (Sam, 17 Oct 2026: spend by sailing): spend, impressions and link clicks per ad per day, and link
+    clicks per carousel card per day, for the last SPEND_DAYS days (SPEND_FIRST on the first read) → state/meta/spend.json
+    {read_on, from, to, days: {date: {ad id: [spend, impressions, link clicks]}}, cards: {date: {ad id: {"<card id>|<card
+    name>": clicks}}}, ads: {ad id: ad_info}, campaigns: {id: name}, adsets: {id: name}}. Read-only."""
+    old = json.loads(SPEND.read_text()) if SPEND.exists() else {}
+    if old.get("read_on") == today:
+        return
+    until = (dt.date.fromisoformat(today) - dt.timedelta(days=1)).isoformat()
+    since = (dt.date.fromisoformat(until) - dt.timedelta(days=(SPEND_DAYS if old.get("days") else SPEND_FIRST) - 1)).isoformat()
+    tr = json.dumps({"since": since, "until": until})
+    days = {d: v for d, v in (old.get("days") or {}).items() if not since <= d <= until}
+    cards = {d: v for d, v in (old.get("cards") or {}).items() if not since <= d <= until}
+    camps, sets, info = old.get("campaigns") or {}, old.get("adsets") or {}, old.get("ads") or {}
+    for r in every(f"act_{acct}/insights", token, {"level": "ad", "time_increment": 1, "time_range": tr,
+                   "fields": "ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,impressions,inline_link_clicks"}, pages=100):
+        s, imp = float(r.get("spend") or 0), int(r.get("impressions") or 0)
+        if not s and not imp:
+            continue
+        days.setdefault(r["date_start"], {})[r["ad_id"]] = [round(s, 2), imp, int(r.get("inline_link_clicks") or 0)]
+        camps[r.get("campaign_id") or ""] = r.get("campaign_name") or ""
+        sets[r.get("adset_id") or ""] = r.get("adset_name") or ""
+        info.setdefault(r["ad_id"], {}).update(name=r.get("ad_name") or "", campaign=r.get("campaign_id") or "", adset=r.get("adset_id") or "")
+    # Link clicks per carousel card (Meta's carousel card breakdown; the card id and name sit on each action, or on the row)
+    for r in every(f"act_{acct}/insights", token, {"level": "ad", "time_increment": 1, "time_range": tr, "fields": "ad_id,actions",
+                   "action_breakdowns": "action_carousel_card_id,action_carousel_card_name"}, pages=100):
+        for a in r.get("actions") or []:
+            if a.get("action_type") != "link_click":
+                continue
+            cid, cn = a.get("action_carousel_card_id", r.get("action_carousel_card_id")), a.get("action_carousel_card_name", r.get("action_carousel_card_name"))
+            if cid is None and cn is None:
+                continue
+            k = f"{cid if cid is not None else ''}|{cn or ''}"
+            per = cards.setdefault(r["date_start"], {}).setdefault(r["ad_id"], {})
+            per[k] = per.get(k, 0) + int(float(a.get("value") or 0))
+    # Each ad's creative (cards → sailings): from this read, else asked for by id (ads no longer listed)
+    by = {a["id"]: a for a in ads}
+    spent = {i for d in days.values() for i in d}
+    missing = sorted(i for i in spent if i not in by and "cards" not in info.get(i, {}))
+    for k in range(0, len(missing), 50):
+        try:
+            by.update(call("GET", "", token, {"ids": ",".join(missing[k:k + 50]), "fields": AD_FIELDS}))
+        except RuntimeError as e:
+            print("Meta spend: some ads' creatives not read:", e)
+    for i, ad in by.items():
+        if i in spent or i in info:
+            info[i] = {**info.get(i, {}), **ad_info(ad)}
+    cut = (dt.date.fromisoformat(today) - dt.timedelta(days=SPEND_KEEP)).isoformat()
+    days = {d: v for d, v in sorted(days.items()) if d >= cut}
+    cards = {d: v for d, v in sorted(cards.items()) if d >= cut}
+    keep = {i for d in days.values() for i in d}
+    SPEND.write_text(json.dumps({"read_on": today, "from": min(days) if days else since, "to": until, "days": days, "cards": cards,
+                                 "ads": {i: v for i, v in info.items() if i in keep}, "campaigns": camps, "adsets": sets},
+                                ensure_ascii=False, separators=(",", ":")))
+    print(f"Meta spend: {sum(len(v) for v in days.values())} ad-days from {min(days) if days else since} to {until}, "
+          f"£{sum(x[0] for v in days.values() for x in v.values()):,.2f}")
 
 
 # ---------- comparing with the tracker ----------
@@ -557,6 +629,10 @@ def read():
         URGENT.write_text("These Meta ads should be paused. Approve it on the tracker's Meta ads page (Creative → Meta ads):\n\n" +
                           "".join(f"- **{names.get(x['ad'], x['ad'])}**: {x['why']}\n" for x in fresh))
     OUT.write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")))
+    try:   # spend per ad per day and carousel card clicks (spend by sailing): never stops the read
+        read_spend(token, acct, ads, today)
+    except (TokenProblem, RuntimeError, OSError, ValueError, KeyError) as e:
+        print("Meta spend: not read:", e)
     if PROBLEM.exists():
         PROBLEM.unlink()
     print(f"Meta ads: {len(ads)} ads, {len(sets)} ad sets, {len(camps)} campaigns; {len(props)} proposals ({sum(1 for x in props if x.get('urgent'))} urgent); {calls} requests")

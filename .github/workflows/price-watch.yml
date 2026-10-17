@@ -180,6 +180,13 @@ jobs:
         continue-on-error: true   # a terms problem must never stop prices or cards being saved
         run: python terms.py
 
+      # Ended offers still in the website's own wording (Sam, 17 Oct 2026): deals, landing and information pages read
+      # once a UK day and again after a promotion ends; new ones → an issue. Read-only. See site_offers.py.
+      - name: Old offers on the website
+        if: steps.watch.outcome == 'success'
+        continue-on-error: true
+        run: python site_offers.py
+
       # French offer T&Cs (14 Oct 2026): the "Conditions de l'offre …" blocks on ambassadorcroisieres.fr's /offres pages,
       # matched to the French promotions. state/fr/terms.json. See terms.py.
       - name: French promotion terms
@@ -233,7 +240,9 @@ jobs:
           META_AD_ACCOUNT_ID: ${{ vars.META_AD_ACCOUNT_ID }}
           META_API_VERSION: ${{ vars.META_API_VERSION }}
           META_MAX_DAILY_BUDGET: ${{ vars.META_MAX_DAILY_BUDGET }}
-        run: python meta_manage.py read
+        run: |
+          python meta_manage.py read
+          python ad_spend.py   # Meta spend by sailing, by card clicks and by ad-driven page views (saved files only)
 
       - name: Make and upload French cards
         id: frcardrun
@@ -358,6 +367,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           .github/issue.sh "Competitor ads: Meta token needs renewing" out/meta_ads_problem.md
+
+      - name: Open issue if the website still shows ended offers
+        if: always() && hashFiles('out/site_offers.md') != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .github/issue.sh "Website still shows ended offers — $(TZ=Europe/London date +%F)" out/site_offers.md
 
       - name: Open issue if the Meta ads token needs renewing
         if: always() && hashFiles('out/meta_manage_problem.md') != ''
