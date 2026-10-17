@@ -4,7 +4,16 @@
  "new": [],
  "removed": [],
  "returned": [],
- "drops": [],
+ "drops": [
+  {
+   "id": "R270110",
+   "from": 719,
+   "to": 659,
+   "mix": "ocean_view → obstructed",
+   "claim": null,
+   "at": "2026-10-17T13:07:40Z"
+  }
+ ],
  "rises": [
   {
    "id": "R270501",
@@ -43,7 +52,7 @@
    "the page shows from €1,029 but booking's cheapest is €1,299"
   ],
   "R270110": [
-   "the page shows from €579 but booking's cheapest is €719"
+   "the page shows from €579 but booking's cheapest is €659"
   ],
   "R270912B": [
    "the page shows from €1,379 but booking's cheapest is €1,649"
@@ -175,6 +184,12 @@
    "cabin": "solo.inside",
    "p": 929,
    "at": "2026-10-17T09:07:40Z"
+  },
+  {
+   "id": "R270110",
+   "cabin": "twin.obstructed",
+   "p": 659,
+   "at": "2026-10-17T13:07:40Z"
   }
  ],
  "cabin_eligible": [],
@@ -202,6 +217,7 @@
   "2026-10-17T10:26:53Z",
   "2026-10-17T11:07:32Z",
   "2026-10-17T12:07:49Z",
-  "2026-10-17T12:55:56Z"
+  "2026-10-17T12:55:56Z",
+  "2026-10-17T13:07:40Z"
  ]
 }

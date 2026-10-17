@@ -1,9 +1,10 @@
 {
  "date": "2026-10-17",
- "count": 220,
+ "count": 219,
  "new": [],
  "removed": [
-  "A32650"
+  "A32650",
+  "A12704"
  ],
  "returned": [],
  "drops": [],
@@ -31,11 +32,11 @@
   "A32653": [
    "feed image looks like campaign art (may contain text)"
   ],
-  "A12704": [
-   "feed price £2,229 differs from cheapest cabin on the page £699 (the page price is used)"
-  ],
   "A22705": [
    "feed image looks like campaign art (may contain text)"
+  ],
+  "A12707": [
+   "feed price £1,739 differs from cheapest cabin on the page £1,709 (the page price is used)"
   ],
   "A22707PO": [
    "feed price £929 differs from cheapest cabin on the page £1,049 (the page price is used)"
@@ -59,7 +60,14 @@
  "cabin_back": [],
  "cabin_eligible": [],
  "promo_added": [],
- "promo_ended": [],
+ "promo_ended": [
+  {
+   "id": "A12704",
+   "offer": "7e8299d6-5745-43ee-93ba-2b06efb73e8b",
+   "name": "Regional Coach Transfers",
+   "at": "2026-10-17T13:07:17Z"
+  }
+ ],
  "promo_changed": [],
  "nectar_changes": [],
  "feed_gap_new": [
@@ -110,6 +118,12 @@
    "feed": 1349,
    "page": 1199,
    "at": "2026-10-17T12:55:39Z"
+  },
+  {
+   "id": "A12707",
+   "feed": 1739,
+   "page": 1709,
+   "at": "2026-10-17T13:07:17Z"
   }
  ],
  "feed_gap_fixed": [
@@ -153,6 +167,7 @@
   "2026-10-17T10:26:20Z",
   "2026-10-17T11:07:14Z",
   "2026-10-17T12:07:16Z",
-  "2026-10-17T12:55:39Z"
+  "2026-10-17T12:55:39Z",
+  "2026-10-17T13:07:17Z"
  ]
 }
