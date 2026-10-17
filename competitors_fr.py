@@ -174,7 +174,9 @@ def main():
     print(f"Havas sitemap: {len(urls)} cruise pages ({'complete' if full else 'cut short: no page is marked gone today'})")
     S, tried, changes = st["sailings"], st["tried"], []
     # Today's pages: every competing itinerary still live, then new candidates (from France, never read before)
-    track = [i for i, r in S.items() if not r.get("gone")]
+    # Gone ones still (or again) in the sitemap are read again too: a page that briefly showed no price comes back
+    # with its history (QA, 17 Oct 2026; it used to stay gone until dropped, then return as "new")
+    track = [i for i, r in S.items() if not r.get("gone") or i in urls]
     new = sorted((i for i, u in urls.items() if i not in S and i not in tried and slug_rank(u) is not None),
                  key=lambda i: slug_rank(urls[i]))[:NEW_PER_RUN]
     ok = failed = 0

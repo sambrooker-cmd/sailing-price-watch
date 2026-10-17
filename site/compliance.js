@@ -16,14 +16,14 @@
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = iso => { if (!iso) return ""; const [y, m, d] = iso.slice(0, 10).split("-").map(Number); return `${d} ${MON[m - 1]} ${y}`; };
-const num = s => String(s).replace(/[,\s  ]/g, "");
+const num = s => String(s).replace(/[,\s  ]/g, "").replace(/\.+$/, "");   // "£300." at the end of a sentence is 300
 const money = (v, fr) => fr ? `${Math.round(v).toLocaleString("fr-FR")} €` : "£" + Math.round(v).toLocaleString("en-GB");
 const key = t => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}%£€=+-]+/gu, " ").trim();
 const lastSeg = c => c && c.seg && c.seg.length ? c.seg[c.seg.length - 1] : null;
 const addDays = (s, n) => new Date(Date.parse(s + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
 
 // Reduction wording: only with a live was/now claim (hard rule: was prices only from run.json via the tracker's claims)
-const REDUCE = /\bwas\s*£|\bnow only\b|\bnow just\b|\breduced\b|\breduction\b|\bprice (drop|cut)s?\b|\bslashed\b|\bsave\s*£|£\s?\d[\d,]*\s*off\b|\blower (fares|prices)\b|\bhalf price\b|\bprix barré|\bau lieu de\b|\bréduction\b/i;
+const REDUCE = /\bwas\s+(up to\s+)?£|\bwas\s*£|\bnow only\b|\bnow just\b|\breduced\b|\breduction\b|\bprice (drop|cut)s?\b|\bslashed\b|\bsave\s*(up to\s+)?£|\bsavings? of\b|£\s?\d[\d,]*\s*off\b|\blower (fares|prices)\b|\bhalf price\b|\bprix barré|\bau lieu de\b|\bréduction\b/i;
 const BRAND = [[/\bThe Renaissance\b/, `"The Renaissance": the ship is "Renaissance"`], [/\bAmbassador Cruises\b/, `"Ambassador Cruises": say "Ambassador Cruise Line"`],
   [/\bACL\b/, `"ACL": say "Ambassador Cruise Line"`], [/\bboats?\b/i, `"boat": say "ship"`], [/\bThe (Ambience|Ambition)\b/, `"The Ambience/Ambition": the ships are named without "The"`]];
 const PLACEHOLDER = /UNSUBSCRIBE_LINK|lorem ipsum|\bTBC\b|\bTODO\b|\bXXX\b|C###|T####/;
@@ -126,10 +126,11 @@ export function check(pack, c){
   const figBad = [];
   for (const x of texts) {
     const t = String(x.text);
-    for (const m of t.matchAll(fr ? /(\d[\d\s .]*)\s?€/g : /£\s?(\d+(?:,\d{3})*(?:\.\d+)?)/g)) {
+    for (const m of t.matchAll(fr ? /(\d{1,3}(?:[\s  .]\d{3})*)\s?€/g : /£\s?(\d+(?:,\d{3})*(?:\.\d+)?)/g)) {
       const n = num(m[1]).replace(/\.00$/, "");
       // "under £1,000" is fine when it's true of every price shown
-      const cap = /\b(under|below|less than|up to)\s*$/i.test(t.slice(Math.max(0, m.index - 12), m.index)) && (x.prices || shown).length && (x.prices || shown).every(p => p <= +n);
+      const cap = /\b(under|below|less than)\s*$/i.test(t.slice(Math.max(0, m.index - 12), m.index)) && !REDUCE.test(t.slice(Math.max(0, m.index - 30), m.index + 20))
+        && (x.prices || shown).length && (x.prices || shown).every(p => p <= +n);
       if (!ok.has(n) && !cap) figBad.push(`${x.where}: ${m[0].trim()}`);
     }
     for (const m of t.matchAll(/(\d[\d,.]*)\s?%/g)) if (!ok.has(num(m[1]))) figBad.push(`${x.where}: ${m[0]}`);
@@ -150,7 +151,7 @@ export function check(pack, c){
   const ph = texts.find(x => PLACEHOLDER.test(x.text)); if (ph) add("warn", `${ph.where} still has a placeholder ("${String(ph.text).match(PLACEHOLDER)[0]}").`);
   for (const l of (pack.links || [])) {
     if (!l.url) add("warn", `${l.where}: no link set.`);
-    else if (!/^(https?:|mailto:|tel:|\{\{)/i.test(l.url) && !l.url.startsWith("/")) add("fail", `${l.where}: "${l.url}" isn't a web link.`);
+    else if (!/^(https?:|mailto:|tel:|\{\{)/i.test(l.url) && !/^\/(?!\/)/.test(l.url)) add("fail", `${l.where}: "${l.url}" isn't a web link.`);
     else if (/^https?:/i.test(l.url) && !OUR_HOSTS.test(l.url)) add("warn", `${l.where} links off our websites: ${l.url}`);
   }
   (pack.extra || []).forEach(r => rows.push(r));

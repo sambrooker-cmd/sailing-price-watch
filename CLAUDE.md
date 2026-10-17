@@ -816,6 +816,30 @@ again; a video published in ~70 s; a targeting change keeping the rest. Stage 1:
 video): proposals and notes as above, an approved text change made one creative + one ad update, a stale approval and an
 over-limit budget refused; the page at 1440 and 390 px against a stand-in function.
 
+## QA rerun (17 Oct 2026, Sam: "can you rerun the full qa")
+Two code reviews (Python and workflows; browser code) and a UX sweep (all 27 pages UK and the France set, at 1440, 390
+and dark mode: 162 page views, page errors, console errors, stuck "Loading", error boxes, sideways scroll, empty pages).
+Fixed: **Meta ads** (`meta_manage.py`): a £ figure is only swapped for today's price when its words say it's a price
+("from £999pp", "now £1,029"), never a was / saving / credit / "under" figure (`PRICE_BEFORE` / `PRICE_AFTER` /
+`NOT_BEFORE` / `NOT_AFTER`; a stale "was £1,899" used to become "was £1,029"); reduction wording is checked per piece
+against its own sailing's live claims, and a quoted "was £X" that isn't that claim's was price pauses the ad
+(`reduction_problem`); tracker-made ads get the same pause checks before a remake; `live_code` puts a was/now design whose
+claim has ended back to standard; `build_creative` refuses words with reduction wording and no live claim; the hourly read
+runs after the card steps (this check's offer figures); `apply` writes every failure on the request and the workflow has a
+failure/cancel step (`meta_manage.py failed`). `REDUCE` (here and in `compliance.js`) now also catches "save up to £",
+"was up to £" and "savings of". **Competitor ads** (`meta_ads.py`): a page search that finds nothing keeps the pages found
+before (it used to mark every ad of that brand ended for a week). **France competitors**: gone itineraries back in the
+sitemap are read again. **Fred. Olsen**: a tracked sailing departing within `MIN_DAYS` is marked gone (history kept), not
+deleted. **Draft with Claude for pages**: the H1 gets the same figure check; a draft "running" past 25 minutes shows as
+failed and the workflow's failure step also runs on cancel. **Pre-send check** (`compliance.js`): "under £1,000" allowance
+no longer covers "up to" or text near reduction wording; "£300." at a sentence end matches 300; French prices next to a year
+aren't merged; "//other.site" links fail like any non-web link. **Sailing demand**: price moves compare the cabin grade
+(state segments carry no `mix` flag), so a cheaper grade coming on sale or a sailing back on sale isn't shown as a price
+change. **Search demand**: a group with a high bid but no low bid no longer stops the page. **CSV downloads**: negative
+numbers ("-6.2", "-8%") stay numbers (the formula guard skips plain numbers). **Meta ads page**: Reject asks first and names
+a remake correctly. **Phones**: the Campaign builder's long ad names wrap (it scrolled sideways). Re-run after the fixes:
+every page clean.
+
 ## Hard rules (do not change without Sam)
 - **Ad accounts: only our own Meta ad account, and only after approval** (Sam changed this rule on 17 Oct 2026: "that was my
   rule to begin with", "I'd like to do it that way as well"; it was "Never touch Meta, Google Ads or any ad account").

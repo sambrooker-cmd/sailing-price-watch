@@ -51,6 +51,13 @@ jobs:
           REQUEST: ${{ inputs.request }}
         run: python meta_manage.py apply "$REQUEST"
 
+      - name: Mark the request as failed
+        if: failure() || cancelled()
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REQUEST: ${{ inputs.request }}
+        run: python meta_manage.py failed "$REQUEST"
+
       - name: Save the ads the tracker made
         if: always() && hashFiles('state/meta/published.json') != ''
         run: |

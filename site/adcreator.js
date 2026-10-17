@@ -914,7 +914,7 @@ function adText(files){
 }
 
 function csv(files){
-  const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return /[",\n\r]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+  const cell = v => { let x = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(x) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(x)) x = "'" + x; return /[",\n\r]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
   const rows = [["Order", "Cruise code", "Sailing", "Departs", "Design", "Price on card", "Was", "Use until", "Headline", "Description", "Link", "Files"]];
   slides().forEach((x, i) => {
     const fl = files.filter(f => f[0] === i).map(f => f[1]).join(" ");

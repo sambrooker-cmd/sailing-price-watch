@@ -40,7 +40,10 @@ function rows(){
     const clicks = (r.clicks || [0, 0])[0] + ev[0];
     const top = Object.entries(r.ch || {}).sort((a, b) => b[1] - a[1])[0];
     const segs = s.segments || [], last = segs[segs.length - 1] || {};
-    const moved = segs.filter(x => x.from > addDays(today, -28) && !x.mix && !x.switch && segs.indexOf(x) > 0);
+    // a price move is the same cabin grade getting cheaper or dearer: a different grade setting the price ("mix") and a
+    // sailing back on sale ("back") aren't (QA, 17 Oct 2026: state segments have no mix flag; compare the grades)
+    const move = (x, i) => i > 0 && !x.switch && !x.back && !(x.c && segs[i - 1].c && x.c !== segs[i - 1].c) && x.p != null && segs[i - 1].p != null && x.p !== segs[i - 1].p;
+    const moved = segs.filter((x, i) => x.from > addDays(today, -28) && move(x, i));
     out.push({id, s, r, v7, p7, v28, p28, clicks, rate: v28 ? clicks / v28 : null, top: top ? top[0] : "", price: last.p,
       moved: moved.length ? moved[moved.length - 1] : null, flags: []});
   }
@@ -125,7 +128,7 @@ function draw(el){
     el.querySelector(id).addEventListener("change", e => { st[k] = e.target.value; st.shown = 60; save(); re(); });
   const more = el.querySelector("#dm-more"); more && more.addEventListener("click", () => { st.shown += 60; re(); });
   el.querySelector("#dm-csv").addEventListener("click", () => {
-    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
     const head = ["Cruise code", "Sailing", "Departs", "Nights", "From", "From pp", "Price changed", "Views 7 days", "Views previous 7", "Views 28 days", "Views previous 28", "Booking clicks 28 days", "Click rate", "Top channel", "Flags"];
     const body = list.map(x => [x.id, x.s.base_title || x.s.title, x.s.departure_date, x.s.nights, x.s.flight_from || x.s.port, x.price, x.moved ? x.moved.from : "", x.v7, x.p7, x.v28, x.p28, x.clicks,
       x.rate == null ? "" : (x.rate * 100).toFixed(1) + "%", x.top, x.flags.map(f => FLAGS[f][0]).join("; ")]);
@@ -146,7 +149,7 @@ export async function mountDetail(el, c, id){
   // events in the window: price changes (not a cheaper grade coming on sale) and promotions starting or ending
   const evs = [];
   const segs = s.segments || [];
-  segs.forEach((x, i) => { if (i && x.from >= days[0] && !x.mix && !x.switch && segs[i - 1].p != null && x.p != null && x.p !== segs[i - 1].p)
+  segs.forEach((x, i) => { if (i && x.from >= days[0] && !x.switch && !x.back && !(x.c && segs[i - 1].c && x.c !== segs[i - 1].c) && segs[i - 1].p != null && x.p != null && x.p !== segs[i - 1].p)
     evs.push({d: x.from, t: `From price ${gbp(segs[i - 1].p)} → ${gbp(x.p)}`}); });
   const offers = ctx.state.offers || {};
   // promotions were first recorded on one day (12 Oct 2026): those already running then didn't "start" that day

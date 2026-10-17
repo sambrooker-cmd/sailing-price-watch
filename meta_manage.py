@@ -60,7 +60,7 @@ API = "https://graph.facebook.com/" + (VERSION + "/" if VERSION else "")
 MAX_STEP = 2.0                      # a budget can at most double (or halve) in one change
 MAX_DAILY = int(float(os.environ.get("META_MAX_DAILY_BUDGET") or 500) * 100)   # minor units
 CODE = re.compile(r"/cruise/([a-z]\d{4,}[a-z]{0,3})-", re.I)
-REDUCE = re.compile(r"\bwas\s*£|\bnow only\b|\bnow just\b|\breduced\b|\breduction\b|\bprice (drop|cut)s?\b|\bslashed\b|\bsave\s*£|£\s?\d[\d,]*\s*off\b|\blower (fares|prices)\b|\bhalf price\b", re.I)
+REDUCE = re.compile(r"\bwas\s+(up to\s+)?£|\bwas\s*£|\bsavings? of\b|\bnow only\b|\bnow just\b|\breduced\b|\breduction\b|\bprice (drop|cut)s?\b|\bslashed\b|\bsave\s*(up to\s+)?£|£\s?\d[\d,]*\s*off\b|\blower (fares|prices)\b|\bhalf price\b", re.I)
 POUNDS = re.compile(r"£\s?(\d+(?:,\d{3})*)")
 RUNNING = {"ACTIVE", "IN_PROCESS", "WITH_ISSUES", "PENDING_REVIEW", "PREAPPROVED"}
 
@@ -214,8 +214,33 @@ def set_at(obj, path, val):
     obj[path[-1]] = val
 
 
-def proposals_for(ad, facts, today):
-    """Proposals and notes for one ad, from its creative and the sailings it links to."""
+# A £ figure is only swapped for today's price when its words say it's a price ("from £999pp", "now £1,029", "only £899");
+# never a was / saving / credit / deposit figure (QA, 17 Oct 2026: a stale "was £1,899" became "was £1,029")
+PRICE_BEFORE = re.compile(r"\b(from|only|just|now|at|for)\s*$", re.I)
+PRICE_AFTER = re.compile(r"^\s*(pp\b|per person|a head|each)", re.I)
+NOT_BEFORE = re.compile(r"(\bwas|\bsave|\bsaving|\boff|\bworth|\bup to|\bunder|\bbelow)\s*$", re.I)
+NOT_AFTER = re.compile(r"^\s*(off\b|onboard|on board|credit|deposit|saving|discount|cashback|voucher)", re.I)
+
+
+def reduction_problem(ad, cr, ps, live):
+    """A piece of words making a price-reduction claim that no live claim of its own sailing(s) backs: (piece, reason)."""
+    for path, kind, v in ps:
+        if kind != "text" or not REDUCE.search(v):
+            continue
+        own = card_code(cr, path)
+        mine = [live.get(own)] if own else list(live.values())
+        claims = [c for f in mine if f for c in f["claims"]]
+        if not claims:
+            return REDUCE.search(v).group(0).strip(), "none of its sailings has a was/now claim live today"
+        for m in re.finditer(r"\bwas\s*£\s?(\d+(?:,\d{3})*)", v, re.I):
+            if int(m.group(1).replace(",", "")) not in {c["was"] for c in claims}:
+                return m.group(0), "that isn't the was price of its sailing's live claim"
+    return None
+
+
+def proposals_for(ad, facts, today, made=False):
+    """Proposals and notes for one ad, from its creative and the sailings it links to. `made`: an ad the tracker made
+    (remade from its design instead), so only the pauses apply."""
     cr = ad.get("creative") or {}
     ps, codes = pieces(cr), codes_of(pieces(cr))
     running = ad.get("effective_status") in RUNNING
@@ -231,9 +256,12 @@ def proposals_for(ad, facts, today):
         out.append({"id": pid(ad["id"], "pause", "offsale", ",".join(codes)), "ad": ad["id"], "kind": "pause", "urgent": True,
                     "why": f"Every sailing it links to is off sale or has departed ({', '.join(gone)})."})
         return out, notes
-    if REDUCE.search(text) and not any(f and f["claims"] for f in live.values()):
-        out.append({"id": pid(ad["id"], "pause", "claim", REDUCE.search(text).group(0)), "ad": ad["id"], "kind": "pause", "urgent": True,
-                    "why": f"Its words make a price-reduction claim (\"{REDUCE.search(text).group(0).strip()}\") but none of its sailings has a was/now claim live today. Was/now must stop on the claim's end date."})
+    rp = reduction_problem(ad, cr, ps, live)
+    if rp:
+        out.append({"id": pid(ad["id"], "pause", "claim", rp[0]), "ad": ad["id"], "kind": "pause", "urgent": True,
+                    "why": f"Its words make a price-reduction claim (\"{rp[0]}\") but {rp[1]}. Was/now only comes from a live claim and must stop on the claim's end date."})
+        return out, notes
+    if made:
         return out, notes
     if gone:
         notes.append(f"Some sailings are off sale ({', '.join(gone)}): remake it without them (stage 2) or edit it in Ads Manager.")
@@ -252,10 +280,12 @@ def proposals_for(ad, facts, today):
             n = int(m.group(1).replace(",", ""))
             if n in ok_all:
                 continue
-            before = v[max(0, m.start() - 12):m.start()].lower()
+            before, after = v[max(0, m.start() - 14):m.start()], v[m.end():m.end() + 14]
+            if NOT_BEFORE.search(before) or NOT_AFTER.search(after) or not (PRICE_BEFORE.search(before) or PRICE_AFTER.search(after)):
+                stuck.append(m.group(0)); continue
             if own and live.get(own):
                 want = live[own]["lead"]
-            elif re.search(r"\b(from|only)\s*$", before):
+            elif re.search(r"\b(from|only)\s*$", before, re.I):
                 want = min_lead
             elif len([f for f in live.values() if f]) == 1:
                 want = next(f for f in live.values() if f)["lead"]
@@ -268,7 +298,7 @@ def proposals_for(ad, facts, today):
         out.append({"id": pid(ad["id"], "text", json.dumps(changes, sort_keys=True)), "ad": ad["id"], "kind": "text",
                     "why": "Its words quote a price that's no longer on the website.", "changes": changes})
     if stuck:
-        notes.append(f"Its words quote {', '.join(sorted(set(stuck)))}, not a current price, and it isn't clear which sailing is meant: change it in Ads Manager.")
+        notes.append(f"Its words quote {', '.join(sorted(set(stuck)))}, not a current price or offer figure, and it can't be swapped safely: check it in Ads Manager.")
     when = (ad.get("updated_time") or "")[:10]
     moved = [c for c, f in live.items() if f and f["moved"] and when and f["moved"] > when]
     if moved:
@@ -330,6 +360,8 @@ def describe(old, new):
             continue
         if b[1] != n[1]:
             out.append(f"{n[0]} £{b[1]:,} → £{n[1]:,}" if b[1] and n[1] else f"{n[0]} price changed")
+        if n[2] and not b[2]:
+            out.append(f"{n[0]} now shows a was/now price (was £{n[2]:,})")
         if b[2] and not n[2]:
             out.append(f"{n[0]}'s was/now claim has ended (its card goes back to the standard design)")
         for x in b[3]:
@@ -340,11 +372,15 @@ def describe(old, new):
     return out
 
 
-def live_code(ad, kit):
-    """The ad as it should be remade: offers that have ended taken off its cards (the Ad creator brings the rest up to date)."""
+def live_code(ad, kit, st=None, cab=None, today=None):
+    """The ad as it should be remade: offers that have ended taken off its cards, and a was/now design whose claim has
+    ended put back to the standard design (so a later claim can't quietly bring it back)."""
     ad = json.loads(json.dumps(ad))
+    facts = {f[0]: f for f in card_facts(ad, st, cab or {}, kit, today)} if st else {}
     for c in ad.get("cards") or []:
         c["promos"] = [x for x in (c.get("promos") or []) if x in ((kit.get(c.get("id")) or {}).get("promos") or [])]
+        if st and (c.get("design") or "").startswith("wasnow:") and not (facts.get(c.get("id")) or [None, None, None])[2]:
+            c["design"], c["words"] = "standard", None
     return repack(ad)
 
 
@@ -407,6 +443,11 @@ def build_creative(code, kind, token, acct, name):
     cards, info, notes = make_video.capture_jpegs(code, size)
     if not cards:
         raise ValueError("The ad has no cards (its sailings may all be off sale).")
+    claimed = any(c.get("wasnow") for c in info.get("cards") or [])
+    words = [info.get("primary") or ""] + [x for c in cards for x in (c["headline"], c["description"])]
+    bad = next((w for w in words if REDUCE.search(w or "")), None)
+    if bad and not claimed:
+        raise ValueError(f"Its words make a price-reduction claim (\"{REDUCE.search(bad).group(0).strip()}\") but none of its cards has a live was/now claim: change the words in the Ad creator first.")
     cta = CTA.get(info.get("cta") or ad.get("cta"), "LEARN_MORE")
     first = next((c["link"] for c in cards if c["link"]), "https://www.ambassadorcruiseline.com/")
     msg = info.get("primary") or ad.get("primary") or ""
@@ -486,8 +527,8 @@ def read():
     for ad in ads:
         cr = ad.get("creative") or {}
         if ad["id"] in made:   # made by the tracker: remade from the Ad creator design when what it prints changes
-            p, notes = [], []
-            if ad.get("effective_status") in RUNNING:
+            p, notes = proposals_for(ad, facts, today, made=True)   # a reduction claim no longer backed: pause first
+            if ad.get("effective_status") in RUNNING and not p:
                 x = remake_proposal(ad["id"], made[ad["id"]], st, cab, kit, today)
                 p = [x] if x else []
         else:
@@ -546,7 +587,7 @@ def apply(rid):
         mark(status="done", result=msg, done_at=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
         print("Meta ads:", msg)
         return 0
-    except (RuntimeError, TokenProblem, ValueError, KeyError) as e:
+    except Exception as e:  # noqa: BLE001 - every failure is written on the request (QA, 17 Oct 2026)
         mark(status="failed", error=str(e)[:400])
         print("Meta ads: failed:", e)
         return 1
@@ -560,13 +601,12 @@ def do(op, p, token, acct):
         if ad.get("account_id") and str(ad["account_id"]) != acct:
             raise ValueError("That ad isn't in our ad account.")
         made = json.loads(PUBLISHED.read_text()) if PUBLISHED.exists() else {}
-        if ad["id"] in made:
+        codes = codes_of(pieces(ad.get("creative") or {}))
+        facts = {c: sailing_facts(c, st, cab, kit, today) for c in codes}
+        props, _ = proposals_for(ad, facts, today, made=ad["id"] in made)
+        if ad["id"] in made and not props:
             x = remake_proposal(ad["id"], made[ad["id"]], st, cab, kit, today)
             props = [x] if x else []
-        else:
-            codes = codes_of(pieces(ad.get("creative") or {}))
-            facts = {c: sailing_facts(c, st, cab, kit, today) for c in codes}
-            props, _ = proposals_for(ad, facts, today)
         prop = next((x for x in props if x["id"] == p.get("proposal")), None)
         if not prop:
             raise ValueError("This change is no longer needed or has changed since it was proposed: wait for the next hourly read and look again.")
@@ -583,7 +623,7 @@ def do(op, p, token, acct):
             return f"\"{ad.get('name')}\" now uses a new creative with today's prices ({'; '.join(c['old'][:40] + ' → ' + c['new'][:40] for c in prop['changes'][:3])}). Meta reviews it again."
         if prop["kind"] == "remake":
             rec = made[ad["id"]]
-            code = live_code(unpack(rec["code"]), kit)
+            code = live_code(unpack(rec["code"]), kit, st, cab, today)
             cid, info, notes = build_creative(code, rec.get("kind", "image"), token, acct, f"{ad.get('name')} · {today}")
             call("POST", ad["id"], token, data={"creative": {"creative_id": cid}})
             facts_now = card_facts(unpack(code), st, cab, kit, today)
@@ -597,7 +637,7 @@ def do(op, p, token, acct):
         if str(aset.get("account_id") or "") != acct:
             raise ValueError("That ad set isn't in our ad account.")
         kind = "video" if p.get("kind") == "video" else "image"
-        code = live_code(unpack(p["code"]), kit)
+        code = live_code(unpack(p["code"]), kit, st, cab, today)
         name = (p.get("name") or "Ad from the tracker")[:100]
         cid, info, notes = build_creative(code, kind, token, acct, name)
         new = call("POST", f"act_{acct}/ads", token, data={"name": name, "adset_id": str(int(p["adset"])), "creative": {"creative_id": cid}, "status": "PAUSED"})
@@ -668,7 +708,24 @@ def do(op, p, token, acct):
     raise ValueError("Unknown change.")
 
 
+def failed(rid):
+    """The workflow's failure / cancel step: a request that didn't finish is marked failed with the run's link."""
+    sys.path.insert(0, str(ROOT))
+    from video_job import DOCS, session, value, run_link
+    http = session()
+    r = http.get(f"{DOCS}/pricewatch_meta/{rid}", timeout=60)
+    st = ((r.json().get("fields") or {}).get("status") or {}).get("stringValue") if r.ok else None
+    if st in ("done", "failed"):
+        return 0
+    fields = {"status": "failed", "error": f"The run stopped before it finished: {run_link()}"}
+    http.patch(f"{DOCS}/pricewatch_meta/{rid}", params=[("updateMask.fieldPaths", k) for k in fields] + [("currentDocument.exists", "true")],
+               json={"fields": {k: value(v) for k, v in fields.items()}}, timeout=60)
+    return 0
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "apply":
         sys.exit(apply(sys.argv[2]))
+    if len(sys.argv) > 1 and sys.argv[1] == "failed":
+        sys.exit(failed(sys.argv[2]))
     sys.exit(read())

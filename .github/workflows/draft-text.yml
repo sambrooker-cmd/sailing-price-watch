@@ -44,7 +44,7 @@ jobs:
           python draft_job.py "$REQUEST"
 
       - name: Mark the request as failed
-        if: failure()
+        if: failure() || cancelled()
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           REQUEST: ${{ inputs.request }}

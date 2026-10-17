@@ -507,7 +507,13 @@ def main():
             tried.add(u)
             if u in sample:
                 sample.remove(u)
-                st["sailings"].pop(sid, None)
+                rec = st["sailings"].get(sid)
+                if rec and s["segment"] and d:   # departing within MIN_DAYS: keep its history, marked gone (QA, 17 Oct 2026)
+                    if not rec.get("gone"):
+                        rec["gone"] = today
+                        note(kind="gone", line=line, id=sid, title=rec.get("title"))
+                else:
+                    st["sailings"].pop(sid, None)
             continue
         if u not in sample:
             tried.add(u)

@@ -94,7 +94,7 @@ function draw(el){
   el.querySelector("#im-flag").addEventListener("change", e => { st.flagged = e.target.checked; st.shown = 60; save(); re(); });
   const more = el.querySelector("#im-more"); more && more.addEventListener("click", () => { st.shown += 60; re(); });
   el.querySelector("#im-csv").addEventListener("click", () => {
-    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+    const qv = v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
     const head = ["Date", "Cruise code", "Sailing", "Change", "Detail", "Price change %", "Offer types", "Views before", "Views after", "Similar sailings", "Similar sailings' change", "Lift", "Booking clicks before", "Booking clicks after", "Similar sailings' click change", "Click lift", "Flags"];
     const body = list.map(e => [e.d, e.id, (S[e.id] || {}).base_title || "", KIND[e.kind], e.detail, e.pct ?? "", (e.types || []).map(t => TYPE[t] || t).join("; "), e.before, e.after, e.ctrl_n,
       e.ctrl == null ? "" : Math.round(e.ctrl * 100) + "%", e.lift == null ? "" : Math.round(e.lift * 100) + "%", e.cb ?? "", e.ca ?? "", e.ctrl_c == null ? "" : Math.round(e.ctrl_c * 100) + "%",

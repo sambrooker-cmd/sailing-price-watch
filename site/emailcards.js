@@ -215,7 +215,7 @@ function csvText(){
       it.caption, badgesOf(it).join("; "), tc.map(x => `${x.badge}: ${x.docs.length ? x.docs.map(d => d.title).join(", ") : "none found"}`).join("; "),
       it.photo || s.image, ...sizes.map(o => fileName(it, o)), today]);
   });
-  return "\ufeff" + rows.map(r => r.map(v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; }).join(",")).join("\r\n");
+  return "\ufeff" + rows.map(r => r.map(v => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d[\d,]*(\.\d+)?%?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; }).join(",")).join("\r\n");
 }
 function termsText(it){
   const w = words(it), list = badgeTerms(it);

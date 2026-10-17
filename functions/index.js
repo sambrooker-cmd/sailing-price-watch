@@ -275,7 +275,9 @@ exports.drafts = onRequest({
     const doc = await col.doc(id).get();
     if (!doc.exists) return res.status(404).json({error: "That draft has gone."});
     const v = doc.data();
-    const late = v.status === "queued" && v.at && v.at.toMillis() < Date.now() - DRAFT_STUCK_MIN * 6e4;
+    // queued and never started, or running past the workflow's own 15-minute limit (cancelled runs skip the failure step)
+    const late = (v.status === "queued" && v.at && v.at.toMillis() < Date.now() - DRAFT_STUCK_MIN * 6e4) ||
+                 (v.status === "running" && v.at && v.at.toMillis() < Date.now() - 25 * 6e4);
     return res.json({status: late ? "failed" : v.status, error: late ? "It didn't start on GitHub. Try again." : (v.error || ""),
                      options: v.options || [], notes: v.notes || [], prices: v.prices || ""});
   }
