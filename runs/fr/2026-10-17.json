@@ -1,0 +1,49 @@
+{
+ "date": "2026-10-17",
+ "count": 65,
+ "new": [],
+ "removed": [],
+ "returned": [],
+ "drops": [],
+ "rises": [],
+ "eligible": [],
+ "flags": {
+  "R261116": [
+   "the page shows from €789 but booking's cheapest is €989"
+  ],
+  "R261218": [
+   "the page shows from €1,029 but booking's cheapest is €1,199"
+  ],
+  "R270912B": [
+   "the page shows from €1,379 but booking's cheapest is €1,649"
+  ],
+  "R280508": [
+   "the page shows from €569 but booking's cheapest is €859"
+  ],
+  "R280528": [
+   "the page shows from €1,159 but booking's cheapest is €1,739"
+  ],
+  "R280724": [
+   "the page shows from €1,099 but booking's cheapest is €1,649"
+  ],
+  "R280804": [
+   "the page shows from €919 but booking's cheapest is €1,079"
+  ]
+ },
+ "cabin_drops": [],
+ "cabin_rises": [],
+ "cabin_sold_out": [],
+ "cabin_back": [],
+ "cabin_eligible": [],
+ "promo_added": [],
+ "promo_ended": [],
+ "promo_changed": [],
+ "nectar_changes": [],
+ "feed_gap_new": [],
+ "feed_gap_fixed": [],
+ "lead_source_switch": [],
+ "reported": [],
+ "checks": [
+  "2026-10-17T00:15:17Z"
+ ]
+}
