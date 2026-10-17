@@ -1,5 +1,6 @@
 // SEO → Core Web Vitals (Sam, 17 Oct 2026: "a core web vitals checker and competitor analysis tool"). Data from
 // seo_cwv.py (pricewatch/seo-cwv), read once a day with Google's free PageSpeed Insights and Chrome UX Report APIs:
+// France (market "fr", pricewatch/fr-cwv): ambassadorcroisieres.fr against the French competitors, same layout.
 // real visitors' figures (75th percentile of the last 28 days of Chrome visits: what Google ranks with) for our site and
 // the competitors', ~6 months of weekly history, and a lab test of a set of our pages with what's slowing each down.
 import {lineChart} from "./comptrend.js?v=__BUILD__";
@@ -23,7 +24,7 @@ export async function mount(el, c){
   root = el; ctx = c;
   if (!D) {
     root.innerHTML = `<p class="loading">Loading Core Web Vitals…</p>`;
-    try { D = (await c.readJson("seo-cwv")) || {}; } catch(e) { D = {}; }
+    try { D = (await c.readJson(c.market === "fr" ? "fr-cwv" : "seo-cwv")) || {}; } catch(e) { D = {}; }
   }
   draw();
 }
@@ -40,15 +41,16 @@ function draw(){
       <p class="sub">It needs a free Google API key in the repo secret <b>PAGESPEED_API_KEY</b> (Google Cloud console → promotions-planner → APIs &amp; Services: enable "PageSpeed Insights API" and "Chrome UX Report API", then Credentials → Create credentials → API key, restricted to those two APIs). The check then runs once a day.</p></div>`;
     return;
   }
-  const f = st.form, ours = D.sites.find(s => s.name === "Ambassador") || {}, now = ours[f] || {};
+  const f = st.form, ours = D.sites[0] || {}, now = ours[f] || {}, US = ours.name;   // ours is always first
+  const host = (ours.origin || "").replace(/^https?:\/\/(www\.)?/, "");
   const tiles = ["lcp", "inp", "cls", "ttfb"].map(m => `<div class="cw-tile ${rate(m, now[m])}"><span class="cw-l">${LABEL[m]}</span>
     <b>${fmtV(m, now[m])}</b><span class="cw-r">${RATE[rate(m, now[m])] || "No data"}</span><span class="sub">${WHAT[m]}</span></div>`).join("");
-  const comp = D.sites.slice().sort((a, b) => (b.name === "Ambassador") - (a.name === "Ambassador") || (passes(b[f]) - passes(a[f])) || ((a[f] || {}).lcp ?? 1e9) - ((b[f] || {}).lcp ?? 1e9));
+  const comp = D.sites.slice().sort((a, b) => (b.name === US) - (a.name === US) || (passes(b[f]) - passes(a[f])) || ((a[f] || {}).lcp ?? 1e9) - ((b[f] || {}).lcp ?? 1e9));
   const rank = m => { const vs = D.sites.map(s => (s[f] || {})[m]).filter(v => v != null).sort((a, b) => a - b); const v = now[m]; return v == null ? "" : `${vs.indexOf(v) + 1} of ${vs.length}`; };
   // history chart for the chosen metric
   const series = D.sites.map((s, i) => {
     const h = s[f + "_hist"] || {}, weeks = h.weeks || [], vals = h[st.metric] || [];
-    return {name: s.name, bold: s.name === "Ambassador", color: s.name === "Ambassador" ? "var(--heading)" : COLORS[(i - 1) % COLORS.length], dash: i > COLORS.length,
+    return {name: s.name, bold: s.name === US, color: s.name === US ? "var(--heading)" : COLORS[(i - 1) % COLORS.length], dash: i > COLORS.length,
             pts: weeks.map((w, k) => [w, vals[k]]).filter(p => p[1] != null)};
   });
   const ch = lineChart(series, {fmt: v => fmtV(st.metric, v), esc, label: `${LABEL[st.metric]} over time`, empty: "No history from Google yet."});
@@ -66,14 +68,15 @@ function draw(){
     <div class="cw-bar"><div class="seg" role="group" aria-label="Device">${[["phone", "Phones"], ["desktop", "Desktop"]].map(([k, t]) => `<button type="button" data-form="${k}" aria-pressed="${f === k}">${t}</button>`).join("")}</div>
       <span class="sub">Read ${esc(new Date(D.fetched_at || D.read_on).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London"}))} from Google's PageSpeed Insights and Chrome UX Report.</span></div>
     ${D.problem ? `<p class="note">Some figures couldn't be read: ${esc(D.problem)}</p>` : ""}
-    <h3>ambassadorcruiseline.com: real visitors <span class="cw-pass ${passes(now) ? "good" : "poor"}">${passes(now) ? "Passes Core Web Vitals" : "Doesn't pass Core Web Vitals"}</span></h3>
+    <h3>${esc(host)}: real visitors ${ours[f] ? `<span class="cw-pass ${passes(now) ? "good" : "poor"}">${passes(now) ? "Passes Core Web Vitals" : "Doesn't pass Core Web Vitals"}</span>` : ""}</h3>
+    ${ours[f] ? "" : `<p class="note">Google doesn't have enough Chrome visits on ${f === "phone" ? "phones" : "desktops"} to ${esc(host)} to report real-visitor figures yet (it needs a minimum number of visits over 28 days). The lab test below still works.</p>`}
     <p class="sub">The 75th percentile of real Chrome visits on ${f === "phone" ? "phones" : "desktops"} over the last 28 days: the figures Google uses in its rankings. To pass, loading, responsiveness and stability all need to be good.</p>
     <div class="cw-tiles">${tiles}</div>
 
     <h3>Against the competitors</h3>
-    <p class="sub">The same real-visitor figures for each site as a whole, from Google's public Chrome UX Report (nothing is read from their sites). Marella's are all of tui.co.uk. Where we rank: loading ${rank("lcp")}, responsiveness ${rank("inp")}, stability ${rank("cls")} (1 = best).</p>
+    <p class="sub">The same real-visitor figures for each site as a whole, from Google's public Chrome UX Report (nothing is read from their sites). ${ctx.market === "fr" ? "" : "Marella's are all of tui.co.uk. "}${ours[f] ? `Where we rank: loading ${rank("lcp")}, responsiveness ${rank("inp")}, stability ${rank("cls")} (1 = best).` : ""}</p>
     <div class="tablewrap"><table class="ptable cw-t"><thead><tr><th>Site</th><th class="num">Loading</th><th class="num">Responsiveness</th><th class="num">Stability</th><th class="num">Server</th><th>Passes?</th></tr></thead><tbody>
-      ${comp.map(s => { const v = s[f]; return `<tr class="${s.name === "Ambassador" ? "cw-us" : ""}"><td><b>${esc(s.name)}</b><div class="sub">${esc(s.origin.replace(/^https?:\/\//, ""))}</div></td>
+      ${comp.map(s => { const v = s[f]; return `<tr class="${s.name === US ? "cw-us" : ""}"><td><b>${esc(s.name)}</b><div class="sub">${esc(s.origin.replace(/^https?:\/\//, ""))}</div></td>
         ${v ? ["lcp", "inp", "cls", "ttfb"].map(m => `<td class="num">${chip(m, v[m])}</td>`).join("") + `<td>${passes(v) ? `<span class="cw-pass good">Yes</span>` : `<span class="cw-pass poor">No</span>`}</td>`
           : `<td colspan="5" class="sub">Google doesn't have enough Chrome visits to report this site.</td>`}</tr>`; }).join("")}</tbody></table></div>
 

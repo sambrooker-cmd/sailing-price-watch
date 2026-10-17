@@ -17,7 +17,10 @@ Thresholds are Google's: LCP good ≤ 2.5 s / poor > 4 s; INP ≤ 200 / > 500 ms
 → state/seo/cwv.json → publish.py pricewatch/seo-cwv → tracker page SEO → Core Web Vitals (site/cwv.js).
 Read-only: nothing on either site is changed. Without the key it records why and stops (exit 0).
 
-    python seo_cwv.py [--force] [--no-lab]
+France (Sam, 17 Oct 2026): `--market fr` does the same for ambassadorcroisieres.fr (PAGES_FR, a sailing page per departure
+port) against the French competitors (COMPETITORS_FR) → state/fr/cwv.json → pricewatch/fr-cwv; alert out/fr/cwv_alert.md.
+
+    python seo_cwv.py [--market uk|fr] [--force] [--no-lab]
 """
 import argparse, concurrent.futures as cf, datetime as dt, json, os, sys, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
@@ -50,6 +53,24 @@ COMPETITORS = [
     ("Royal Caribbean", "https://www.royalcaribbean.com"), ("Celebrity", "https://www.celebritycruises.com"),
     ("Planet Cruise", "https://www.planetcruise.co.uk"),
 ]
+# France: our French site's main pages and the competitors French customers compare us with (MSC and Costa, the
+# Havas Voyages agent we read prices from, Croisierenet the biggest cruise agent, Ponant). CrUX only: nothing read.
+SITE_FR = "https://www.ambassadorcroisieres.fr"
+PAGES_FR = [
+    ("/", "Home"), ("/croisieres", "Search"), ("/offres", "Deals"), ("/offres/derniere-chance", "Deals"),
+    ("/destination/caraibes", "Destination"), ("/destination/mediterranee", "Destination"),
+    ("/destination/norvege-islande", "Destination"), ("/navire", "Ship"), ("/vie-a-bord", "Life on board"),
+]
+COMPETITORS_FR = [
+    ("Ambassador Croisières", SITE_FR), ("MSC", "https://www.msccroisieres.fr"), ("Costa", "https://www.costacroisieres.fr"),
+    ("Havas Voyages", "https://www.havas-voyages.fr"), ("Croisierenet", "https://www.croisierenet.com"),
+    ("Ponant", "https://www.ponant.com"),
+]
+MARKETS = {
+    "uk": {"out": OUT, "alert": ALERT, "site": SITE, "competitors": COMPETITORS, "name": "ambassadorcruiseline.com"},
+    "fr": {"out": ROOT / "state" / "fr" / "cwv.json", "alert": ROOT / "out" / "fr" / "cwv_alert.md", "site": SITE_FR,
+           "competitors": COMPETITORS_FR, "name": "ambassadorcroisieres.fr"},
+}
 METRICS = ["largest_contentful_paint", "interaction_to_next_paint", "cumulative_layout_shift", "experimental_time_to_first_byte"]
 SHORT = {"largest_contentful_paint": "lcp", "interaction_to_next_paint": "inp", "cumulative_layout_shift": "cls",
          "experimental_time_to_first_byte": "ttfb"}
@@ -148,6 +169,23 @@ def psi(key, url, strategy):
             "field": field, "field_src": src}
 
 
+def our_pages_fr():
+    """PAGES_FR plus one sailing page per departure port (on sale, departing soonest): France has one ship."""
+    pages = [(SITE_FR + p, t, p) for p, t in PAGES_FR]
+    try:
+        st = json.loads((ROOT / "state" / "fr" / "current.json").read_text())["sailings"]
+        today = london_today()
+        by_port = {}
+        for code, s in sorted(st.items(), key=lambda kv: kv[1].get("departure_date", "")):
+            port = s.get("port")
+            if not s.get("removed") and s.get("departure_date", "") > today and s.get("link") and port and port not in by_port:
+                by_port[port] = (s["link"], "Sailing", f"{s.get('base_title') or s.get('title') or code} ({code}, from {port})")
+        pages += list(by_port.values())
+    except (OSError, KeyError, ValueError):
+        pass
+    return pages
+
+
 def our_pages():
     """PAGES plus one sailing page per ship (on sale, departing soonest) and three blog posts (most clicks in Search Console)."""
     pages = [(SITE + p, t, p) for p, t in PAGES]
@@ -196,19 +234,22 @@ def alert_text(prev, cur):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--market", choices=sorted(MARKETS), default="uk")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--no-lab", action="store_true", help="real-visitor figures only (quick)")
     a = ap.parse_args()
     today = london_today()
-    st = json.loads(OUT.read_text()) if OUT.exists() else {}
+    M = MARKETS[a.market]
+    out_file, alert_file, site = M["out"], M["alert"], M["site"]
+    st = json.loads(out_file.read_text()) if out_file.exists() else {}
     if st.get("read_on") == today and not a.force:
         print("Core Web Vitals: already read today")
         return 0
     key = (os.environ.get("PAGESPEED_API_KEY") or "").strip()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
     if not key:
         st.update(problem="The PageSpeed/Chrome UX Report API key isn't set up yet (repo secret PAGESPEED_API_KEY).")
-        OUT.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
+        out_file.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
         print("Core Web Vitals:", st["problem"])
         return 0
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
@@ -216,7 +257,7 @@ def main():
 
     # Real visitors: every site, phone and desktop, now and the last ~6 months
     sites = []
-    for name, origin in COMPETITORS:
+    for name, origin in M["competitors"]:
         row = {"name": name, "origin": origin}
         for form, k in (("PHONE", "phone"), ("DESKTOP", "desktop")):
             try:
@@ -232,7 +273,7 @@ def main():
     # Our pages: the lab test (and the page's own real-visitor figures)
     pages = []
     if not a.no_lab:
-        jobs = our_pages()
+        jobs = our_pages_fr() if a.market == "fr" else our_pages()
         def one(job):
             url, kind, label = job
             out = {"url": url, "type": kind, "label": label}
@@ -256,20 +297,20 @@ def main():
     cutoff = (dt.date.fromisoformat(today) - dt.timedelta(days=LAB_DAYS)).isoformat()
     hist = {d: v for d, v in sorted(hist.items()) if d >= cutoff}
 
-    ours_prev = next((s.get("phone") for s in st.get("sites") or [] if s.get("origin") == SITE), None)
-    ours_now = next((s.get("phone") for s in sites if s.get("origin") == SITE), None)
+    ours_prev = next((s.get("phone") for s in st.get("sites") or [] if s.get("origin") == site), None)
+    ours_now = next((s.get("phone") for s in sites if s.get("origin") == site), None)
     lines = alert_text(ours_prev, ours_now)
     if lines:
-        ALERT.parent.mkdir(exist_ok=True)
-        ALERT.write_text("Real visitors' Core Web Vitals on ambassadorcruiseline.com (Google's Chrome UX Report, phones, "
+        alert_file.parent.mkdir(parents=True, exist_ok=True)
+        alert_file.write_text(f"Real visitors' Core Web Vitals on {M['name']} (Google's Chrome UX Report, phones, "
                          "28 days to yesterday) have got worse since the last read:\n\n" + "\n".join(lines) +
                          "\n\nGoogle uses these figures in its rankings. See the tracker page: SEO → Core Web Vitals, for "
-                         "which pages are slowest and what would help.\n")
+                         "which pages are slowest and what would help" + (" (switch to France)" if a.market == "fr" else "") + ".\n")
         print("\n".join(lines))
     st = {"read_on": today, "fetched_at": now, "problem": "; ".join(problems)[:600], "thresholds": GOOD,
           "sites": sites, "pages": pages, "lab_history": hist}
-    OUT.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
-    print(f"Core Web Vitals: {len(sites)} sites, {len(pages)} pages" + (f"; problems: {st['problem']}" if problems else ""))
+    out_file.write_text(json.dumps(st, ensure_ascii=False, separators=(",", ":")))
+    print(f"Core Web Vitals ({a.market}): {len(sites)} sites, {len(pages)} pages" + (f"; problems: {st['problem']}" if problems else ""))
     return 0
 
 

@@ -2119,7 +2119,7 @@ const auth = getAuth(firebaseApp);
   // stage 3 (14 Oct 2026): Google Ads, Email cards and the Email creator too
   // (14 Oct 2026: "Not in ad feed" becomes the cruise list vs sitemap check, and promotion T&Cs are read too)
   // France's Competitor prices and Vs Ambassador (16 Oct 2026: MSC and Costa at Havas Voyages, site/competitors_fr.js)
-  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages", "cwv"];
+  const FR_HIDE = ["rules", "compoffers", "compads", "compemails", "pages"];
   const COMP = {comp: "prices", compoffers: "offers", compads: "ads", compvs: "vs"};
   const FR_LABEL = {feedgap: "Page vs booking", coverage: "List vs sitemap"};
   let me = "";
@@ -2327,8 +2327,8 @@ const auth = getAuth(firebaseApp);
   }
   // Core Web Vitals (site/cwv.js; Sam, 17 Oct 2026): redrawn each time the page is opened
   async function mountCwv(){
-    if (!state || FR) return;
-    try { const m = await import("./cwv.js?v=__BUILD__"); await m.mount($("cwv"), {readJson, esc}); }
+    if (!state) return;
+    try { const m = await import("./cwv.js?v=__BUILD__"); await m.mount($("cwv"), {readJson, esc, market: FR ? "fr" : "uk"}); }
     catch (e) { $("cwv").innerHTML = `<p class="err">Core Web Vitals couldn't load: ${esc(e.message)}</p>`; }
   }
   // Landing pages and blog posts (site/pagemaker.js; prototype, Sam 16 Oct 2026)
