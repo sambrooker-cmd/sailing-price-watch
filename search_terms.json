@@ -1,0 +1,16 @@
+{
+  "_about": "The search demand viewer's starting list (SEO → Search demand; search_demand.py). Groups of searches, UK. The team can copy this into their own saved lists on the page and add or regroup terms; every term in any saved list is read too. Edit here to change the starting list for everyone.",
+  "name": "Ambassador core searches",
+  "groups": [
+    {"name": "Brand", "terms": ["ambassador cruise line", "ambassador cruises", "ambassador cruise", "ambience cruise ship", "ambition cruise ship", "renaissance cruise ship"]},
+    {"name": "No-fly cruises", "terms": ["no fly cruises", "no fly cruises from uk", "cruises from uk", "cruises from uk ports", "cruises from uk 2027", "cruises from england", "round britain cruise", "british isles cruise"]},
+    {"name": "Departure ports", "terms": ["cruises from tilbury", "cruises from london", "cruises from newcastle", "cruises from liverpool", "cruises from belfast", "cruises from dundee", "cruises from portsmouth", "cruises from bristol", "cruises from scotland", "cruises from northern ireland"]},
+    {"name": "Caribbean and fly-cruises", "terms": ["caribbean cruise", "caribbean cruise from uk", "caribbean cruise with flights", "caribbean cruise and fly", "fly cruise caribbean", "cruises from barbados", "barbados cruise", "fly cruise from manchester", "fly cruise from heathrow"]},
+    {"name": "Norway and the Arctic", "terms": ["norwegian fjords cruise", "fjords cruise from uk", "norway cruise", "norway cruise from uk", "northern lights cruise", "northern lights cruise from uk", "iceland cruise", "iceland cruise from uk"]},
+    {"name": "Europe and the islands", "terms": ["baltic cruise", "baltic cruise from uk", "canary islands cruise", "canary islands cruise from uk", "azores cruise", "madeira cruise", "spain and portugal cruise", "mediterranean cruise from uk"]},
+    {"name": "Christmas and short breaks", "terms": ["christmas market cruise", "christmas markets cruise from uk", "christmas cruise", "new year cruise", "festive cruise", "mini cruise", "short cruise from uk", "weekend cruise from uk"]},
+    {"name": "Who it's for", "terms": ["solo cruises", "solo cruises for over 50s", "singles cruises", "cruises for over 50s", "adult only cruises", "small ship cruises", "cruises for older people", "accessible cruises"]},
+    {"name": "Deals", "terms": ["cruise deals", "last minute cruises", "cheap cruises", "cruise offers", "cruise deals 2027", "all inclusive cruises"]},
+    {"name": "Competitor brands", "terms": ["p&o cruises", "fred olsen cruises", "saga cruises", "marella cruises", "cunard", "princess cruises", "msc cruises", "royal caribbean", "celebrity cruises"]}
+  ]
+}

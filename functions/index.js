@@ -198,7 +198,7 @@ exports.emailImages = onRequest({
 // below still cap use.
 // ecards: saved sets of Email cards (Sam, 15 Oct 2026: "map out each email send")
 // page: saved landing pages and blog posts (pagemaker.js, Sam 16 Oct 2026)
-const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email", "ecards", "page"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
+const SAVED = "pricewatch_saved", SAVED_KINDS = ["ad", "email", "ecards", "page", "keywords"], SAVED_MAX_BYTES = 300 * 1024, SAVED_MAX = 1000;
 exports.saved = onRequest({
   region: "us-central1", cors: ["https://acl-price-watch.web.app"],
   maxInstances: 10, memory: "256MiB", timeoutSeconds: 30,

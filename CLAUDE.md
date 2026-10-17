@@ -522,6 +522,56 @@ names; a person still publishes); Semrush keyword data (needs an API key).
   description, no H1 (11) / several H1s (12), noindex, canonical elsewhere, errors; "no structured data" only when picked),
   filters by issue and section, CSV.
 
+## Sailing demand from GA4 (17 Oct 2026, Sam: "build the GA4 functionality and I will join them up later")
+Interest on the website as a stand-in for bookings (Sam rejected "selling fast/slow" from cabin availability: it doesn't
+work without booking data). `ga4.py`, hourly workflow step "Sailing demand (GA4)" once a UK day (`continue-on-error`):
+GA4 Data API (`runReport`) with the Firebase service account (scope analytics.readonly) for the property in repo variable
+`GA4_PROPERTY_ID`, sailing pages only (`/cruise/<code>-…`, code from the address), up to yesterday: views and users per
+day for `DAYS` = 90; views by `sessionDefaultChannelGroup` (28 days); **booking clicks** = GA4's outbound `click` event with
+`linkDomain` containing book.ambassadorcruiseline.com (28 days and the 28 before), plus any events in repo variable
+`GA4_BOOKING_EVENTS` (comma-separated; needed if the booking site is set up as cross-domain, when outbound clicks aren't
+recorded); the site's top 60 event names (`events_seen`) to choose from. → `state/ga4/demand.json` → `publish.py`
+`pricewatch/ga4-demand`. Page **Prices → Sailing demand** (`site/demand.js`, UK only): tiles (views 7 / 28 days against the
+period before, booking clicks, top channel), channel split, every sailing on sale (from price and recent price change,
+views 7/28 days with change, 13-week sparkline, booking clicks, click rate, top channel; flags **Rising** / **Falling**
+(±40% week on week, 30+ views), **Interest, few booking clicks** (100+ views, under half the median click rate), **Quiet,
+departs soon** (least-viewed fifth, departing within 120 days); filters, sort, CSV), and which events count. Each sailing's
+detail view: **Interest on the website** (daily views chart, channels, and views 7 days before / after each price change
+(not mix or source switch) and each promotion starting or ending; promotions running when recording began aren't
+"started"). **Setup (Sam, one-off)**: Google Cloud promotions-planner → APIs & Services → Library → Google Analytics Data
+API → Enable; GA4 → Admin → Property access management → add the `firebase-adminsdk-…` address as **Viewer**; repo
+variable `GA4_PROPERTY_ID` (Admin → Property details). Until then the page shows the setup. Tested with fake API answers.
+
+## Search demand (17 Oct 2026, Sam: "a search demand viewer, with key search terms pre loaded up but with the ability to add more and group them accordingly. Ideally from a tool like google keyword planner")
+- **Terms**: the starting list `search_terms.json` (80 terms in 10 groups: brand, no-fly, departure ports (every UK port we
+  sail from), Caribbean/fly, Norway/Arctic, Europe/islands, Christmas/short breaks, who it's for, deals, competitor brands)
+  plus the team's own lists saved from the page (`saved` function kind **"keywords"**, field `list` {name, groups [{name,
+  terms}]}; anyone can open or copy, only the person who saved one can change it).
+- `search_demand.py`, hourly workflow step "Search demand (Keyword Planner)" once a UK day (`continue-on-error`): every term
+  in the starting list and every saved list (read from Firestore `pricewatch_saved` with the service account) → **Google
+  Ads API Keyword Planner** (REST `generateKeywordHistoricalMetrics`: UK `geoTargetConstants/2826`, English, Google Search,
+  last `MONTHS` = 24 complete months, average monthly searches, competition, top-of-page bid range; close variants share a
+  figure) and `generateKeywordIdeas` per group (up to `IDEAS_PER_GROUP` = 15 related searches, 20+ a month, not already
+  listed). **Read-only**: only Keyword Planner's figures; nothing in the Ads account is created or changed (Sam asked for
+  Keyword Planner by name; the hard rule about ad accounts is about changing them). API version `API_VERSION` = v25 (repo
+  variable `GOOGLE_ADS_API_VERSION` to move on; Google now releases monthly and sunsets each major after a year).
+  → `state/seo/search_demand.json` {months, default (the starting list), terms, ideas, wanted, problem} → `publish.py`
+  `pricewatch/seo-demand`.
+- Page **SEO → Search demand** (`site/searchdemand.js`, UK only): list picker (starting list + saved), Save / Save as… /
+  Rename / Delete; by group (searches a month, 24-month sparkline, last month, last 3 months on a year before, busiest month,
+  top-of-page bid range, our Search Console impressions/clicks for those exact terms) with a chart by group (tick to show,
+  up to 10); each group editable (rename, move up, delete; terms with figures, competition, bid, our impressions · clicks ·
+  position, move to another group, remove; add terms one per line; Keyword Planner's related searches as "+ term" chips);
+  new terms say "looked up at the next daily read"; CSV with every month. `comptrend.lineChart` gained `xlab` (axis/tooltip
+  labels) and counts with `zero` never go below 0.
+- **Setup (Sam, one-off; all read-only)**: a Google Ads **developer token** (Google Ads → Tools → API Center; apply for
+  Basic access, approved in a few days), an OAuth client (promotions-planner → APIs & Services → Credentials → OAuth client
+  ID, Desktop; enable the Google Ads API there too), one sign-in with a Google account that can see the Ads account to get a
+  refresh token (scope `https://www.googleapis.com/auth/adwords`), then repo secrets `GOOGLE_ADS_DEVELOPER_TOKEN`,
+  `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, `GOOGLE_ADS_CUSTOMER_ID` (and repo variable
+  `GOOGLE_ADS_LOGIN_CUSTOMER_ID` if access is through a manager account). Until then the page lists the terms with Search
+  Console figures and says what's missing. Tested with fake API answers.
+
 ## Core Web Vitals (17 Oct 2026, Sam: "a core web vitals checker and competitor analysis tool"; content coverage left out)
 `seo_cwv.py`, once a UK day in its own workflow `.github/workflows/cwv.yml` (manual with "force", 08:23 UTC backstop,
 concurrency `cwv`, commits `state/seo/cwv.json`, then publishes), started by the hourly price watch's **Start the Core Web
@@ -674,6 +724,8 @@ pounds a month).
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `ga4.py`, `site/demand.js`, `state/ga4/demand.json` | Sailing demand from GA4 (views, channels, booking clicks per sailing page): see "Sailing demand from GA4 (17 Oct 2026)" above |
+| `search_demand.py`, `search_terms.json`, `site/searchdemand.js`, `state/seo/search_demand.json` | Search demand viewer (Keyword Planner volumes for grouped, editable term lists): see "Search demand (17 Oct 2026)" above |
 | `site/seohealth.js` | SEO → Search performance (Search Console quick wins, pages losing traffic) and Site health: see "Search performance and Site health (17 Oct 2026)" above |
 | `seo_cwv.py`, `.github/workflows/cwv.yml`, `site/cwv.js`, `state/seo/cwv.json`, `state/fr/cwv.json` | Core Web Vitals for us and the competitors (CrUX + PageSpeed Insights): see "Core Web Vitals (17 Oct 2026)" above |
 | `route_data.py`, `route_video.py`, `route/`, `.github/workflows/route-video.yml`, `site/routevideo.js` | Route video per sailing (map, route, port photos, ship, end card, the template's music; 9:16, 4:5, 1:1): see "Route video per sailing (16 Oct 2026)" above |

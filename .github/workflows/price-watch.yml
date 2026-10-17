@@ -134,6 +134,37 @@ jobs:
           pip install -q google-auth==2.40.3 requests==2.32.3
           python seo_gsc.py
 
+      # Sailing demand from GA4 (Sam, 17 Oct 2026): views, channels and clicks to the booking site per sailing page,
+      # once a UK day, read-only with the same service account. See ga4.py.
+      - name: Sailing demand (GA4)
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
+          GA4_BOOKING_EVENTS: ${{ vars.GA4_BOOKING_EVENTS }}
+        run: |
+          pip install -q google-auth==2.40.3 requests==2.32.3
+          python ga4.py
+
+      # Search demand from Keyword Planner (Sam, 17 Oct 2026): monthly UK searches for the starting list and the team's
+      # saved lists, once a UK day, read-only. Records what's missing until the Google Ads API secrets exist. See search_demand.py.
+      - name: Search demand (Keyword Planner)
+        if: always() && steps.watch.outcome != 'cancelled'
+        continue-on-error: true
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ vars.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          GOOGLE_ADS_API_VERSION: ${{ vars.GOOGLE_ADS_API_VERSION }}
+        run: |
+          pip install -q google-auth==2.40.3 requests==2.32.3
+          python search_demand.py
+
       # The website's own pages (titles, descriptions, H1s) for the page creator's duplicate check (Sam, 16 Oct 2026),
       # once a UK day, new pages first and each again after a week. See seo_pages.py.
       - name: Website pages for the duplicate check
