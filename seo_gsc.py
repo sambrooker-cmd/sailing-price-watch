@@ -9,7 +9,10 @@ records why in `problem` and the page says the connection isn't set up. Read-onl
 Console or on the site.
 
 → state/seo/gsc.json {read_on, fetched_at, site, start, end, days, problem, pages: [url…],
-                      queries: [[query, clicks, impressions, position, [page index…]]…] (most impressions first, MAX_QUERIES)}
+                      queries: [[query, clicks, impressions, position, [page index…]]…] (most impressions first, MAX_QUERIES),
+                      periods: {w, pw, m, pm: [start, end]}, page_stats: {url: {w|pw|m|pm: [clicks, impressions, position]}}}
+  (17 Oct 2026, Sam picked the SEO ideas: per page the last 7 days against the 7 before, and the last 28 against the 28
+  before, for "Pages losing traffic" on the tracker's Search performance page; its quick wins use `queries`)
 → publish.py pricewatch/seo-gsc.
 
     python seo_gsc.py [--force]
@@ -69,6 +72,33 @@ def read(http, site, start, end):
         offset += ROW_LIMIT
 
 
+def by_page(http, site, start, end):
+    """clicks, impressions and position per page over one period (dimension page only)"""
+    from urllib.parse import quote
+    body = {"startDate": start, "endDate": end, "dimensions": ["page"], "rowLimit": ROW_LIMIT, "dataState": "final", "type": "web"}
+    r = http.post(f"{API}/sites/{quote(site, safe='')}/searchAnalytics/query", json=body, timeout=120)
+    r.raise_for_status()
+    return {x["keys"][0]: [int(x.get("clicks", 0)), int(x.get("impressions", 0)), round(x.get("position", 0), 1)]
+            for x in r.json().get("rows", [])}
+
+
+def periods(end):
+    """last 7 days / the 7 before, last 28 / the 28 before, all ending on `end`"""
+    e = dt.date.fromisoformat(end)
+    span = lambda back, n: [(e - dt.timedelta(days=back + n - 1)).isoformat(), (e - dt.timedelta(days=back)).isoformat()]  # noqa: E731
+    return {"w": span(0, 7), "pw": span(7, 7), "m": span(0, 28), "pm": span(28, 28)}
+
+
+def page_stats(http, site, per):
+    got = {k: by_page(http, site, *v) for k, v in per.items()}
+    out = {}
+    for k, rows in got.items():
+        for url, v in rows.items():
+            out.setdefault(url, {})[k] = v
+    # small pages left out: no clicks and under 20 impressions in either 28 days
+    return {u: v for u, v in out.items() if max(v.get("m", [0, 0])[1], v.get("pm", [0, 0])[1]) >= 20 or v.get("m", [0])[0] or v.get("pm", [0])[0]}
+
+
 def fold(rows):
     """query + page rows → one row per query (clicks and impressions added up, position weighted by impressions),
     with the pages it shows, best first."""
@@ -120,8 +150,9 @@ def main():
                                "Search Console yet. In Search Console: Settings → Users and permissions → Add user → that "
                                "address, Restricted permission.")
         pages, queries = fold(read(http, site, start, end))
+        per = periods(end)
         st = {"read_on": today, "fetched_at": now, "site": site, "start": start, "end": end, "days": DAYS, "problem": "",
-              "pages": pages, "queries": queries}
+              "pages": pages, "queries": queries, "periods": per, "page_stats": page_stats(http, site, per)}
         print(f"Search Console {site}: {len(queries)} queries on {len(pages)} pages, {start} to {end}")
     except Exception as e:  # noqa: BLE001 - recorded for the page; never stops the price check
         msg = str(e)

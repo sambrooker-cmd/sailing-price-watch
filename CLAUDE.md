@@ -503,6 +503,25 @@ listed under Checks with links, one row per page (`dupeRows`). First read 16 Oct
 Not built: Storyblok Management API to create a **draft** story (needs a Storyblok token and the space's component
 names; a person still publishes); Semrush keyword data (needs an API key).
 
+## Search performance and Site health (17 Oct 2026, Sam picked from the ideas list: quick wins, pages losing traffic, health check)
+`site/seohealth.js`, two pages under **SEO** (UK only, `FR_HIDE`):
+- **Search performance** (needs Search Console, see the backlog issue; until then it shows the setup): **Quick wins** from
+  `seo-gsc` `queries` (90 days): average position 4–20 with ≥ 100 impressions ("move up"), or top 3 with ≥ 200
+  impressions and under half the usual click rate for that position ("fix the title/description"); sized as rough "more
+  clicks a month" from a general click-rate curve (`CURVE`, top-3 rate), our own name and ships left out unless ticked
+  (`BRAND`); CSV. **Pages losing traffic**: `seo_gsc.py` now also reads clicks / impressions / position per page for the
+  last 7 days vs the 7 before and the last 28 vs the 28 before (`periods`, `page_stats`; pages with no clicks and under 20
+  impressions left out); biggest falls (≥ 5 clicks a week / 15 a month in one period) with a reason (position fell /
+  fewer searches / click rate), gainers folded.
+- **Site health**: `seo_pages.py` now also records per page the number of H1s (`hn`), structured data types (`j`, JSON-LD
+  incl. @graph), a canonical pointing elsewhere (`c`) and noindex (`n`); `--all` reads every page (pages read before
+  these fields are re-read first). The page: tiles, structured data (none on the site: 0 of 481 pages, nor the sailing
+  pages, 17 Oct 2026; what each type would give), sitemap pages returning 404 (`coverage` `not_found`, 141), titles used
+  more than once (5: "Travel Partners Login" ×12, "Cruise Drinks Packages" ×4, "Blog" ×3, …), and every page with issues
+  (`ISSUES`: duplicate/long (> 60, 124 pages)/short/missing title, missing (2)/long (> 160, 100)/short/duplicate
+  description, no H1 (11) / several H1s (12), noindex, canonical elsewhere, errors; "no structured data" only when picked),
+  filters by issue and section, CSV.
+
 ## Core Web Vitals (17 Oct 2026, Sam: "a core web vitals checker and competitor analysis tool"; content coverage left out)
 `seo_cwv.py`, once a UK day in its own workflow `.github/workflows/cwv.yml` (manual with "force", 08:23 UTC backstop,
 concurrency `cwv`, commits `state/seo/cwv.json`, then publishes), started by the hourly price watch's **Start the Core Web
@@ -655,6 +674,7 @@ pounds a month).
 | `competitors.py`, `.github/workflows/competitors.yml`, `site/competitors.js`, `state/competitors/`, `runs/competitors/` | Every competing sailing's prices and offers from Fred. Olsen and Planet Cruise, once a day: see "Competitors (15 Oct 2026)" above |
 | `competitors_fr.py`, `site/competitors_fr.js`, `state/fr/competitors.json`, `runs/fr/competitors/` | France's competitors: MSC and Costa itineraries from French ports at Havas Voyages, once a day: see "France: competitor prices (16 Oct 2026)" above |
 | `site/pagemaker.js` | Landing pages and blog posts (prototype): see "Landing pages and blog posts: PROTOTYPE (16 Oct 2026)" above |
+| `site/seohealth.js` | SEO → Search performance (Search Console quick wins, pages losing traffic) and Site health: see "Search performance and Site health (17 Oct 2026)" above |
 | `seo_cwv.py`, `.github/workflows/cwv.yml`, `site/cwv.js`, `state/seo/cwv.json`, `state/fr/cwv.json` | Core Web Vitals for us and the competitors (CrUX + PageSpeed Insights): see "Core Web Vitals (17 Oct 2026)" above |
 | `route_data.py`, `route_video.py`, `route/`, `.github/workflows/route-video.yml`, `site/routevideo.js` | Route video per sailing (map, route, port photos, ship, end card, the template's music; 9:16, 4:5, 1:1): see "Route video per sailing (16 Oct 2026)" above |
 | `fr_enrich.py`, `state/fr/`, `runs/fr/` | France (Ambassador Croisières): see "France (14 Oct 2026)" above |
