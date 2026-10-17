@@ -1013,7 +1013,41 @@
      },
      "out_of_date_since": "2026-10-12T15:32:56Z"
     }
-   ]
+   ],
+   "current": {
+    "design": "2026-10-12",
+    "title": "Atlantic Horizons and Caribbean Discovery (Heathrow Airport)",
+    "base_title": "Atlantic Horizons and Caribbean Discovery",
+    "ship": "Renaissance",
+    "port": "London Tilbury",
+    "flight_from": "Heathrow",
+    "nights": 24,
+    "departure_date": "2026-10-29",
+    "price": 1349,
+    "promos": [],
+    "nectar": "Collect up to 50,000 Nectar points",
+    "photo": "https://assets.ambassadorcruiseline.com/f/250388/2000x1333/02d8dd5a6a/st-john-s-antigua_2000x1333.png",
+    "fp": "0a69ffbc75b0",
+    "made_at": "2026-10-17T16:09:30Z",
+    "reason": "new",
+    "files": {
+     "1x1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_1x1.jpg?alt=media&token=5e670d29-6565-44b7-ac16-48d32fd807dc",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_1x1.jpg",
+      "kb": 312
+     },
+     "4x5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_4x5.jpg?alt=media&token=fd10d0a5-b8b7-4a7b-990c-74d3d32ee534",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_4x5.jpg",
+      "kb": 400
+     },
+     "9x16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/promotions-planner.firebasestorage.app/o/pricewatch-cards%2FA32650%2F0a69ffbc75b0_9x16.jpg?alt=media&token=04778888-7458-4846-8d8f-998755f82f1a",
+      "path": "pricewatch-cards/A32650/0a69ffbc75b0_9x16.jpg",
+      "kb": 426
+     }
+    }
+   }
   },
   "A22630BR": {
    "old": [
@@ -17421,6 +17455,6 @@
    }
   }
  },
- "updated_at": "2026-10-17T15:09:36Z",
+ "updated_at": "2026-10-17T16:09:30Z",
  "review_batch_at": "2026-10-17T15:09:49Z"
 }
