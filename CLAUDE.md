@@ -344,6 +344,21 @@ when it appeared on a sailing already being read (`fresh`), since sailings found
 **Every live offer** (our onboard credit tiers grouped as one row, `groupOurs`; ended / out-of-date folded), **When each
 offer ran** (bars per brand, folded except Ambassador or the chosen brand), **Their newsletters** (each email and its
 offers; pictures in Competitor emails).
+**Offer gaps and end dates** (17 Oct 2026, Sam picked from the ideas list). Two more sections on Competitor offers:
+- **Where they're offering and we aren't** (`offerGaps` in competitors.js): each of our sailings on sale against its similar
+  competitor sailings (`candidates()`: same month, ±3 nights, no-fly / fly-Caribbean, same region with "match destination
+  too"); a kind of offer (`TYPES`) on theirs but on none of our sailing's live promotions is a gap. Theirs = Planet
+  Cruise's lines on each sailing (`sailingTypes`), except lines the agent also shows on our own sailings at Planet
+  Cruise (its £1 deposit, "Exclusive Discount": the agent's deals), plus Fred. Olsen's deals pages counted on each of its
+  sailings (not ones quoting an old date). "Flash, late and launch" isn't counted (`GAP_SKIP`). Summary by kind (our
+  sailings without it, their lines, their best figure), then our sailings with most similar competitor sailings first
+  (first 40, "Show all"), CSV. On 17 Oct 2026: 106 of ours without a discount that similar sailings carry, 38 without onboard credit.
+- **Ending in the next 60 days** (`ourEndings` in offerkit.js): our promotions' end dates (the website's `expires`, else
+  a date in the wording, `endsIn`: Cruise of the Week "Book by … 20th October 2026") and theirs (their wording or
+  newsletter), week by week. For ours: of its sailings departing after the end, how many keep no other live offer of the
+  same kind (`bare`); a warning box when one ends within 7 days with sailings left bare (links to their detail views).
+  A promotion added later can't be foreseen. On 17 Oct 2026: Cruise of the Week ends 20 Oct leaving A32653/A32653M with no
+  discount; all five onboard credit tiers end 23 Nov with nothing replacing them.
 
 ## Competitor prices and Vs Ambassador: trends (16 Oct 2026, Sam: "do better at displaying trends over time… as well as vs ambassador"; picked all eight)
 `site/comptrend.js` (pure helpers): **destination regions** (`REGIONS`, `regionOf`: Caribbean, Iceland and the Arctic,

@@ -7,7 +7,7 @@
 // Read-only: what competitors.py recorded (pricewatch/comp-current, comp-runs) beside our own saved state.
 // Fred. Olsen's prices are its own; the other lines' are Planet Cruise's (an agent: its own discounts and "was" figures).
 
-import {collect, baselines, TYPES, TYPE_LABEL} from "./offerkit.js?v=__BUILD__";
+import {collect, baselines, TYPES, TYPE_LABEL, ourEndings, sailingTypes, typesOf, valueOf, staleSince, clean, keyOf as offerKey} from "./offerkit.js?v=__BUILD__";
 import {regionOf, photoWords, REGIONS, REGION_LABEL, priceOn, dayList, addDays, mondayOf, chainIndex, movesOf, lineChart, COLORS} from "./comptrend.js?v=__BUILD__";
 
 const CABINS = [["inside", "Inside"], ["outside", "Outside"], ["balcony", "Balcony"], ["suite", "Suite"]];
@@ -324,6 +324,51 @@ function groupOurs(items){
 }
 const reach = x => x.of ? `on ${x.n} of ${x.of} sailing${x.of === 1 ? "" : "s"}` : x.sources.includes("deals") ? "brand-wide (deals page)" : x.sources.includes("email") ? "in their newsletter" : "";
 
+// Offer gaps (Sam, 17 Oct 2026): for each of our sailings on sale, the kinds of offer its matched competitor sailings
+// carry (same month, ±3 nights, no-fly / fly-Caribbean and, with "match destination too", the same region: candidates())
+// that it doesn't. Their offers: the agent's lines on each sailing, plus Fred. Olsen's deals pages counted on each of
+// its sailings (brand-wide; ones quoting an old date left out). Ours: the sailing's live promotions on our website.
+// Left out: Planet Cruise's lines that it also shows on our own sailings (its £1 deposit, "Exclusive Discount": the
+// agent's deals, not the line's) and "flash, late and launch" (a way of selling, not something the guest gets).
+const GAP_SKIP = new Set(["urgency"]);
+function offerGaps(){
+  const t = today0(), deals = {}, agentOwn = new Set();
+  for (const r of Object.values(C.sailings || {})) if (r.line === "ambassador") Object.keys(r.offers || {}).forEach(o => agentOwn.add(offerKey(o)));
+  for (const [line, offers] of Object.entries(C.brand_offers || {})) for (const [name, e] of Object.entries(offers)) {
+    if (e.ended || staleSince(e.text || "", t)) continue;
+    const d = deals[line] || (deals[line] = {});
+    for (const k of typesOf(clean(name))) (d[k] || (d[k] = [])).push(clean(name) + " (deals page)");
+  }
+  const offers = ctx.state.offers || {}, ourT = {}, ourN = {};
+  for (const o of our) {
+    const s = ctx.state.sailings[o.id] || {}, ts = new Set(), ns = [];
+    for (const [id, sp] of Object.entries(s.promos || {})) if (sp.length && sp[sp.length - 1][1] == null) {
+      const x = offers[id] || {}; ns.push(clean(x.name || id));
+      typesOf(`${x.name || ""} ${x.desc || ""}`).forEach(k => ts.add(k));
+    }
+    ourT[o.id] = ts; ourN[o.id] = ns;
+  }
+  const gaps = {};
+  for (const [, r] of live()) {
+    if (r.line === "ambassador" || (st.line && st.line !== "ambassador" && r.line !== st.line)) continue;
+    const theirs = sailingTypes(r, agentOwn);
+    for (const [k, v] of Object.entries(deals[r.line] || {})) theirs[k] = [...(theirs[k] || []), ...v];
+    const ks = Object.keys(theirs).filter(k => !GAP_SKIP.has(k) && (!st.otype || k === st.otype));
+    if (!ks.length) continue;
+    for (const o of candidates(r)) for (const k of ks) {
+      if (ourT[o.id].has(k)) continue;
+      const g = gaps[o.id] || (gaps[o.id] = {o, types: {}, them: new Set()});
+      const x = g.types[k] || (g.types[k] = {rs: [], lines: new Set(), texts: new Set()});
+      x.rs.push(r); x.lines.add(r.line); theirs[k].forEach(tx => x.texts.add(tx)); g.them.add(r);
+    }
+  }
+  const best = (k, texts) => [...texts].map(tx => valueOf(tx, k)).filter(Boolean).sort((a, b) => k === "deposit" ? a.n - b.n : b.n - a.n)[0];
+  const rows = Object.values(gaps).map(g => ({...g, ours: ourN[g.o.id], n: g.them.size,
+    types: Object.fromEntries(Object.entries(g.types).map(([k, x]) => [k, {...x, best: best(k, x.texts)}]))})).sort((a, b) => b.n - a.n || a.o.date.localeCompare(b.o.date));
+  return {rows, ourTotal: our.length};
+}
+let gapsAll = false;
+
 function renderOffers(box){
   const today = new Date().toISOString().slice(0, 10), wk = isoDaysAgo(7), month = isoDaysAgo(30);
   const onSale = Object.values(ctx.state.sailings || {}).filter(s => !s.removed).length;
@@ -359,6 +404,55 @@ function renderOffers(box){
   const line = (x, d, w) => `<tr><td>${day(d)}</td><td>${esc(brandLabel(x.brand))}</td><td style="white-space:normal"><b>${esc(x.text)}</b>${x.expired ? ` <span class="sub">(its own wording says it ended)</span>` : ""}<div class="sub">${esc(x.types.map(t => TYPE_LABEL[t]).join(" · "))} · ${esc(x.sources.map(s => SRC[s]).join(", "))}</div></td><td><span class="chip"${w === "ended" ? ' style="border-color:var(--muted)"' : ""}>${w}</span></td></tr>`;
   const week = fresh.length || gone.length ? `<div class="tablewrap"><table class="ptable"><tbody>${fresh.map(x => line(x, newOn(x), "new")).join("")}${gone.map(x => line(x, x.last, "ended")).join("")}</tbody></table></div>`
     : `<div class="empty"><p>Nothing started or ended in the last 7 days${st.line ? " for this brand" : ""}.</p></div>`;
+
+  // 2b. Ending soon (Sam, 17 Oct 2026): the next 60 days' end dates, ours (the website's own expiry on each promotion)
+  // and theirs (written in the offer or given in their newsletter), week by week; ours say whether the sailings departing
+  // after the end keep another offer of the same kind, and a warning when one ends within 7 days with nothing replacing it
+  const horizon = addDays(today, 60), soon = addDays(today, 7);
+  const oe = st.line && st.line !== "ambassador" ? [] : ourEndings({S: ctx.state, today}).filter(x => x.ends <= horizon && (!st.otype || x.types.includes(st.otype)));
+  const kinds = x => x.types.map(t => TYPE_LABEL[t].toLowerCase()).join(" or ") || "offer";
+  const sailLinks = codes => codes.map(c => `<a href="#${esc(c)}">${esc(c)}</a>`).join(", ");
+  const warn = oe.filter(x => x.ends <= soon && x.bare.length);
+  const ending = [
+    ...oe.map(x => ({d: x.ends, brand: "ambassador", text: x.name, reach: `on ${x.codes.length} sailing${x.codes.length === 1 ? "" : "s"}`, ours: x})),
+    ...all.filter(x => x.brand !== "ambassador" && x.live && x.ends && x.ends >= today && x.ends <= horizon && pickB(x) && pickT(x))
+      .map(x => ({d: x.ends, brand: x.brand, text: x.text, reach: reach(x), src: x.sources.map(s => SRC[s]).join(", ")})),
+  ].sort((a, b) => a.d.localeCompare(b.d) || (a.brand === "ambassador" ? -1 : 1));
+  let wkOf = "";
+  const endRows = ending.map(e => {
+    const w = mondayOf(e.d), headRow = w !== wkOf ? `<tr><th colspan="4" style="background:var(--bg-alt);text-align:left">Week of ${day(w)}</th></tr>` : "";
+    wkOf = w;
+    const x = e.ours, note = !x ? `<span class="sub">${esc(e.src)}</span>`
+      : !x.after.length ? `<span class="sub">all its sailings depart before then</span>`
+      : x.bare.length ? `<span style="color:var(--warn)">${x.bare.length} of the ${x.after.length} sailings departing after it have no other ${esc(kinds(x))} offer</span><details><summary class="sub">Which</summary><span class="sub">${sailLinks(x.bare)}</span></details>`
+      : `<span class="sub">every sailing departing after it keeps another ${esc(kinds(x))} offer</span>`;
+    return headRow + `<tr${e.brand === "ambassador" ? ' style="font-weight:600"' : ""}><td>${day(e.d)}</td><td>${esc(brandLabel(e.brand))}</td><td style="white-space:normal">${esc(e.text)}<div class="sub" style="font-weight:400">${esc(e.reach)}</div></td><td style="white-space:normal;font-weight:400">${note}</td></tr>`;
+  }).join("");
+  const endingBlock = `${warn.length ? `<div class="note" style="border-left:4px solid var(--warn);padding:8px 12px;margin:0 0 10px;background:var(--bg-alt)"><b>Ending within 7 days with nothing replacing it:</b><ul style="margin:4px 0 0 18px;padding:0">${warn.map(x => `<li>${esc(x.name)} ends ${day(x.ends)}: ${x.bare.length} sailing${x.bare.length === 1 ? "" : "s"} departing later will have no ${esc(kinds(x))} offer (${sailLinks(x.bare.slice(0, 12))}${x.bare.length > 12 ? ` and ${x.bare.length - 12} more` : ""})</li>`).join("")}</ul></div>` : ""}
+    ${endRows ? `<div class="tablewrap"><table class="ptable"><thead><tr><th>Ends</th><th>Brand</th><th>Offer</th><th>After it ends</th></tr></thead><tbody>${endRows}</tbody></table></div>
+      <p class="note">Ours: the end date our website gives each promotion, or one written in its wording ("Book by … 20th October"); promotions with neither aren't listed. "Nothing replacing it" looks at the offers live today on the same sailings; a promotion added later can't be foreseen. Theirs: an end date written in the offer or its newsletter, so most of theirs have none.</p>`
+      : `<div class="empty"><p>No offers with an end date in the next 60 days${st.line ? " for this brand" : ""}.</p></div>`}`;
+
+  // 2c. Where they're offering and we aren't (offerGaps)
+  const G = offerGaps(), gRows = gapsAll ? G.rows : G.rows.slice(0, 40);
+  const perType = TYPES.map(([k, l]) => {
+    const xs = G.rows.filter(g => g.types[k]);
+    if (!xs.length) return "";
+    const lines = new Set(xs.flatMap(g => [...g.types[k].lines])), b = xs.map(g => g.types[k].best).filter(Boolean).sort((p, q) => k === "deposit" ? p.n - q.n : q.n - p.n)[0];
+    return `<tr><td>${esc(l)}</td><td class="num">${xs.length}</td><td>${esc([...lines].map(lineName).join(", "))}</td><td class="num">${b ? esc(b.text) : "–"}</td></tr>`;
+  }).join("");
+  const gapCell = g => Object.entries(g.types).sort((a, b) => b[1].rs.length - a[1].rs.length).map(([k, x]) =>
+    `<div><b>${esc(TYPE_LABEL[k])}</b>${x.best ? ` ${esc(x.best.text)}` : ""} <span class="sub">on ${x.rs.length} of theirs (${esc([...x.lines].map(lineName).join(", "))})</span>
+      <div class="sub" title="${esc([...x.texts].join("\n"))}">e.g. ${esc([...x.texts][0].length > 90 ? [...x.texts][0].slice(0, 88) + "…" : [...x.texts][0])}</div></div>`).join("");
+  const gapsBlock = G.rows.length ? `
+    <div class="tablewrap"><table class="ptable"><thead><tr><th>Kind of offer</th><th class="num">Our sailings without it</th><th>Their lines offering it</th><th class="num">Their best</th></tr></thead><tbody>${perType}</tbody></table></div>
+    <div class="tablewrap" style="margin-top:12px"><table class="ptable"><thead><tr><th>Our sailing</th><th>Our offers</th><th>Their similar sailings offer, and we don't</th></tr></thead><tbody>
+      ${gRows.map(g => `<tr><td style="white-space:normal"><a href="#${esc(g.o.id)}"><b>${esc(g.o.title || g.o.id)}</b></a><div class="sub">${esc(g.o.id)} · ${day(g.o.date)} · ${g.o.nights} nights · ${esc(g.o.port || "")}</div><div class="sub">${g.n} similar sailing${g.n === 1 ? "" : "s"} of theirs</div></td>
+        <td style="white-space:normal">${g.ours.length ? g.ours.map(esc).join("<br>") : `<span class="sub">none</span>`}</td><td style="white-space:normal">${gapCell(g)}</td></tr>`).join("")}
+    </tbody></table></div>
+    ${G.rows.length > 40 && !gapsAll ? `<button type="button" class="linkbtn" id="gp-all">Show all ${G.rows.length}</button>` : ""}
+    <p class="note">${G.rows.length} of our ${G.ourTotal} sailings on sale have similar competitor sailings (same month, within 3 nights' length, same no-fly / fly-Caribbean${st.like ? ", same destination" : ""}) carrying a kind of offer they don't. Theirs are Planet Cruise's lines on each sailing (leaving out the ones it also shows on our sailings, such as its £1 deposit: the agent's own deals) and Fred. Olsen's deals pages; flash, late and launch wording isn't counted as an offer of its own. Ours are the promotions on our website. <button type="button" class="linkbtn" id="gp-csv">Download CSV</button></p>`
+    : `<div class="empty"><p>None of our sailings is missing a kind of offer that similar competitor sailings carry${st.otype || st.line ? " (with these filters)" : ""}.</p></div>`;
 
   // 3. Every live offer, cleaned up (filters: brand, type); ended ones in the last 30 days folded underneath
   const listed = live.filter(x => pickB(x) && pickT(x)).sort((a, b) => (a.brand === "ambassador" ? -1 : b.brand === "ambassador" ? 1 : brandLabel(a.brand).localeCompare(brandLabel(b.brand))) || (b.of ? b.n / b.of : 0) - (a.of ? a.n / a.of : 0));
@@ -409,7 +503,9 @@ function renderOffers(box){
     </div>
     <p class="note" style="margin:0 0 6px">From their newsletters, Fred. Olsen's deals pages, the offer lines on every competing sailing at Planet Cruise, and our own website. Recording began ${day(Object.values(base).sort()[0])} (Planet Cruise's lines from 14–16 Oct). Their live ads are on <b>Competitor ads</b>.</p>
     <h3 style="margin:14px 0 8px;font-size:15px">Who's offering what</h3>${grid}
+    <h3 style="margin:22px 0 8px;font-size:15px">Where they're offering and we aren't</h3>${gapsBlock}
     <h3 style="margin:22px 0 8px;font-size:15px">New and ended in the last 7 days</h3>${week}
+    <h3 style="margin:22px 0 8px;font-size:15px">Ending in the next 60 days</h3>${endingBlock}
     <h3 id="of-list" style="margin:22px 0 8px;font-size:15px">Every live offer${st.otype ? `: ${esc(TYPE_LABEL[st.otype].toLowerCase())}` : ""}</h3>
     ${listed.length ? `<div class="tablewrap"><table class="ptable">${head}<tbody>${listed.map(offerRow).join("")}</tbody></table></div>` : `<div class="empty"><p>No live offers match.</p></div>`}
     ${old.length ? `<details style="margin-top:10px"><summary class="sub">${old.length} ended in the last 30 days, or probably out of date</summary><div class="tablewrap"><table class="ptable">${head}<tbody>${old.map(offerRow).join("")}</tbody></table></div></details>` : ""}
@@ -423,6 +519,13 @@ function renderOffers(box){
     [st.line, st.otype] = b.dataset.cell.split("|"); save(); renderOffers(box);
     box.querySelector("#of-list").scrollIntoView({behavior: "smooth", block: "start"});
   }));
+  const ga = box.querySelector("#gp-all");
+  if (ga) ga.addEventListener("click", () => { gapsAll = true; renderOffers(box); });
+  const gc = box.querySelector("#gp-csv");
+  if (gc) gc.addEventListener("click", () => csvDownload(`offer-gaps-${today}.csv`,
+    ["Cruise code", "Sailing", "Departs", "Nights", "From", "Our offers", "Kind of offer we don't have", "Their sailings with it", "Their lines", "Their best", "Example"],
+    G.rows.flatMap(g => Object.entries(g.types).map(([k, x]) => [g.o.id, g.o.title, g.o.date, g.o.nights, g.o.port, g.ours.join("; "), TYPE_LABEL[k], x.rs.length,
+      [...x.lines].map(lineName).join("; "), x.best ? x.best.text : "", [...x.texts][0]]))));
   const dsel = box.querySelector("#ib-days");
   if (dsel) dsel.addEventListener("change", e => { inboxDays = +e.target.value; renderOffers(box); });
   box.querySelector("#of-csv").addEventListener("click", () => csvDownload(`competitor-offers-${today}.csv`,

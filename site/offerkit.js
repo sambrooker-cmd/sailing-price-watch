@@ -25,7 +25,7 @@ const addDays = (s, n) => iso(new Date(Date.parse(s + "T12:00:00Z") + n * 864e5)
 
 // "*Free Onboard Spend*" → "Free Onboard Spend"
 export const clean = t => String(t || "").replace(/\s+/g, " ").replace(/^[\s*!•·-]+|[\s*]+$/g, "").trim();
-const keyOf = t => clean(t).toLowerCase().replace(/[^a-z0-9£$€%]+/g, " ").trim();
+export const keyOf = t => clean(t).toLowerCase().replace(/[^a-z0-9£$€%]+/g, " ").trim();
 // Lines that aren't offers although they mention one (a fare's description, the agent's booking button)
 const NOT_OFFER = /select price fare to enjoy|book this deal online/i;
 // A saving on flights or flight seats ("30% off Upper Class seats", "flight deals… save £250") is a travel offer, not a
@@ -133,13 +133,49 @@ export function collect({C, I, S, today, onSale}){
   }
   for (const [id, o] of Object.entries((S && S.offers) || {}))
     add("ambassador", "ours", o.name || id, {desc: o.desc || "", first: first[id] || o.first_seen, live: !!live[id], end: live[id] ? null : end[id] || o.last_seen, n: live[id] || 0, of: onSale,
-      ends: (o.expires || "").slice(0, 10) || null});
+      ends: (o.expires || "").slice(0, 10) || endsIn(`${o.name || ""} ${o.desc || ""}`, today)});
   // Done: an offer whose own wording says it has ended counts as ended that day
   return [...out.values()].map(x => {
     const expired = x.live && x.ends && x.ends < today;
     return {...x, sources: [...x.sources], live: x.live && !expired, last: expired ? x.ends : x.last, expired,
       value: Object.fromEntries(x.types.map(t => [t, valueOf(x.text + " " + x.desc, t)]).filter(([, v]) => v))};
   });
+}
+
+// Our promotions with an end date (the website's own expiry) and, for each, which of its sailings still on sale after
+// that date keep no other offer of the same kind ("bare": nothing live today replaces it there; a promotion added
+// later can't be foreseen). Sailings departing before the end date don't need replacing.
+export function ourEndings({S, today}){
+  const offers = (S && S.offers) || {}, sail = (S && S.sailings) || {}, liveOn = {}, byId = {};
+  for (const [code, s] of Object.entries(sail)) {
+    if (s.removed || (s.departure_date || "") <= today) continue;
+    for (const [id, sp] of Object.entries(s.promos || {})) if (sp.length && sp[sp.length - 1][1] == null) {
+      (liveOn[code] || (liveOn[code] = [])).push(id); (byId[id] || (byId[id] = [])).push(code);
+    }
+  }
+  // the website's expiry, else a date in the wording ("Book by 23:59 on 20th October 2026")
+  const ends = id => { const o = offers[id] || {}; return (o.expires || "").slice(0, 10) || endsIn(`${o.name || ""} ${o.desc || ""}`, today); };
+  const types = id => typesOf(`${(offers[id] || {}).name || ""} ${(offers[id] || {}).desc || ""}`);
+  const out = [];
+  for (const [id, codes] of Object.entries(byId)) {
+    const e = ends(id);
+    if (!e || e < today) continue;
+    const ts = types(id), after = codes.filter(c => sail[c].departure_date > e);
+    const bare = after.filter(c => !liveOn[c].some(j => j !== id && types(j).some(t => ts.includes(t)) && (!ends(j) || ends(j) > e)));
+    out.push({id, name: clean((offers[id] || {}).name || id), desc: (offers[id] || {}).desc || "", ends: e, types: ts, codes, after, bare});
+  }
+  return out.sort((a, b) => a.ends.localeCompare(b.ends) || b.codes.length - a.codes.length);
+}
+
+// The kinds of offer on one of their sailings (the agent's lines on it, except those in `skip`: lines the agent also
+// shows on our own sailings, such as its £1 deposit, are its deals, not the line's)
+export function sailingTypes(r, skip){
+  const out = {};
+  for (const [t, sp] of Object.entries(r.offers || {})) {
+    if (!sp || !sp.length || sp[sp.length - 1][1] != null || (skip && skip.has(keyOf(t)))) continue;
+    for (const k of typesOf(clean(t))) (out[k] || (out[k] = [])).push(clean(t));
+  }
+  return out;
 }
 
 // When recording began for each brand in each source ("agent|msc"): offers already running then aren't "new" (Planet
